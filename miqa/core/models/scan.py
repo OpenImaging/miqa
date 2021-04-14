@@ -23,7 +23,6 @@ class Scan(TimeStampedModel, models.Model):
     experiment = models.ForeignKey('Experiment', on_delete=models.CASCADE)
     site = models.ForeignKey('Site', on_delete=models.PROTECT)
 
-    note = models.TextField(max_length=3000, blank=True)
     scan_id = models.CharField(max_length=127, blank=False)
     scan_type = models.CharField(max_length=255, blank=False)
     decision = models.CharField(
