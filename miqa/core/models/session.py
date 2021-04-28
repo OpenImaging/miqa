@@ -9,3 +9,6 @@ class Session(TimeStampedModel, models.Model):
 
     import_path = models.CharField(max_length=500)
     export_path = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.name
