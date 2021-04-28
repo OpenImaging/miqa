@@ -26,5 +26,7 @@ class Scan(TimeStampedModel, models.Model):
     scan_id = models.CharField(max_length=127, blank=False)
     scan_type = models.CharField(max_length=255, blank=False)
     decision = models.CharField(
-        max_length=20, default=ScanDecision.NONE, choices=[(tag, tag.value) for tag in ScanDecision]
+        max_length=20,
+        default=ScanDecision.NONE.value,
+        choices=[(tag.name, tag.value) for tag in ScanDecision],
     )
