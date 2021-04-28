@@ -80,6 +80,7 @@ class Migration(migrations.Migration):
                         max_length=20,
                     ),
                 ),
+                ('note', models.TextField(blank=True, max_length=3000)),
                 (
                     'experiment',
                     models.ForeignKey(
