@@ -147,6 +147,7 @@ class Migration(migrations.Migration):
                         auto_now=True, verbose_name='modified'
                     ),
                 ),
+                ('name', models.CharField(max_length=255)),
                 (
                     'creator',
                     models.ForeignKey(

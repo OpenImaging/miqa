@@ -4,4 +4,5 @@ from django_extensions.db.models import TimeStampedModel
 
 
 class Session(TimeStampedModel, models.Model):
+    name = models.CharField(max_length=255)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
