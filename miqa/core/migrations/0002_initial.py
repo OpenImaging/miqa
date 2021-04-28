@@ -162,6 +162,11 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
+        migrations.AddField(
+            model_name='site',
+            name='session',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.session'),
+        ),
         migrations.CreateModel(
             name='ScanNote',
             fields=[
