@@ -3,11 +3,12 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from rest_framework import permissions, routers
+from rest_framework import permissions
+from rest_framework_extensions.routers import ExtendedSimpleRouter
 
 from miqa.core.rest import ImageViewSet
 
-router = routers.SimpleRouter(trailing_slash=False)
+router = ExtendedSimpleRouter(trailing_slash=False)
 router.register('images', ImageViewSet)
 
 # OpenAPI generation
