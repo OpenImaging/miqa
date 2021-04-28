@@ -6,13 +6,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_extensions.routers import ExtendedSimpleRouter
 
-from miqa.core.rest import (
-    ExperimentViewSet,
-    ImageViewSet,
-    ScanViewSet,
-    SessionViewSet,
-    SiteViewSet,
-)
+from miqa.core.rest import ExperimentViewSet, ImageViewSet, ScanViewSet, SessionViewSet, SiteViewSet
 
 router = ExtendedSimpleRouter(trailing_slash=False)
 session_router = router.register('sessions', SessionViewSet, basename='session')

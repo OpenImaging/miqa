@@ -1,6 +1,9 @@
 import os
 import re
-from drf_yasg.utils import swagger_auto_schema, no_body
+
+from drf_yasg.utils import no_body, swagger_auto_schema
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError as JSONValidationError
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -8,12 +11,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject
-from miqa.core.models import Scan, Session, Site, Experiment, Image, ScanNote
+from miqa.core.models import Experiment, Image, Scan, Session, Site
 from miqa.core.models.scan import ScanDecision
 from miqa.core.schema.data_import import schema
-
-from jsonschema import validate
-from jsonschema.exceptions import ValidationError as JSONValidationError
 
 
 class SessionSerializer(serializers.ModelSerializer):
@@ -71,8 +71,8 @@ class SessionViewSet(ReadOnlyModelViewSet):
             try:
                 json_content = csvContentToJsonObject(csv_content)
                 validate(json_content, schema)
-            except (JSONValidationError, Exception) as inst:
-                Response({"error": 'Invalid CSV file: {0}'.format(inst.message)})
+            except (JSONValidationError, Exception) as e:
+                Response({'error': f'Invalid CSV file: {str(e)}'})
 
         print(json_content)
         data_root = json_content['data_root']

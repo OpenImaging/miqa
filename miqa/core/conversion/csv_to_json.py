@@ -1,3 +1,5 @@
+# flake8: noqa N806
+
 import argparse
 import csv
 import io
