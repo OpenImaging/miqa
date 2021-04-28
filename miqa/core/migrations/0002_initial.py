@@ -148,6 +148,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ('name', models.CharField(max_length=255)),
+                ('import_path', models.CharField(max_length=500)),
+                ('export_path', models.CharField(max_length=500)),
                 (
                     'creator',
                     models.ForeignKey(
