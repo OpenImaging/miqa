@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from django.http import FileResponse, HttpResponseServerError
-from django_filters import rest_framework as filters
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
