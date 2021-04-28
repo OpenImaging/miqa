@@ -30,3 +30,4 @@ class Scan(TimeStampedModel, models.Model):
         default=ScanDecision.NONE.value,
         choices=[(tag.name, tag.value) for tag in ScanDecision],
     )
+    note = models.TextField(max_length=3000, blank=True)
