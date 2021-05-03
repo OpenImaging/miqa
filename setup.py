@@ -45,7 +45,6 @@ setup(
         'django-oauth-toolkit',
         'djangorestframework',
         'drf-yasg',
-        'drf-extensions',
         # Production-only
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
