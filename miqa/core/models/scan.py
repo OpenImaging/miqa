@@ -13,19 +13,19 @@ class ScanDecision(Enum):
     @classmethod
     def from_rating(cls, rating: str) -> str:
         return {
-            '': cls.NONE.value,
-            '0': cls.BAD.value,
-            '1': cls.GOOD.value,
-            '2': cls.USABLE_EXTRA.value,
+            '': cls.NONE.name,
+            '0': cls.BAD.name,
+            '1': cls.GOOD.name,
+            '2': cls.USABLE_EXTRA.name,
         }[rating]
 
     @classmethod
     def to_rating(cls, decision: str) -> str:
         return {
-            cls.NONE.value: '',
-            cls.BAD.value: '0',
-            cls.GOOD.value: '1',
-            cls.USABLE_EXTRA.value: '2',
+            cls.NONE.name: '',
+            cls.BAD.name: '0',
+            cls.GOOD.name: '1',
+            cls.USABLE_EXTRA.name: '2',
         }[decision]
 
 
@@ -45,7 +45,7 @@ class Scan(TimeStampedModel, models.Model):
     scan_type = models.CharField(max_length=255, blank=False)
     decision = models.CharField(
         max_length=20,
-        default=ScanDecision.NONE.value,
+        default=ScanDecision.NONE.name,
         choices=[(tag.name, tag.value) for tag in ScanDecision],
     )
     note = models.TextField(max_length=3000, blank=True)
