@@ -2,6 +2,7 @@ from django.db import models
 from django_extensions.db.models import CreationDateTimeField
 
 
+# TODO unused
 class ScanNote(models.Model):
     class Meta:
         ordering = ['created']
