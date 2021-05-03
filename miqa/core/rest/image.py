@@ -30,7 +30,7 @@ class ImageViewSet(NestedViewSetMixin, ListModelMixin, GenericViewSet):
         if not path.is_file():
             return HttpResponseServerError('File no longer exists.')
 
-        with open(path, 'rb') as fd:
-            resp = FileResponse(fd, filename=image.name)
-            resp['Content-Length'] = image.size
-            return resp
+        fd = open(path, 'rb')
+        resp = FileResponse(fd, filename=image.name)
+        resp['Content-Length'] = image.size
+        return resp
