@@ -1,7 +1,7 @@
+from django_filters import rest_framework as filters
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from miqa.core.models import Scan
 
@@ -14,8 +14,11 @@ class ScanSerializer(serializers.ModelSerializer):
     decision = serializers.ChoiceField(choices=Scan.decision.field.choices)
 
 
-class ScanViewSet(NestedViewSetMixin, ReadOnlyModelViewSet):
+class ScanViewSet(ReadOnlyModelViewSet):
     queryset = Scan.objects.all()
+
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_fields = ['experiment', 'site']
 
     permission_classes = [AllowAny]
     serializer_class = ScanSerializer
