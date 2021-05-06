@@ -1,0 +1,16 @@
+# npm and Ruby Bundler package installs
+node_modules/
+vendor/
+
+# npm build output
+.sass-cache/
+dist/
+_data/manifest.yml
+
+# Jekyll build output
+.jekyll-cache/
+.jekyll-metadata
+_site/
+
+# Common OS-generated files
+.DS_Store

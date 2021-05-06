@@ -1,0 +1,15 @@
+<div class="w-full">
+    <h2 class="font-light text-3xl text-secondary-400 text-center py-6">{{ page.features_title }}</h2>
+</div>
+<div class="gap-10 grid grid-cols-2 p-6 pt-0 text-xs sm:flex-grow sm:grid-cols-1 md:text-base lg:p-10 lg:grid-cols-2">
+    {% for feature in page.features %}
+    <div class="flex">
+        <img src="{{ feature.icon | prepend: site.baseurl }}" class="max-h-14 pr-6" alt="">
+        <!-- <i class="block mb-2 text-primary-500 text-4xl">{{ feature.icon }} </i> -->
+        <div>
+            <div class="text-xl font-black text-secondary-800">{{ feature.name }}</div>
+            <div class="text-secondary-400">{{ feature.description }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

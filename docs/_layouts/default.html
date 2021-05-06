@@ -1,0 +1,26 @@
+{% include header.html %}
+
+<div class="bg-gradient-to-br from-primary-500 to-primary-900">
+  <div class="container max-w-7xl mx-auto py-6 px-4 sm:px-6">
+    <div class="lg:flex lg:items-center lg:justify-between">
+      <h1 class="text-white">
+        {{ page.title }}
+      </h1>
+      {% if page.sections %}
+        <div class="border-t border-b border-primary-400 divide-y divide-primary-400 mt-3 lg:border-0 lg:flex lg:items-center lg:divide-x lg:divide-y-0 lg:mt-0">
+          {% for section in page.sections %}
+            <a href="{{ section.anchor }}" class="block p-2 text-accent-400 lg:px-4 lg:py-0">{{ section.name }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<main class="content">
+  <div class="container max-w-6xl mx-auto px-4 sm:px-6 py-10">
+    {{ content }}
+  </div>
+</main>
+
+{% include footer.html %}

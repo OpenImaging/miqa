@@ -1,0 +1,23 @@
+{% include header.html %}
+
+{% include hero.html %}
+
+<main class="content">
+  <div class="bg-gradient-to-t from-primary-50">
+    <section class="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:py-16 lg:pt-8 lg:flex lg:flex-wrap">
+      <div class="text-secondary-400 text-center pt-12">
+        {{ content }}
+      </div>
+      {% include features.html %}
+    </section>
+  </div>
+  {% if page.resources != empty %}
+  <section class="bg-gradient-to-br from-secondary-100 to-secondary-300 py-6 lg:py-16">
+    <div class="container max-w-7xl mx-auto px-4 sm:px-6">
+      {% include resources.html %}
+    </div>
+  </section>
+  {% endif %}
+</main>
+
+{% include footer.html %}

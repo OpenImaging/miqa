@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<title>SC15 Kitware Booth Presentations - VTKM</title>
+<script>document.documentElement.className="client-js";RLCONF={"wgCanonicalNamespace":"","wgCanonicalSpecialPageName":!1,"wgNamespaceNumber":0,"wgPageName":"SC15_Kitware_Booth_Presentations","wgTitle":"SC15 Kitware Booth Presentations","wgCurRevisionId":246,"wgRevisionId":246,"wgArticleId":91,"wgIsArticle":!0,"wgIsRedirect":!1,"wgAction":"view","wgUserName":null,"wgUserGroups":["*"],"wgCategories":[],"wgBreakFrames":!1,"wgPageContentLanguage":"en","wgPageContentModel":"wikitext","wgSeparatorTransformTable":["",""],"wgDigitTransformTable":["",""],"wgDefaultDateFormat":"dmy","wgMonthNames":["","January","February","March","April","May","June","July","August","September","October","November","December"],"wgMonthNamesShort":["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"wgRelevantPageName":"SC15_Kitware_Booth_Presentations","wgRelevantArticleId":91,"wgRequestId":"07cd5dd8e5bf3a33a79ce97c","wgCSPNonce":!1,"wgIsProbablyEditable":!1,
+"wgRelevantPageIsProbablyEditable":!1,"wgRestrictionEdit":[],"wgRestrictionMove":[]};RLSTATE={"site.styles":"ready","noscript":"ready","user.styles":"ready","user":"ready","user.options":"ready","user.tokens":"loading","mediawiki.legacy.shared":"ready","mediawiki.legacy.commonPrint":"ready","mediawiki.skinning.interface":"ready","skins.vector.styles":"ready"};RLPAGEMODULES=["site","mediawiki.page.startup","mediawiki.page.ready","mediawiki.searchSuggest","skins.vector.js"];</script>
+<script>(RLQ=window.RLQ||[]).push(function(){mw.loader.implement("user.tokens@tffin",function($,jQuery,require,module){/*@nomin*/mw.user.tokens.set({"editToken":"+\\","patrolToken":"+\\","watchToken":"+\\","csrfToken":"+\\"});
+});});</script>
+<link rel="stylesheet" href="/load.php?lang=en&amp;modules=mediawiki.legacy.commonPrint%2Cshared%7Cmediawiki.skinning.interface%7Cskins.vector.styles&amp;only=styles&amp;skin=vector"/>
+<script async="" src="/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector"></script>
+<meta name="generator" content="MediaWiki 1.34.1"/>
+<link rel="shortcut icon" href="/favicon.ico"/>
+<link rel="search" type="application/opensearchdescription+xml" href="/opensearch_desc.php" title="VTKM (en)"/>
+<link rel="EditURI" type="application/rsd+xml" href="//m.vtk.org/api.php?action=rsd"/>
+<link rel="alternate" type="application/atom+xml" title="VTKM Atom feed" href="/index.php?title=Special:RecentChanges&amp;feed=atom"/>
+<!--[if lt IE 9]><script src="/resources/lib/html5shiv/html5shiv.js"></script><![endif]-->
+</head>
+<body class="mediawiki ltr sitedir-ltr mw-hide-empty-elt ns-0 ns-subject page-SC15_Kitware_Booth_Presentations rootpage-SC15_Kitware_Booth_Presentations skin-vector action-view">
+<div id="mw-page-base" class="noprint"></div>
+<div id="mw-head-base" class="noprint"></div>
+<div id="content" class="mw-body" role="main">
+	<a id="top"></a>
+	
+	<div class="mw-indicators mw-body-content">
+</div>
+
+	<h1 id="firstHeading" class="firstHeading" lang="en">SC15 Kitware Booth Presentations</h1>
+	
+	<div id="bodyContent" class="mw-body-content">
+		<div id="siteSub" class="noprint">From VTKM</div>
+		<div id="contentSub"></div>
+		
+		
+		
+		<div id="jump-to-nav"></div>
+		<a class="mw-jump-link" href="#mw-head">Jump to navigation</a>
+		<a class="mw-jump-link" href="#p-search">Jump to search</a>
+		<div id="mw-content-text" lang="en" dir="ltr" class="mw-content-ltr"><div class="mw-parser-output"><p>As usual, <a rel="nofollow" class="external text" href="http://kitware.com">Kitware, Inc.</a> had a booth at <a rel="nofollow" class="external text" href="http://sc15.supercomputing.org/">Supercomputing 2015</a> and invited several technical talks. Here is a brief overview of some of the VTK-m related activities in the booth.
+</p>
+<h2><span id="VTK-m/Catalyst/ParaView_Demo"></span><span class="mw-headline" id="VTK-m.2FCatalyst.2FParaView_Demo">VTK-m/Catalyst/ParaView Demo</span></h2>
+<p>Rob Maynard presented a live demo of using VTK-m in situ on a simulation running on Oak Ridge's Titan supercomputer. The demonstration was running the PyFR simulation with <a rel="nofollow" class="external text" href="http://www.paraview.org/in-situ/">ParaView Catalyst</a> integrated. Within Catalyst a series of VTK-m algorithms were run on the data, and the generated VTK-m data structures were rendered directly on the system. The entire operation from simulation computation to rendering happened completely on 256 GPUs devices without pulling data to CPU memory.
+</p><p>On the show floor was an instance of <a rel="nofollow" class="external text" href="http://paraview.org">ParaView</a> running on a laptop and connected over the internet to the running PyFR simulation through the Catalyst library. In addition to getting continuous updates of the running simulation/visualization, the local controls could interactively change the visualization as well as pause and resume the simulation.
+</p><p><a href="/index.php/File:SC15Demo1.jpeg" class="image"><img alt="SC15Demo1.jpeg" src="/images/e/ea/SC15Demo1.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo2.jpeg" class="image"><img alt="SC15Demo2.jpeg" src="/images/d/d3/SC15Demo2.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo3.jpeg" class="image"><img alt="SC15Demo3.jpeg" src="/images/8/8e/SC15Demo3.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo4.jpeg" class="image"><img alt="SC15Demo4.jpeg" src="/images/b/bc/SC15Demo4.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo5.jpeg" class="image"><img alt="SC15Demo5.jpeg" src="/images/0/00/SC15Demo5.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo6.jpeg" class="image"><img alt="SC15Demo6.jpeg" src="/images/7/7a/SC15Demo6.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo7.jpeg" class="image"><img alt="SC15Demo7.jpeg" src="/images/4/42/SC15Demo7.jpeg" decoding="async" width="400" height="300" /></a>
+<a href="/index.php/File:SC15Demo8.jpeg" class="image"><img alt="SC15Demo8.jpeg" src="/images/b/b0/SC15Demo8.jpeg" decoding="async" width="400" height="300" /></a>
+</p>
+<h2><span class="mw-headline" id="VTK-m_Overview">VTK-m Overview</span></h2>
+<p>[<a rel="nofollow" class="external text" href="http://kennethmoreland.com">Ken Moreland</a>] gave an overview presentation of VTK-m. This was a similar presentation to one given earlier at the Ultrascale Visualization Workshop. <a href="/images/a/a5/VTKmUltraVis2015.pptx" class="internal" title="VTKmUltraVis2015.pptx"> Slides for the talk are available here</a>.
+</p><p><a href="/index.php/File:SC15Presentation1.jpeg" class="image"><img alt="SC15Presentation1.jpeg" src="/images/9/91/SC15Presentation1.jpeg" decoding="async" width="400" height="300" /></a>
+</p>
+<!-- 
+NewPP limit report
+Cached time: 20210325171158
+Cache expiry: 86400
+Dynamic content: false
+Complications: []
+CPU time usage: 0.036 seconds
+Real time usage: 0.038 seconds
+Preprocessor visited node count: 14/1000000
+Preprocessor generated node count: 0/1000000
+Post‐expand include size: 0/2097152 bytes
+Template argument size: 0/2097152 bytes
+Highest expansion depth: 2/40
+Expensive parser function count: 0/100
+Unstrip recursion depth: 0/20
+Unstrip post‐expand size: 0/5000000 bytes
+-->
+<!--
+Transclusion expansion time report (%,ms,calls,template)
+100.00%    0.000      1 -total
+-->
+
+<!-- Saved in parser cache with key VTKMWikiDB:pcache:idhash:91-0!canonical and timestamp 20210325171157 and revision id 246
+ -->
+</div></div>
+		
+		<div class="printfooter">Retrieved from "<a dir="ltr" href="http://m.vtk.org/index.php?title=SC15_Kitware_Booth_Presentations&amp;oldid=246">http://m.vtk.org/index.php?title=SC15_Kitware_Booth_Presentations&amp;oldid=246</a>"</div>
+		
+		<div id="catlinks" class="catlinks catlinks-allhidden" data-mw="interface"></div>
+		<div class="visualClear"></div>
+		
+	</div>
+</div>
+
+
+		<div id="mw-navigation">
+			<h2>Navigation menu</h2>
+			<div id="mw-head">
+									<div id="p-personal" role="navigation" aria-labelledby="p-personal-label">
+						<h3 id="p-personal-label">Personal tools</h3>
+						<ul>
+							<li id="pt-login"><a href="/index.php?title=Special:UserLogin&amp;returnto=SC15+Kitware+Booth+Presentations" title="You are encouraged to log in; however, it is not mandatory [o]" accesskey="o">Log in</a></li>						</ul>
+					</div>
+									<div id="left-navigation">
+										<div id="p-namespaces" role="navigation" class="vectorTabs" aria-labelledby="p-namespaces-label">
+						<h3 id="p-namespaces-label">Namespaces</h3>
+						<ul>
+							<li id="ca-nstab-main" class="selected"><span><a href="/index.php/SC15_Kitware_Booth_Presentations" title="View the content page [c]" accesskey="c">Page</a></span></li><li id="ca-talk" class="new"><span><a href="/index.php?title=Talk:SC15_Kitware_Booth_Presentations&amp;action=edit&amp;redlink=1" rel="discussion" title="Discussion about the content page (page does not exist) [t]" accesskey="t">Discussion</a></span></li>						</ul>
+					</div>
+										<div id="p-variants" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-variants-label">
+												<input type="checkbox" class="vectorMenuCheckbox" aria-labelledby="p-variants-label" />
+						<h3 id="p-variants-label">
+							<span>Variants</span>
+						</h3>
+						<ul class="menu">
+													</ul>
+					</div>
+									</div>
+				<div id="right-navigation">
+										<div id="p-views" role="navigation" class="vectorTabs" aria-labelledby="p-views-label">
+						<h3 id="p-views-label">Views</h3>
+						<ul>
+							<li id="ca-view" class="collapsible selected"><span><a href="/index.php/SC15_Kitware_Booth_Presentations">Read</a></span></li><li id="ca-viewsource" class="collapsible"><span><a href="/index.php?title=SC15_Kitware_Booth_Presentations&amp;action=edit" title="This page is protected.&#10;You can view its source [e]" accesskey="e">View source</a></span></li><li id="ca-history" class="collapsible"><span><a href="/index.php?title=SC15_Kitware_Booth_Presentations&amp;action=history" title="Past revisions of this page [h]" accesskey="h">View history</a></span></li>						</ul>
+					</div>
+										<div id="p-cactions" role="navigation" class="vectorMenu emptyPortlet" aria-labelledby="p-cactions-label">
+						<input type="checkbox" class="vectorMenuCheckbox" aria-labelledby="p-cactions-label" />
+						<h3 id="p-cactions-label"><span>More</span></h3>
+						<ul class="menu">
+													</ul>
+					</div>
+										<div id="p-search" role="search">
+						<h3>
+							<label for="searchInput">Search</label>
+						</h3>
+						<form action="/index.php" id="searchform">
+							<div id="simpleSearch">
+								<input type="search" name="search" placeholder="Search VTKM" title="Search VTKM [f]" accesskey="f" id="searchInput"/><input type="hidden" value="Special:Search" name="title"/><input type="submit" name="fulltext" value="Search" title="Search the pages for this text" id="mw-searchButton" class="searchButton mw-fallbackSearchButton"/><input type="submit" name="go" value="Go" title="Go to a page with this exact name if it exists" id="searchButton" class="searchButton"/>							</div>
+						</form>
+					</div>
+									</div>
+			</div>
+			<div id="mw-panel">
+				<div id="p-logo" role="banner"><a class="mw-wiki-logo" href="/index.php/Main_Page" title="Visit the main page"></a></div>
+						<div class="portal" role="navigation" id="p-navigation" aria-labelledby="p-navigation-label">
+			<h3 id="p-navigation-label">Navigation</h3>
+			<div class="body">
+								<ul>
+					<li id="n-mainpage-description"><a href="/index.php/Main_Page" title="Visit the main page [z]" accesskey="z">Main page</a></li><li id="n-recentchanges"><a href="/index.php/Special:RecentChanges" title="A list of recent changes in the wiki [r]" accesskey="r">Recent changes</a></li><li id="n-randompage"><a href="/index.php/Special:Random" title="Load a random page [x]" accesskey="x">Random page</a></li><li id="n-help-mediawiki"><a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Help:Contents">Help about MediaWiki</a></li>				</ul>
+							</div>
+		</div>
+			<div class="portal" role="navigation" id="p-tb" aria-labelledby="p-tb-label">
+			<h3 id="p-tb-label">Tools</h3>
+			<div class="body">
+								<ul>
+					<li id="t-whatlinkshere"><a href="/index.php/Special:WhatLinksHere/SC15_Kitware_Booth_Presentations" title="A list of all wiki pages that link here [j]" accesskey="j">What links here</a></li><li id="t-recentchangeslinked"><a href="/index.php/Special:RecentChangesLinked/SC15_Kitware_Booth_Presentations" rel="nofollow" title="Recent changes in pages linked from this page [k]" accesskey="k">Related changes</a></li><li id="t-specialpages"><a href="/index.php/Special:SpecialPages" title="A list of all special pages [q]" accesskey="q">Special pages</a></li><li id="t-print"><a href="/index.php?title=SC15_Kitware_Booth_Presentations&amp;printable=yes" rel="alternate" title="Printable version of this page [p]" accesskey="p">Printable version</a></li><li id="t-permalink"><a href="/index.php?title=SC15_Kitware_Booth_Presentations&amp;oldid=246" title="Permanent link to this revision of the page">Permanent link</a></li><li id="t-info"><a href="/index.php?title=SC15_Kitware_Booth_Presentations&amp;action=info" title="More information about this page">Page information</a></li>				</ul>
+							</div>
+		</div>
+				</div>
+		</div>
+				<div id="footer" role="contentinfo">
+						<ul id="footer-info">
+								<li id="footer-info-lastmod"> This page was last edited on 15 December 2015, at 20:20.</li>
+							</ul>
+						<ul id="footer-places">
+								<li id="footer-places-privacy"><a href="/index.php/VTKM:Privacy_policy" title="VTKM:Privacy policy">Privacy policy</a></li>
+								<li id="footer-places-about"><a href="/index.php/VTKM:About" title="VTKM:About">About VTKM</a></li>
+								<li id="footer-places-disclaimer"><a href="/index.php/VTKM:General_disclaimer" title="VTKM:General disclaimer">Disclaimers</a></li>
+							</ul>
+										<ul id="footer-icons" class="noprint">
+										<li id="footer-poweredbyico">
+						<a href="https://www.mediawiki.org/"><img src="/resources/assets/poweredby_mediawiki_88x31.png" alt="Powered by MediaWiki" srcset="/resources/assets/poweredby_mediawiki_132x47.png 1.5x, /resources/assets/poweredby_mediawiki_176x62.png 2x" width="88" height="31"/></a>					</li>
+									</ul>
+						<div style="clear: both;"></div>
+		</div>
+		
+
+<script>(RLQ=window.RLQ||[]).push(function(){mw.config.set({"wgPageParseReport":{"limitreport":{"cputime":"0.036","walltime":"0.038","ppvisitednodes":{"value":14,"limit":1000000},"ppgeneratednodes":{"value":0,"limit":1000000},"postexpandincludesize":{"value":0,"limit":2097152},"templateargumentsize":{"value":0,"limit":2097152},"expansiondepth":{"value":2,"limit":40},"expensivefunctioncount":{"value":0,"limit":100},"unstrip-depth":{"value":0,"limit":20},"unstrip-size":{"value":0,"limit":5000000},"timingprofile":["100.00%    0.000      1 -total"]},"cachereport":{"timestamp":"20210325171158","ttl":86400,"transientcontent":false}}});mw.config.set({"wgBackendResponseTime":122});});</script>
+</body>
+</html>

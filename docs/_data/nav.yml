@@ -1,0 +1,7 @@
+- name: Collaborators
+  url: /
+- name: Team
+  url: /
+- name: Contact
+  url: https://www.kitware.com/contact-us/
+  new_tab: true

@@ -1,0 +1,52 @@
+  <footer class="bg-primary-900 text-secondary-400 text-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:flex md:justify-between">
+      <div class="py-6">
+        <p class="space-x-3">
+          {% for link in site.footer_links %}
+            <a href="{{ link.url | prepend: site.baseurl }}" class="text-primary-400" target="_blank">{{ link.title }}</a>
+          {% endfor %}
+        </p>
+      </div>
+      <div class="py-6">
+        {{ site.footer_license }}
+      </div>
+    </div>
+  </footer>
+
+  <script type="text/javascript">
+
+    $(document).ready(function(){
+
+      // Toggle menu on mobile
+      menu = $('#menu');
+      menuBtn = $('#menuBtn');
+
+      menuBtn.click(function(){
+        $(this).toggleClass('open');
+        menu.toggleClass('block').toggleClass('hidden');
+      });
+
+      // Toggle dropdown
+      navlink = $('#hasDropdown');
+      dropdown = $('#dropdown');
+      arrow = $('#ddIcon')
+
+      navlink.click(function(e){
+        e.stopPropagation();
+        dropdown.toggleClass('hidden');
+        arrow.toggleClass('ri-arrow-down-s-line').toggleClass('ri-close-line');
+      });
+
+      $(document).click(function(e){
+        if( !dropdown.hasClass('hidden') ){
+          dropdown.addClass('hidden');
+          arrow.toggleClass('ri-arrow-down-s-line').toggleClass('ri-close-line');
+        }
+      });
+    });
+
+
+  </script>
+
+</body>
+</html>

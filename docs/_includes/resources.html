@@ -1,0 +1,14 @@
+<div class="lg:flex">
+  <div class="p-6 w-full md:p-10 lg:w-1/3">
+    <h2 class="font-light text-5xl text-primary-500">{{ page.resources_title }}</h2>
+    {{ page.resources_blurb }}
+  </div>
+  <div class="gap-4 grid grid-cols-2 p-6 pt-0 text-xs md:flex-grow md:grid-cols-3 md:text-base lg:p-10 lg:grid-cols-4">
+    {% for resource in page.resources %}
+    <a href="{{ resource.link }}" class="bg-white border border-secondary-200 p-6 rounded-lg shadow text-center transition-all hover:no-underline hover:text-primary-400 hover:shadow-lg">
+      <i class="{{ resource.icon }} block mb-2 text-accent-500 text-4xl"></i>
+      <strong>{{ resource.name }}</strong>
+    </a>
+    {% endfor %}
+  </div>
+</div>

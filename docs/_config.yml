@@ -1,0 +1,31 @@
+title: MIQA
+description: QC processing
+baseurl: '/'
+markdown: kramdown
+
+download_link: https://github.com/OpenImaging/miqa
+
+# Footer Info
+footer_license: License info goes here
+footer_links:
+  - title: Privacy Policy
+    url: #
+  - title: Disclaimers
+    url: #
+  - title: Contact
+    url: '/contact'
+
+defaults:
+  - scope:
+      path: ''
+    values:
+      layout: 'default'
+
+include: ['_pages']
+
+exclude:
+  - '*.config.js'
+  - 'package*.json'
+  - assets
+  - node_modules
+  - vendor

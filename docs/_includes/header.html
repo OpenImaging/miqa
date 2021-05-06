@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/img/favicon/site.webmanifest">
+  <link rel="mask-icon" href="/img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="shortcut icon" href="/img/favicon/favicon.ico">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="msapplication-config" content="/img/favicon/browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {% if page.url == '/' %}
+  <title>{{ site.title }} | {{ site.description }}</title>
+  {% else %}
+  <title>{{ page.title }} | {{ site.title }}</title>
+  {% endif %}
+
+  <link rel="stylesheet" href="{{ site.data.manifest['main.css'] }}">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Icon Font -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+</head>
+
+<body class="min-h-screen min-w-full">
+
+  <header class="bg-white">
+    <div class="max-w-7xl mx-auto px-4 relative sm:px-6">
+      <div class="flex justify-between items-stretch h-20">
+
+        <!-- Logo -->
+        <div class="flex items-center justify-start lg:w-0 lg:flex-1">
+          <a href="{{ site.baseurl }}">
+            <img class="h-8 w-auto md:h-12" src="{{ 'img/MIQA_Logo.svg' | prepend: site.baseurl }}" alt="">
+          </a>
+          <a href="{{ site.baseurl }}" class="text-5xl font-thin px-2.5 text-primary-500 hover:no-underline">
+            MIQA
+          </a>
+        </div>
+
+        <nav class="flex items-stretch">
+          {% if site.data.nav %}
+          <ul id="menu"
+            class="absolute bg-gray-50 border-b-4 border-accent-500 hidden inset-x-0 p-6 top-full z-50 md:bg-transparent md:flex md:p-0 md:static md:border-b-0">
+            {% for item in site.data.nav %}
+            {% if item.dropdown %}
+            <li id="hasDropdown" class="relative group">
+              <div
+                class="block border-b-0 border-transparent cursor-pointer flex h-full items-center justify-between p-4 text-gray-700 transition-all md:group-hover:border-b-4 md:group-hover:border-accent-500  md:group-hover:bg-gray-50 md:py-0">
+                <span>{{ item.name }}</span>
+                <i id="ddIcon" class="ri-arrow-down-s-line ml-2 text-lg"></i>
+              </div>
+              <ul id="dropdown"
+                class="bg-white border-t-4 border-accent-500 hidden shadow top-full w-full z-50 md:absolute md:-mt-1 md:shadow-2xl md:w-56">
+                {% for dd_item in item.dropdown %}
+                <li class="h-12 text-sm">
+                  <a href="{{ dd_item.url }}"
+                    class="border-b border-gray-200 flex h-full items-center justify-between px-4 text-gray-700 hover:no-underline hover:bg-gray-100"
+                    {% if dd_item.new_tab %}target="_blank" {% endif %}>
+                    <span>{{ dd_item.name }}</span>
+                    {% if dd_item.new_tab %}
+                    <i class="ri-external-link-line"></i>
+                    {% endif %}
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
+            </li>
+            {% else %}
+            <li>
+              <a href="{{ item.url }}"
+                class="border-b-0 border-transparent flex h-full items-center justify-between p-4 text-gray-700 transition-all hover:no-underline md:hover:border-b-4 md:hover:border-accent-500 md:hover:bg-gray-50 md:py-0"
+                {% if item.new_tab %}target="_blank" {% endif %}>
+                <span>{{ item.name }}</span>
+                {% if item.new_tab %}
+                <i class="ri-external-link-line ml-2"></i>
+                {% endif %}
+              </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if site.data.nav %}
+          <button id="menuBtn" class="hamburger block ml-5 md:hidden focus:outline-none" type="button">
+            <span class="hamburger__top"></span>
+            <span class="hamburger__mid"></span>
+            <span class="hamburger__bot"></span>
+          </button>
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+  </header>

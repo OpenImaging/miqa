@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  html {
+    @apply font-sans text-secondary-700;
+  }
+
+  /* Navigation */
+  .hamburger {
+    @apply cursor-pointer duration-200 relative transition-all w-6;
+  }
+
+  .hamburger.open .hamburger__top {
+    @apply translate-y-0 rotate-45;
+  }
+
+  .hamburger.open .hamburger__mid {
+    @apply opacity-0;
+  }
+
+  .hamburger.open .hamburger__bot {
+    @apply translate-y-0 -rotate-45;
+  }
+
+  .hamburger__top,
+  .hamburger__mid,
+  .hamburger__bot {
+    @apply absolute bg-gray-800 inset-x-0 opacity-100 rotate-0 transition-all transform;
+    content: '';
+    height: 2px;
+  }
+
+  .hamburger__top {
+    @apply transform -translate-y-2;
+  }
+
+  .hamburger__mid {
+
+  }
+
+  .hamburger__bot {
+    @apply transform translate-y-2;
+  }
+
+  h1 {
+    @apply font-thin text-secondary-800 text-4xl;
+  }
+
+  h2 {
+    @apply font-semibold text-secondary-800 text-2xl;
+  }
+
+  h3 {
+    @apply text-secondary-800 text-xl;
+  }
+
+  h4 {
+    @apply font-light text-secondary-600 text-lg uppercase;
+  }
+
+  .content p {
+    @apply my-4;
+  }
+
+  a {
+    @apply text-primary-500;
+  }
+
+  a:hover {
+    @apply underline;
+  }
+
+  .button {
+    @apply bg-transparent inline-flex items-center outline-none px-4 py-3 rounded-md text-gray-600;
+  }
+
+  .button:hover {
+    @apply bg-gray-100 no-underline text-gray-800;
+  }
+
+  @responsive {
+    .button.is-sm {
+      @apply px-3 py-2 text-sm;
+    }
+    .button.is-xs {
+      @apply px-2 py-1 rounded text-2xs;
+    }
+  }
+
+  .button.is-shadowed {
+    @apply transition-all;
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 1px 1px rgba(0, 0, 0, .25);
+  }
+
+  .button.is-shadowed:hover {
+    box-shadow: 0 -1px 0 rgba(0, 0, 0, .04), 0 2px 4px rgba(0, 0, 0, .25);
+  }
+
+  /* PRIMARY BUTTONS */
+
+  .button.is-primary {
+    @apply bg-primary-500 text-white;
+  }
+
+  .button.is-primary:hover {
+    @apply bg-primary-400 text-white;
+  }
+
+  .button.is-primary.is-outline {
+    @apply bg-transparent border border-primary-500 text-primary-500;
+  }
+
+  .button.is-primary.is-outline:hover {
+    @apply bg-primary-500 text-white;
+  }
+
+  /* SECONDARY BUTTONS */
+
+  .button.is-secondary {
+    @apply bg-secondary-400 text-white;
+  }
+
+  .button.is-secondary:hover {
+    @apply bg-secondary-300 text-white;
+  }
+
+  .button.is-secondary.is-outline {
+    @apply bg-transparent border border-secondary-500 text-secondary-500;
+  }
+
+  .button.is-secondary.is-outline:hover {
+    @apply bg-secondary-500 text-white;
+  }
+
+  /* ACCENT BUTTONS */
+
+  .button.is-accent {
+    @apply bg-accent-500 text-white;
+  }
+
+  .button.is-accent:hover {
+    @apply bg-accent-600 text-white;
+  }
+
+  .button.is-accent.is-outline {
+    @apply bg-transparent border border-accent-500 text-accent-500;
+  }
+
+  .button.is-accent.is-outline:hover {
+    @apply bg-accent-500 text-white;
+  }
+
+  /* WHITE BUTTONS */
+
+  .button.is-white {
+    @apply bg-white text-gray-800;
+  }
+
+  .button.is-white:hover {
+    @apply bg-primary-500 text-gray-900;
+  }
+
+  .button.is-white.is-outline {
+    @apply bg-transparent border border-white border-8 text-white;
+  }
+
+  .button.is-white.is-outline:hover {
+    @apply bg-primary-500 text-white;
+  }
+
+  .bibliography {
+    @apply border-t border-gray-300;
+  }
+
+  .bibliography li {
+    @apply border-b border-gray-300 py-3;
+  }
+
+  code,
+  pre code {
+    @apply bg-gray-50 border border-gray-200 overflow-y-auto py-1 px-2 rounded text-sm max-w-full whitespace-pre;
+  }
+
+  pre code {
+    @apply inline-block py-2 px-3;
+  }
+
+  .content ul,
+  .content ol {
+    @apply pl-10;
+  }
+
+  .content ul li {
+    @apply list-disc;
+  }
+
+  .content ol li {
+    @apply list-decimal;
+  }
+
+  hr {
+    @apply my-6;
+  }
+
+  table {
+    @apply table-auto;
+  }
+
+  .content table {
+    @apply w-full;
+  }
+
+  table th,
+  table td {
+    @apply px-4 py-2;
+  }
+
+  table th {
+    @apply bg-secondary-200 border border-secondary-300 text-secondary-800;
+  }
+
+  table tr:nth-of-type(even) {
+    @apply bg-secondary-100;
+  }
+
+  table td {
+    @apply border border-secondary-300 text-secondary-600 font-medium;
+  }
+}
