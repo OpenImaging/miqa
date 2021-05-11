@@ -13,6 +13,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='scan',
             name='decision',
-            field=models.CharField(choices=[('NONE', '-'), ('GOOD', 'Good'), ('BAD', 'Bad'), ('USABLE_EXTRA', 'Usable extra')], default='NONE', max_length=20),
+            field=models.CharField(
+                choices=[
+                    ('NONE', '-'),
+                    ('GOOD', 'Good'),
+                    ('BAD', 'Bad'),
+                    ('USABLE_EXTRA', 'Usable extra'),
+                ],
+                default='NONE',
+                max_length=20,
+            ),
         ),
     ]
