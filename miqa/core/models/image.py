@@ -1,4 +1,5 @@
 from pathlib import Path
+from uuid import uuid4
 
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
@@ -9,6 +10,7 @@ class Image(TimeStampedModel, models.Model):
         indexes = [models.Index(fields=['scan', 'name'])]
         ordering = ['name']
 
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     scan = models.ForeignKey('Scan', on_delete=models.CASCADE)
     raw_path = models.CharField(max_length=500, blank=False)
     name = models.CharField(max_length=255, blank=False)
