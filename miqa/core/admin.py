@@ -64,7 +64,6 @@ class SiteAdmin(admin.ModelAdmin):
         'modified',
         'name',
         'creator',
-        'session',
     )
-    list_filter = ('created', 'modified', 'creator', 'session')
+    list_filter = ('created', 'modified', 'creator')
     search_fields = ('name',)
