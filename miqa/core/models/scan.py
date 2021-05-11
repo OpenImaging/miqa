@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import uuid4
 
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
@@ -38,6 +39,7 @@ class Scan(TimeStampedModel, models.Model):
         ]
         ordering = ['scan_id']
 
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     experiment = models.ForeignKey('Experiment', on_delete=models.CASCADE)
     site = models.ForeignKey('Site', on_delete=models.PROTECT)
 
