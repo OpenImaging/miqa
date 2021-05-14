@@ -16,7 +16,7 @@ class SiteViewSet(ReadOnlyModelViewSet):
     queryset = Site.objects.all()
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['session']
+    filterset_fields = ['name']
 
     permission_classes = [AllowAny]
     serializer_class = SiteSerializer
