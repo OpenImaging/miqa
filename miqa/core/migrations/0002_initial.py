@@ -5,6 +5,7 @@ import uuid
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+import django.utils.timezone
 import django_extensions.db.fields
 
 
@@ -172,8 +173,15 @@ class Migration(migrations.Migration):
                         default=uuid.uuid4, editable=False, primary_key=True, serialize=False
                     ),
                 ),
-                ('created', django_extensions.db.fields.CreationDateTimeField(auto_now_add=True)),
+                ('created', models.DateTimeField(default=django.utils.timezone.now)),
+                ('modified', django_extensions.db.fields.ModificationDateTimeField(auto_now=True)),
                 ('note', models.TextField(max_length=3000)),
+                (
+                    'creator',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
                 (
                     'scan',
                     models.ForeignKey(
