@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Scan, ScanNote
+from miqa.core.models import Scan
 
 from .scan_note import ScanNoteSerializer
 
