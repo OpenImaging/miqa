@@ -1,4 +1,3 @@
-from miqa.core.rest.scan_note import ScanNoteViewSet
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path

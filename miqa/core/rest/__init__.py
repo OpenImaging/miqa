@@ -1,7 +1,7 @@
 from .experiment import ExperimentViewSet
 from .image import ImageViewSet
-from .scan_note import ScanNoteViewSet
 from .scan import ScanViewSet
+from .scan_note import ScanNoteViewSet
 from .session import SessionViewSet
 from .site import SiteViewSet
 
