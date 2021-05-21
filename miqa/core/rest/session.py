@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject
-from miqa.core.models import Experiment, Image, Scan, Session, Site
+from miqa.core.models import Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.models.scan import ScanDecision
 from miqa.core.schema.data_import import schema
 
@@ -85,7 +85,9 @@ class SessionViewSet(ReadOnlyModelViewSet):
             for site in json_content['sites']
         }
 
-        Experiment.objects.filter(session=session).delete()  # cascades to scans -> images
+        Experiment.objects.filter(
+            session=session
+        ).delete()  # cascades to scans -> images, scan_notes
 
         experiments = {
             e['id']: Experiment(name=e['id'], note=e['note'], session=session)
@@ -95,6 +97,7 @@ class SessionViewSet(ReadOnlyModelViewSet):
 
         scans = []
         images = []
+        notes = []
         for scan_json in json_content['scans']:
             experiment = experiments[scan_json['experiment_id']]
             site = sites[scan_json['site_id']]
@@ -102,11 +105,22 @@ class SessionViewSet(ReadOnlyModelViewSet):
                 scan_id=scan_json['id'],
                 scan_type=scan_json['type'],
                 decision=ScanDecision.from_rating(scan_json['decision']),
-                note=scan_json['note'],
                 experiment=experiment,
                 site=site,
             )
             scans.append(scan)
+
+            # TODO import notes
+            # if scan_json['note']:
+            #     notes_json = json.loads(unquote(scan_json['note']))
+            #     for note_json in notes_json:
+            #         scan_note = ScanNote(
+            #             **note_json,
+            #             scan=scan,
+            #         )
+            #         # This forces the modified field to use the value we give it
+            #         scan_note.update_modified = False
+            #         notes.append(scan_note)
 
             if 'images' in scan_json:
                 # TODO implement this
@@ -126,5 +140,6 @@ class SessionViewSet(ReadOnlyModelViewSet):
 
         Scan.objects.bulk_create(scans)
         Image.objects.bulk_create(images)
+        ScanNote.objects.bulk_create(notes)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
