@@ -30,7 +30,6 @@ class ScanAdmin(admin.ModelAdmin):
         'scan_id',
         'scan_type',
         'decision',
-        'note',
     )
     list_filter = ('created', 'modified')
 
