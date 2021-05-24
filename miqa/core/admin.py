@@ -30,15 +30,14 @@ class ScanAdmin(admin.ModelAdmin):
         'scan_id',
         'scan_type',
         'decision',
-        'note',
     )
     list_filter = ('created', 'modified')
 
 
 @admin.register(ScanNote)
 class ScanNoteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'note', 'scan')
-    list_filter = ('created', 'scan')
+    list_display = ('id', 'created', 'modified', 'creator', 'note', 'scan')
+    list_filter = ('created', 'creator', 'scan')
 
 
 @admin.register(Session)
