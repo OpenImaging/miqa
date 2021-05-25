@@ -1,6 +1,8 @@
 from django_filters import rest_framework as filters
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Scan
@@ -17,6 +19,10 @@ class ScanSerializer(serializers.ModelSerializer):
     decision = serializers.ChoiceField(choices=Scan.decision.field.choices)
 
 
+class DecisionSerializer(serializers.Serializer):
+    decision = serializers.ChoiceField(choices=Scan.decision.field.choices)
+
+
 class ScanViewSet(ReadOnlyModelViewSet):
     queryset = Scan.objects.all()
 
@@ -24,4 +30,20 @@ class ScanViewSet(ReadOnlyModelViewSet):
     filterset_fields = ['experiment', 'site']
 
     permission_classes = [AllowAny]
-    serializer_class = ScanSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return DecisionSerializer
+        return ScanSerializer
+
+    @action(detail=True, methods=['POST'])
+    def decision(self, request, **kwargs):
+        serializer: DecisionSerializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        decision = serializer.validated_data['decision']
+        scan = self.get_object()
+
+        scan.decision = decision
+        scan.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
