@@ -124,3 +124,6 @@ dmypy.json
 
 # spreadsheet + data
 sample_data/
+
+# vscode
+.vscode/

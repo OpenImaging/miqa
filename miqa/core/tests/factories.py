@@ -1,15 +1,10 @@
-from django.contrib.auth.models import User
-import factory
 from datetime import datetime
 
-from miqa.core.models import (
-    Session,
-    Experiment,
-    Scan,
-    ScanNote,
-    Image,
-    Site
-)
+from django.contrib.auth.models import User
+import factory
+
+from miqa.core.models import Experiment, Image, Scan, ScanNote, Session, Site
+
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -20,6 +15,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
 
+
 class SiteFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Site
@@ -28,7 +24,6 @@ class SiteFactory(factory.django.DjangoModelFactory):
     name = factory.Faker('safe_email')
 
     creator = factory.SubFactory(UserFactory)
-
 
 
 class SessionFactory(factory.django.DjangoModelFactory):
@@ -43,6 +38,7 @@ class SessionFactory(factory.django.DjangoModelFactory):
     import_path = '/fake/path'
     export_path = '/fake/path'
 
+
 class ExperimentFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Experiment
@@ -52,6 +48,7 @@ class ExperimentFactory(factory.django.DjangoModelFactory):
     note = factory.Faker('pystr')
 
     session = factory.SubFactory(SessionFactory)
+
 
 class ScanFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -66,6 +63,7 @@ class ScanFactory(factory.django.DjangoModelFactory):
     scan_type = factory.Faker('pystr')
     decision = 'Good'
 
+
 class NoteFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ScanNote
@@ -74,7 +72,6 @@ class NoteFactory(factory.django.DjangoModelFactory):
     note = factory.Faker('pystr')
     created = datetime.now()
     modified = datetime.now()
-
 
     creator = factory.SubFactory(UserFactory)
     scan = factory.SubFactory(ScanFactory)
