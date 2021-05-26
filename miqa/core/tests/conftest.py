@@ -1,12 +1,14 @@
+from miqa.core.models.site import Site
 import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
-from .factories import UserFactory
+from .factories import SessionFactory, UserFactory, ExperimentFactory, ScanFactory, SiteFactory
 
 
 @pytest.fixture
 def api_client() -> APIClient:
+
     return APIClient()
 
 
@@ -18,3 +20,7 @@ def authenticated_api_client(user) -> APIClient:
 
 
 register(UserFactory)
+register(SiteFactory)
+register(SessionFactory)
+register(ExperimentFactory)
+register(ScanFactory)
