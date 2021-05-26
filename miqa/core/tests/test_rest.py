@@ -1,69 +1,52 @@
-from miqa.core.models import experiment
-import pytest
 from uuid import UUID
-from datetime import datetime
+
+import pytest
+
+from .fuzzy import ANY_RE
 
 
-from .fuzzy import UUID_RE, ANY_RE
-
-# currying function
 def experiment_to_dict(session):
-
     def a(experiment):
         return {
-            'id': experiment.id, 
-            'name': experiment.name, 
-            'note': experiment.note, 
-            'session': {
-                'id': session.id, 
-                'name': session.name
-            }
-
+            'id': experiment.id,
+            'name': experiment.name,
+            'note': experiment.note,
+            'session': {'id': session.id, 'name': session.name},
         }
 
     return a
 
-# currying function
-def scan_to_dict(experiment, site):
 
+def scan_to_dict(experiment, site):
     def a(scan):
         return {
-            'id': scan.id, 
-            'scan_id': scan.scan_id, 
-            'scan_type': scan.scan_type, 
-            'decision': scan.decision, 
+            'id': scan.id,
+            'scan_id': scan.scan_id,
+            'scan_type': scan.scan_type,
+            'decision': scan.decision,
             'notes': [],
             'site': UUID(site.id),
-            'experiment': UUID(experiment.id)
+            'experiment': UUID(experiment.id),
         }
-    
+
     return a
 
-# currying function
+
 def image_to_dict(scan):
-
     def a(image):
-        return {
-            'id': image.id,
-            'name': image.name,
-            'scan': UUID(scan.id)
-        }
+        return {'id': image.id, 'name': image.name, 'scan': UUID(scan.id)}
 
     return a
 
-# currying function
-def note_to_dict(user):
 
+def note_to_dict(user):
     def a(note):
         return {
             'id': note.id,
-            'creator': {
-                'first_name': user.first_name,
-                'last_name': user.last_name
-            },
+            'creator': {'first_name': user.first_name, 'last_name': user.last_name},
             'note': note.note,
             'created': ANY_RE,
-            'modified': ANY_RE
+            'modified': ANY_RE,
         }
 
     return a
@@ -77,7 +60,6 @@ def compare_lst(lst1, lst2, to_dict):
     return len(diff)
 
 
-
 @pytest.mark.django_db()
 def test_session(api_client, session_factory):
 
@@ -87,14 +69,10 @@ def test_session(api_client, session_factory):
         'count': 1,
         'next': None,
         'previous': None,
-        'results': [
-            {
-                'id':   session.id,
-                'name': session.name
-            }
-        ]
+        'results': [{'id': session.id, 'name': session.name}],
     }
-    
+
+
 @pytest.mark.django_db()
 def test_session_settings_get(api_client, session_factory):
 
@@ -102,23 +80,25 @@ def test_session_settings_get(api_client, session_factory):
 
     assert api_client.get(f'/api/v1/sessions/{session.id}/settings').data == {
         'importpath': '/fake/path',
-        'exportpath': '/fake/path'
+        'exportpath': '/fake/path',
     }
+
 
 @pytest.mark.django_db()
 def test_session_settings_put(api_client, session_factory):
 
     session = session_factory()
 
-    api_client.put(f'/api/v1/sessions/{session.id}/settings', data = {
-        'importpath': '/new/fake/path',
-        'exportpath': '/new/fake/path'
-    })
+    api_client.put(
+        f'/api/v1/sessions/{session.id}/settings',
+        data={'importpath': '/new/fake/path', 'exportpath': '/new/fake/path'},
+    )
 
     assert api_client.get(f'/api/v1/sessions/{session.id}/settings').data == {
         'importpath': '/new/fake/path',
-        'exportpath': '/new/fake/path'
+        'exportpath': '/new/fake/path',
     }
+
 
 @pytest.mark.django_db()
 def test_experiments(api_client, session_factory, experiment_factory):
@@ -128,8 +108,8 @@ def test_experiments(api_client, session_factory, experiment_factory):
     experiments = []
     for _ in range(10):
         experiments.append(experiment_factory(session=session))
-    
-    data = api_client.get('/api/v1/experiments').data 
+
+    data = api_client.get('/api/v1/experiments').data
 
     assert data['count'] == 10
 
@@ -139,6 +119,7 @@ def test_experiments(api_client, session_factory, experiment_factory):
     e = experiments[0]
 
     assert api_client.get(f'/api/v1/experiments/{e.id}').data == experiment_to_dict(session)(e)
+
 
 @pytest.mark.django_db()
 def test_scans(api_client, session_factory, experiment_factory, scan_factory, site_factory):
@@ -152,7 +133,7 @@ def test_scans(api_client, session_factory, experiment_factory, scan_factory, si
     scans = []
     for _ in range(10):
         scans.append(scan_factory(experiment=experiment, site=site))
-    
+
     data = api_client.get('/api/v1/scans').data
 
     assert data['count'] == 10
@@ -164,8 +145,17 @@ def test_scans(api_client, session_factory, experiment_factory, scan_factory, si
 
     assert api_client.get(f'/api/v1/scans/{s.id}').data == scan_to_dict(experiment, site)(s)
 
+
 @pytest.mark.django_db()
-def test_scan_notes(api_client, user_factory, session_factory, experiment_factory, scan_factory, note_factory, site_factory):
+def test_scan_notes(
+    api_client,
+    user_factory,
+    session_factory,
+    experiment_factory,
+    scan_factory,
+    note_factory,
+    site_factory,
+):
 
     user = user_factory()
 
@@ -189,7 +179,9 @@ def test_scan_notes(api_client, user_factory, session_factory, experiment_factor
 
 
 @pytest.mark.django_db()
-def test_images(api_client, session_factory, experiment_factory, scan_factory, image_factory, site_factory):
+def test_images(
+    api_client, session_factory, experiment_factory, scan_factory, image_factory, site_factory
+):
 
     session = session_factory()
 
@@ -208,7 +200,3 @@ def test_images(api_client, session_factory, experiment_factory, scan_factory, i
     assert data['count'] == 10
 
     assert compare_lst(images, data['results'], image_to_dict(scan)) == 0
-
-
-
-
