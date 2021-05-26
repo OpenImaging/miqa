@@ -3,7 +3,7 @@ import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
-from .factories import SessionFactory, UserFactory, ExperimentFactory, ScanFactory, SiteFactory
+from .factories import SessionFactory, UserFactory, ExperimentFactory, ScanFactory, SiteFactory, ImageFactory, NoteFactory
 
 
 @pytest.fixture
@@ -24,3 +24,5 @@ register(SiteFactory)
 register(SessionFactory)
 register(ExperimentFactory)
 register(ScanFactory)
+register(NoteFactory)
+register(ImageFactory)
