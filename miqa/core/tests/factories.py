@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib.auth.models import User
 import factory
 
@@ -21,7 +19,7 @@ class SiteFactory(factory.django.DjangoModelFactory):
         model = Site
 
     id = factory.Faker('uuid4')
-    name = factory.Faker('safe_email')
+    name = factory.Faker('word')
 
     creator = factory.SubFactory(UserFactory)
 
@@ -35,8 +33,8 @@ class SessionFactory(factory.django.DjangoModelFactory):
 
     creator = factory.SubFactory(UserFactory)
 
-    import_path = '/fake/path'
-    export_path = '/fake/path'
+    import_path = factory.Faker('file_path')
+    export_path = factory.Faker('file_path')
 
 
 class ExperimentFactory(factory.django.DjangoModelFactory):
@@ -44,8 +42,8 @@ class ExperimentFactory(factory.django.DjangoModelFactory):
         model = Experiment
 
     id = factory.Faker('uuid4')
-    name = factory.Faker('safe_email')
-    note = factory.Faker('pystr')
+    name = factory.Faker('word')
+    note = factory.Faker('sentence')
 
     session = factory.SubFactory(SessionFactory)
 
@@ -61,7 +59,7 @@ class ScanFactory(factory.django.DjangoModelFactory):
 
     scan_id = factory.Faker('pystr')
     scan_type = factory.Faker('pystr')
-    decision = 'Good'
+    decision = 'GOOD'
 
 
 class NoteFactory(factory.django.DjangoModelFactory):
@@ -70,8 +68,6 @@ class NoteFactory(factory.django.DjangoModelFactory):
 
     id = factory.Faker('uuid4')
     note = factory.Faker('pystr')
-    created = datetime.now()
-    modified = datetime.now()
 
     creator = factory.SubFactory(UserFactory)
     scan = factory.SubFactory(ScanFactory)
