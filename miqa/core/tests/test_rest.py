@@ -2,7 +2,7 @@ from uuid import UUID
 
 import pytest
 
-from .fuzzy import ANY_RE
+from .fuzzy import PATH_RE, TIMESTAMP_RE
 
 
 def experiment_to_dict(session):
@@ -45,8 +45,8 @@ def note_to_dict(user):
             'id': note.id,
             'creator': {'first_name': user.first_name, 'last_name': user.last_name},
             'note': note.note,
-            'created': ANY_RE,
-            'modified': ANY_RE,
+            'created': TIMESTAMP_RE,
+            'modified': TIMESTAMP_RE,
         }
 
     return a
@@ -61,9 +61,7 @@ def compare_lst(lst1, lst2, to_dict):
 
 
 @pytest.mark.django_db()
-def test_session(api_client, session_factory):
-
-    session = session_factory()
+def test_session(api_client, session):
 
     assert api_client.get('/api/v1/sessions').data == {
         'count': 1,
@@ -74,20 +72,16 @@ def test_session(api_client, session_factory):
 
 
 @pytest.mark.django_db()
-def test_session_settings_get(api_client, session_factory):
-
-    session = session_factory()
+def test_session_settings_get(api_client, session):
 
     assert api_client.get(f'/api/v1/sessions/{session.id}/settings').data == {
-        'importpath': '/fake/path',
-        'exportpath': '/fake/path',
+        'importpath': PATH_RE,
+        'exportpath': PATH_RE,
     }
 
 
 @pytest.mark.django_db()
-def test_session_settings_put(api_client, session_factory):
-
-    session = session_factory()
+def test_session_settings_put(api_client, session):
 
     api_client.put(
         f'/api/v1/sessions/{session.id}/settings',
@@ -101,9 +95,7 @@ def test_session_settings_put(api_client, session_factory):
 
 
 @pytest.mark.django_db()
-def test_experiments(api_client, session_factory, experiment_factory):
-
-    session = session_factory()
+def test_experiments(api_client, session, experiment_factory):
 
     experiments = []
     for _ in range(10):
@@ -122,11 +114,7 @@ def test_experiments(api_client, session_factory, experiment_factory):
 
 
 @pytest.mark.django_db()
-def test_scans(api_client, session_factory, experiment_factory, scan_factory, site_factory):
-
-    session = session_factory()
-
-    site = site_factory()
+def test_scans(api_client, session, site, experiment_factory, scan_factory):
 
     experiment = experiment_factory(session=session)
 
@@ -149,19 +137,13 @@ def test_scans(api_client, session_factory, experiment_factory, scan_factory, si
 @pytest.mark.django_db()
 def test_scan_notes(
     api_client,
-    user_factory,
-    session_factory,
+    user,
+    session,
+    site,
     experiment_factory,
     scan_factory,
     note_factory,
-    site_factory,
 ):
-
-    user = user_factory()
-
-    session = session_factory(creator=user)
-
-    site = site_factory(creator=user)
 
     experiment = experiment_factory(session=session)
 
@@ -179,13 +161,7 @@ def test_scan_notes(
 
 
 @pytest.mark.django_db()
-def test_images(
-    api_client, session_factory, experiment_factory, scan_factory, image_factory, site_factory
-):
-
-    session = session_factory()
-
-    site = site_factory()
+def test_images(api_client, site, session, experiment_factory, scan_factory, image_factory):
 
     experiment = experiment_factory(session=session)
 
