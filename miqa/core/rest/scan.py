@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -30,15 +31,12 @@ class ScanViewSet(ReadOnlyModelViewSet):
     filterset_fields = ['experiment', 'site']
 
     permission_classes = [AllowAny]
+    serializer_class = ScanSerializer
 
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return DecisionSerializer
-        return ScanSerializer
-
+    @swagger_auto_schema(request_body=DecisionSerializer)
     @action(detail=True, methods=['POST'])
     def decision(self, request, **kwargs):
-        serializer: DecisionSerializer = self.get_serializer(data=request.data)
+        serializer = DecisionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         decision = serializer.validated_data['decision']
         scan = self.get_object()
