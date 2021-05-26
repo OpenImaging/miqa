@@ -1,9 +1,16 @@
-from miqa.core.models.site import Site
 import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
-from .factories import SessionFactory, UserFactory, ExperimentFactory, ScanFactory, SiteFactory, ImageFactory, NoteFactory
+from .factories import (
+    ExperimentFactory,
+    ImageFactory,
+    NoteFactory,
+    ScanFactory,
+    SessionFactory,
+    SiteFactory,
+    UserFactory,
+)
 
 
 @pytest.fixture

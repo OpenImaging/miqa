@@ -1,5 +1,6 @@
 import re
 
+
 class Re:
     def __init__(self, pattern):
         if isinstance(pattern, type(re.compile(''))):
