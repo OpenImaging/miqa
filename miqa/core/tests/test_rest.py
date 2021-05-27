@@ -52,7 +52,7 @@ def note_to_dict(user):
     return a
 
 
-def compare_lst(lst1, lst2, to_dict):
+def compare_list(lst1, lst2, to_dict):
     lst1 = list(map(lambda x: to_dict(x), lst1))
 
     diff = [i for i in lst1 + lst2 if i not in lst1 or i not in lst2]
@@ -97,16 +97,14 @@ def test_session_settings_put(api_client, session):
 @pytest.mark.django_db()
 def test_experiments(api_client, session, experiment_factory):
 
-    experiments = []
-    for _ in range(10):
-        experiments.append(experiment_factory(session=session))
+    experiments = [experiment_factory(session=session) for _ in range(10)]
 
     data = api_client.get('/api/v1/experiments').data
 
     assert data['count'] == 10
 
     # test if results contain same dicts
-    assert compare_lst(experiments, data['results'], experiment_to_dict(session)) == 0
+    assert compare_list(experiments, data['results'], experiment_to_dict(session)) == 0
 
     e = experiments[0]
 
@@ -118,16 +116,14 @@ def test_scans(api_client, session, site, experiment_factory, scan_factory):
 
     experiment = experiment_factory(session=session)
 
-    scans = []
-    for _ in range(10):
-        scans.append(scan_factory(experiment=experiment, site=site))
+    scans = [scan_factory(experiment=experiment, site=site) for _ in range(10)]
 
     data = api_client.get('/api/v1/scans').data
 
     assert data['count'] == 10
 
     # test if results contain same dicts
-    assert compare_lst(scans, data['results'], scan_to_dict(experiment, site)) == 0
+    assert compare_list(scans, data['results'], scan_to_dict(experiment, site)) == 0
 
     s = scans[0]
 
@@ -149,15 +145,13 @@ def test_scan_notes(
 
     scan = scan_factory(experiment=experiment, site=site)
 
-    notes = []
-    for _ in range(10):
-        notes.append(note_factory(scan=scan, creator=user))
+    notes = [note_factory(scan=scan, creator=user) for _ in range(10)]
 
     data = api_client.get('/api/v1/scan_notes').data
 
     assert data['count'] == 10
 
-    assert compare_lst(notes, data['results'], note_to_dict(user)) == 0
+    assert compare_list(notes, data['results'], note_to_dict(user)) == 0
 
 
 @pytest.mark.django_db()
@@ -167,12 +161,10 @@ def test_images(api_client, site, session, experiment_factory, scan_factory, ima
 
     scan = scan_factory(experiment=experiment, site=site)
 
-    images = []
-    for _ in range(10):
-        images.append(image_factory(scan=scan))
+    images = [image_factory(scan=scan) for _ in range(10)]
 
     data = api_client.get('/api/v1/images').data
 
     assert data['count'] == 10
 
-    assert compare_lst(images, data['results'], image_to_dict(scan)) == 0
+    assert compare_list(images, data['results'], image_to_dict(scan)) == 0
