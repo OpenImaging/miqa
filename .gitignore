@@ -121,9 +121,3 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/django
-
-# spreadsheet + data
-sample_data/
-
-# vscode
-.vscode/
