@@ -29,7 +29,7 @@ class SessionFactory(factory.django.DjangoModelFactory):
         model = Session
 
     id = factory.Faker('uuid4')
-    name = factory.Faker('safe_email')
+    name = factory.Faker('word')
 
     creator = factory.SubFactory(UserFactory)
 
@@ -67,7 +67,7 @@ class NoteFactory(factory.django.DjangoModelFactory):
         model = ScanNote
 
     id = factory.Faker('uuid4')
-    note = factory.Faker('pystr')
+    note = factory.Faker('sentence')
 
     creator = factory.SubFactory(UserFactory)
     scan = factory.SubFactory(ScanFactory)
@@ -78,7 +78,7 @@ class ImageFactory(factory.django.DjangoModelFactory):
         model = Image
 
     id = factory.Faker('uuid4')
-    raw_path = factory.Faker('pystr')
-    name = factory.Faker('safe_email')
+    raw_path = factory.Faker('file_path')
+    name = factory.Faker('word')
 
     scan = factory.SubFactory(ScanFactory)
