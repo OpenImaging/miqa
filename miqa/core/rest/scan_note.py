@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
-from rest_framework import serializers
+from rest_framework import mixins, serializers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import ScanNote
 
@@ -31,13 +31,13 @@ class CreateScanNoteSerializer(serializers.ModelSerializer):
         fields = ['scan', 'note']
 
 
-class UpdateScanNoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ScanNote
-        fields = ['note']
-
-
-class ScanNoteViewSet(ModelViewSet):
+class ScanNoteViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     queryset = ScanNote.objects.all()
 
     filter_backends = [filters.DjangoFilterBackend]
@@ -48,8 +48,6 @@ class ScanNoteViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return CreateScanNoteSerializer
-        if self.request.method in ('PUT', 'PATCH'):
-            return UpdateScanNoteSerializer
         return ScanNoteSerializer
 
     def perform_create(self, serializer: CreateScanNoteSerializer):
