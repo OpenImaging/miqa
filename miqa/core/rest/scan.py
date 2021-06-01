@@ -43,7 +43,6 @@ class ScanViewSet(ReadOnlyModelViewSet):
         serializer = DecisionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         scan = self.get_object()
-        print(serializer.validated_data)
         decision = Annotation(
             decision=serializer.validated_data['decision'], creator=request.user, scan=scan
         )
