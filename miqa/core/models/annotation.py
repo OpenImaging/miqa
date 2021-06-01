@@ -32,7 +32,6 @@ class Decision(Enum):
 
 
 class Annotation(models.Model):
-
     class Meta:
         ordering = ['-created']
         indexes = [
