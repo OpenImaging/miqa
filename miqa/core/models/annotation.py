@@ -33,6 +33,12 @@ class Decision(Enum):
 
 class Annotation(models.Model):
 
+    class Meta:
+        ordering = ['-created']
+        indexes = [
+            models.Index(fields=['scan', '-created']),
+        ]
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created = models.DateTimeField(default=timezone.now)
     scan = models.ForeignKey('Scan', related_name='decisions', on_delete=models.CASCADE)
