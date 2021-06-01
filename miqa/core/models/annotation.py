@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -32,6 +33,7 @@ class Decision(Enum):
 
 class Annotation(models.Model):
 
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created = models.DateTimeField(default=timezone.now)
     scan = models.ForeignKey('Scan', related_name='decisions', on_delete=models.CASCADE)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
