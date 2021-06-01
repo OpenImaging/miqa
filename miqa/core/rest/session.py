@@ -14,7 +14,6 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject
 from miqa.core.models import Experiment, Image, Scan, ScanNote, Session, Site
-from miqa.core.models.annotation import Decision
 from miqa.core.schema.data_import import schema
 
 
@@ -104,7 +103,6 @@ class SessionViewSet(ReadOnlyModelViewSet):
             scan = Scan(
                 scan_id=scan_json['id'],
                 scan_type=scan_json['type'],
-                decision=Decision.from_rating(scan_json['decision']),
                 experiment=experiment,
                 site=site,
             )
