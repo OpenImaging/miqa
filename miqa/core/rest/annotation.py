@@ -11,16 +11,17 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['first_name', 'last_name']
+        ref_name = 'user 2'
 
 
 class DecisionSerializer(serializers.Serializer):
     class Meta:
         model = Annotation
         fields = ['id', 'decision', 'creator', 'created']
+        ref_name = 'decision 1'
 
     decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
     created = serializers.DateTimeField()
-
     creator = UserSerializer()
 
 
