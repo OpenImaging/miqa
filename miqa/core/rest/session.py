@@ -18,10 +18,50 @@ from miqa.core.models.scan import ScanDecision
 from miqa.core.schema.data_import import schema
 
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ['id', 'name']
+        ref_name="img 3"
+
+
+class ScanNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScanNote
+        fields = ['id', 'note', 'created', 'modified']
+        ref_name="note 3"
+
+    # Override the default DateTimeFields to disable read_only=True
+    created = serializers.DateTimeField()
+    modified = serializers.DateTimeField()
+
+
+class ScanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scan
+        fields = ['id', 'scan_id', 'scan_type', 'notes', 'decision', 'images']
+        ref_name="scan 3"
+
+    notes = ScanNoteSerializer(many=True)
+    images = ImageSerializer(many=True)
+    decision = serializers.ChoiceField(choices=Scan.decision.field.choices)
+
+
+class ExperimentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experiment
+        fields = ['id', 'name', 'scans']
+        ref_name="experiment 3"
+
+    scans = ScanSerializer(many=True)
+
+
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'experiments']
+
+    experiments = ExperimentSerializer(many=True)
 
 
 class SessionSettingsSerializer(serializers.ModelSerializer):
@@ -34,7 +74,9 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
 
 
 class SessionViewSet(ReadOnlyModelViewSet):
-    queryset = Session.objects.all()
+    queryset = Session.objects.prefetch_related(
+        'experiments__scans__images', 'experiments__scans__notes'
+    )
 
     permission_classes = [AllowAny]
     serializer_class = SessionSerializer
