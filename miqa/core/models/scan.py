@@ -40,7 +40,7 @@ class Scan(TimeStampedModel, models.Model):
         ordering = ['scan_id']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    experiment = models.ForeignKey('Experiment', on_delete=models.CASCADE)
+    experiment = models.ForeignKey('Experiment', related_name='scans', on_delete=models.CASCADE)
     site = models.ForeignKey('Site', on_delete=models.PROTECT)
 
     scan_id = models.CharField(max_length=127, blank=False)
