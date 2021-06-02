@@ -22,14 +22,14 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = ['id', 'name']
-        ref_name="img 3"
+        ref_name = 'img 3'
 
 
 class ScanNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScanNote
         fields = ['id', 'note', 'created', 'modified']
-        ref_name="note 3"
+        ref_name = 'note 3'
 
     # Override the default DateTimeFields to disable read_only=True
     created = serializers.DateTimeField()
@@ -40,7 +40,7 @@ class ScanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scan
         fields = ['id', 'scan_id', 'scan_type', 'notes', 'decision', 'images']
-        ref_name="scan 3"
+        ref_name = 'scan 3'
 
     notes = ScanNoteSerializer(many=True)
     images = ImageSerializer(many=True)
@@ -51,7 +51,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = ['id', 'name', 'scans']
-        ref_name="experiment 3"
+        ref_name = 'experiment 3'
 
     scans = ScanSerializer(many=True)
 
