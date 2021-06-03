@@ -28,4 +28,3 @@ class UserViewSet(GenericViewSet):
             return Response(status=204)
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
-
