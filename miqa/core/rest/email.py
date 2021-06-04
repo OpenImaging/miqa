@@ -24,8 +24,8 @@ class EmailView(APIView):
 
             # parse data uri to extract mime type and base64 data
             # assumptions: mime type is image/jpeg or image/png
-            match = re.search(
-                r'^data:(?P<mime>[\w/\-\.]+);?(\w+),(?P<data>.*)$', screenshot['dataURL']
+            match = re.fullmatch(
+                r'data:(?P<mime>[\w/\-\.]+);?(\w+),(?P<data>.*)', screenshot['dataURL']
             )
 
             if match:
