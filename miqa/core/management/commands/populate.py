@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 import djclick as click
 
+from miqa.core.models import Session
 from miqa.core.rest.session import import_data
-from miqa.core.tests.factories import SessionFactory, UserFactory
 
 
 @click.command()
@@ -16,8 +16,10 @@ def command(csv, username):
 
     else:
 
-        user = UserFactory()
+        user = User.objects.first()
 
-    session = SessionFactory(name='miqa-dev', import_path=csv, export_path='.', creator=user)
+    session = Session.objects.create(
+        name='miqa-dev', import_path=csv, export_path='.', creator=user
+    )
 
     import_data(user, session)
