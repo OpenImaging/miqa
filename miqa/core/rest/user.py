@@ -13,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
             'id',
             'username',
         ]
+        ref_name = 'user'
 
 
 class UserViewSet(GenericViewSet):
