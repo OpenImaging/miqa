@@ -1,9 +1,11 @@
+from .annotation import AnnotationViewSet
 from .experiment import ExperimentViewSet
 from .image import ImageViewSet
 from .scan import ScanViewSet
 from .scan_note import ScanNoteViewSet
 from .session import SessionViewSet
 from .site import SiteViewSet
+from .user import UserViewSet
 
 __all__ = [
     'ExperimentViewSet',
@@ -12,4 +14,6 @@ __all__ = [
     'ScanViewSet',
     'SessionViewSet',
     'SiteViewSet',
+    'UserViewSet',
+    'AnnotationViewSet',
 ]
