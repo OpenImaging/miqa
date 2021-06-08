@@ -11,7 +11,8 @@ This is the simplest configuration for developers to start with.
 ### Run Application
 1. Run `docker-compose up`
 2. Access the site, starting at http://localhost:8000/admin/
-3. When finished, use `Ctrl+C`
+    - Note: When prompted to login with your "username" use your full email address (e.g. myname@someplace.com)
+4. When finished, use `Ctrl+C`
 
 ### Application Maintenance
 Occasionally, new package dependencies or schema changes will necessitate
