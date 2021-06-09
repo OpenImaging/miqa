@@ -15,7 +15,7 @@ class DecisionSerializer(serializers.Serializer):
     class Meta:
         model = Annotation
         fields = ['id', 'decision']
-        ref_name = 'decision 2'
+        ref_name = 'scan_decision'
 
     decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
 
