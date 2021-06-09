@@ -11,7 +11,7 @@ class Image(TimeStampedModel, models.Model):
         ordering = ['name']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    scan = models.ForeignKey('Scan', on_delete=models.CASCADE)
+    scan = models.ForeignKey('Scan', related_name='images', on_delete=models.CASCADE)
     raw_path = models.CharField(max_length=500, blank=False, unique=True)
     name = models.CharField(max_length=255, blank=False)
 
