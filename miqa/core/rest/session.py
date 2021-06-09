@@ -5,14 +5,70 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Session
+from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
 from miqa.core.tasks import import_data
+
+
+class DecisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Annotation
+        fields = ['id', 'decision']
+
+    decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ['id', 'name']
+        ref_name = 'scan_image'
+
+
+class ScanNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScanNote
+        fields = ['id', 'note', 'created', 'modified']
+        ref_name = 'scan_note'
+
+    # Override the default DateTimeFields to disable read_only=True
+    created = serializers.DateTimeField()
+    modified = serializers.DateTimeField()
+
+
+class ScanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scan
+        fields = ['id', 'scan_id', 'scan_type', 'notes', 'decisions', 'images']
+        ref_name = 'experiment_scan'
+
+    notes = ScanNoteSerializer(many=True)
+    images = ImageSerializer(many=True)
+    decisions = DecisionSerializer(many=True)
+
+
+class ExperimentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experiment
+        fields = ['id', 'name', 'scans']
+        ref_name = 'session_experiment'
+
+    scans = ScanSerializer(many=True)
+
+
+class SessionRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Session
+        fields = ['id', 'name', 'experiments']
+        ref_name = 'session'
+
+    experiments = ExperimentSerializer(many=True)
 
 
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
         fields = ['id', 'name']
+        ref_name = 'sessions'
 
 
 class SessionSettingsSerializer(serializers.ModelSerializer):
@@ -25,10 +81,22 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
 
 
 class SessionViewSet(ReadOnlyModelViewSet):
-    queryset = Session.objects.all()
 
     permission_classes = [AllowAny]
-    serializer_class = SessionSerializer
+
+    def get_queryset(self):
+        if self.action == 'retrieve':
+            return Session.objects.prefetch_related(
+                'experiments__scans__images', 'experiments__scans__notes'
+            )
+        else:
+            return Session.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return SessionRetrieveSerializer
+        else:
+            return SessionSerializer
 
     @swagger_auto_schema(
         method='GET',
