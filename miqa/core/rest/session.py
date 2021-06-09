@@ -5,8 +5,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Session
+from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
 from miqa.core.tasks import import_data
+
+
+class DecisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Annotation
+        fields = ['id', 'decision']
+
+    decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -30,12 +38,12 @@ class ScanNoteSerializer(serializers.ModelSerializer):
 class ScanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scan
-        fields = ['id', 'scan_id', 'scan_type', 'notes', 'decision', 'images']
+        fields = ['id', 'scan_id', 'scan_type', 'notes', 'decisions', 'images']
         ref_name = 'experiment_scan'
 
     notes = ScanNoteSerializer(many=True)
     images = ImageSerializer(many=True)
-    decision = serializers.ChoiceField(choices=Scan.decision.field.choices)
+    decisions = DecisionSerializer(many=True)
 
 
 class ExperimentSerializer(serializers.ModelSerializer):
