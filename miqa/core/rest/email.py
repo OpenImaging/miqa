@@ -2,6 +2,7 @@ from email.mime.image import MIMEImage
 import mimetypes
 import re
 
+from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from rest_framework import status
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ class EmailView(APIView):
         msg = EmailMultiAlternatives(
             request.data['subject'],
             request.data['body'],
-            'example@kitware.com',  # TODO: replace
+            settings.DEFAULT_FROM_EMAIL,
             request.data['to'],
             bcc=request.data['bcc'],
             cc=request.data['cc'],
