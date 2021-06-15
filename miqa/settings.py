@@ -30,6 +30,9 @@ class MiqaMixin(ConfigMixin):
             's3_file_field',
         ]
 
+        # oauth session
+        configuration.OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'] = 1800  # 30 minutes
+
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
     pass
