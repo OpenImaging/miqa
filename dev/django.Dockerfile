@@ -1,5 +1,5 @@
 FROM python:3.8-slim
-# Install system librarires for Python packages:
+# Install system libraries for Python packages:
 # * psycopg2
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
