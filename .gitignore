@@ -121,3 +121,10 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/django
+.idea/miqa-1.iml
+.idea/misc.xml
+.gitignore
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/modules.xml
+venv
