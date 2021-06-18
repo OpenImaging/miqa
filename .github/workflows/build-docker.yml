@@ -24,4 +24,3 @@ jobs:
           tags: |
             miqa/django:latest
             miqa/django:${{ github.sha }}
-            miqa/django:${{ github.ref }}
