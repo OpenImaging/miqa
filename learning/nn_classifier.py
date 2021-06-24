@@ -159,7 +159,8 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
         metric_count = 0
         for val_data in data_loader:
             val_images, val_labels = val_data["img"].to(device), val_data["label"].to(device)
-            val_outputs = model(val_images).argmax(dim=1)
+            raw_outputs = model(val_images)
+            val_outputs = raw_outputs.argmax(dim=1)
 
             y_true.extend(val_labels.cpu().tolist())
             y_pred.extend(val_outputs.cpu().tolist())
@@ -169,16 +170,52 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             if metric_count % 100 == 0:
                 print("", flush=True)
 
-        print("\n" + run_name + "_confusion_matrix:")
-        print(confusion_matrix(y_true, y_pred))
-        print(classification_report(y_true, y_pred))
+        if writer is not None:  # this is not a one-off case
+            print("\n" + run_name + "_confusion_matrix:")
+            print(confusion_matrix(y_true, y_pred))
+            print(classification_report(y_true, y_pred))
 
-        # TODO: do we need additional softmax here?
-        auc_metric = compute_roc_auc(torch.as_tensor(y_pred), torch.as_tensor(y_true),
-                                     average=monai.utils.Average.MACRO)
-        writer.add_scalar(run_name + "_AUC", auc_metric, epoch + 1)
-        wandb.log({run_name + "_AUC": auc_metric})
-        return auc_metric
+            auc_metric = compute_roc_auc(torch.as_tensor(y_pred), torch.as_tensor(y_true),
+                                         average=monai.utils.Average.MACRO)
+            writer.add_scalar(run_name + "_AUC", auc_metric, epoch + 1)
+            wandb.log({run_name + "_AUC": auc_metric})
+            return auc_metric
+        else:
+            outputs = raw_outputs.cpu().tolist()
+            probability = (outputs[0][1] - outputs[0][0]) / 2.0 + 0.5
+            return min(1.0, max(0.0, probability))  # clamp to 0-1 range
+
+
+def evaluate1(model_path, image_path):
+    itk_reader = monai.data.ITKReader()
+    # Define transforms for image
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=["img"], reader=itk_reader),
+            EnsureChannelFirstd(keys=["img"]),
+            ScaleIntensityd(keys=["img"]),
+            ToTensord(keys=["img"]),
+        ]
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # create a training data loader
+    train_ds = monai.data.Dataset(data=[{"img": image_path, "label": 0}],
+                                  transform=train_transforms)
+    train_loader = DataLoader(train_ds, batch_size=1, num_workers=1,
+                              pin_memory=torch.cuda.is_available())
+
+    model = TiledClassifier(in_shape=(1, 64, 64, 64), classes=2,
+                            channels=(2, 4, 8, 16),
+                            strides=(2, 2, 2, 2,))
+    model.to(device)
+
+    model.load_state_dict(torch.load(model_path))
+    print(f"Loaded NN model from file '{model_path}'")
+
+    p = evaluate_model(model, train_loader, device, None, 0, "evaluate1")
+    print(f"Probability that {image_path} is good: {p:.4f}")
 
 
 def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
@@ -412,6 +449,9 @@ if __name__ == "__main__":
     # add bool for full cross-validation
     parser.add_argument('--all', dest='all', action='store_true')
     parser.set_defaults(all=False)
+    # add option to evaluate on just one image
+    parser.add_argument('--evaluate1', '-1', help="Path to an image to evaluate", type=str)
+    parser.add_argument('--modelfile', '-m', help="Path to neural network model weights", type=str)
 
     args = parser.parse_args()
     # print(args)
@@ -427,6 +467,8 @@ if __name__ == "__main__":
             process_folds(args.folds, f, True, args.nfolds)
     elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate, args.nfolds)
+    elif args.modelfile is not None and args.evaluate1 is not None:
+        evaluate1(args.modelfile, args.evaluate1)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv')
