@@ -128,3 +128,8 @@ dmypy.json
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/modules.xml
 venv
+sample_data/sample.json
+sample_data/1_type1/1.nii.gz
+sample_data/2_type1/2.nii.gz
+sample_data/3_type2/1.nii.gz
+sample_data/3_type2/2.nii.gz
