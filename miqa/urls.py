@@ -7,6 +7,7 @@ from rest_framework import permissions, routers
 
 from miqa.core.rest import (
     AnnotationViewSet,
+    EmailView,
     ExperimentViewSet,
     ImageViewSet,
     ScanNoteViewSet,
@@ -38,6 +39,7 @@ urlpatterns = [
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
+    path('api/v1/email', EmailView.as_view()),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
 ]

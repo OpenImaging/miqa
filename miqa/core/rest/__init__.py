@@ -1,4 +1,5 @@
 from .annotation import AnnotationViewSet
+from .email import EmailView
 from .experiment import ExperimentViewSet
 from .image import ImageViewSet
 from .scan import ScanViewSet
@@ -16,4 +17,5 @@ __all__ = [
     'SiteViewSet',
     'UserViewSet',
     'AnnotationViewSet',
+    'EmailView',
 ]
