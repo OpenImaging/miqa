@@ -1,7 +1,7 @@
+import json
 import os
 from pathlib import Path
 import re
-import json
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
@@ -26,7 +26,7 @@ def import_data(user, session):
             try:
                 json_content = json.load(json_file)
                 validate(json_content, schema)
-            except (ValidationError, Exception) as e: # TODO this should be an internal error
+            except (ValidationError, Exception) as e:  # TODO this should be an internal error
                 raise ValidationError({'error': f'Invalid JSON file: {str(e)}'})
     # else:
         # TODO: Raise an error
