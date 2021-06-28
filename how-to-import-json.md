@@ -1,14 +1,17 @@
 # How To: Import JSON Organized Data Into MIQA
 
 # Introduction
-The latest version of MIQA saw some small tweaks to the schema for imports. Future imports into MIQA will need to be updated to utilize this modified schema. Future exports will return data in this modified schema and any other systems ingesting the data will need modification to successfully read the schema.
+The latest version of MIQA saw some small tweaks to the schema for datasets. This means:
+- Future imports into MIQA will need to be updated to utilize this modified schema. 
+- Future exports will return data in this modified schema.
+- Any other systems ingesting export datasets will need to be modified to match the updated schema successfully.
 
 # Changes in Schema
 
 ## Meta Information
 Some meta information has been moved from the tail of the document to the head. This in and of itself should not affect the JSON import files.
 
-Some additional changes to the meta information commented in below code may require changes:
+Some additional changes to the meta information may require changes (see comments inline below):
 
 
 ### New Schema:
@@ -18,8 +21,8 @@ schema = {
     'title': 'MIQA data import schema',
     'type': 'object',
     'additionalProperties': False,
-    'required': ['data_root', 'sites', 'experiments', 'scans'], // The required properties have been expanded from 'scans' to include 'data_root', 'sites', 'experiments'
-    'properties': { // Instead of referring to the `properties` object, the properties are passed inline
+    'required': ['data_root', 'sites', 'experiments', 'scans'], // The required properties have been expanded from 'scans' to 'scans', 'data_root', 'sites', 'experiments'
+    'properties': { // Instead of referring to the `properties` object, the properties are passed inline, previously we had 'properties': properties,
         ...
     },
 }
@@ -33,7 +36,7 @@ schema = {
     'type': 'object',
     'additionalProperties': False,
     'required': ['scans'],
-    'properties': properties,
+    'properties': properties, // Here properties referred to a separate properties object defined in the same schema
 }
 ```
 
@@ -72,7 +75,7 @@ schema = {
         {
             'required': [
                 ...
-                'image_pattern',
+                'image_pattern', // previous 'imagePattern': {'type': 'string},
             ],
         },
     ],
