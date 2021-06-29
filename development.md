@@ -5,17 +5,22 @@ Develop with simple configuration
 
 ### Backend
 
-If setting up for the first time, follow instructions in [README](README.md). Note: all commands may need to be run as root
+If setting up for the first time, follow instructions in [README](README.md).
+
+*Note:* all commands may need to be run as root
 
 Otherwise
 1. Run `docker-compose run --rm django ./manage.py reset_db`
 2. Follow **Initial Setup** section in [README](README.md) (i.e. `migrate` and `createsuperuser`).
 
 #### Importing Data
-(Note: it might prudent to run the previous steps before this, i.e. `reset_db`, `migrate`, and `createsuperuser`)
-1. Place folder containing sample data at root of project. This folder will be referenced here as `sample_data` but can be arbitrarily named. NOTE: `sample_data` should contain a CSV (referenced here as `file.csv`) with all paths prefixed by `/opt/django-project/`
+(Note: it might be prudent to run the previous steps before this, i.e. `reset_db`, `migrate`, and `createsuperuser`)
+1. Place folder containing sample data at root of project.
+   - This folder will be referenced here as `sample_data` but can be arbitrarily named.
+   - *NOTE:* `sample_data` should contain a CSV (referenced here as `file.csv`) with all paths prefixed by `/opt/django-project/`
 2. Run `docker-compose build`
-3. Finally, run `docker-compose run --rm  django python manage.py populate /opt/django-project/sample_data/file.csv`. This will create the corresponding models in the database. Ensure that correct filenames/paths are used.
+3. Finally, run `docker-compose run --rm  django python manage.py populate /opt/django-project/sample_data/file.csv`. This will create the corresponding models in the database.
+   - *NOTE:* Ensure that correct filenames/paths are used.
 
 
 ## Frontend
