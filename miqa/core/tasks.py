@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 import re
@@ -11,13 +12,23 @@ from miqa.core.schema.data_import import schema
 
 
 def import_data(user, session):
-    with open(session.import_path) as fd:
-        csv_content = fd.read()
-        try:
-            json_content = csvContentToJsonObject(csv_content)
-            validate(json_content, schema)  # TODO this should be an internal error
-        except (ValidationError, Exception) as e:
-            raise ValidationError({'error': f'Invalid CSV file: {str(e)}'})
+    if session.import_path.endswith('.csv'):
+        with open(session.import_path) as fd:
+            csv_content = fd.read()
+            try:
+                json_content = csvContentToJsonObject(csv_content)
+                validate(json_content, schema)  # TODO this should be an internal error
+            except (ValidationError, Exception) as e:
+                raise ValidationError({'error': f'Invalid CSV file: {str(e)}'})
+    elif session.import_path.endswith('.json'):
+        with open(session.import_path) as json_file:
+            try:
+                json_content = json.load(json_file)
+                validate(json_content, schema)
+            except (ValidationError, Exception) as e:  # TODO this should be an internal error
+                raise ValidationError({'error': f'Invalid JSON file: {str(e)}'})
+    # else:
+    # TODO: Raise an error
 
     data_root = Path(json_content['data_root'])
 
