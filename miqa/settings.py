@@ -7,8 +7,13 @@ from composed_configuration import (
     ConfigMixin,
     DevelopmentBaseConfiguration,
     HerokuProductionBaseConfiguration,
+    HttpsMixin,
     ProductionBaseConfiguration,
+    SmtpEmailMixin,
     TestingBaseConfiguration,
+)
+from composed_configuration._configuration import (
+    _BaseConfiguration,
 )
 
 
@@ -44,6 +49,16 @@ class TestingConfiguration(MiqaMixin, TestingBaseConfiguration):
 
 class ProductionConfiguration(MiqaMixin, ProductionBaseConfiguration):
     pass
+
+
+# TODO include HttpsMixin
+class DockerComposeProductionConfiguration(
+    MiqaMixin,
+    SmtpEmailMixin,
+    HttpsMixin,
+    _BaseConfiguration,
+):
+    """For the production deployment using docker-compose."""
 
 
 class HerokuProductionConfiguration(MiqaMixin, HerokuProductionBaseConfiguration):
