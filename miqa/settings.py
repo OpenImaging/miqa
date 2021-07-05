@@ -12,9 +12,7 @@ from composed_configuration import (
     SmtpEmailMixin,
     TestingBaseConfiguration,
 )
-from composed_configuration._configuration import (
-    _BaseConfiguration,
-)
+from composed_configuration._configuration import _BaseConfiguration
 
 
 class MiqaMixin(ConfigMixin):
