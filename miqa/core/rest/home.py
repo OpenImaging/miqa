@@ -17,4 +17,4 @@ class HomePageView(TemplateView):
     `/static/index.html`.
     """
 
-    template_name = "index.html"
+    template_name = 'index.html'
