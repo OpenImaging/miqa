@@ -7,11 +7,11 @@ from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject
-from miqa.core.models import Experiment, Image, Scan, ScanNote, Site
+from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
 
 
-def import_data(user, session):
+def import_data(user, session: Session):
     if session.import_path.endswith('.csv'):
         with open(session.import_path) as fd:
             csv_content = fd.read()
@@ -48,6 +48,7 @@ def import_data(user, session):
     scans = []
     images = []
     notes = []
+    annotations = []
     for scan_json in json_content['scans']:
         experiment = experiments[scan_json['experiment_id']]
         site = sites[scan_json['site_id']]
@@ -58,6 +59,13 @@ def import_data(user, session):
             site=site,
         )
         scans.append(scan)
+
+        if scan_json['decision']:
+            annotation = Annotation(
+                scan=scan,
+                decision=Decision.from_rating(scan_json['decision']),
+            )
+            annotations.append(annotation)
 
         if scan_json['note']:
             note = scan_json['note']
@@ -89,6 +97,7 @@ def import_data(user, session):
     Scan.objects.bulk_create(scans)
     Image.objects.bulk_create(images)
     ScanNote.objects.bulk_create(notes)
+    Annotation.objects.bulk_create(annotations)
 
 
 def export_data(user, session):
