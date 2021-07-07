@@ -23,7 +23,7 @@ def jsonObjectToCsvContent(jsonObject):
         expId = scan['experiment_id']
 
         scanPath = scan['path']
-        pathComps = scanPath.split(os.path.sep)
+        pathComps = scanPath.rstrip(os.path.sep).split(os.path.sep)
         firstComps = pathComps[:-1]
         lastComp = pathComps[-1]
 
