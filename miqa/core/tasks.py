@@ -59,17 +59,16 @@ def import_data(user, session):
         )
         scans.append(scan)
 
-        # TODO import notes
-        # if scan_json['note']:
-        #     notes_json = json.loads(unquote(scan_json['note']))
-        #     for note_json in notes_json:
-        #         scan_note = ScanNote(
-        #             **note_json,
-        #             scan=scan,
-        #         )
-        #         # This forces the modified field to use the value we give it
-        #         scan_note.update_modified = False
-        #         notes.append(scan_note)
+        if scan_json['note']:
+            note = scan_json['note']
+            # TODO how to save multiple notes?
+            initials, note = note.split(':')
+            scan_note = ScanNote(
+                initials=initials,
+                note=note,
+                scan=scan,
+            )
+            notes.append(scan_note)
 
         if 'images' in scan_json:
             # TODO implement this
