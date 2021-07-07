@@ -15,6 +15,7 @@ class ScanNote(models.Model):
     # We want to set created to arbitrary values during import
     created = models.DateTimeField(default=timezone.now)
     modified = ModificationDateTimeField()
-    creator = models.ForeignKey(User, on_delete=models.PROTECT)
+    creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
+    initials = models.CharField(max_length=2)
     note = models.TextField(max_length=3000)
     scan = models.ForeignKey('Scan', related_name='notes', on_delete=models.CASCADE)
