@@ -20,8 +20,7 @@ def command(username, uri):
     application = Application(
         name='miqa-client',
         client_id='cBmD6D6F2YAmMWHNQZFPUr4OpaXVpW5w4Thod6Kj',
-        client_secret='zNkKPQjc17WfVJjIyLlqpCNdE3LYFfOTF3crpSWsMFMBvxFsqxDz0q85Rgm'
-        'BjYBX18LHB9MrygvqybJ2pmrbkAsSXquHNDVxpiEWxslp6bvQW3gWIYYuvKTyPfWvtwNU',
+        client_secret='',
         client_type='public',
         redirect_uris=uri,
         authorization_grant_type='authorization-code',
