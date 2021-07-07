@@ -41,7 +41,7 @@ class Annotation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created = models.DateTimeField(default=timezone.now)
     scan = models.ForeignKey('Scan', related_name='decisions', on_delete=models.CASCADE)
-    creator = models.ForeignKey(User, on_delete=models.PROTECT)
+    creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(
         max_length=20,
         default=Decision.NONE.name,
