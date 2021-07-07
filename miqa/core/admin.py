@@ -27,8 +27,8 @@ class ScanAdmin(admin.ModelAdmin):
 
 @admin.register(ScanNote)
 class ScanNoteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'creator', 'note', 'scan')
-    list_filter = ('created', 'creator', 'scan')
+    list_display = ('id', 'created', 'modified', 'initials', 'creator', 'note', 'scan')
+    list_filter = ('created', 'initials', 'creator', 'scan')
 
 
 @admin.register(Annotation)
