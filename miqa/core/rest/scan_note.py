@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 class ScanNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScanNote
-        fields = ['id', 'creator', 'note', 'created', 'modified']
+        fields = ['id', 'initials', 'creator', 'note', 'created', 'modified']
 
     # Override the default DateTimeFields to disable read_only=True
     created = serializers.DateTimeField()
@@ -41,7 +41,7 @@ class ScanNoteViewSet(
     queryset = ScanNote.objects.all()
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['scan', 'creator']
+    filterset_fields = ['scan', 'initials', 'creator']
 
     permission_classes = [IsAuthenticatedOrReadOnly]
 
