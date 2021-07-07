@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
-from miqa.core.tasks import import_data, export_data
+from miqa.core.tasks import export_data, import_data
 
 
 class DecisionSerializer(serializers.ModelSerializer):
