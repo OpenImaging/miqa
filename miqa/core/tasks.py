@@ -90,3 +90,7 @@ def import_data(user, session):
     Scan.objects.bulk_create(scans)
     Image.objects.bulk_create(images)
     ScanNote.objects.bulk_create(notes)
+
+
+def export_data(user, session):
+    pass
