@@ -65,7 +65,7 @@ class DockerComposeProductionConfiguration(
         # This should be STATIC_ROOT, but that is bound as a property which cannot be evaluated
         # at this point, so we make this assumption about staticfiles instead.
         configuration.TEMPLATES[0]['DIRS'] += [
-            str(Path(configuration.BASE_DIR) / 'staticfiles'),
+            configuration.BASE_DIR / 'staticfiles',
         ]
 
 
