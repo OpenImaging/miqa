@@ -41,22 +41,18 @@ docker-compose up
 The app should now be running and accessible in your browser.
 However, you still need to set up the OAuth Application before you can log in through the web client.
 
-For this example, we will assume you are setting up `miqa.com` with `$MIQA_SERVER_PORT=80`.
+For this example, we will assume you are setting up `https://miqa.com/`.
 
-* In a browser, log in to the admin console at `http://miqa.com/admin` using the credentials you made earlier (email/password).
-* Click on Django OAuth Toolkit > Applications > + Add.
-* Set the following values:
-  * Client id: `cBmD6D6F2YAmMWHNQZFPUr4OpaXVpW5w4Thod6Kj`
-  * User: `1`
-  * Redirect uris: `http://miqa.com/`
-  * Client type: `Public`
-  * Authorization grant type: `Authorization code`
-  * Client secret: whatever it generated is fine
-  * Name: `MIQA GUI` (or whatever suits your fancy)
-  * Skip authorization: checked
-    * Uncheck this if you want users to explicitly authorize the app every time they log in.
-  * Algorithm: `No OIDC support` (the default).
-* Click Save.
+Set up the application by running:
+```
+docker-compose run django ./manage.py makeclient --username super.user@miqa.com --uri https://miqa.com/
+```
+
+If you have problems logging in, you can reconfigure the OAuth Application from the admin console:
+* In a browser, log in to the admin console at `https://miqa.com/admin` using the credentials you made earlier (email/password).
+* Click on Django OAuth Toolkit > Applications.
+* Click `miqa-client`.
+
 
 ### Set up default session
 Although there are plans to support multiple sessions, currently the web client only supports one.
@@ -75,7 +71,7 @@ This session must still be created manually.
 
 ### Test login
 * Log out of the admin console.
-* Go to `http://miqa.com`. You should be redirected to a log in page.
+* Go to `https://miqa.com`. You should be redirected to a log in page.
 * Log in using the credentials you made earlier. You should get a prompt that an email was sent to verify your account.
 * Check your email and click the link to verify your account.
 * Log in again. You should now be logged in to the app.
