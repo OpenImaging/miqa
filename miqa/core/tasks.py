@@ -6,7 +6,8 @@ import re
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
-from miqa.core.conversion.csv_to_json import csvContentToJsonObject
+from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common_prefix
+from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
 
@@ -100,5 +101,75 @@ def import_data(user, session: Session):
     Annotation.objects.bulk_create(annotations)
 
 
-def export_data(user, session):
-    pass
+def export_data(user, session: Session):
+    data_root = None
+    experiments = []
+    scans = []
+    sites = set()
+
+    for experiment in session.experiments.all():
+        experiments.append(
+            {
+                'id': experiment.name,
+                'note': experiment.note,
+            }
+        )
+        for scan in experiment.scans.all():
+            scan_root = None
+            for image in scan.images.all():
+                if data_root is None:
+                    data_root = image.raw_path
+                data_root = find_common_prefix(data_root, image.raw_path)
+
+                if scan_root is None:
+                    scan_root = image.raw_path
+                scan_root = find_common_prefix(scan_root, image.raw_path)
+
+            if scan_root is None:
+                # There were no images in this scan, don't export it
+                continue
+
+            decision = scan.decisions.order_by('-created').first()
+            if decision:
+                decision = Decision.to_rating(decision.decision)
+            else:
+                decision = ''
+
+            note = scan.notes.order_by('-created').first()
+            if note:
+                note = f'{note.initials}:{note.note}'
+            else:
+                note = ''
+
+            scans.append(
+                {
+                    'id': scan.scan_id,
+                    'type': scan.scan_type,
+                    'note': note,
+                    'experiment_id': experiment.name,
+                    'path': scan_root,
+                    'image_pattern': r'^image[\d]*\.nii\.gz$',
+                    'site_id': scan.site.name,
+                    'decision': decision,
+                }
+            )
+            sites.add(scan.site.name)
+
+    # scan.path should omit the data_root prefix, so trim it off now
+    for scan in scans:
+        scan['path'] = scan['path'][len(data_root) :]
+
+    json_content = {
+        'data_root': data_root,
+        'experiments': experiments,
+        'scans': scans,
+        'sites': [{'name': site} for site in sites],
+    }
+
+    if session.export_path.endswith('.csv'):
+        with open(session.export_path, 'w') as csv_file:
+            csv_content = jsonObjectToCsvContent(json_content)
+            csv_file.write(csv_content.getvalue())
+    elif session.export_path.endswith('.json'):
+        with open(session.export_path, 'w') as json_file:
+            json_file.write(json.dump(json_content))
