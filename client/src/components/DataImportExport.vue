@@ -37,11 +37,11 @@ export default {
       this.importDialog = false;
     },
     async exportData() {
-      // this.$prompt({
-      //   title: 'Export',
-      //   text: 'Saved data to file successfully.',
-      //   positiveButton: 'Ok',
-      // });
+      await this.djangoRest.export(this.mainSession.id);
+      this.$snackbar({
+        text: 'Saved data to file successfully.',
+        timeout: 6000,
+      });
     },
     activateInput() {
       this.$refs.load.click();
