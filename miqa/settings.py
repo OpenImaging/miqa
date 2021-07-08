@@ -7,9 +7,12 @@ from composed_configuration import (
     ConfigMixin,
     DevelopmentBaseConfiguration,
     HerokuProductionBaseConfiguration,
+    HttpsMixin,
     ProductionBaseConfiguration,
+    SmtpEmailMixin,
     TestingBaseConfiguration,
 )
+from composed_configuration._configuration import _BaseConfiguration
 
 
 class MiqaMixin(ConfigMixin):
@@ -44,6 +47,26 @@ class TestingConfiguration(MiqaMixin, TestingBaseConfiguration):
 
 class ProductionConfiguration(MiqaMixin, ProductionBaseConfiguration):
     pass
+
+
+# TODO include HttpsMixin
+class DockerComposeProductionConfiguration(
+    MiqaMixin,
+    SmtpEmailMixin,
+    HttpsMixin,
+    _BaseConfiguration,
+):
+    """For the production deployment using docker-compose."""
+
+    @staticmethod
+    def before_binding(configuration: ComposedConfiguration) -> None:
+        # Register static files as templates so that the index.html built by the client is
+        # available as a template.
+        # This should be STATIC_ROOT, but that is bound as a property which cannot be evaluated
+        # at this point, so we make this assumption about staticfiles instead.
+        configuration.TEMPLATES[0]['DIRS'] += [
+            configuration.BASE_DIR / 'staticfiles',
+        ]
 
 
 class HerokuProductionConfiguration(MiqaMixin, HerokuProductionBaseConfiguration):
