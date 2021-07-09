@@ -5,6 +5,7 @@ import csv
 import io
 import json
 import os
+from pathlib import Path
 
 
 def jsonObjectToCsvContent(jsonObject):
@@ -22,10 +23,9 @@ def jsonObjectToCsvContent(jsonObject):
     for scan in scans:
         expId = scan['experiment_id']
 
-        scanPath = scan['path']
-        pathComps = scanPath.rstrip(os.path.sep).split(os.path.sep)
-        firstComps = pathComps[:-1]
-        lastComp = pathComps[-1]
+        scanPath = Path(scan['path'])
+        firstComps = scanPath.parts[:-1]
+        lastComp = scanPath.name
 
         try:
             splitIdx = lastComp.index('_')
