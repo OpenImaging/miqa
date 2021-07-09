@@ -167,6 +167,7 @@ def export_data(user, session: Session):
         with open(session.export_path, 'w') as csv_file:
             csv_content = jsonObjectToCsvContent(json_content)
             csv_file.write(csv_content.getvalue())
-    elif session.export_path.endswith('.json'):
+    else:
+        # Assume JSON
         with open(session.export_path, 'w') as json_file:
             json_file.write(json.dumps(json_content, indent=4))
