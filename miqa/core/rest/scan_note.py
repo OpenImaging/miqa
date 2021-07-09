@@ -52,9 +52,15 @@ class ScanNoteViewSet(
 
     def perform_create(self, serializer: CreateScanNoteSerializer):
         user = self.request.user
+
+        def initial(name):
+            if name:
+                return name[0]
+            return '?'
+
         note = ScanNote(
             **serializer.validated_data,
             creator=user,
-            initials=f'{user.first_name[0]}{user.last_name[0]}',
+            initials=f'{initial(user.first_name)}{initial(user.last_name)}',
         )
         note.save()
