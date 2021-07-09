@@ -169,4 +169,4 @@ def export_data(user, session: Session):
             csv_file.write(csv_content.getvalue())
     elif session.export_path.endswith('.json'):
         with open(session.export_path, 'w') as json_file:
-            json_file.write(json.dump(json_content))
+            json_file.write(json.dumps(json_content, indent=4))
