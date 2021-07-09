@@ -69,15 +69,14 @@ def import_data(user, session: Session):
             annotations.append(annotation)
 
         if scan_json['note']:
-            note = scan_json['note']
-            # TODO how to save multiple notes?
-            initials, note = note.split(':')
-            scan_note = ScanNote(
-                initials=initials,
-                note=note,
-                scan=scan,
-            )
-            notes.append(scan_note)
+            for note in scan_json['note'].split('\n'):
+                initials, note = note.split(':')
+                scan_note = ScanNote(
+                    initials=initials,
+                    note=note,
+                    scan=scan,
+                )
+                notes.append(scan_note)
 
         if 'images' in scan_json:
             # TODO implement this
@@ -135,11 +134,9 @@ def export_data(user, session: Session):
             else:
                 decision = ''
 
-            note = scan.notes.order_by('-created').first()
-            if note:
-                note = f'{note.initials}:{note.note}'
-            else:
-                note = ''
+            note = '\n'.join(
+                [f'{note.initials}:{note.note}' for note in scan.notes.order_by('created').all()]
+            )
 
             scans.append(
                 {
