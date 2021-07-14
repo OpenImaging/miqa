@@ -4,14 +4,17 @@ This directory contains everything required to deploy MIQA in production using d
 # Instructions
 All of these commands should be run from the `prod` directory.
 
-### Set the variables in .env
-The `.env` file contains some default values for local testing that will need to overwritten for production deployments.
-For the build and setup process these values are mostly placeholders, but they will need to be set correctly before the site is made public.
+### Setup the configuration variables
 
-`DJANGO_EMAIL_URL` must be of the form `submission://username:password@my.smtp.server:port`. See the [documentation](https://github.com/migonzalvar/dj-email-url#supported-backends) for details with encoding special characters.
+Run:
 
-You can also specify those variables explicitly in your local shell environment instead of editing the file.
-`docker-compose` will check for local shell values before defaulting to the values in `.env`.
+`cp .env.template .env`
+
+Open the `.env` file and make changes to the variables in the top section.
+
+* `DJANGO_EMAIL_URL` must be of the form `submission://username:password@my.smtp.server:port`. See the [documentation](https://github.com/migonzalvar/dj-email-url#supported-backends) for details with encoding special characters.
+
+You can also specify those variables explicitly in your local shell environment instead of editing the file. `docker-compose` will check for local shell values before defaulting to the values in `.env`.
 
 ### Build the docker image
 ```
@@ -22,14 +25,14 @@ docker-compose build
 Until you do this, the postgres DB is completely empty.
 This will not populate any data, only set up tables.
 ```
-docker-compose run django ./manage.py migrate
+docker-compose run --rm django ./manage.py migrate
 ```
 
 ### Create a superuser to administer the server
 **IMPORTANT**: Set both the Username and Email to the same valid email address.
 Admin logins will break if you do not.
 ```
-docker-compose run django ./manage.py createsuperuser
+docker-compose run --rm django ./manage.py createsuperuser
 ```
 
 ### Run the server
