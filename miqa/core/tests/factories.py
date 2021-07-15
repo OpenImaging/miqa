@@ -72,6 +72,10 @@ class NoteFactory(factory.django.DjangoModelFactory):
     creator = factory.SubFactory(UserFactory)
     scan = factory.SubFactory(ScanFactory)
 
+    @factory.lazy_attribute
+    def initials(self):
+        return f'{self.creator.first_name[0]}{self.creator.last_name[0]}'
+
 
 class ImageFactory(factory.django.DjangoModelFactory):
     class Meta:

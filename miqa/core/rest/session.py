@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
-from miqa.core.tasks import import_data
+from miqa.core.tasks import export_data, import_data
 
 
 class DecisionSerializer(serializers.ModelSerializer):
@@ -128,4 +128,14 @@ class SessionViewSet(ReadOnlyModelViewSet):
     def import_(self, request, **kwargs):
         session: Session = self.get_object()
         import_data(request.user, session)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(
+        request_body=no_body,
+        responses={204: 'Export succeeded.'},
+    )
+    @action(detail=True, methods=['POST'])
+    def export(self, request, **kwargs):
+        session: Session = self.get_object()
+        export_data(request.user, session)
         return Response(status=status.HTTP_204_NO_CONTENT)
