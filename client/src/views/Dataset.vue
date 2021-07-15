@@ -203,6 +203,12 @@ export default {
         this.onDecisionChanged();
       }
     },
+    creatorName(note) {
+      if (note.creator) {
+        return `${note.creator.first_name} ${note.creator.last_name}`;
+      }
+      return note.initials;
+    },
     setNote(e) {
       this.newNote = e;
     },
@@ -615,8 +621,7 @@ export default {
                           >
                             <v-list-item-content class="note-history">
                               <v-list-item-title class="grey--text darken-2">
-                                {{ note.creator.first_name }}
-                                {{ note.creator.last_name }}: {{ note.created }}
+                                {{ creatorName(note) }}: {{ note.created }}
                               </v-list-item-title>
                               {{ note.note }}
                             </v-list-item-content>
