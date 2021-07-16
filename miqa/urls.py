@@ -32,7 +32,7 @@ router.register('annotations', AnnotationViewSet)
 schema_view = get_schema_view(
     openapi.Info(title='MIQA', default_version='v1', description=''),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=(permissions.IsAuthenticated,),
 )
 
 urlpatterns = [
