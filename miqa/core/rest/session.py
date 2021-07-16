@@ -1,7 +1,7 @@
 from drf_yasg.utils import no_body, swagger_auto_schema
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
@@ -82,7 +82,7 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
 
 class SessionViewSet(ReadOnlyModelViewSet):
 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         if self.action == 'retrieve':
@@ -107,7 +107,13 @@ class SessionViewSet(ReadOnlyModelViewSet):
         request_body=SessionSettingsSerializer(),
         responses={200: SessionSettingsSerializer()},
     )
-    @action(detail=True, url_path='settings', url_name='settings', methods=['GET', 'PUT'])
+    @action(
+        detail=True,
+        url_path='settings',
+        url_name='settings',
+        methods=['GET', 'PUT'],
+        permission_classes=[IsAdminUser],
+    )
     def settings_(self, request, **kwargs):
         session: Session = self.get_object()
         if request.method == 'GET':
