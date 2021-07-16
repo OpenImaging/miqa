@@ -65,7 +65,7 @@ class DockerComposeProductionConfiguration(
     @property
     def STATIC_URL(self):
         """Prepend the MIQA_URL_PREFIX to STATIC_URL."""
-        return str(Path(self.MIQA_URL_PREFIX) / 'static') + '/'
+        return f'{Path(self.MIQA_URL_PREFIX) / "static"}/'
 
     @property
     def FORCE_SCRIPT_NAME(self):
