@@ -1,3 +1,4 @@
+# flake8: noqa N802
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,6 +14,7 @@ from composed_configuration import (
     TestingBaseConfiguration,
 )
 from composed_configuration._configuration import _BaseConfiguration
+from configurations import values
 
 
 class MiqaMixin(ConfigMixin):
@@ -57,6 +59,33 @@ class DockerComposeProductionConfiguration(
     _BaseConfiguration,
 ):
     """For the production deployment using docker-compose."""
+
+    MIQA_URL_PREFIX = values.Value(environ=True, default='/')
+
+    @property
+    def STATIC_URL(self):
+        """Prepend the MIQA_URL_PREFIX to STATIC_URL."""
+        return f'{Path(self.MIQA_URL_PREFIX) / "static"}/'
+
+    @property
+    def FORCE_SCRIPT_NAME(self):
+        """
+        Set FORCE_SCRIPT_NAME to MIQA_URL_PREFIX, a more user-friendly name.
+
+        This is necessary so that {url} blocks in templates include the MIQA_URL_PREFIX.
+        Without it, links in the admin console would not have the prefix, and would not resolve.
+        """
+        return self.MIQA_URL_PREFIX
+
+    # Whitenoise needs to serve the static files from /static/, even though Django needs to think
+    # that they are served from {MIQA_URL_PREFIX}/static/. The nginx server will strip away the
+    # prefix from incoming requests.
+    WHITENOISE_STATIC_PREFIX = '/static/'
+
+    @property
+    def LOGIN_URL(self):
+        """LOGIN_URL also needs to be behing MIQA_URL_PREFIX."""
+        return str(Path(self.MIQA_URL_PREFIX) / 'accounts' / 'login') + '/'
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
