@@ -43,7 +43,7 @@ const djangoClient = new Vue({
       await apiClient.post(`/sessions/${sessionId}/import`);
     },
     async export(sessionId) {
-      await apiClient.post(`/sessions/${sessionId}/export`);
+      return apiClient.post(`/sessions/${sessionId}/export`);
     },
     async sessions() {
       const { data } = await apiClient.get('/sessions');
