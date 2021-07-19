@@ -7,7 +7,6 @@ const apiClient = axios.create({ baseURL: API_URL });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = new Vue({
   data: () => ({
-    user: null,
     store: null,
     apiClient,
   }),
@@ -22,8 +21,8 @@ const djangoClient = new Vue({
           apiClient.defaults.headers.common,
           oauthClient.authHeaders,
         );
-
-        this.user = await this.me();
+      } else {
+        this.login();
       }
 
       // mark user not-idle
@@ -39,7 +38,6 @@ const djangoClient = new Vue({
     },
     async logout() {
       await oauthClient.logout();
-      this.user = null;
     },
     async import(sessionId) {
       await apiClient.post(`/sessions/${sessionId}/import`);
