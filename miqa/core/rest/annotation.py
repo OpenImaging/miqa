@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
 from rest_framework import serializers
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from miqa.core.models import Annotation
@@ -31,5 +30,4 @@ class AnnotationViewSet(ModelViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'creator']
 
-    permission_classes = [IsAuthenticated]
     serializer_class = DecisionSerializer
