@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import ScanNote
@@ -42,8 +41,6 @@ class ScanNoteViewSet(
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'initials', 'creator']
-
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
