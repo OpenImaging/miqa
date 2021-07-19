@@ -2,7 +2,6 @@ from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
@@ -35,7 +34,6 @@ class ScanViewSet(ReadOnlyModelViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['experiment', 'site']
 
-    permission_classes = [IsAuthenticated]
     serializer_class = ScanSerializer
 
     @swagger_auto_schema(request_body=DecisionSerializer)
