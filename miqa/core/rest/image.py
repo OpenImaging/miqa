@@ -5,7 +5,6 @@ from django_filters import rest_framework as filters
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Image
@@ -23,7 +22,6 @@ class ImageViewSet(ListModelMixin, GenericViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan']
 
-    permission_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
 
     @action(detail=True)

@@ -1,6 +1,5 @@
 from django_filters import rest_framework as filters
 from rest_framework import serializers
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
@@ -21,5 +20,4 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['session']
 
-    permission_classes = [IsAuthenticated]
     serializer_class = ExperimentSerializer
