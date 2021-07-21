@@ -53,7 +53,6 @@ djangoRest.setStore(store);
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
   const [session] = await djangoRest.sessions();
-
   new Vue({
     vuetify,
     router,
@@ -66,8 +65,4 @@ djangoRest.restoreLogin().then(async () => {
     .$mount('#app')
     .$snackbarAttach()
     .$promptAttach();
-
-  if (!user) {
-    djangoRest.login();
-  }
 });

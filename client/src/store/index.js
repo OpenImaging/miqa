@@ -25,8 +25,7 @@ Vue.use(Vuex);
 const fileCache = new Map();
 const datasetCache = new Map();
 let readDataQueue = [];
-
-const poolSize = navigator.hardwareConcurrency / 2 || 2;
+const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
 
