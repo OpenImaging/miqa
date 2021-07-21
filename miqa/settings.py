@@ -38,6 +38,11 @@ class MiqaMixin(ConfigMixin):
         # oauth session
         configuration.OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'] = 1800  # 30 minutes
 
+        # drf
+        configuration.REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
+            'rest_framework.permissions.IsAuthenticated'
+        ]
+
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
     pass
