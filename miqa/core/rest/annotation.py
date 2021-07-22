@@ -1,33 +1,38 @@
-from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
-from rest_framework import serializers
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import mixins, serializers
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Annotation
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name']
-        ref_name = 'annotation_user'
+from .permissions import UserHoldsSessionLock, ensure_session_lock
 
 
-class DecisionSerializer(serializers.Serializer):
+class DecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
-        fields = ['id', 'decision', 'creator', 'created']
+        fields = ['id', 'decision', 'creator', 'created', 'scan']
+        read_only_fields = ['created', 'creator']
         ref_name = 'annotation_decision'
 
-    decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
-    created = serializers.DateTimeField()
-    creator = UserSerializer()
 
-
-class AnnotationViewSet(ModelViewSet):
-    queryset = Annotation.objects.all()
+class AnnotationViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Annotation.objects.select_related('scan__experiment__session')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'creator']
 
+    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+
     serializer_class = DecisionSerializer
+
+    def perform_create(self, serializer: DecisionSerializer):
+        user = self.request.user
+        ensure_session_lock(serializer.validated_data['scan'], user)
+        serializer.save(creator=user)

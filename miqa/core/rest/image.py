@@ -5,9 +5,12 @@ from django_filters import rest_framework as filters
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Image
+
+from .permissions import UserHoldsSessionLock
 
 
 class ImageSerializer(serializers.ModelSerializer):
@@ -17,10 +20,14 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImageViewSet(ListModelMixin, GenericViewSet):
+    # This ViewSet read-only right now, so we don't need to select_related back to
+    # the Session for permission checking.
     queryset = Image.objects.all()
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan']
+
+    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
 
     serializer_class = ImageSerializer
 
