@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 from enum import Enum
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+if TYPE_CHECKING:
+    from miqa.core.models import Session
 
 
 class Decision(Enum):
@@ -47,3 +53,7 @@ class Annotation(models.Model):
         default=Decision.NONE.name,
         choices=[(tag.name, tag.value) for tag in Decision],
     )
+
+    @property
+    def session(self) -> Session:
+        return self.scan.experiment.session
