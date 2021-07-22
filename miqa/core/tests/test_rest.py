@@ -126,3 +126,54 @@ def test_session_lock_only_owner_can_release(
 
     session.refresh_from_db()
     assert session.lock_owner.id == owner.id
+
+
+@pytest.mark.django_db
+def test_read_without_lock_ok(authenticated_api_client, scan_note):
+    resp = authenticated_api_client.get(f'/api/v1/scan_notes/{scan_note.id}')
+    assert resp.status_code == 200
+
+
+@pytest.mark.django_db
+def test_create_note_without_lock_fails(authenticated_api_client, scan):
+    resp = authenticated_api_client.post(
+        '/api/v1/scan_notes',
+        data={
+            'scan': scan.id,
+            'note': 'hello',
+        },
+    )
+    assert resp.status_code == 403
+    assert resp.data['detail'] == 'You must lock the session before performing this action.'
+
+
+@pytest.mark.django_db
+def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
+    resp = authenticated_api_client.post(
+        '/api/v1/annotations',
+        data={
+            'scan': scan.id,
+            'decision': 'GOOD',
+        },
+    )
+    assert resp.status_code == 403
+    assert resp.data['detail'] == 'You must lock the session before performing this action.'
+
+
+@pytest.mark.django_db
+def test_create_annotation_with_lock(api_client, scan, user):
+    scan.session.lock_owner = user
+    scan.session.save(update_fields=['lock_owner'])
+    api_client.force_authenticate(user=user)
+
+    resp = api_client.post(
+        '/api/v1/annotations',
+        data={
+            'scan': scan.id,
+            'decision': 'GOOD',
+        },
+    )
+    assert resp.status_code == 201
+    decisions = scan.decisions.all()
+    assert len(decisions) == 1
+    assert decisions[0].decision == 'GOOD'

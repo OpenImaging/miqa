@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db.models import Model
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -38,7 +39,22 @@ class UserHoldsSessionLock(BasePermission):
         session: Session = obj.session
         if session.lock_owner is None:
             raise NotLocked()
-        if session.lock_owner != request.user:  # TODO does this comparison work?
+        if session.lock_owner != request.user:
             raise LockContention()
 
         return True
+
+
+def ensure_session_lock(obj: Model, user: User) -> None:
+    """
+    Raise an exception if the given user does not possess the session lock.
+
+    This should be called by all REST `create` methods that correspond to an object
+    within a Session, as new object creation policies are not handled by the
+    `UserHoldsSessionLock` class.
+    """
+    session: Session = obj.session
+    if session.lock_owner is None:
+        raise NotLocked()
+    if session.lock_owner != user:
+        raise LockContention()
