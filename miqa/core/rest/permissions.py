@@ -36,7 +36,7 @@ class UserHoldsSessionLock(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        session: Session = obj.session
+        session: Session = obj if isinstance(obj, Session) else obj.session
         if session.lock_owner is None:
             raise NotLocked()
         if session.lock_owner != request.user:
@@ -53,7 +53,7 @@ def ensure_session_lock(obj: Model, user: User) -> None:
     within a Session, as new object creation policies are not handled by the
     `UserHoldsSessionLock` class.
     """
-    session: Session = obj.session
+    session: Session = obj if isinstance(obj, Session) else obj.session
     if session.lock_owner is None:
         raise NotLocked()
     if session.lock_owner != user:
