@@ -38,6 +38,15 @@ def test_session_settings_put(staff_api_client, session):
 
 
 @pytest.mark.django_db
+def test_settings_endpoint_requires_staff(authenticated_api_client, session):
+    resp = authenticated_api_client.put(
+        f'/api/v1/sessions/{session.id}/settings',
+        data={'importpath': '/new/fake/path', 'exportpath': '/new/fake/path'},
+    )
+    assert resp.status_code == 403
+
+
+@pytest.mark.django_db
 def test_experiments_list(authenticated_api_client, experiment):
     resp = authenticated_api_client.get('/api/v1/experiments')
     assert resp.status_code == 200
