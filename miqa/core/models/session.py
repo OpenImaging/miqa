@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from uuid import uuid4
 
 from django.contrib.auth.models import User
@@ -20,7 +18,3 @@ class Session(TimeStampedModel, models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def session(self) -> 'Session':
-        return self
