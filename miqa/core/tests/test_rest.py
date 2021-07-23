@@ -80,9 +80,12 @@ def test_session_lock_acquire_requires_auth(api_client, session):
 
 
 @pytest.mark.django_db
-def test_session_lock_acquire(authenticated_api_client, session):
-    resp = authenticated_api_client.post(f'/api/v1/sessions/{session.id}/lock')
+def test_session_lock_acquire(api_client, session, user):
+    api_client.force_authenticate(user=user)
+    resp = api_client.post(f'/api/v1/sessions/{session.id}/lock')
     assert resp.status_code == 204
+    session.refresh_from_db()
+    assert session.lock_owner == user
 
 
 @pytest.mark.django_db
