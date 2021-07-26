@@ -12,6 +12,7 @@ import {
 
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
+import SessionLock from '@/components/SessionLock.vue';
 import UserButton from '@/components/girder/UserButton.vue';
 import SessionsView from '@/components/SessionsView.vue';
 import WindowControl from '@/components/WindowControl.vue';
@@ -28,6 +29,7 @@ export default {
   components: {
     NavbarTitle,
     UserButton,
+    SessionLock,
     Layout,
     DataImportExport,
     SessionsView,
@@ -38,7 +40,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs,
   },
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
     newNote: '',
     decision: null,
@@ -63,6 +65,7 @@ export default {
       'screenshots',
       'sessionCachedPercentage',
       'sessionDatasets',
+      'mainSession',
     ]),
     ...mapGetters([
       'nextDataset',
@@ -304,6 +307,7 @@ export default {
       <NavbarTitle />
       <NavigationTabs />
       <v-spacer />
+      <SessionLock />
       <v-btn
         icon
         class="mr-4"

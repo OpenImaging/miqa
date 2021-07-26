@@ -181,6 +181,7 @@ function getNextDataset(experiments, i, j) {
 
 const initState = {
   drawer: false,
+  mainSession: null,
   experimentIds: [],
   experiments: {},
   experimentSessions: {},
@@ -327,6 +328,9 @@ const store = new Vuex.Store({
       state.sessionDatasets = {};
       state.datasets = {};
     },
+    setMainSession(state, mainSession) {
+      state.mainSession = mainSession;
+    },
     setCurrentImageId(state, imageId) {
       state.currentDatasetId = imageId;
     },
@@ -393,6 +397,11 @@ const store = new Vuex.Store({
     async logout({ dispatch }) {
       dispatch('reset');
       await djangoRest.logout();
+    },
+    async getMainSession({ commit }) {
+      const [session] = await djangoRest.sessions();
+
+      commit('setMainSession', session);
     },
     // load all nifti files into a single experiment + single scan
     async loadLocalDataset({ state, commit, dispatch }, files) {

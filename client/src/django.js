@@ -54,6 +54,12 @@ const djangoClient = new Vue({
       const { data } = await apiClient.get(`/sessions/${sessionId}`);
       return data;
     },
+    async acquireSession(sessionId) {
+      await apiClient.post(`/sessions/${sessionId}/lock`);
+    },
+    async releaseSession(sessionId) {
+      await apiClient.delete(`/sessions/${sessionId}/lock`);
+    },
     async settings(sessionId) {
       const { data } = await apiClient.get(`/sessions/${sessionId}/settings`);
       return data;
@@ -85,7 +91,7 @@ const djangoClient = new Vue({
       return data;
     },
     async setDecision(scanId, decision) {
-      await apiClient.post(`/annotations`, { scan: scanId, decision });
+      await apiClient.post('/annotations', { scan: scanId, decision });
     },
     async addScanNote(scanId, note) {
       await apiClient.post('/scan_notes', {

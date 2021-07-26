@@ -1,8 +1,11 @@
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'JSONConfig',
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
+    ...mapState(['mainSession']),
     importpath: '',
     exportpath: '',
     changed: false,

@@ -1,11 +1,12 @@
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapState } from 'vuex';
 
 export default {
   name: 'DataImportExport',
   components: {},
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
+    ...mapState(['mainSession']),
     importing: false,
     importDialog: false,
     importErrorText: '',

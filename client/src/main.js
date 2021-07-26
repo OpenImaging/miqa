@@ -52,14 +52,14 @@ if (process.env.NODE_ENV === 'production') {
 djangoRest.setStore(store);
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
-  const [session] = await djangoRest.sessions();
+  await store.dispatch('getMainSession');
   new Vue({
     vuetify,
     router,
     store,
     render: (h) => h(App),
     provide: {
-      djangoRest, user, mainSession: session,
+      djangoRest, user,
     },
   })
     .$mount('#app')
