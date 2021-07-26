@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Experiment, Image, Scan, ScanNote, Session, Site
+from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -59,7 +59,14 @@ class ScanFactory(factory.django.DjangoModelFactory):
 
     scan_id = factory.Faker('pystr')
     scan_type = factory.Faker('pystr')
-    decision = 'GOOD'
+
+
+class AnnotationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Annotation
+
+    scan = factory.SubFactory(ScanFactory)
+    creator = factory.SubFactory(UserFactory)
 
 
 class NoteFactory(factory.django.DjangoModelFactory):

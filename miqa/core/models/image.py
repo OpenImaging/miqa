@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
+
+if TYPE_CHECKING:
+    from miqa.core.models import Session
 
 
 class Image(TimeStampedModel, models.Model):
@@ -22,3 +28,7 @@ class Image(TimeStampedModel, models.Model):
     @property
     def size(self) -> int:
         return self.path.stat().st_size
+
+    @property
+    def session(self) -> Session:
+        return self.scan.experiment.session

@@ -1,9 +1,12 @@
 from django.contrib.auth.models import User
 from django_filters import rest_framework as filters
 from rest_framework import mixins, serializers
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import ScanNote
+
+from .permissions import UserHoldsSessionLock, ensure_session_lock
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -30,6 +33,10 @@ class CreateScanNoteSerializer(serializers.ModelSerializer):
         fields = ['scan', 'note']
 
 
+def user_initials(user):
+    return f'{user.first_name[:1] or "?"}{user.last_name[:1] or "?"}'
+
+
 class ScanNoteViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -37,10 +44,12 @@ class ScanNoteViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ScanNote.objects.all()
+    queryset = ScanNote.objects.select_related('scan__experiment__session')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'initials', 'creator']
+
+    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -49,15 +58,5 @@ class ScanNoteViewSet(
 
     def perform_create(self, serializer: CreateScanNoteSerializer):
         user = self.request.user
-
-        def initial(name):
-            if name:
-                return name[0]
-            return '?'
-
-        note = ScanNote(
-            **serializer.validated_data,
-            creator=user,
-            initials=f'{initial(user.first_name)}{initial(user.last_name)}',
-        )
-        note.save()
+        ensure_session_lock(serializer.validated_data['scan'], user)
+        serializer.save(creator=user, initials=user_initials(user))

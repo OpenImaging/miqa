@@ -1,22 +1,19 @@
 from django_filters import rest_framework as filters
-from drf_yasg.utils import swagger_auto_schema
-from rest_framework import serializers, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import serializers
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Annotation, Scan
 
+from .permissions import UserHoldsSessionLock
 from .scan_note import ScanNoteSerializer
 
 
-class DecisionSerializer(serializers.Serializer):
+class DecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
-        fields = ['id', 'decision']
+        fields = ['id', 'decision', 'created', 'creator']
         ref_name = 'scan_decision'
-
-    decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
 
 
 class ScanSerializer(serializers.ModelSerializer):
@@ -29,23 +26,11 @@ class ScanSerializer(serializers.ModelSerializer):
 
 
 class ScanViewSet(ReadOnlyModelViewSet):
-    queryset = Scan.objects.all()
+    queryset = Scan.objects.select_related('experiment__session')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['experiment', 'site']
 
+    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+
     serializer_class = ScanSerializer
-
-    @swagger_auto_schema(request_body=DecisionSerializer)
-    @action(detail=True, methods=['POST'])
-    def decision(self, request, **kwargs):
-        serializer = DecisionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        scan = self.get_object()
-        decision = Annotation(
-            decision=serializer.validated_data['decision'], creator=request.user, scan=scan
-        )
-
-        decision.save()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
