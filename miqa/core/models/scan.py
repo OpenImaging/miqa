@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
+
+if TYPE_CHECKING:
+    from miqa.core.models import Session
 
 
 class Scan(TimeStampedModel, models.Model):
@@ -19,3 +25,7 @@ class Scan(TimeStampedModel, models.Model):
 
     scan_id = models.CharField(max_length=127, blank=False)
     scan_type = models.CharField(max_length=255, blank=False)
+
+    @property
+    def session(self) -> Session:
+        return self.experiment.session
