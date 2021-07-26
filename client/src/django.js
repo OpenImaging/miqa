@@ -85,7 +85,7 @@ const djangoClient = new Vue({
       return data;
     },
     async setDecision(scanId, decision) {
-      await apiClient.post(`/scans/${scanId}/decision`, { decision });
+      await apiClient.post(`/annotations`, { scan: scanId, decision });
     },
     async addScanNote(scanId, note) {
       await apiClient.post('/scan_notes', {
