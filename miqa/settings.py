@@ -56,7 +56,6 @@ class ProductionConfiguration(MiqaMixin, ProductionBaseConfiguration):
     pass
 
 
-# TODO include HttpsMixin
 class DockerComposeProductionConfiguration(
     MiqaMixin,
     SmtpEmailMixin,
@@ -91,6 +90,12 @@ class DockerComposeProductionConfiguration(
     def LOGIN_URL(self):
         """LOGIN_URL also needs to be behing MIQA_URL_PREFIX."""
         return str(Path(self.MIQA_URL_PREFIX) / 'accounts' / 'login') + '/'
+
+    # We trust the reverse proxy to redirect HTTP traffic to HTTPS
+    SECURE_SSL_REDIRECT = False
+
+    # This must be set when deployed behind a proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
