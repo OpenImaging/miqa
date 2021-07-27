@@ -664,7 +664,8 @@ const store = new Vuex.Store({
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
-          // initializing the screenshot view resets the render settings, so do it now instead of when a screenshot is taken
+          // initializing the screenshot view resets the render settings, so do it now instead of
+          // when a screenshot is taken
           prepareScreenshotViews(state.proxyManager);
         }
         if (!state.vtkViews.length) {
