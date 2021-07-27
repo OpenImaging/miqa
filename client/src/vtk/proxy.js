@@ -128,6 +128,9 @@ export default {
       View2D_X: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 0 }),
       View2D_Y: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 1 }),
       View2D_Z: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 2 }),
+      ScreenshotView2D_x: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 0 }),
+      ScreenshotView2D_y: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 1 }),
+      ScreenshotView2D_z: createDefaultView(vtk2DView, proxyUI.View2D, { axis: 2 }),
     },
   },
   representations: {
@@ -142,6 +145,18 @@ export default {
       vtkImageData: { name: 'SliceY' },
     },
     View2D_Z: {
+      ...proxyViewRepresentationMapping.View2D,
+      vtkImageData: { name: 'SliceZ' },
+    },
+    ScreenshotView2D_x: {
+      ...proxyViewRepresentationMapping.View2D,
+      vtkImageData: { name: 'SliceX' },
+    },
+    ScreenshotView2D_y: {
+      ...proxyViewRepresentationMapping.View2D,
+      vtkImageData: { name: 'SliceY' },
+    },
+    ScreenshotView2D_z: {
       ...proxyViewRepresentationMapping.View2D,
       vtkImageData: { name: 'SliceZ' },
     },
