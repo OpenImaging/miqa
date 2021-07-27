@@ -1,4 +1,4 @@
-export default function fill2DView(view) {
+export default function fill2DView(view, w, h) {
   view.resize();
   const viewName = view.getName();
   if (viewName === 'default') return;
@@ -9,8 +9,8 @@ export default function fill2DView(view) {
     (bounds[3] - bounds[2]) / 2,
     (bounds[5] - bounds[4]) / 2,
   ];
-  const w = view.getContainer().clientWidth;
-  const h = view.getContainer().clientHeight;
+  w = w || view.getContainer().clientWidth;
+  h = h || view.getContainer().clientHeight;
   const r = w / h;
 
   let x;
