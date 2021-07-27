@@ -44,6 +44,7 @@ setup(
         'django-filter',
         'django-oauth-toolkit',
         'djangorestframework',
+        'django-click',
         'drf-yasg',
         # Production-only
         'django-composed-configuration[prod]',
