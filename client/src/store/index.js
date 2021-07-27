@@ -398,6 +398,10 @@ const store = new Vuex.Store({
       dispatch('reset');
       await djangoRest.logout();
     },
+    async updateCurrentSession({ commit, state }) {
+      const latestSession = await djangoRest.sessionDetail(state.mainSession.id);
+      commit('setMainSession', latestSession);
+    },
     async getMainSession({ commit }) {
       const [session] = await djangoRest.sessions();
 

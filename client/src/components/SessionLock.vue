@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapActions, mapMutations } from 'vuex';
 
 export default {
   name: 'SessionLock',
@@ -8,21 +8,38 @@ export default {
     ...mapState(['mainSession']),
   },
   methods: {
+    ...mapActions(['updateCurrentSession']),
     ...mapMutations(['setMainSession']),
     async acquireLock() {
       try {
-        this.djangoRest.acquireSession(this.mainSession.id);
+        await this.djangoRest.acquireSession(this.mainSession.id);
         this.setMainSession({ ...this.mainSession, lock_owner: this.user });
       } catch (err) {
-        console.log(err);
+        if (err.response && err.response.status === 409) {
+          this.updateCurrentSession();
+          this.$snackbar({
+            text: 'The lock is held by a different user.',
+            timeout: 6000,
+          });
+        } else {
+          throw err;
+        }
       }
     },
     async releaseLock() {
       try {
-        this.djangoRest.releaseSession(this.mainSession.id);
+        await this.djangoRest.releaseSession(this.mainSession.id);
         this.setMainSession({ ...this.mainSession, lock_owner: null });
       } catch (err) {
-        console.log(err);
+        if (err.response && err.response.status === 409) {
+          this.updateCurrentSession();
+          this.$snackbar({
+            text: 'The lock is held by a different user.',
+            timeout: 6000,
+          });
+        } else {
+          throw err;
+        }
       }
     },
   },

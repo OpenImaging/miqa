@@ -95,20 +95,25 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
 
 class SessionViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+    serializer_class = SessionSerializer
 
     def get_queryset(self):
-        if self.action == 'retrieve':
+        if self.action == 'deep':
             return Session.objects.prefetch_related(
                 'experiments__scans__images', 'experiments__scans__notes'
             )
         else:
             return Session.objects.all()
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return SessionRetrieveSerializer
-        else:
-            return SessionSerializer
+    @swagger_auto_schema(
+        method='GET',
+        responses={200: SessionRetrieveSerializer()},
+    )
+    @action(detail=True, methods=['GET'])
+    def deep(self, request, **kwargs):
+        session: Session = self.get_object()
+        serializer = SessionRetrieveSerializer(session)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         method='GET',

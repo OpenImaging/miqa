@@ -51,6 +51,10 @@ const djangoClient = new Vue({
       return results;
     },
     async session(sessionId) {
+      const { data } = await apiClient.get(`/sessions/${sessionId}/deep`);
+      return data;
+    },
+    async sessionDetail(sessionId) {
       const { data } = await apiClient.get(`/sessions/${sessionId}`);
       return data;
     },
