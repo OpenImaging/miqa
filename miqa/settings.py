@@ -97,6 +97,12 @@ class DockerComposeProductionConfiguration(
     # This must be set when deployed behind a proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+    # If nginx settings include an upstream definition, then the Host HTTP field may not match the
+    # Referrer HTTP field, which causes Django to reject all non-safe HTTP operations as a CSRF
+    # safeguard.
+    # To circumvent this, include the expected value of the Referrer field in this setting.
+    CSRF_TRUSTED_ORIGINS = values.ListValue(environ=True, default=[])
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Register static files as templates so that the index.html built by the client is

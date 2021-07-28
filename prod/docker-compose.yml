@@ -21,6 +21,7 @@ services:
         DJANGO_EMAIL_URL: ${DJANGO_EMAIL_URL}
         DJANGO_MIQA_URL_PREFIX: ${DJANGO_MIQA_URL_PREFIX}
         DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+        VUE_APP_OAUTH_API_ROOT: ${VUE_APP_OAUTH_API_ROOT}
 
     # TODO install and use a wsgi server
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
