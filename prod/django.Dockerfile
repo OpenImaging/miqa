@@ -37,6 +37,8 @@ RUN pip install . && \
 # * Remove node_modules, etc.
 COPY client /opt/vue-client/
 WORKDIR /opt/vue-client/
+# This is necessary so that the OAuth client knows who it's authenticating with
+ARG VUE_APP_OAUTH_API_ROOT
 RUN npm install \
     && npm run build \
     && mkdir -p /opt/django-project/staticfiles/ \
