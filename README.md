@@ -74,6 +74,9 @@ tox is installed automatically with the `dev` package extra.
 When running the "Develop with Docker" configuration, all tox commands must be run as
 `docker-compose run --rm django tox`; extra arguments may also be appended to this form.
 
+When running the "Develop Natively (advanced)" configuration, the shell environment
+must be set up first with `source ./dev/export-env.sh`.
+
 ### Running Tests
 Run `tox` to launch the full test suite.
 
