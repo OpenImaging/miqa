@@ -47,7 +47,7 @@ export default {
         });
       } catch (err) {
         this.$snackbar({
-          text: `Export failed: ${err.response.data.message || 'Server error'}`,
+          text: `Export failed: ${err.response.data.detail || 'Server error'}`,
           timeout: 6000,
 
         });
