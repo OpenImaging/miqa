@@ -4,6 +4,7 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 
 import { cleanDatasetName } from '@/utils/helper';
 import fill2DView from '../utils/fill2DView';
+import { getView } from '../vtk/viewManager';
 
 export default {
   name: 'VtkViewer',
@@ -19,6 +20,7 @@ export default {
     // helper to avoid size flickering
     resized: false,
     fullscreen: false,
+    screenshotContainer: document.createElement('div'),
   }),
   computed: {
     ...mapState(['proxyManager', 'loadingDataset']),
@@ -128,7 +130,10 @@ export default {
       this.slice = slice;
     },
     async takeScreenshot() {
-      const dataURL = await this.view.captureImage();
+      const view = getView(this.proxyManager, `ScreenshotView2D_${this.name}:${this.name}`, this.screenshotContainer);
+      view.getOpenglRenderWindow().setSize(512, 512);
+      fill2DView(view, 512, 512);
+      const dataURL = await view.captureImage();
       this.setCurrentScreenshot({
         name: `${this.currentSession.experiment}/${
           this.currentSession.name
