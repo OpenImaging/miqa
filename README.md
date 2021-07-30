@@ -6,7 +6,11 @@ This is the simplest configuration for developers to start with.
 ### Initial Setup
 1. Run `docker-compose run --rm django ./manage.py migrate`
 2. Run `docker-compose run --rm django ./manage.py createsuperuser`
-   and follow the prompts to create your own user
+   and follow the prompts to create your own user.
+   **IMPORTANT**: Set both the Username and Email to the same valid email address.
+   Admin logins will break if you do not.
+3. Run `docker-compose run --rm django ./manage.py makeclient --username your.email@email.com --uri http://localhost:8081/`
+4. Run `docker-compose run --rm django ./manage.py populate --username your.email@email.com --csv /path/to/your/import.csv`
 
 ### Run Application
 1. Run `docker-compose up`

@@ -44,11 +44,11 @@ docker-compose up
 The app should now be running and accessible in your browser.
 However, you still need to set up the OAuth Application before you can log in through the web client.
 
-For this example, we will assume you are setting up `https://miqa.com/`.
+For this example, we will assume you are setting up `https://miqa.com/miqa2/`.
 
 Set up the application by running:
 ```
-docker-compose run django ./manage.py makeclient --username super.user@miqa.com --uri https://miqa.com/
+docker-compose run --rm django ./manage.py makeclient --username super.user@miqa.com --uri https://miqa.com/miqa2/
 ```
 
 If you have problems logging in, you can reconfigure the OAuth Application from the admin console:
@@ -59,22 +59,18 @@ If you have problems logging in, you can reconfigure the OAuth Application from 
 
 ### Set up default session
 Although there are plans to support multiple sessions, currently the web client only supports one.
-This session must still be created manually.
-
-* In the admin console, click MIQA: Core > Sessions > + Add.
-* Set the following values:
-  * Name: whatever you like.
-  * Creator: your user.
-  * Import path: The path to the import CSV.
-    * You should have set `$MIQA_MOUNT_DIR` when configuring the environment variables.
-      This directory should contain the import CSV and all the files it would import.
-      This directory is mounted in the container at the same path, so the same path should be usable inside and outside the container.
-  * Export path: The path to the export CSV. See above.
-* Click Save.
+This session must still be created manually:
+```
+docker-compose run --rm django ./manage.py populate --username super.user@miqa.com --csv /path/to/your/import.csv
+```
+This command will also attempt to import from the specified CSV file.
+If the CSV file is invalid, it will fail and throw an error message.
+However, the default session was still created, so there is no need to rerun the command.
+You will be able to reconfigure and retry the import through the web UI once that is set up.
 
 ### Test login
 * Log out of the admin console.
-* Go to `https://miqa.com`. You should be redirected to a log in page.
+* Go to `https://miqa.com/miqa2/`. You should be redirected to a log in page.
 * Log in using the credentials you made earlier. You should get a prompt that an email was sent to verify your account.
 * Check your email and click the link to verify your account.
 * Log in again. You should now be logged in to the app.
