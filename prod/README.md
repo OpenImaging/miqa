@@ -44,11 +44,11 @@ docker-compose up
 The app should now be running and accessible in your browser.
 However, you still need to set up the OAuth Application before you can log in through the web client.
 
-For this example, we will assume you are setting up `https://miqa.com/`.
+For this example, we will assume you are setting up `https://miqa.com/miqa2/`.
 
 Set up the application by running:
 ```
-docker-compose run django ./manage.py makeclient --username super.user@miqa.com --uri https://miqa.com/
+docker-compose run --rm django ./manage.py makeclient --username super.user@miqa.com --uri https://miqa.com/miqa2/
 ```
 
 If you have problems logging in, you can reconfigure the OAuth Application from the admin console:
@@ -74,7 +74,7 @@ This session must still be created manually.
 
 ### Test login
 * Log out of the admin console.
-* Go to `https://miqa.com`. You should be redirected to a log in page.
+* Go to `https://miqa.com/miqa2/`. You should be redirected to a log in page.
 * Log in using the credentials you made earlier. You should get a prompt that an email was sent to verify your account.
 * Check your email and click the link to verify your account.
 * Log in again. You should now be logged in to the app.
