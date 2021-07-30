@@ -96,6 +96,10 @@ class DockerComposeProductionConfiguration(
         """When login is completed without `next` set, redirect to MIQA_URL_PREFIX."""
         return self.MIQA_URL_PREFIX
 
+    # TODO Disable email verification for now
+    # see https://github.com/OpenImaging/miqa/issues/94
+    ACCOUNT_EMAIL_VERIFICATION = "none"
+
     # We trust the reverse proxy to redirect HTTP traffic to HTTPS
     SECURE_SSL_REDIRECT = False
 
