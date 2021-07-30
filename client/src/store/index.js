@@ -399,7 +399,7 @@ const store = new Vuex.Store({
       await djangoRest.logout();
     },
     async updateCurrentSession({ commit, state }) {
-      const latestSession = await djangoRest.sessionDetail(state.mainSession.id);
+      const latestSession = await djangoRest.session(state.mainSession.id);
       commit('setMainSession', latestSession);
     },
     async getMainSession({ commit }) {
@@ -487,7 +487,7 @@ const store = new Vuex.Store({
 
       if (session) {
         // load first available session
-        session = await djangoRest.session(session.id);
+        session = await djangoRest.sessionDeep(session.id);
       } else {
         // no sessions: can't load any
         return;
