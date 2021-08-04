@@ -8,12 +8,10 @@ const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = new Vue({
   data: () => ({
     store: null,
+    snackbar: null,
     apiClient,
   }),
   methods: {
-    setStore(store) {
-      this.store = store;
-    },
     async restoreLogin() {
       await oauthClient.maybeRestoreLogin();
       if (oauthClient.isLoggedIn) {
@@ -24,6 +22,19 @@ const djangoClient = new Vue({
       } else {
         this.login();
       }
+
+      // session conflict
+      apiClient.interceptors.response.use((response) => response, (error) => {
+        if (error.response.status === 409) {
+          // trigger snack-bar
+          this.snackbar({
+            text: 'This session is owned by another user!',
+            timeout: 6000,
+          });
+        }
+
+        return Promise.reject(error);
+      });
 
       // mark user not-idle
       apiClient.interceptors.request.use(async (config) => {

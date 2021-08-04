@@ -49,7 +49,8 @@ if (process.env.NODE_ENV === 'production') {
   console.log = () => { };
 }
 
-djangoRest.setStore(store);
+djangoRest.snackbar = Vue.prototype.$snackbar;
+djangoRest.store = store;
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
   await store.dispatch('getMainSession');
