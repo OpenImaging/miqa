@@ -15,13 +15,7 @@ export default {
         await this.djangoRest.acquireSession(this.mainSession.id);
         this.setMainSession({ ...this.mainSession, lock_owner: this.user });
       } catch (err) {
-        if (err.response && err.response.status === 409) {
-          this.updateCurrentSession();
-          this.$snackbar({
-            text: 'The lock is held by a different user.',
-            timeout: 6000,
-          });
-        } else {
+        if (err.response && err.response.status !== 409) {
           throw err;
         }
       }
@@ -31,13 +25,7 @@ export default {
         await this.djangoRest.releaseSession(this.mainSession.id);
         this.setMainSession({ ...this.mainSession, lock_owner: null });
       } catch (err) {
-        if (err.response && err.response.status === 409) {
-          this.updateCurrentSession();
-          this.$snackbar({
-            text: 'The lock is held by a different user.',
-            timeout: 6000,
-          });
-        } else {
+        if (err.response && err.response.status !== 409) {
           throw err;
         }
       }

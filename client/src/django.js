@@ -27,6 +27,7 @@ const djangoClient = new Vue({
       apiClient.interceptors.response.use((response) => response, (error) => {
         if (error.response.status === 409) {
           // trigger snack-bar
+          this.store.dispatch('updateCurrentSession');
           this.snackbar({
             text: 'This session is owned by another user!',
             timeout: 6000,
