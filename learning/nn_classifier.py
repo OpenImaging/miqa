@@ -15,6 +15,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchio import transforms
 import wandb
 
 existing_count = 0
@@ -148,12 +149,12 @@ class TiledClassifier(monai.networks.nets.Classifier):
 
                     # use slicing operator to make a tile
                     tile = inputs[
-                        :,
-                        :,
+                           :,
+                           :,
                         i_start : i_start + x_tile_size,
                         j_start : j_start + y_tile_size,
                         k_start : k_start + z_tile_size,
-                    ]
+                           ]
 
                     # check if the tile is smaller than our NN input
                     x_pad = max(0, x_tile_size - x_size)
@@ -343,12 +344,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         in_shape=(1, 64, 64, 64),
         classes=2,
         channels=(2, 4, 8, 16),
-        strides=(
-            2,
-            2,
-            2,
-            2,
-        ),
+        strides=(2, 2, 2, 2),
     )
 
     # # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
