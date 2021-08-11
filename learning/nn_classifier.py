@@ -351,9 +351,13 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     # model = torch.nn.DataParallel(model)
     model.to(device)
 
+    pretrained_path = os.path.join(os.getcwd(), 'pretrained.pth')
     if os.path.exists(save_path) and only_evaluate:
         model.load_state_dict(torch.load(save_path))
         print(f'Loaded NN model from file "{save_path}"')
+    elif os.path.exists(pretrained_path):
+        model.load_state_dict(torch.load(pretrained_path))
+        print(f'Loaded NN model weights from "{pretrained_path}"')
     else:
         print('Training NN from scratch')
 
