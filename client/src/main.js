@@ -38,19 +38,13 @@ Vue.use(promptService(vuetify));
 
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
-// console.log(store);
 window.store = store;
 
 Vue.config.productionTip = true;
 
-// Disable console log on production
-if (process.env.NODE_ENV === 'production') {
-  // eslint-disable-next-line no-console
-  console.log = () => { };
-}
-
 djangoRest.snackbar = Vue.prototype.$snackbar;
 djangoRest.store = store;
+
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
   await store.dispatch('getMainSession');

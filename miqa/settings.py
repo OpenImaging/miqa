@@ -88,14 +88,29 @@ class DockerComposeProductionConfiguration(
 
     @property
     def LOGIN_URL(self):
-        """LOGIN_URL also needs to be behing MIQA_URL_PREFIX."""
+        """LOGIN_URL also needs to be behind MIQA_URL_PREFIX."""
         return str(Path(self.MIQA_URL_PREFIX) / 'accounts' / 'login') + '/'
+
+    @property
+    def LOGIN_REDIRECT_URL(self):
+        """When login is completed without `next` set, redirect to MIQA_URL_PREFIX."""
+        return self.MIQA_URL_PREFIX
+
+    # TODO Disable email verification for now
+    # see https://github.com/OpenImaging/miqa/issues/94
+    ACCOUNT_EMAIL_VERIFICATION = "none"
 
     # We trust the reverse proxy to redirect HTTP traffic to HTTPS
     SECURE_SSL_REDIRECT = False
 
     # This must be set when deployed behind a proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # If nginx settings include an upstream definition, then the Host HTTP field may not match the
+    # Referrer HTTP field, which causes Django to reject all non-safe HTTP operations as a CSRF
+    # safeguard.
+    # To circumvent this, include the expected value of the Referrer field in this setting.
+    CSRF_TRUSTED_ORIGINS = values.ListValue(environ=True, default=[])
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
