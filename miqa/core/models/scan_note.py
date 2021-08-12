@@ -9,7 +9,7 @@ from django.utils import timezone
 from django_extensions.db.models import ModificationDateTimeField
 
 if TYPE_CHECKING:
-    from miqa.core.models import Session
+    from miqa.core.models import Experiment
 
 
 class ScanNote(models.Model):
@@ -27,5 +27,5 @@ class ScanNote(models.Model):
     scan = models.ForeignKey('Scan', related_name='notes', on_delete=models.CASCADE)
 
     @property
-    def session(self) -> Session:
-        return self.scan.experiment.session
+    def experiment(self) -> Experiment:
+        return self.scan.experiment
