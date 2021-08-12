@@ -10,6 +10,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Image
 
+from .permissions import UserHoldsExperimentLock
+
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,7 +27,7 @@ class ImageViewSet(ListModelMixin, GenericViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan']
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
     serializer_class = ImageSerializer
 
