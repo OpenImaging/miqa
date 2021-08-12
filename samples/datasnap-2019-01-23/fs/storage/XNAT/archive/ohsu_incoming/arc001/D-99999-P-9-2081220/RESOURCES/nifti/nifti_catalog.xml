@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cat:Catalog ID="nifti" xmlns:arc="http://nrg.wustl.edu/arc" xmlns:cat="http://nrg.wustl.edu/catalog" xmlns:pipe="http://nrg.wustl.edu/pipe" xmlns:prov="http://www.nbirn.net/prov" xmlns:scr="http://nrg.wustl.edu/scr" xmlns:val="http://nrg.wustl.edu/val" xmlns:wrk="http://nrg.wustl.edu/workflow" xmlns:xdat="http://nrg.wustl.edu/security" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xnat_a="http://nrg.wustl.edu/xnat_assessments" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<cat:metaFields>
+	<cat:metaField name="AUDIT">190176:Tue Jan 22 21:48:59 PST 2019=Added:3</cat:metaField>
+</cat:metaFields>
+<cat:entries>
+	<cat:entry URI="2_ncanda-mprage-v1/dcm2image.log" content="U" createdBy="RestAPI" createdEventId="190176" createdTime="2019-01-22T21:48:59.710" digest="50e8ddec11fde04768ed286aa8a72993" format="U" name="dcm2image.log">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry URI="2_ncanda-mprage-v1/image.nii.gz" content="U" createdBy="RestAPI" createdEventId="190176" createdTime="2019-01-22T21:48:59.710" digest="25257c86dbe0a4c9528c73ecb0397904" format="U" name="image.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry URI="2_ncanda-mprage-v1/image.nii.xml" content="U" createdBy="RestAPI" createdEventId="190176" createdTime="2019-01-22T21:48:59.710" digest="6b0da5dda68ade789d581eb612b17fc3" format="U" name="image.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+</cat:entries>
+</cat:Catalog>
