@@ -37,3 +37,12 @@ services:
       - postgres
       - rabbitmq
       - minio
+
+  npm:
+    image: node:latest
+    command: ["npm", "run", "serve"]
+    working_dir: /opt/client
+    volumes:
+      - ./client:/opt/client
+    ports:
+      - 8081:8081
