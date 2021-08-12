@@ -9,7 +9,7 @@ from django.db import models
 from django.utils import timezone
 
 if TYPE_CHECKING:
-    from miqa.core.models import Session
+    from miqa.core.models import Experiment
 
 
 class Decision(Enum):
@@ -55,5 +55,5 @@ class Annotation(models.Model):
     )
 
     @property
-    def session(self) -> Session:
-        return self.scan.experiment.session
+    def experiment(self) -> Experiment:
+        return self.scan.experiment
