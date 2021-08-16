@@ -11,9 +11,6 @@ const djangoClient = new Vue({
     apiClient,
   }),
   methods: {
-    setStore(store) {
-      this.store = store;
-    },
     async restoreLogin() {
       await oauthClient.maybeRestoreLogin();
       if (oauthClient.isLoggedIn) {

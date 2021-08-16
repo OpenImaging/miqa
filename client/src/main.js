@@ -42,17 +42,19 @@ window.store = store;
 
 Vue.config.productionTip = true;
 
-djangoRest.setStore(store);
+djangoRest.store = store;
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
   const [session] = await djangoRest.sessions();
+  store.commit('setMainSession', session);
+
   new Vue({
     vuetify,
     router,
     store,
     render: (h) => h(App),
     provide: {
-      djangoRest, user, mainSession: session,
+      djangoRest, user,
     },
   })
     .$mount('#app')

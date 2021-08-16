@@ -1,7 +1,9 @@
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'JSONConfig',
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
     importpath: '',
     exportpath: '',
@@ -9,6 +11,9 @@ export default {
     importpathError: '',
     exportpathError: '',
   }),
+  computed: {
+    ...mapState(['mainSession'])
+  },
   async created() {
     const { importpath, exportpath } = await this.djangoRest.settings(this.mainSession.id);
     this.importpath = importpath;

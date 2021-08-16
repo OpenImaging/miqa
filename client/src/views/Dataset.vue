@@ -38,7 +38,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs,
   },
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
     newNote: '',
     decision: null,
@@ -63,6 +63,7 @@ export default {
       'screenshots',
       'sessionCachedPercentage',
       'sessionDatasets',
+      'mainSession',
     ]),
     ...mapGetters([
       'nextDataset',

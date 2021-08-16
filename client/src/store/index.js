@@ -186,6 +186,7 @@ function getNextDataset(experiments, i, j) {
 }
 
 const initState = {
+  mainSession: null,
   drawer: false,
   experimentIds: [],
   experiments: {},
@@ -332,6 +333,9 @@ const store = new Vuex.Store({
       state.sessions = {};
       state.sessionDatasets = {};
       state.datasets = {};
+    },
+    setMainSession(state, session){
+      state.mainSession = session;
     },
     setCurrentImageId(state, imageId) {
       state.currentDatasetId = imageId;

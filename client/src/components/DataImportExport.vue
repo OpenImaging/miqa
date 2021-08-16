@@ -1,10 +1,10 @@
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapState } from 'vuex';
 
 export default {
   name: 'DataImportExport',
   components: {},
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest'],
   data: () => ({
     importing: false,
     importDialog: false,
@@ -12,6 +12,9 @@ export default {
     importErrors: false,
     exporting: false,
   }),
+  computed: {
+    ...mapState(['mainSession'])
+  },
   methods: {
     ...mapActions(['loadSession', 'loadLocalDataset']),
     async importData() {
