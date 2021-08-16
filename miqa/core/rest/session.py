@@ -155,8 +155,13 @@ class SessionViewSet(ReadOnlyModelViewSet):
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
         session: Session = self.get_object()
-        export_data(request.user, session)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            export_data(request.user, session)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except IsADirectoryError:
+            return Response({'detail': 'Invalid export path'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         request_body=no_body,
