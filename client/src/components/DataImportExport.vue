@@ -10,6 +10,7 @@ export default {
     importDialog: false,
     importErrorText: '',
     importErrors: false,
+    exporting: false,
   }),
   methods: {
     ...mapActions(['loadSession', 'loadLocalDataset']),
@@ -37,11 +38,21 @@ export default {
       this.importDialog = false;
     },
     async exportData() {
-      await this.djangoRest.export(this.mainSession.id);
-      this.$snackbar({
-        text: 'Saved data to file successfully.',
-        timeout: 6000,
-      });
+      this.exporting = true;
+      try {
+        await this.djangoRest.export(this.mainSession.id);
+        this.$snackbar({
+          text: 'Saved data to file successfully.',
+          timeout: 6000,
+        });
+      } catch (err) {
+        this.$snackbar({
+          text: `Export failed: ${err.response.data.detail || 'Server error'}`,
+          timeout: 6000,
+
+        });
+      }
+      this.exporting = false;
     },
     activateInput() {
       this.$refs.load.click();
@@ -63,12 +74,23 @@ export default {
       Import
     </v-btn>
     <v-btn
+      :disabled="exporting"
       text
       color="primary"
       @click="exportData"
     >
-      Export
+      <v-progress-circular
+        v-if="exporting"
+        :size="25"
+        :width="2"
+        indeterminate
+        color="primary"
+      />
+      <span v-else>
+        Export
+      </span>
     </v-btn>
+
     <v-btn
       text
       color="secondary"
