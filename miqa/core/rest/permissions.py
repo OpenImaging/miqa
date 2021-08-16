@@ -9,6 +9,11 @@ from rest_framework.views import View
 from miqa.core.models import Experiment
 
 
+class ArchivedSession(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = 'This experiment belongs to an archived session.'
+
+
 class LockContention(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = 'This experiment lock is held by a different user.'
