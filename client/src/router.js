@@ -3,6 +3,7 @@ import Router from 'vue-router';
 
 import django from './django';
 import Settings from './views/Settings.vue';
+import TaskList from './views/TaskList.vue';
 import Dataset from './views/Dataset.vue';
 import Login from './views/Login.vue';
 
@@ -28,6 +29,11 @@ export default new Router({
       path: '/login',
       name: 'login',
       component: Login,
+    },
+    {
+      path: '/tasks',
+      name: 'tasks',
+      component: TaskList,
     },
     {
       path: '/settings',

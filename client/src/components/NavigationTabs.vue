@@ -40,6 +40,11 @@ export default {
       <v-icon>settings</v-icon>
       Settings
     </v-tab>
+    <v-tab
+      to='/tasks'
+    >
+      Tasks  
+    </v-tab>
   </v-tabs>
 </template>
 
