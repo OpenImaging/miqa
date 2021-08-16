@@ -9,6 +9,7 @@ from .scan_note import ScanNoteViewSet
 from .session import SessionViewSet
 from .site import SiteViewSet
 from .user import UserViewSet
+from .task import TaskViewSet
 
 __all__ = [
     'ExperimentViewSet',
@@ -22,4 +23,5 @@ __all__ = [
     'UserViewSet',
     'AnnotationViewSet',
     'EmailView',
+    'TaskViewSet',
 ]

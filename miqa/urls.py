@@ -17,6 +17,7 @@ from miqa.core.rest import (
     SessionViewSet,
     SiteViewSet,
     UserViewSet,
+    TaskViewSet
 )
 
 router = routers.SimpleRouter(trailing_slash=False)
@@ -28,6 +29,7 @@ router.register('sites', SiteViewSet)
 router.register('scan_notes', ScanNoteViewSet)
 router.register('users', UserViewSet)
 router.register('annotations', AnnotationViewSet)
+router.register('tasks', TaskViewSet)
 
 # OpenAPI generation
 schema_view = get_schema_view(
