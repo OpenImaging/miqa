@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cat:Catalog ID="nifti" xmlns:arc="http://nrg.wustl.edu/arc" xmlns:cat="http://nrg.wustl.edu/catalog" xmlns:pipe="http://nrg.wustl.edu/pipe" xmlns:prov="http://www.nbirn.net/prov" xmlns:scr="http://nrg.wustl.edu/scr" xmlns:val="http://nrg.wustl.edu/val" xmlns:wrk="http://nrg.wustl.edu/workflow" xmlns:xdat="http://nrg.wustl.edu/security" xmlns:xnat="http://nrg.wustl.edu/xnat" xmlns:xnat_a="http://nrg.wustl.edu/xnat_assessments" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<cat:metaFields>
+	<cat:metaField name="AUDIT">190150:Tue Jan 22 21:45:32 PST 2019=Added:5|190149:Tue Jan 22 21:45:31 PST 2019=Added:7|190151:Tue Jan 22 21:45:37 PST 2019=Added:3</cat:metaField>
+</cat:metaFields>
+<cat:entries>
+	<cat:entry ID="nifti/dcm2image.log" URI="1_ncanda-localizer-v1/dcm2image.log" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="618cc1117d3349fc8070c91b67816664" format="U" name="dcm2image.log">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image1.nii.gz" URI="1_ncanda-localizer-v1/image1.nii.gz" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="c34559acd22c6cd63724cd74b5065f94" format="U" name="image1.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image1.nii.xml" URI="1_ncanda-localizer-v1/image1.nii.xml" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="60a272176ff80b8ebbac56e319404994" format="U" name="image1.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image2.nii.gz" URI="1_ncanda-localizer-v1/image2.nii.gz" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="5462032f5c3be7e8c62ca584893311a5" format="U" name="image2.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image2.nii.xml" URI="1_ncanda-localizer-v1/image2.nii.xml" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="4c5356bc089f99b071b4064f20b89fed" format="U" name="image2.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image3.nii.gz" URI="1_ncanda-localizer-v1/image3.nii.gz" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="1440023a6f6af5c278a1865f1f9abb68" format="U" name="image3.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image3.nii.xml" URI="1_ncanda-localizer-v1/image3.nii.xml" content="U" createdBy="RestAPI" createdEventId="190149" createdTime="2019-01-22T21:45:31.776" digest="aa4c682d8f7b2a6cabea4b3b0f693399" format="U" name="image3.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/dcm2image.log" URI="2_ncanda-calibration-v1/dcm2image.log" content="U" createdBy="RestAPI" createdEventId="190150" createdTime="2019-01-22T21:45:32.593" digest="47c2462958e3ea8b71ca653ea0647186" format="U" name="dcm2image.log">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image1.nii.gz" URI="2_ncanda-calibration-v1/image1.nii.gz" content="U" createdBy="RestAPI" createdEventId="190150" createdTime="2019-01-22T21:45:32.593" digest="23b24495a3bc13946426e772850cca57" format="U" name="image1.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image1.nii.xml" URI="2_ncanda-calibration-v1/image1.nii.xml" content="U" createdBy="RestAPI" createdEventId="190150" createdTime="2019-01-22T21:45:32.593" digest="f469e35536744e895dcd9018de538a37" format="U" name="image1.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image2.nii.gz" URI="2_ncanda-calibration-v1/image2.nii.gz" content="U" createdBy="RestAPI" createdEventId="190150" createdTime="2019-01-22T21:45:32.593" digest="dbf925d9580a6ad4f83ab3a0a7eead22" format="U" name="image2.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry ID="nifti/image2.nii.xml" URI="2_ncanda-calibration-v1/image2.nii.xml" content="U" createdBy="RestAPI" createdEventId="190150" createdTime="2019-01-22T21:45:32.593" digest="f469e35536744e895dcd9018de538a37" format="U" name="image2.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry URI="3_ncanda-t1spgr-v1/dcm2image.log" content="U" createdBy="RestAPI" createdEventId="190151" createdTime="2019-01-22T21:45:37.100" digest="227d0940191fe2cede29e38ecd959ab3" format="U" name="dcm2image.log">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry URI="3_ncanda-t1spgr-v1/image.nii.gz" content="U" createdBy="RestAPI" createdEventId="190151" createdTime="2019-01-22T21:45:37.100" digest="2003d9f958b19050b6f574b8d6927d7b" format="U" name="image.nii.gz">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+	<cat:entry URI="3_ncanda-t1spgr-v1/image.nii.xml" content="U" createdBy="RestAPI" createdEventId="190151" createdTime="2019-01-22T21:45:37.100" digest="d5c322f890cb53a695a023e9dc1af9cb" format="U" name="image.nii.xml">
+		<cat:tags>
+			<cat:tag>U</cat:tag>
+		</cat:tags>
+	</cat:entry>
+</cat:entries>
+</cat:Catalog>
