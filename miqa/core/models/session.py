@@ -9,7 +9,7 @@ class Session(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=255)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
-
+    archived = models.BooleanField(default=False)
     import_path = models.CharField(max_length=500)
     export_path = models.CharField(max_length=500)
 
