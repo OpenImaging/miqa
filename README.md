@@ -14,8 +14,9 @@ This is the simplest configuration for developers to start with.
 
 ### Run Application
 1. Run `docker-compose up`
-2. Access the site, starting at http://localhost:8000/admin/
+2. Access the site, starting at http://localhost:8081/
     - Note: When prompted to login with your "username" use your full email address (e.g. myname@someplace.com)
+3. The admin console can be accessed from http://localhost:8000/admin/
 4. When finished, use `Ctrl+C`
 
 ### Application Maintenance
@@ -48,6 +49,9 @@ but allows developers to run Python code on their native system.
 3. Run in a separate terminal:
    1. `source ./dev/export-env.sh`
    2. `celery --app miqa.celery worker --loglevel INFO --without-heartbeat`
+3. Run in a third terminal:
+   1. `cd client`
+   2. `npm run serve`
 4. When finished, run `docker-compose stop`
 
 ## Remap Service Ports (optional)
