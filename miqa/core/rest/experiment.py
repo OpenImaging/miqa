@@ -11,7 +11,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from miqa.core.models import Experiment
 from miqa.core.rest.session import SessionSerializer
 
-from .permissions import LockContention, UserHoldsExperimentLock
+from .permissions import ArchivedSession, LockContention, UserHoldsExperimentLock
 
 
 class LockOwnerSerializer(serializers.ModelSerializer):
@@ -53,6 +53,9 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         """Acquire the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
+
+            if experiment.session.archived:
+                raise ArchivedSession()
 
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
