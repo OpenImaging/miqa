@@ -1,0 +1,4 @@
+xnat_experiment_id,nifti_folder,scan_id,scan_type,experiment_note,decision,scan_note
+NCANDA_E08710,/srv/samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ucsd_incoming/arc001/E-99999-P-9-20190121/RESOURCES/nifti,3,ncanda-t1spgr-v1,,,
+NCANDA_E08714,/srv/samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti,2,ncanda-mprage-v1,,,
+
