@@ -10,6 +10,7 @@ services:
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
+      - ${SAMPLES_DIR-./samples}:${SAMPLES_DIR-/srv/samples}
     ports:
       - 8000:8000
     depends_on:
@@ -33,6 +34,7 @@ services:
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
+      - ${SAMPLES_DIR-./samples}:${SAMPLES_DIR-/srv/samples}
     depends_on:
       - postgres
       - rabbitmq
