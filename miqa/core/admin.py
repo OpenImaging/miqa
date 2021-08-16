@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+from miqa.core.models.task import Task
 from django.contrib import admin
 
-from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site, Task
 
 
 @admin.register(Experiment)
@@ -62,4 +63,18 @@ class SiteAdmin(admin.ModelAdmin):
         'creator',
     )
     list_filter = ('created', 'modified', 'creator')
+    search_fields = ('name',)
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'created',
+        'modified',
+        'name',
+        'user',
+    )
+    filter_horizontal = ('experiments',)
+    list_filter = ('created', 'modified', 'user')
     search_fields = ('name',)

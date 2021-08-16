@@ -5,5 +5,6 @@ from .scan import Scan
 from .scan_note import ScanNote
 from .session import Session
 from .site import Site
+from .task import Task
 
-__all__ = ['Decision', 'Experiment', 'Image', 'Scan', 'ScanNote', 'Session', 'Site', 'Annotation']
+__all__ = ['Decision', 'Experiment', 'Image', 'Scan', 'ScanNote', 'Session', 'Site', 'Annotation', 'Task']
