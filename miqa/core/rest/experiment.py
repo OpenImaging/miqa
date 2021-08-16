@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
-from miqa.core.rest.session import SessionSerializer
+from miqa.core.rest.session import SessionSerializer, ExperimentSerializer as ExperimentRetrieveSerializer
 
 from .permissions import ArchivedSession, LockContention, UserHoldsExperimentLock
 
@@ -40,6 +40,16 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
     serializer_class = ExperimentSerializer
+
+    @swagger_auto_schema(
+        method='GET',
+        responses={200: ExperimentRetrieveSerializer()},
+    )
+    @action(detail=True, methods=['GET'])
+    def deep(self, request, **kwargs):
+        experiment: Experiment = self.get_object()
+        serializer = ExperimentRetrieveSerializer(experiment)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         request_body=no_body,

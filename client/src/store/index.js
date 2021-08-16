@@ -185,8 +185,12 @@ function getNextDataset(experiments, i, j) {
   return nextScan.images[0];
 }
 
+const SESSION = 'SESSION';
+const TASK = 'TASK';
+
 const initState = {
   mainSession: null,
+  mode: SESSION,
   drawer: false,
   experimentIds: [],
   experiments: {},
@@ -334,8 +338,11 @@ const store = new Vuex.Store({
       state.sessionDatasets = {};
       state.datasets = {};
     },
-    setMainSession(state, session){
+    setMainSession(state, session) {
       state.mainSession = session;
+    },
+    setMode(state, mode) {
+      state.mode = mode;
     },
     setCurrentImageId(state, imageId) {
       state.currentDatasetId = imageId;
@@ -478,6 +485,7 @@ const store = new Vuex.Store({
     },
     async loadSession({ commit }, session) {
       commit('resetSession');
+      commit('setMode', SESSION);
 
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
@@ -516,6 +524,86 @@ const store = new Vuex.Store({
 
           // Web datasets == Django images
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
+          // eslint-disable-next-line no-await-in-loop
+          const { images } = scan;
+
+          commit('setScan', {
+            scanId: scan.id,
+            scan: {
+              id: scan.id,
+              name: scan.scan_type,
+              experiment: experiment.id,
+              cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
+              numDatasets: images.length,
+              site: scan.site,
+              notes: scan.notes,
+              decisions: scan.decisions,
+            },
+          });
+
+          const nextScan = getNextDataset(experiments, i, j);
+
+          for (let k = 0; k < images.length; k += 1) {
+            const image = images[k];
+            commit('addSessionDatasets', { sid: scan.id, id: image.id });
+            commit('setImage', {
+              imageId: image.id,
+              image: {
+                ...image,
+                session: scan.id,
+                experiment: experiment.id,
+                index: k,
+                previousDataset: k > 0 ? images[k - 1].id : null,
+                nextDataset: k < images.length - 1 ? images[k + 1].id : null,
+                firstDatasetInPreviousSession: firstInPrev,
+                firstDatasetInNextSession: nextScan ? nextScan.id : null,
+              },
+            });
+          }
+
+          if (images.length > 0) {
+            firstInPrev = images[0].id;
+          } else {
+            console.error(
+              `${experiment.name}/${scan.scan_type} has no datasets`,
+            );
+          }
+        }
+      }
+    },
+    async loadTask({ commit }, task) {
+      commit('resetSession');
+      commit('setMode', TASK);
+
+      // Build navigation links throughout the dataset to improve performance.
+      let firstInPrev = null;
+
+      // place data in state
+      let experiments = await Promise.all(task.experiments.map(async experiment => {
+        return await djangoRest.experiment(experiment.id);
+      }));
+
+      for (let i = 0; i < experiments.length; i += 1) {
+        const experiment = experiments[i];
+        // set experimentSessions[experiment.id] before registering the experiment.id
+        // so SessionsView doesn't update prematurely
+        commit('addExperiment', {
+          id: experiment.id,
+          value: {
+            id: experiment.id,
+            name: experiment.name,
+            index: i,
+          },
+        });
+
+        // Web sessions == Django scans
+        // eslint-disable-next-line no-await-in-loop
+        const { scans } = experiment;
+        for (let j = 0; j < scans.length; j += 1) {
+          const scan = scans[j];
+          commit('addExperimentSessions', { eid: experiment.id, sid: scan.id });
+
+          // Web datasets == Django images
           // eslint-disable-next-line no-await-in-loop
           const { images } = scan;
 

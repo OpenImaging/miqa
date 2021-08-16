@@ -44,7 +44,7 @@ const djangoClient = new Vue({
       return apiClient.post(`/sessions/${sessionId}/export`);
     },
     async tasks() {
-      const { data } = await apiClient.get('/tasks');
+      const { data } = await apiClient.get('/tasks/me');
       return data;
     },
     async sessions() {
@@ -74,6 +74,10 @@ const djangoClient = new Vue({
       });
       const { results } = data;
       return results;
+    },
+    async experiment(experimentId) {
+      const { data } = await apiClient.get(`/experiments/${experimentId}/deep`);
+      return data;
     },
     async scans(experimentId) {
       const { data } = await apiClient.get('/scans', {

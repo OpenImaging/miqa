@@ -64,6 +64,7 @@ export default {
       'sessionCachedPercentage',
       'sessionDatasets',
       'mainSession',
+      'mode'
     ]),
     ...mapGetters([
       'nextDataset',
@@ -108,7 +109,9 @@ export default {
       this.debouncedDatasetSliderChange,
       30,
     );
-    await Promise.all([this.loadSession(this.mainSession), this.loadSites()]);
+    if(this.mode == 'SESSION'){
+      await Promise.all([this.loadSession(this.mainSession), this.loadSites()]);
+    }
     const { datasetId } = this.$route.params;
     const dataset = this.getDataset(datasetId);
     if (dataset) {
