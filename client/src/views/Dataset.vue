@@ -1,6 +1,5 @@
 <script>
 import _ from 'lodash';
-import { SESSION } from '@/store';
 
 import {
   NavigationFailureType,
@@ -10,6 +9,8 @@ import {
 import {
   mapState, mapActions, mapGetters, mapMutations,
 } from 'vuex';
+
+import { SESSION } from '@/store';
 
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
