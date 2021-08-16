@@ -16,8 +16,8 @@ from miqa.core.rest import (
     ScanViewSet,
     SessionViewSet,
     SiteViewSet,
+    TaskViewSet,
     UserViewSet,
-    TaskViewSet
 )
 
 router = routers.SimpleRouter(trailing_slash=False)

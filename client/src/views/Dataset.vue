@@ -1,5 +1,6 @@
 <script>
 import _ from 'lodash';
+import { SESSION } from '@/store';
 
 import {
   NavigationFailureType,
@@ -64,7 +65,7 @@ export default {
       'sessionCachedPercentage',
       'sessionDatasets',
       'mainSession',
-      'mode'
+      'mode',
     ]),
     ...mapGetters([
       'nextDataset',
@@ -109,7 +110,7 @@ export default {
       this.debouncedDatasetSliderChange,
       30,
     );
-    if(this.mode == 'SESSION'){
+    if (this.mode === SESSION) {
       await Promise.all([this.loadSession(this.mainSession), this.loadSites()]);
     }
     const { datasetId } = this.$route.params;

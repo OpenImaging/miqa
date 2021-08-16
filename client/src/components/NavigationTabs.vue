@@ -41,9 +41,9 @@ export default {
       Settings
     </v-tab>
     <v-tab
-      to='/tasks'
+      to="/tasks"
     >
-      Tasks  
+      Tasks
     </v-tab>
   </v-tabs>
 </template>

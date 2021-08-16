@@ -8,8 +8,8 @@ from .scan import ScanViewSet
 from .scan_note import ScanNoteViewSet
 from .session import SessionViewSet
 from .site import SiteViewSet
-from .user import UserViewSet
 from .task import TaskViewSet
+from .user import UserViewSet
 
 __all__ = [
     'ExperimentViewSet',

@@ -12,7 +12,7 @@ export default {
     exportpathError: '',
   }),
   computed: {
-    ...mapState(['mainSession'])
+    ...mapState(['mainSession']),
   },
   async created() {
     const { importpath, exportpath } = await this.djangoRest.settings(this.mainSession.id);

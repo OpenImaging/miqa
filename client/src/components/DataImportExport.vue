@@ -13,7 +13,7 @@ export default {
     exporting: false,
   }),
   computed: {
-    ...mapState(['mainSession'])
+    ...mapState(['mainSession']),
   },
   methods: {
     ...mapActions(['loadSession', 'loadLocalDataset']),

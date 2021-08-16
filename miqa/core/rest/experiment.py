@@ -9,7 +9,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
-from miqa.core.rest.session import SessionSerializer, ExperimentSerializer as ExperimentRetrieveSerializer
+from miqa.core.rest.session import (
+    ExperimentSerializer as ExperimentRetrieveSerializer,
+    SessionSerializer,
+)
 
 from .permissions import ArchivedSession, LockContention, UserHoldsExperimentLock
 

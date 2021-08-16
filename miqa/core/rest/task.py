@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Task
-from miqa.core.rest.user import UserSerializer
 from miqa.core.rest.experiment import ExperimentSerializer
+from miqa.core.rest.user import UserSerializer
+
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,7 +21,7 @@ class TaskSerializer(serializers.ModelSerializer):
 class TaskViewSet(GenericViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-    
+
     permission_classes = [IsAuthenticated]
 
     @action(detail=False, pagination_class=None)
@@ -30,4 +31,3 @@ class TaskViewSet(GenericViewSet):
         queryset = queryset.filter(user=request.user)
         serializer = TaskSerializer(queryset, many=True)
         return Response(data=serializer.data)
-

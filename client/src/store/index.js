@@ -185,8 +185,8 @@ function getNextDataset(experiments, i, j) {
   return nextScan.images[0];
 }
 
-const SESSION = 'SESSION';
-const TASK = 'TASK';
+export const SESSION = 'SESSION';
+export const TASK = 'TASK';
 
 const initState = {
   mainSession: null,
@@ -483,23 +483,10 @@ const store = new Vuex.Store({
 
       dispatch('swapToDataset', state.datasets[state.sessionDatasets[scanID][0]]);
     },
-    async loadSession({ commit }, session) {
-      commit('resetSession');
-      commit('setMode', SESSION);
-
+    // helper for loadSession and loadTask
+    async loadData({ commit }, experiments) {
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
-
-      if (session) {
-        // load first available session
-        session = await djangoRest.session(session.id);
-      } else {
-        // no sessions: can't load any
-        return;
-      }
-
-      // place data in state
-      const { experiments } = session;
 
       for (let i = 0; i < experiments.length; i += 1) {
         const experiment = experiments[i];
@@ -515,7 +502,6 @@ const store = new Vuex.Store({
         });
 
         // Web sessions == Django scans
-        // TODO these requests *can* be run in parallel, or collapsed into one XHR
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
@@ -523,7 +509,6 @@ const store = new Vuex.Store({
           commit('addExperimentSessions', { eid: experiment.id, sid: scan.id });
 
           // Web datasets == Django images
-          // TODO these requests *can* be run in parallel, or collapsed into one XHR
           // eslint-disable-next-line no-await-in-loop
           const { images } = scan;
 
@@ -571,85 +556,31 @@ const store = new Vuex.Store({
         }
       }
     },
-    async loadTask({ commit }, task) {
+    async loadSession({ commit, dispatch }, session) {
+      commit('resetSession');
+      commit('setMode', SESSION);
+
+      if (session) {
+        // load first available session
+        session = await djangoRest.session(session.id);
+      } else {
+        // no sessions: can't load any
+        return;
+      }
+
+      const { experiments } = session;
+
+      await dispatch('loadData', experiments);
+    },
+    async loadTask({ commit, dispatch }, task) {
       commit('resetSession');
       commit('setMode', TASK);
 
-      // Build navigation links throughout the dataset to improve performance.
-      let firstInPrev = null;
+      const experiments = await Promise.all(
+        task.experiments.map((experiment) => djangoRest.experiment(experiment.id)),
+      );
 
-      // place data in state
-      let experiments = await Promise.all(task.experiments.map(async experiment => {
-        return await djangoRest.experiment(experiment.id);
-      }));
-
-      for (let i = 0; i < experiments.length; i += 1) {
-        const experiment = experiments[i];
-        // set experimentSessions[experiment.id] before registering the experiment.id
-        // so SessionsView doesn't update prematurely
-        commit('addExperiment', {
-          id: experiment.id,
-          value: {
-            id: experiment.id,
-            name: experiment.name,
-            index: i,
-          },
-        });
-
-        // Web sessions == Django scans
-        // eslint-disable-next-line no-await-in-loop
-        const { scans } = experiment;
-        for (let j = 0; j < scans.length; j += 1) {
-          const scan = scans[j];
-          commit('addExperimentSessions', { eid: experiment.id, sid: scan.id });
-
-          // Web datasets == Django images
-          // eslint-disable-next-line no-await-in-loop
-          const { images } = scan;
-
-          commit('setScan', {
-            scanId: scan.id,
-            scan: {
-              id: scan.id,
-              name: scan.scan_type,
-              experiment: experiment.id,
-              cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-              numDatasets: images.length,
-              site: scan.site,
-              notes: scan.notes,
-              decisions: scan.decisions,
-            },
-          });
-
-          const nextScan = getNextDataset(experiments, i, j);
-
-          for (let k = 0; k < images.length; k += 1) {
-            const image = images[k];
-            commit('addSessionDatasets', { sid: scan.id, id: image.id });
-            commit('setImage', {
-              imageId: image.id,
-              image: {
-                ...image,
-                session: scan.id,
-                experiment: experiment.id,
-                index: k,
-                previousDataset: k > 0 ? images[k - 1].id : null,
-                nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-                firstDatasetInPreviousSession: firstInPrev,
-                firstDatasetInNextSession: nextScan ? nextScan.id : null,
-              },
-            });
-          }
-
-          if (images.length > 0) {
-            firstInPrev = images[0].id;
-          } else {
-            console.error(
-              `${experiment.name}/${scan.scan_type} has no datasets`,
-            );
-          }
-        }
-      }
+      await dispatch('loadData', experiments);
     },
     // This would be called reloadSession, but session is being renamed to scan
     async reloadScan({ commit, getters }) {

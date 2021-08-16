@@ -1,31 +1,34 @@
 <script>
-import { mapState, mapMutations, mapActions } from "vuex";
+import { mapState, mapMutations, mapActions } from 'vuex';
 
-import GenericNavigationBar from "@/components/GenericNavigationBar.vue";
+import { SESSION } from '@/store';
+import GenericNavigationBar from '@/components/GenericNavigationBar.vue';
 
 export default {
-  name: "TaskList",
+  name: 'TaskList',
   components: {
     GenericNavigationBar,
   },
   data: () => ({
     sessions: [],
-    tasks: []
+    tasks: [],
   }),
   computed: {
-    ...mapState(["mainSession"]),
+    ...mapState(['mainSession']),
   },
-  inject: ["djangoRest", "user"],
+  inject: ['djangoRest', 'user'],
+  async created() {
+    this.sessions = await this.djangoRest.sessions();
+    this.tasks = await this.djangoRest.tasks();
+  },
   methods: {
     ...mapMutations(['setMainSession', 'setMode', 'setDrawer']),
     ...mapActions(['loadTask']),
     mapExperiments(experiments) {
-      return experiments.map(experiment => {
-        return experiment.name;
-      }).join(', ')
+      return experiments.map((experiment) => experiment.name).join(', ');
     },
     switchToSession(session) {
-      this.setMode('SESSION');
+      this.setMode(SESSION);
       this.setMainSession(session);
       this.$router.push('/');
     },
@@ -34,11 +37,7 @@ export default {
       this.setMainSession(task);
       this.$router.push('/');
       this.setDrawer(true);
-    }
-  },
-  async created() {
-    this.sessions = await this.djangoRest.sessions();
-    this.tasks = await this.djangoRest.tasks();
+    },
   },
 };
 </script>
@@ -51,13 +50,20 @@ export default {
       <v-simple-table>
         <thead>
           <tr>
-            <th class="text-left">Name</th>
-            <th class="text-left">Archived</th>
-            <th class="text-left"></th>
+            <th class="text-left">
+              Name
+            </th>
+            <th class="text-left">
+              Archived
+            </th>
+            <th class="text-left" />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="session in sessions" :key="session.name">
+          <tr
+            v-for="session in sessions"
+            :key="session.name"
+          >
             <td>{{ session.name }}</td>
             <td>{{ session.archived ? "yes" : "no" }}</td>
             <td>
@@ -66,11 +72,17 @@ export default {
                 small
                 color="green"
                 class="disable-events white--text"
-                >Current</v-btn
               >
-              <v-btn v-else small color="primary" @click="switchToSession(session)"
-                >Use</v-btn
+                Current
+              </v-btn>
+              <v-btn
+                v-else
+                small
+                color="primary"
+                @click="switchToSession(session)"
               >
+                Use
+              </v-btn>
             </td>
           </tr>
         </tbody>
@@ -80,13 +92,20 @@ export default {
     <v-simple-table>
       <thead>
         <tr>
-          <th class="text-left">Name</th>
-          <th class="text-left">Experiments</th>
-          <th></th>
+          <th class="text-left">
+            Name
+          </th>
+          <th class="text-left">
+            Experiments
+          </th>
+          <th />
         </tr>
       </thead>
       <tbody>
-        <tr v-for="task in tasks" :key="task.name">
+        <tr
+          v-for="task in tasks"
+          :key="task.name"
+        >
           <td>{{ task.name }}</td>
           <td>{{ mapExperiments(task.experiments) }}</td>
           <td>
@@ -95,11 +114,17 @@ export default {
               small
               color="green"
               class="disable-events white--text"
-              >Current</v-btn
             >
-            <v-btn v-else small color="primary" @click="switchToTask(task)"
-              >Use</v-btn
+              Current
+            </v-btn>
+            <v-btn
+              v-else
+              small
+              color="primary"
+              @click="switchToTask(task)"
             >
+              Use
+            </v-btn>
           </td>
         </tr>
       </tbody>

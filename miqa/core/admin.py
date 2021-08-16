@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from miqa.core.models.task import Task
 from django.contrib import admin
 
 from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site, Task
