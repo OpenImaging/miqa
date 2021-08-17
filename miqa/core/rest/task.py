@@ -27,7 +27,6 @@ class TaskViewSet(GenericViewSet):
     @action(detail=False, pagination_class=None)
     def me(self, request):
         """Return the currently logged in user's tasks."""
-        queryset = Task.objects.all()
-        queryset = queryset.filter(user=request.user)
+        queryset = Task.objects.filter(user=request.user)
         serializer = TaskSerializer(queryset, many=True)
         return Response(data=serializer.data)

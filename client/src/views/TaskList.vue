@@ -24,7 +24,7 @@ export default {
   methods: {
     ...mapMutations(['setMainSession', 'setMode', 'setDrawer']),
     ...mapActions(['loadTask']),
-    mapExperiments(experiments) {
+    experimentNames(experiments) {
       return experiments.map((experiment) => experiment.name).join(', ');
     },
     switchToSession(session) {
@@ -107,7 +107,7 @@ export default {
           :key="task.name"
         >
           <td>{{ task.name }}</td>
-          <td>{{ mapExperiments(task.experiments) }}</td>
+          <td>{{ experimentNames(task.experiments) }}</td>
           <td>
             <v-btn
               v-if="mainSession.id === task.id"

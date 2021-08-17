@@ -501,14 +501,12 @@ const store = new Vuex.Store({
           },
         });
 
-        // Web sessions == Django scans
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
           commit('addExperimentSessions', { eid: experiment.id, sid: scan.id });
 
-          // Web datasets == Django images
           // eslint-disable-next-line no-await-in-loop
           const { images } = scan;
 
