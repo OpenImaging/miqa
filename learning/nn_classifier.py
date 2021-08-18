@@ -131,30 +131,29 @@ class TiledClassifier(monai.networks.nets.Classifier):
     def forward(self, inputs):
         # split the input image into tiles and run each tile through NN
         results = []
-        x_tile_size = self.in_shape[0]
+        z_tile_size = self.in_shape[0]
         y_tile_size = self.in_shape[1]
-        z_tile_size = self.in_shape[2]
-        x_size = inputs.shape[2]
+        x_tile_size = self.in_shape[2]
+        z_size = inputs.shape[2]
         y_size = inputs.shape[3]
-        z_size = inputs.shape[4]
-        x_steps = math.ceil(x_size / x_tile_size)
-        y_steps = math.ceil(y_size / y_tile_size)
+        x_size = inputs.shape[4]
         z_steps = math.ceil(z_size / z_tile_size)
-        # TODO: figure out the best tiling order (IJK vs KJI)
-        for i in range(x_steps):
-            i_start = round(i * (x_size - x_tile_size) / x_steps)
+        y_steps = math.ceil(y_size / y_tile_size)
+        x_steps = math.ceil(x_size / x_tile_size)
+        for k in range(z_steps):
+            k_start = round(k * (z_size - z_tile_size) / max(1, z_steps - 1))
             for j in range(y_steps):
-                j_start = round(j * (y_size - y_tile_size) / y_steps)
-                for k in range(z_steps):
-                    k_start = round(k * (z_size - z_tile_size) / z_steps)
+                j_start = round(j * (y_size - y_tile_size) / max(1, y_steps - 1))
+                for i in range(x_steps):
+                    i_start = round(i * (x_size - x_tile_size) / max(1, x_steps - 1))
 
                     # use slicing operator to make a tile
                     tile = inputs[
                            :,
                            :,
-                        i_start : i_start + x_tile_size,
-                        j_start : j_start + y_tile_size,
                         k_start : k_start + z_tile_size,
+                        j_start : j_start + y_tile_size,
+                        i_start : i_start + x_tile_size,
                            ]
 
                     # check if the tile is smaller than our NN input
@@ -164,7 +163,7 @@ class TiledClassifier(monai.networks.nets.Classifier):
 
                     if x_pad + y_pad + z_pad > 0:  # we need to pad
                         tile = torch.nn.functional.pad(
-                            tile, (0, z_pad, 0, y_pad, 0, x_pad), 'replicate'
+                            tile, (0, x_pad, 0, y_pad, 0, z_pad), 'replicate'
                         )
 
                     results.append(super().forward(tile))
