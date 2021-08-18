@@ -1,7 +1,24 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
+from django.contrib.admin.forms import AdminAuthenticationForm
 
 from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+
+# This custom admin site only exists to ensure that admin logins are not immediately logged out,
+# as normal user logins are.
+# See the SESSION_COOKIE_AGE setting
+class CustomAdminLoginForm(AdminAuthenticationForm):
+    def confirm_login_allowed(self, user):
+        super().confirm_login_allowed(user)
+        # Admins will remain logged in for 30 minutes
+        self.request.session.set_expiry(1800)
+
+
+class CustomAdminSite(admin.AdminSite):
+    login_form = CustomAdminLoginForm
+
+
+admin.site = CustomAdminSite()
 
 
 @admin.register(Experiment)
