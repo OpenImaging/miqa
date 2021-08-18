@@ -23,6 +23,12 @@ class MiqaMixin(ConfigMixin):
 
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
+    # The session cookie should only last long enough to redirect to the web GUI.
+    # We don't want users logging out from the web GUI, getting redirected to Django, and finding
+    # that they are still logged in to the Django server, which then immediately logs them back in
+    # to the web GUI.
+    SESSION_COOKIE_AGE = 5
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first
