@@ -25,6 +25,7 @@ def command(username, uri):
         redirect_uris=uri,
         authorization_grant_type='authorization-code',
         user_id=user.id,
+        skip_authorization=True,
     )
 
     application.save()
