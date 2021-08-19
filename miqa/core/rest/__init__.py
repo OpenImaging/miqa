@@ -3,6 +3,7 @@ from .email import EmailView
 from .experiment import ExperimentViewSet
 from .home import HomePageView
 from .image import ImageViewSet
+from .logout import LogoutView
 from .scan import ScanViewSet
 from .scan_note import ScanNoteViewSet
 from .session import SessionViewSet
@@ -13,6 +14,7 @@ __all__ = [
     'ExperimentViewSet',
     'HomePageView',
     'ImageViewSet',
+    'LogoutView',
     'ScanNoteViewSet',
     'ScanViewSet',
     'SessionViewSet',
