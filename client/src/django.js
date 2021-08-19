@@ -37,6 +37,7 @@ const djangoClient = new Vue({
       await oauthClient.redirectToLogin();
     },
     async logout() {
+      await apiClient.post('/logout/', undefined, { withCredentials: true });
       await oauthClient.logout();
     },
     async import(sessionId) {
