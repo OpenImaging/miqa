@@ -11,6 +11,7 @@ from miqa.core.rest import (
     ExperimentViewSet,
     HomePageView,
     ImageViewSet,
+    LogoutView,
     ScanNoteViewSet,
     ScanViewSet,
     SessionViewSet,
@@ -42,6 +43,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(router.urls)),
     path('api/v1/email', EmailView.as_view()),
+    path('api/v1/logout/', LogoutView.as_view()),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
 ]
