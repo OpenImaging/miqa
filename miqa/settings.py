@@ -23,6 +23,12 @@ class MiqaMixin(ConfigMixin):
 
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
+    # Django logins should only last for 30 minutes, the same as the duration of the OAuth token.
+    SESSION_COOKIE_AGE = 1800
+
+    # This is required for the /api/v1/logout/ view to have access to the session cookie.
+    CORS_ALLOW_CREDENTIALS = True
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first
