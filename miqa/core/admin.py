@@ -4,6 +4,7 @@ from django.contrib.admin.forms import AdminAuthenticationForm
 
 from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
 
+
 # This custom admin site only exists to ensure that admin logins are not immediately logged out,
 # as normal user logins are.
 # See the SESSION_COOKIE_AGE setting
