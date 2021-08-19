@@ -92,7 +92,6 @@ Individual test environments may be selectively run.
 This also allows additional options to be be added.
 Useful sub-commands include:
 * `tox -e lint`: Run only the style checks
-* `tox -e type`: Run only the type checks
 * `tox -e test`: Run only the pytest-driven tests
 
 To automatically reformat all code to comply with
