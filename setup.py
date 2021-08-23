@@ -51,6 +51,10 @@ setup(
         'django-s3-file-field[boto3]',
         'gunicorn',
         'jsonschema',
+        'spatial_image_ngff',
+        'spatial_image_multiscale',
+        'itk-io',
+        'itk-filtering',
     ],
     extras_require={
         'dev': [
