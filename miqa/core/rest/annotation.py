@@ -5,6 +5,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Annotation
 
+from .permissions import UserHoldsExperimentLock, ensure_experiment_lock
+
 
 class DecisionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,11 +28,11 @@ class AnnotationViewSet(
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'creator']
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
     serializer_class = DecisionSerializer
 
     def perform_create(self, serializer: DecisionSerializer):
         user = self.request.user
-        # ensure_session_lock(serializer.validated_data['scan'], user)
+        ensure_experiment_lock(serializer.validated_data['scan'], user)
         serializer.save(creator=user)
