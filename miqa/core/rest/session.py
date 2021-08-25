@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
-from miqa.core.rest.permissions import LockContention, UserHoldsSessionLock
+from miqa.core.rest.permissions import LockContention
 from miqa.core.tasks import export_data, import_data
 
 
@@ -94,7 +94,7 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
 
 
 class SessionViewSet(ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         if self.action == 'retrieve':
