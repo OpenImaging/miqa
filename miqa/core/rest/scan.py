@@ -5,7 +5,6 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Annotation, Scan
 
-from .permissions import UserHoldsSessionLock
 from .scan_note import ScanNoteSerializer
 
 
@@ -31,6 +30,6 @@ class ScanViewSet(ReadOnlyModelViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['experiment', 'site']
 
-    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+    permission_classes = [IsAuthenticated]
 
     serializer_class = ScanSerializer
