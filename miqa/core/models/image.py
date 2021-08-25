@@ -8,7 +8,7 @@ from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
 if TYPE_CHECKING:
-    from miqa.core.models import Session
+    from miqa.core.models import Experiment
 
 
 class Image(TimeStampedModel, models.Model):
@@ -30,5 +30,5 @@ class Image(TimeStampedModel, models.Model):
         return self.path.stat().st_size
 
     @property
-    def session(self) -> Session:
-        return self.scan.experiment.session
+    def experiment(self) -> Experiment:
+        return self.scan.experiment
