@@ -696,7 +696,12 @@ const store = new Vuex.Store({
       commit('setSites', sites);
     },
     async lockExperiment({ commit }, experiment) {
-      await djangoRest.lockExperiment(experiment.id);
+      try {
+        await djangoRest.lockExperiment(experiment.id);
+      } catch {
+        // Failing to acquire the lock probably means that someone else got the lock before you.
+        // The following refresh will disable the button and show who currently owns the lock.
+      }
       const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
@@ -706,7 +711,12 @@ const store = new Vuex.Store({
       });
     },
     async unlockExperiment({ commit }, experiment) {
-      await djangoRest.unlockExperiment(experiment.id);
+      try {
+        await djangoRest.unlockExperiment(experiment.id);
+      } catch {
+        // Failing to unlock the lock probably means that someone else unlocked it for you.
+        // The following refresh will show who currently owns the lock.
+      }
       const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
