@@ -101,7 +101,10 @@ export default {
         >
           <v-card flat>
             {{ experiment.name }}
-            <ExperimentLockIcon :experiment="experiment" />
+            <ExperimentLockIcon
+              :experiment="experiment"
+              small
+            />
           </v-card>
           <v-card flat>
             <v-icon
