@@ -9,6 +9,10 @@ export default {
       type: Object,
       required: true,
     },
+    small: {
+      type: Boolean,
+      default: false,
+    },
   },
   inject: ['user'],
   methods: {
@@ -30,7 +34,7 @@ export default {
         @click="lockExperiment(experiment)"
       >
         <v-icon
-          small
+          :small="small"
           color="grey"
         >
           mdi-lock-open
@@ -51,7 +55,7 @@ export default {
         @click="unlockExperiment(experiment)"
       >
         <v-icon
-          small
+          :small="small"
           color="green"
         >
           mdi-lock
@@ -71,7 +75,7 @@ export default {
         v-on="on"
       >
         <v-icon
-          small
+          :small="small"
           color="orange"
         >
           mdi-lock
