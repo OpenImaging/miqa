@@ -530,7 +530,9 @@ const store = new Vuex.Store({
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
               numDatasets: images.length,
               site: scan.site,
-              notes: scan.notes,
+              // The experiment.scans.note serialization does not contain note metadata.
+              // Just set notes to [] and let reloadScan set the complete values later.
+              notes: [],
               decisions: scan.decisions,
             },
           });
