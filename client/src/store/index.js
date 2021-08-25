@@ -380,6 +380,11 @@ const store = new Vuex.Store({
       state.experimentIds.push(id);
       state.experiments[id] = value;
     },
+    updateExperiment(state, experiment) {
+      // Necessary for reactivity
+      state.experiments = { ...state.experiments };
+      state.experiments[experiment.id] = experiment;
+    },
     resetSessionDatasets(state, id) {
       state.sessionDatasets[id] = [];
     },
@@ -499,6 +504,7 @@ const store = new Vuex.Store({
             id: experiment.id,
             name: experiment.name,
             index: i,
+            lockOwner: experiment.lock_owner,
           },
         });
 
@@ -688,6 +694,26 @@ const store = new Vuex.Store({
     async loadSites({ commit }) {
       const sites = await djangoRest.sites();
       commit('setSites', sites);
+    },
+    async lockExperiment({ commit }, experiment) {
+      await djangoRest.lockExperiment(experiment.id);
+      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      commit('updateExperiment', {
+        id,
+        name,
+        index: experiment.index,
+        lockOwner,
+      });
+    },
+    async unlockExperiment({ commit }, experiment) {
+      await djangoRest.unlockExperiment(experiment.id);
+      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      commit('updateExperiment', {
+        id,
+        name,
+        index: experiment.index,
+        lockOwner,
+      });
     },
     startActionTimer({ state, commit }) {
       state.actionTimer = setTimeout(() => {
