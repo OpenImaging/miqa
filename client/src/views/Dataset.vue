@@ -22,6 +22,7 @@ import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
 import DataImportExport from '../components/DataImportExport.vue';
+import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 
 export default {
   name: 'Dataset',
@@ -30,6 +31,7 @@ export default {
     UserButton,
     Layout,
     DataImportExport,
+    ExperimentLockIcon,
     SessionsView,
     WindowControl,
     ScreenshotDialog,
@@ -38,7 +40,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs,
   },
-  inject: ['djangoRest', 'mainSession'],
+  inject: ['djangoRest', 'mainSession', 'user'],
   data: () => ({
     newNote: '',
     decision: null,
@@ -68,6 +70,7 @@ export default {
       'nextDataset',
       'getDataset',
       'currentDataset',
+      'currentExperiment',
       'currentSession',
       'previousDataset',
       'firstDatasetInPreviousSession',
@@ -90,6 +93,10 @@ export default {
         return `${lastNote.note.substring(0, 32)}...`;
       }
       return '';
+    },
+    lockOwned() {
+      const { lockOwner } = this.currentExperiment;
+      return lockOwner && lockOwner.username === this.user.username;
     },
   },
   watch: {
@@ -649,6 +656,7 @@ export default {
                         solo
                         hide-details
                         :value="newNote"
+                        :disabled="!lockOwned"
                         @input="setNote($event)"
                       />
                     </v-col>
@@ -698,7 +706,7 @@ export default {
                           small
                           value="BAD"
                           color="red"
-                          :disabled="!newNote && notes.length === 0"
+                          :disabled="(!lockOwned) || (!newNote && notes.length === 0)"
                         >
                           Bad
                         </v-btn>
@@ -711,6 +719,7 @@ export default {
                           small
                           value="GOOD"
                           color="green"
+                          :disabled="!lockOwned"
                         >
                           Good
                         </v-btn>
@@ -723,10 +732,17 @@ export default {
                           small
                           value="USABLE_EXTRA"
                           color="light-green"
+                          :disabled="!lockOwned"
                         >
                           Extra
                         </v-btn>
                       </v-btn-toggle>
+                    </v-col>
+                    <v-col
+                      cols="1"
+                      class="pb-1 pt-0"
+                    >
+                      <ExperimentLockIcon :experiment="currentExperiment" />
                     </v-col>
                     <v-col
                       cols="2"
@@ -738,7 +754,7 @@ export default {
                         class="ma-0"
                         style="height: 36px"
                         small
-                        :disabled="!decisionChanged && !newNote"
+                        :disabled="(!lockOwned) || (!decisionChanged && !newNote)"
                         @click="save"
                       >
                         Save
