@@ -146,6 +146,7 @@ def test_read_without_lock_ok(authenticated_api_client, scan_note):
     assert resp.status_code == 200
 
 
+@pytest.mark.xfail(reason='session locking is disabled')
 @pytest.mark.django_db
 def test_create_note_without_lock_fails(authenticated_api_client, scan):
     resp = authenticated_api_client.post(
@@ -159,6 +160,7 @@ def test_create_note_without_lock_fails(authenticated_api_client, scan):
     assert resp.data['detail'] == 'You must lock the session before performing this action.'
 
 
+@pytest.mark.xfail(reason='session locking is disabled')
 @pytest.mark.django_db
 def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
     resp = authenticated_api_client.post(

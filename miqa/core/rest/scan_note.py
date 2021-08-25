@@ -6,8 +6,6 @@ from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import ScanNote
 
-from .permissions import UserHoldsSessionLock, ensure_session_lock
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,7 +47,7 @@ class ScanNoteViewSet(
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'initials', 'creator']
 
-    permission_classes = [IsAuthenticated, UserHoldsSessionLock]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -58,5 +56,5 @@ class ScanNoteViewSet(
 
     def perform_create(self, serializer: CreateScanNoteSerializer):
         user = self.request.user
-        ensure_session_lock(serializer.validated_data['scan'], user)
+        # ensure_session_lock(serializer.validated_data['scan'], user)
         serializer.save(creator=user, initials=user_initials(user))
