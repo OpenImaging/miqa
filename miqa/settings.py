@@ -72,6 +72,9 @@ class DockerComposeProductionConfiguration(
 
     MIQA_URL_PREFIX = values.Value(environ=True, default='/')
 
+    # Needed to support the reverse proxy configuration
+    USE_X_FORWARDED_HOST = True
+
     @property
     def STATIC_URL(self):
         """Prepend the MIQA_URL_PREFIX to STATIC_URL."""
@@ -101,10 +104,6 @@ class DockerComposeProductionConfiguration(
     def LOGIN_REDIRECT_URL(self):
         """When login is completed without `next` set, redirect to MIQA_URL_PREFIX."""
         return self.MIQA_URL_PREFIX
-
-    # TODO Disable email verification for now
-    # see https://github.com/OpenImaging/miqa/issues/94
-    ACCOUNT_EMAIL_VERIFICATION = "none"
 
     # We trust the reverse proxy to redirect HTTP traffic to HTTPS
     SECURE_SSL_REDIRECT = False
