@@ -2,10 +2,11 @@
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import { API_URL } from '../constants';
+import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 
 export default {
   name: 'SessionsView',
-  components: {},
+  components: { ExperimentLockIcon },
   props: {
     minimal: {
       type: Boolean,
@@ -100,6 +101,10 @@ export default {
         >
           <v-card flat>
             {{ experiment.name }}
+            <ExperimentLockIcon
+              :experiment="experiment"
+              small
+            />
           </v-card>
           <v-card flat>
             <v-icon
