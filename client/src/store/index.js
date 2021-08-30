@@ -391,6 +391,11 @@ const store = new Vuex.Store({
       state.experimentIds.push(id);
       state.experiments[id] = value;
     },
+    updateExperiment(state, experiment) {
+      // Necessary for reactivity
+      state.experiments = { ...state.experiments };
+      state.experiments[experiment.id] = experiment;
+    },
     resetSessionDatasets(state, id) {
       state.sessionDatasets[id] = [];
     },
@@ -498,6 +503,7 @@ const store = new Vuex.Store({
             id: experiment.id,
             name: experiment.name,
             index: i,
+            lockOwner: experiment.lock_owner,
           },
         });
 
@@ -519,7 +525,9 @@ const store = new Vuex.Store({
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
               numDatasets: images.length,
               site: scan.site,
-              notes: scan.notes,
+              // The experiment.scans.note serialization does not contain note metadata.
+              // Just set notes to [] and let reloadScan set the complete values later.
+              notes: [],
               decisions: scan.decisions,
             },
           });
@@ -709,6 +717,36 @@ const store = new Vuex.Store({
     async loadSites({ commit }) {
       const sites = await djangoRest.sites();
       commit('setSites', sites);
+    },
+    async lockExperiment({ commit }, experiment) {
+      try {
+        await djangoRest.lockExperiment(experiment.id);
+      } catch {
+        // Failing to acquire the lock probably means that someone else got the lock before you.
+        // The following refresh will disable the button and show who currently owns the lock.
+      }
+      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      commit('updateExperiment', {
+        id,
+        name,
+        index: experiment.index,
+        lockOwner,
+      });
+    },
+    async unlockExperiment({ commit }, experiment) {
+      try {
+        await djangoRest.unlockExperiment(experiment.id);
+      } catch {
+        // Failing to unlock the lock probably means that someone else unlocked it for you.
+        // The following refresh will show who currently owns the lock.
+      }
+      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      commit('updateExperiment', {
+        id,
+        name,
+        index: experiment.index,
+        lockOwner,
+      });
     },
     startActionTimer({ state, commit }) {
       state.actionTimer = setTimeout(() => {
