@@ -96,7 +96,7 @@ export default {
     },
     lockOwned() {
       const { lockOwner } = this.currentExperiment;
-      return lockOwner && lockOwner.username === this.user.username;
+      return !!lockOwner && lockOwner.username === this.user.username;
     },
   },
   watch: {
