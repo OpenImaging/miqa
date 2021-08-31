@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import VueCompositionAPI from '@vue/composition-api'
 import Vuetify from 'vuetify';
 
 import AsyncComputed from 'vue-async-computed';
@@ -7,6 +8,7 @@ import config from 'itk/itkConfig';
 import IdleVue from 'idle-vue';
 import App from './App.vue';
 import router from './router';
+
 import store from './store';
 import { STATIC_PATH } from './constants';
 
@@ -23,6 +25,7 @@ Vue.use(Vuetify);
 
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
+Vue.use(VueCompositionAPI)
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
