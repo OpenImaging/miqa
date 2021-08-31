@@ -26,7 +26,7 @@ Vue.use(Vuetify);
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
-Vue.use(IdleVue, { store, idleTime: 900000 }); // 15 minutes inactive timeout
+Vue.use(IdleVue, { store: store.original, idleTime: 900000 }); // 15 minutes inactive timeout
 
 // Merge our own (currently empty) configuration with the one provided by
 // Girder web components (needed for the login dialog to render properly)
@@ -38,7 +38,7 @@ Vue.use(promptService(vuetify));
 
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
-window.store = store;
+window.store  = store.original;
 
 Vue.config.productionTip = true;
 
@@ -49,7 +49,7 @@ djangoRest.restoreLogin().then(async () => {
   new Vue({
     vuetify,
     router,
-    store,
+    store: store.original,
     render: (h) => h(App),
     provide: {
       djangoRest, user, mainSession: session,
