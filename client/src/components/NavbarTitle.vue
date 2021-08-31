@@ -1,12 +1,13 @@
-<script>
-export default {
+<script lang="ts">
+import { computed, defineComponent } from '@vue/composition-api';
+
+export default defineComponent({
   name: 'NavbarTitle',
-  computed: {
-    version() {
-      return process.env.VERSION;
-    },
+  setup() {
+    const version = computed(() => process.env.VERSION);
+    return { version };
   },
-};
+});
 </script>
 
 <template>
