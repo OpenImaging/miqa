@@ -1,4 +1,4 @@
-import Promise from 'bluebird';
+import BluebirdPromise from 'bluebird';
 import { createDirectStore } from "direct-vuex"
 import Vue from 'vue';
 import Vuex from 'vuex';
@@ -67,7 +67,7 @@ function getArrayName(filename) {
 }
 
 function getData(id, file, webWorker = null) {
-  return new Promise((resolve, reject) => {
+  return new BluebirdPromise((resolve, reject) => {
     if (datasetCache.has(id)) {
       resolve({ imageData: datasetCache.get(id), webWorker });
     } else {
@@ -120,13 +120,13 @@ function loadFileAndGetData(imageId) {
   return loadFile(imageId).fileP.then((file) => getData(imageId, file, savedWorker)
     .then(({ webWorker, imageData }) => {
       savedWorker = webWorker;
-      return Promise.resolve({ imageData });
+      return BluebirdPromise.resolve({ imageData });
     })
     .catch((error) => {
       const msg = 'loadFileAndGetData caught error getting data';
       console.log(msg);
       console.log(error);
-      return Promise.reject(msg);
+      return BluebirdPromise.reject(msg);
     })
     .finally(() => {
       if (savedWorker) {
@@ -137,7 +137,7 @@ function loadFileAndGetData(imageId) {
 }
 
 function poolFunction(webWorker, taskInfo) {
-  return new Promise((resolve, reject) => {
+  return new BluebirdPromise((resolve, reject) => {
     const { imageId } = taskInfo;
 
     let filePromise = null;
@@ -470,7 +470,7 @@ const {
           },
         });
 
-        fileCache.set(imageID, Promise.resolve(f));
+        fileCache.set(imageID, BluebirdPromise.resolve(f));
 
         if (prevId) {
           state.datasets[prevId].nextDataset = imageID;
