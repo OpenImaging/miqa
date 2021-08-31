@@ -38,11 +38,8 @@ Vue.use(promptService(vuetify));
 
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
-window.store  = store.original;
-
 Vue.config.productionTip = true;
 
-djangoRest.setStore(store);
 djangoRest.restoreLogin().then(async () => {
   const user = await djangoRest.me();
   const [session] = await djangoRest.sessions();
