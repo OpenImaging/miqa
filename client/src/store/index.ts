@@ -269,7 +269,6 @@ const {
         return expDatasets;
       };
     },
-    getTodoById: (state) => (id) => state.todos.find((todo) => todo.id === id),
     firstDatasetInPreviousSession(state, getters) {
       return getters.currentDataset
         ? getters.currentDataset.firstDatasetInPreviousSession
@@ -330,7 +329,7 @@ const {
   },
   mutations: {
     reset(state) {
-      Vue.set(state, { ...state, ...initState });
+      Object.assign(state, { ...state, ...initState });
     },
     resetSession(state) {
       state.experimentIds = [];
