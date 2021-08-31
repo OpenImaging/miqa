@@ -56,6 +56,7 @@ djangoRest.restoreLogin().then(async () => {
     },
   })
     .$mount('#app')
+    // @ts-ignore
     .$snackbarAttach()
     .$promptAttach();
 });
