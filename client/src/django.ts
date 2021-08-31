@@ -2,18 +2,15 @@ import axios from 'axios';
 import Vue from 'vue';
 import OAuthClient from '@girder/oauth-client';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
+import store from './store';
 
 const apiClient = axios.create({ baseURL: API_URL });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = new Vue({
   data: () => ({
-    store: null,
     apiClient,
   }),
   methods: {
-    setStore(store) {
-      this.store = store;
-    },
     async restoreLogin() {
       await oauthClient.maybeRestoreLogin();
       if (oauthClient.isLoggedIn) {
@@ -28,7 +25,7 @@ const djangoClient = new Vue({
       // mark user not-idle
       apiClient.interceptors.request.use(async (config) => {
         await oauthClient.maybeRestoreLogin();
-        this.store.dispatch('resetActionTimer');
+        await store.dispatch.resetActionTimer();
 
         return config;
       }, (error) => Promise.reject(error));
