@@ -394,6 +394,15 @@ const {
     resetSessionDatasets(state, id) {
       state.sessionDatasets[id] = [];
     },
+    setSessionCachedPercentage(state, percentComplete) {
+      state.sessionCachedPercentage = percentComplete;
+    },
+    startLoadingExperiment(state) {
+      state.loadingExperiment = true;
+    },
+    stopLoadingExperiment(state) {
+      state.loadingExperiment = false;
+    }
   },
   actions: {
     reset({ state, commit }) {
@@ -785,13 +794,13 @@ function checkLoadExperiment(oldValue, newValue) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.state.sessionCachedPercentage = percentComplete;
+  store.commit.setSessionCachedPercentage(percentComplete);
 }
 
 function startReaderWorkerPool() {
   const taskArgsArray = [];
 
-  store.state.loadingExperiment = true;
+  store.commit.startLoadingExperiment();
 
   readDataQueue.forEach((taskInfo) => {
     taskArgsArray.push([taskInfo]);
@@ -815,7 +824,7 @@ function startReaderWorkerPool() {
       console.log(err);
     })
     .finally(() => {
-      store.state.loadingExperiment = false;
+      store.commit.stopLoadingExperiment();
       store.state.workerPool.terminateWorkers();
     });
 }
