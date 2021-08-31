@@ -14,6 +14,7 @@
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
     "@vue/cli-plugin-typescript": "^4.5.13",
+    "@vue/composition-api": "^1.1.4",
     "@vue/eslint-config-typescript": "^7.0.0",
     "axios": "^0.21.1",
     "bluebird": "^3.5.5",
