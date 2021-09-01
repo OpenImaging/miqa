@@ -21,7 +21,12 @@ class Experiment(TimeStampedModel, models.Model):
     session = models.ForeignKey('Session', related_name='experiments', on_delete=models.CASCADE)
 
     lock_owner = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, default=None, related_name='experiment_locks'
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        default=None,
+        related_name='experiment_locks',
     )
 
     def __str__(self):
