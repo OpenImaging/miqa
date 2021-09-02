@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import VueCompositionAPI from '@vue/composition-api'
+import VueCompositionAPI from '@vue/composition-api';
 import Vuetify from 'vuetify';
 
 import AsyncComputed from 'vue-async-computed';
@@ -25,7 +25,7 @@ Vue.use(Vuetify);
 
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
-Vue.use(VueCompositionAPI)
+Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
