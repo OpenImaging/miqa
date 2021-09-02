@@ -47,6 +47,7 @@
     "@vue/eslint-config-airbnb": "^5.3.0",
     "@vue/eslint-config-prettier": "^4.0.1",
     "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.2.2",
     "copy-webpack-plugin": "^4.6.0",
     "core-js": "^2.6.5",
     "eslint": "^5.8.0",
