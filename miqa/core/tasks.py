@@ -16,20 +16,14 @@ def import_data(user, session: Session):
     if session.import_path.endswith('.csv'):
         with open(session.import_path) as fd:
             csv_content = fd.read()
-            try:
-                json_content = csvContentToJsonObject(csv_content)
-                validate(json_content, schema)  # TODO this should be an internal error
-            except (ValidationError, Exception) as e:
-                raise ValidationError({'error': f'Invalid CSV file: {str(e)}'})
+            json_content = csvContentToJsonObject(csv_content)
+            validate(json_content, schema)
     elif session.import_path.endswith('.json'):
         with open(session.import_path) as json_file:
-            try:
-                json_content = json.load(json_file)
-                validate(json_content, schema)
-            except (ValidationError, Exception) as e:  # TODO this should be an internal error
-                raise ValidationError({'error': f'Invalid JSON file: {str(e)}'})
-    # else:
-    # TODO: Raise an error
+            json_content = json.load(json_file)
+            validate(json_content, schema)
+    else:
+        raise ValidationError(f'Invalid import file {session.import_path}')
 
     data_root = Path(json_content['data_root'])
 
