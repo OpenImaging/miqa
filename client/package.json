@@ -89,5 +89,8 @@
         }
       }
     ]
-  }
+  },
+  "eslintIgnore": [
+    "**/shims-*.ts"
+  ]
 }
