@@ -43,7 +43,7 @@ config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
 Vue.config.productionTip = true;
 
-djangoRest.restoreLogin().then(async () => {
+djangoRest.restoreLogin(store).then(async () => {
   const user = await djangoRest.me();
   const [session] = await djangoRest.sessions();
   new Vue({

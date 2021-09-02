@@ -2,7 +2,6 @@ import axios from 'axios';
 import Vue from 'vue';
 import OAuthClient from '@girder/oauth-client';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
-import store from './store';
 
 const apiClient = axios.create({ baseURL: API_URL });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
@@ -11,7 +10,8 @@ const djangoClient = new Vue({
     apiClient,
   }),
   methods: {
-    async restoreLogin() {
+    // TODO importing the actual AppStore type results in a dependency cycle
+    async restoreLogin(store: any) {
       await oauthClient.maybeRestoreLogin();
       if (oauthClient.isLoggedIn) {
         Object.assign(
