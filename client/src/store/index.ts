@@ -1,5 +1,5 @@
 import BluebirdPromise from 'bluebird';
-import { createDirectStore } from "direct-vuex"
+import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
@@ -212,7 +212,7 @@ const {
   rootActionContext,
   moduleActionContext,
   rootGetterContext,
-  moduleGetterContext
+  moduleGetterContext,
 } = createDirectStore({
   state: {
     ...initState,
@@ -402,7 +402,7 @@ const {
     },
     stopLoadingExperiment(state) {
       state.loadingExperiment = false;
-    }
+    },
   },
   actions: {
     reset({ state, commit }) {
@@ -851,7 +851,7 @@ export {
   rootActionContext,
   moduleActionContext,
   rootGetterContext,
-  moduleGetterContext
+  moduleGetterContext,
 };
 
 // The following lines enable types in the injected store '$store'.
