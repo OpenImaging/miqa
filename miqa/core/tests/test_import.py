@@ -106,7 +106,7 @@ def test_import_json(
 
 
 @pytest.mark.django_db
-def test_import_invalid_extension(user, session_factory, authenticated_api_client):
+def test_import_invalid_extension(user, session_factory):
     invalid_file = '/foo/bar.txt'
     session = session_factory(import_path=invalid_file)
     with pytest.raises(ValidationError, match=f'Invalid import file {invalid_file}'):
@@ -114,13 +114,7 @@ def test_import_invalid_extension(user, session_factory, authenticated_api_clien
 
 
 @pytest.mark.django_db
-def test_import_invalid_csv(
-    tmp_path: Path,
-    user,
-    session_factory,
-    sample_scans,
-    authenticated_api_client,
-):
+def test_import_invalid_csv(tmp_path: Path, user, session_factory, sample_scans):
     csv_file = str(tmp_path / 'import.csv')
     output, writer = generate_import_csv(sample_scans)
 
@@ -154,7 +148,6 @@ def test_import_invalid_json(
     session_factory,
     samples_dir: Path,
     sample_scans,
-    authenticated_api_client,
 ):
     json_file = str(tmp_path / 'import.json')
     json_content = generate_import_json(samples_dir, sample_scans)
