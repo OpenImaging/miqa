@@ -10,12 +10,20 @@
   "dependencies": {
     "@girder/components": "git+https://github.com/girder/girder_web_components.git#v3.0.2",
     "@girder/oauth-client": "^0.7.7",
+    "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
+    "@vue/cli-plugin-typescript": "^4.5.13",
+    "@vue/composition-api": "^1.1.4",
+    "@vue/eslint-config-typescript": "^7.0.0",
     "axios": "^0.21.1",
     "bluebird": "^3.5.5",
+    "direct-vuex": "^0.12.1",
     "idle-vue": "^2.0.5",
     "itk": "14.0.0",
     "lodash": "^4.17.21",
     "mousetrap": "scottwittenburg/mousetrap#fix-listener-leak",
+    "typescript": "^4.4.2",
     "uuid": "^3.4.0",
     "vtk.js": "14.16.5",
     "vue": "^2.6.10",
@@ -30,12 +38,16 @@
     "@babel/plugin-transform-block-scoping": "7.10.5",
     "@babel/runtime": "7.11.0",
     "@babel/runtime-corejs2": "7.11.0",
+    "@types/bluebird": "^3.5.36",
+    "@types/lodash": "^4.14.172",
+    "@types/uuid": "^8.3.1",
     "@vue/cli-plugin-babel": "^3.3.0",
     "@vue/cli-plugin-eslint": "^3.3.0",
     "@vue/cli-service": "^4.5.12",
     "@vue/eslint-config-airbnb": "^5.3.0",
     "@vue/eslint-config-prettier": "^4.0.1",
     "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.2.2",
     "copy-webpack-plugin": "^4.6.0",
     "core-js": "^2.6.5",
     "eslint": "^5.8.0",
@@ -52,5 +64,34 @@
     "vuetify-loader": "^1.6.0",
     "webpack": "^4.46.0",
     "worker-loader": "^2.0.0"
-  }
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/recommended",
+      "@vue/airbnb",
+      "@vue/typescript/recommended"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020
+    },
+    "rules": {},
+    "overrides": [
+      {
+        "files": [
+          "**/__tests__/*.{j,t}s?(x)",
+          "**/tests/unit/**/*.spec.{j,t}s?(x)"
+        ],
+        "env": {
+          "jest": true
+        }
+      }
+    ]
+  },
+  "eslintIgnore": [
+    "**/shims-*.ts"
+  ]
 }

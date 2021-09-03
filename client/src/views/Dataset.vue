@@ -21,8 +21,8 @@ import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
-import DataImportExport from '../components/DataImportExport.vue';
 import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
+import DataImportExport from '../components/DataImportExport.vue';
 
 export default {
   name: 'Dataset',

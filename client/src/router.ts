@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import Router from 'vue-router';
+import Router, { Route } from 'vue-router';
 
 import django from './django';
 import Settings from './views/Settings.vue';
@@ -8,7 +8,7 @@ import Login from './views/Login.vue';
 
 Vue.use(Router);
 
-async function beforeEnterAdmin(to, from, next) {
+async function beforeEnterAdmin(_to: Route, _from: Route, next: any) {
   const user = await django.me();
   if (user && user.is_superuser) {
     // logged in && admin
