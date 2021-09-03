@@ -1,8 +1,8 @@
 <script>
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
-import { API_URL } from '../constants';
 import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
+import { API_URL } from '../constants';
 
 export default {
   name: 'SessionsView',

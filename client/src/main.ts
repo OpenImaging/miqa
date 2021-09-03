@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import VueCompositionAPI from '@vue/composition-api';
 import Vuetify from 'vuetify';
 
 import AsyncComputed from 'vue-async-computed';
@@ -7,6 +8,7 @@ import config from 'itk/itkConfig';
 import IdleVue from 'idle-vue';
 import App from './App.vue';
 import router from './router';
+
 import store from './store';
 import { STATIC_PATH } from './constants';
 
@@ -23,10 +25,11 @@ Vue.use(Vuetify);
 
 // import proxyConfigGenerator from './store/proxyConfigGenerator';
 
+Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
 Vue.use(Girder);
 Vue.use(vMousetrap);
-Vue.use(IdleVue, { store, idleTime: 900000 }); // 15 minutes inactive timeout
+Vue.use(IdleVue, { store: store.original, idleTime: 900000 }); // 15 minutes inactive timeout
 
 // Merge our own (currently empty) configuration with the one provided by
 // Girder web components (needed for the login dialog to render properly)
@@ -38,24 +41,22 @@ Vue.use(promptService(vuetify));
 
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
-window.store = store;
-
 Vue.config.productionTip = true;
 
-djangoRest.setStore(store);
-djangoRest.restoreLogin().then(async () => {
+djangoRest.restoreLogin(store).then(async () => {
   const user = await djangoRest.me();
   const [session] = await djangoRest.sessions();
   new Vue({
     vuetify,
     router,
-    store,
+    store: store.original,
     render: (h) => h(App),
     provide: {
       djangoRest, user, mainSession: session,
     },
   })
     .$mount('#app')
+    // @ts-ignore
     .$snackbarAttach()
     .$promptAttach();
 });
