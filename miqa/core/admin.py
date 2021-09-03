@@ -6,9 +6,9 @@ from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
 
 @admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'name', 'note', 'session')
-    list_filter = ('created', 'modified', 'session')
-    search_fields = ('name',)
+    list_display = ('id', 'created', 'modified', 'name', 'note', 'session', 'lock_owner')
+    list_filter = ('created', 'modified', 'session', 'lock_owner')
+    search_fields = ('name', 'lock_owner')
 
 
 @admin.register(Image)
