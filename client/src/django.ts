@@ -7,14 +7,11 @@ const apiClient = axios.create({ baseURL: API_URL });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = new Vue({
   data: () => ({
-    store: null,
     apiClient,
   }),
   methods: {
-    setStore(store) {
-      this.store = store;
-    },
-    async restoreLogin() {
+    // TODO importing the actual AppStore type results in a dependency cycle
+    async restoreLogin(store: any) {
       await oauthClient.maybeRestoreLogin();
       if (oauthClient.isLoggedIn) {
         Object.assign(
@@ -28,7 +25,7 @@ const djangoClient = new Vue({
       // mark user not-idle
       apiClient.interceptors.request.use(async (config) => {
         await oauthClient.maybeRestoreLogin();
-        this.store.dispatch('resetActionTimer');
+        await store.dispatch.resetActionTimer();
 
         return config;
       }, (error) => Promise.reject(error));
@@ -40,10 +37,10 @@ const djangoClient = new Vue({
       await apiClient.post('/logout/', undefined, { withCredentials: true });
       await oauthClient.logout();
     },
-    async import(sessionId) {
+    async import(sessionId: string) {
       await apiClient.post(`/sessions/${sessionId}/import`);
     },
-    async export(sessionId) {
+    async export(sessionId: string) {
       return apiClient.post(`/sessions/${sessionId}/export`);
     },
     async sessions() {
@@ -51,15 +48,15 @@ const djangoClient = new Vue({
       const { results } = data;
       return results;
     },
-    async session(sessionId) {
+    async session(sessionId: string) {
       const { data } = await apiClient.get(`/sessions/${sessionId}`);
       return data;
     },
-    async settings(sessionId) {
+    async settings(sessionId: string) {
       const { data } = await apiClient.get(`/sessions/${sessionId}/settings`);
       return data;
     },
-    async setSettings(sessionId, settings) {
+    async setSettings(sessionId: string, settings) {
       await apiClient.put(`/sessions/${sessionId}/settings`, settings);
     },
     async sites() {
@@ -67,47 +64,47 @@ const djangoClient = new Vue({
       const { results } = data;
       return results;
     },
-    async experiments(sessionId) {
+    async experiments(sessionId: string) {
       const { data } = await apiClient.get('/experiments', {
         params: { session: sessionId },
       });
       const { results } = data;
       return results;
     },
-    async experiment(experimentId) {
+    async experiment(experimentId: string) {
       const { data } = await apiClient.get(`/experiments/${experimentId}`);
       return data;
     },
-    async lockExperiment(experimentId) {
+    async lockExperiment(experimentId: string) {
       await apiClient.post(`/experiments/${experimentId}/lock`);
     },
-    async unlockExperiment(experimentId) {
+    async unlockExperiment(experimentId: string) {
       await apiClient.delete(`/experiments/${experimentId}/lock`);
     },
-    async scans(experimentId) {
+    async scans(experimentId: string) {
       const { data } = await apiClient.get('/scans', {
         params: { experiment: experimentId },
       });
       const { results } = data;
       return results;
     },
-    async scan(scanId) {
+    async scan(scanId: string) {
       const { data } = await apiClient.get(`/scans/${scanId}`);
       return data;
     },
-    async setDecision(scanId, decision) {
+    async setDecision(scanId: string, decision) {
       await apiClient.post('/annotations', { scan: scanId, decision });
     },
-    async addScanNote(scanId, note) {
+    async addScanNote(scanId: string, note) {
       await apiClient.post('/scan_notes', {
         scan: scanId,
         note,
       });
     },
-    async setScanNote(scanNoteId, note) {
+    async setScanNote(scanNoteId: string, note) {
       await apiClient.put(`/scan_notes/${scanNoteId}`, { note });
     },
-    async images(scanId) {
+    async images(scanId: string) {
       const { data } = await apiClient.get('/images', {
         params: { scan: scanId },
       });
@@ -118,7 +115,7 @@ const djangoClient = new Vue({
       const resp = await apiClient.get('/users/me');
       return resp.status === 200 ? resp.data : null;
     },
-    async sendEmail(email) {
+    async sendEmail(email: string) {
       await apiClient.post('/email', email);
     },
   },

@@ -1,4 +1,5 @@
-import Promise from 'bluebird';
+import BluebirdPromise from 'bluebird';
+import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
@@ -66,7 +67,7 @@ function getArrayName(filename) {
 }
 
 function getData(id, file, webWorker = null) {
-  return new Promise((resolve, reject) => {
+  return new BluebirdPromise((resolve, reject) => {
     if (datasetCache.has(id)) {
       resolve({ imageData: datasetCache.get(id), webWorker });
     } else {
@@ -119,13 +120,13 @@ function loadFileAndGetData(imageId) {
   return loadFile(imageId).fileP.then((file) => getData(imageId, file, savedWorker)
     .then(({ webWorker, imageData }) => {
       savedWorker = webWorker;
-      return Promise.resolve({ imageData });
+      return BluebirdPromise.resolve({ imageData });
     })
     .catch((error) => {
       const msg = 'loadFileAndGetData caught error getting data';
       console.log(msg);
       console.log(error);
-      return Promise.reject(msg);
+      return BluebirdPromise.reject(msg);
     })
     .finally(() => {
       if (savedWorker) {
@@ -136,7 +137,7 @@ function loadFileAndGetData(imageId) {
 }
 
 function poolFunction(webWorker, taskInfo) {
-  return new Promise((resolve, reject) => {
+  return new BluebirdPromise((resolve, reject) => {
     const { imageId } = taskInfo;
 
     let filePromise = null;
@@ -206,7 +207,13 @@ const initState = {
   sessionStatus: null,
 };
 
-const store = new Vuex.Store({
+const {
+  store,
+  rootActionContext,
+  moduleActionContext,
+  rootGetterContext,
+  moduleGetterContext,
+} = createDirectStore({
   state: {
     ...initState,
     workerPool: new WorkerPool(poolSize, poolFunction),
@@ -262,7 +269,6 @@ const store = new Vuex.Store({
         return expDatasets;
       };
     },
-    getTodoById: (state) => (id) => state.todos.find((todo) => todo.id === id),
     firstDatasetInPreviousSession(state, getters) {
       return getters.currentDataset
         ? getters.currentDataset.firstDatasetInPreviousSession
@@ -323,7 +329,7 @@ const store = new Vuex.Store({
   },
   mutations: {
     reset(state) {
-      Vue.set(state, { ...state, ...initState });
+      Object.assign(state, { ...state, ...initState });
     },
     resetSession(state) {
       state.experimentIds = [];
@@ -387,6 +393,15 @@ const store = new Vuex.Store({
     },
     resetSessionDatasets(state, id) {
       state.sessionDatasets[id] = [];
+    },
+    setSessionCachedPercentage(state, percentComplete) {
+      state.sessionCachedPercentage = percentComplete;
+    },
+    startLoadingExperiment(state) {
+      state.loadingExperiment = true;
+    },
+    stopLoadingExperiment(state) {
+      state.loadingExperiment = false;
     },
   },
   actions: {
@@ -463,7 +478,7 @@ const store = new Vuex.Store({
           },
         });
 
-        fileCache.set(imageID, Promise.resolve(f));
+        fileCache.set(imageID, BluebirdPromise.resolve(f));
 
         if (prevId) {
           state.datasets[prevId].nextDataset = imageID;
@@ -779,13 +794,13 @@ function checkLoadExperiment(oldValue, newValue) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.state.sessionCachedPercentage = percentComplete;
+  store.commit.setSessionCachedPercentage(percentComplete);
 }
 
 function startReaderWorkerPool() {
   const taskArgsArray = [];
 
-  store.state.loadingExperiment = true;
+  store.commit.startLoadingExperiment();
 
   readDataQueue.forEach((taskInfo) => {
     taskArgsArray.push([taskInfo]);
@@ -809,7 +824,7 @@ function startReaderWorkerPool() {
       console.log(err);
     })
     .finally(() => {
-      store.state.loadingExperiment = false;
+      store.commit.stopLoadingExperiment();
       store.state.workerPool.terminateWorkers();
     });
 }
@@ -827,4 +842,24 @@ function expandSessionRange(datasetId, dataRange) {
   }
 }
 
+// Export the direct-store instead of the classic Vuex store.
 export default store;
+
+// The following exports will be used to enable types in the
+// implementation of actions and getters.
+export {
+  rootActionContext,
+  moduleActionContext,
+  rootGetterContext,
+  moduleGetterContext,
+};
+
+export type AppStore = typeof store;
+
+// The following lines enable types in the injected store '$store'.
+// They are causing linting errors, so they are skipped for now.
+// declare module "vuex" {
+//   interface Store<S> {
+//     direct: AppStore
+//   }
+// }
