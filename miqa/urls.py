@@ -1,9 +1,6 @@
-import os
-
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic.base import RedirectView
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
@@ -40,7 +37,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', HomePageView.as_view(), name='home'),
+    path('', HomePageView, name='home'),
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
@@ -50,11 +47,6 @@ urlpatterns = [
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
 ]
-
-if os.environ['DJANGO_CONFIGURATION'] == 'DevelopmentConfiguration':
-    urlpatterns = [
-        path('', RedirectView.as_view(url='http://localhost:8081'), name='home-redirect')
-    ] + urlpatterns
 
 if settings.DEBUG:
     import debug_toolbar
