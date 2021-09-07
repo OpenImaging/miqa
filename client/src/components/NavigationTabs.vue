@@ -1,14 +1,20 @@
-<script>
+<script lang="ts">
 import { mapState, mapMutations } from 'vuex';
-
+import { defineComponent, inject } from '@vue/composition-api';
 import { GIRDER_URL } from '../constants';
+import { User } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'NavigationTabs',
   data: () => ({
     GIRDER_URL,
   }),
-  inject: ['user'],
+  setup() {
+    const user = inject('user') as User;
+    return {
+      user,
+    };
+  },
   computed: {
     ...mapState(['currentDatasetId']),
   },
@@ -18,7 +24,7 @@ export default {
       this.setDrawer(true);
     },
   },
-};
+});
 </script>
 
 <template>

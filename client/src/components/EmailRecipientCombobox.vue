@@ -1,4 +1,5 @@
-<script>
+<script lang="ts">
+import { PropType } from 'vue';
 export default {
   name: 'EmailRecipientCombobox',
   props: {
@@ -11,7 +12,7 @@ export default {
       type: Array,
     },
     candidates: {
-      type: Array,
+      type: Array as PropType<Array<string>>,
       default: () => [],
     },
     required: {
@@ -20,13 +21,13 @@ export default {
     },
   },
   methods: {
-    isValid(recipient) {
+    isValid(recipient: string) {
       if (this.candidates.indexOf(recipient) !== -1) {
         return true;
       }
       return /.+@.+/.test(recipient);
     },
-    allValid(recipients) {
+    allValid(recipients: Array<string>) {
       const invalid = recipients.find((recipient) => !this.isValid(recipient));
       return invalid ? 'Recipient is not valid' : true;
     },
