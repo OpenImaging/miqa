@@ -6,6 +6,7 @@ module.exports = {
   extends: [
     'plugin:vue/recommended',
     '@vue/airbnb',
+    '@vue/typescript/recommended'
   ],
   rules: {
     'no-console': 'off',
@@ -15,5 +16,6 @@ module.exports = {
   },
   parserOptions: {
     parser: 'babel-eslint',
+    ecmaVersion: 2020
   },
 };
