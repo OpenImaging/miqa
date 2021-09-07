@@ -1,8 +1,16 @@
-<script>
-export default {
+<script lang="ts">
+import { User } from '@/types';
+import { defineComponent, inject } from '@vue/composition-api';
+
+export default defineComponent({
   name: 'UserButton',
-  inject: ['user'],
-};
+  setup() {
+    const user = inject('user') as User;
+    return {
+      user,
+    };
+  },
+});
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapActions } from 'vuex';
 
 import NavbarTitle from '@/components/NavbarTitle.vue';
