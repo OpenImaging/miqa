@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
 import { mapActions } from 'vuex';
+import { defineComponent, inject } from '@vue/composition-api';
+import { User } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'ExperimentLockIcon',
   components: {},
   props: {
@@ -14,11 +16,14 @@ export default {
       default: false,
     },
   },
-  inject: ['user'],
+  setup() {
+    const user = inject('user') as User;
+    return { user };
+  },
   methods: {
     ...mapActions(['lockExperiment', 'unlockExperiment']),
   },
-};
+});
 </script>
 
 <template>
