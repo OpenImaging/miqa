@@ -10,4 +10,9 @@ interface Session {
   name: string
 }
 
-export { User, Session }
+interface HTMLInputEvent extends Event {
+  target: HTMLInputElement & EventTarget;
+}
+
+
+export { User, Session, HTMLInputEvent }

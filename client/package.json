@@ -29,6 +29,7 @@
     "vue": "^2.6.10",
     "vue-async-computed": "^3.5.1",
     "vue-router": "3.4.3",
+    "vue3-snackbar": "^1.0.3",
     "vuetify": "2.3.22",
     "vuex": "^3.0.1"
   },
