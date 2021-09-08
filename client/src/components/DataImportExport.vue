@@ -1,67 +1,91 @@
-<script>
-import { mapActions } from 'vuex';
+<script lang="ts">
+import { ref } from 'vue';
+import { defineComponent, inject } from '@vue/composition-api';
+import { useStore } from 'vuex';
+import { useSnackbar } from "vue3-snackbar";
+import djangoRest from '@/django'
+import { HTMLInputEvent, Session } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'DataImportExport',
   components: {},
-  inject: ['djangoRest', 'mainSession'],
-  data: () => ({
-    importing: false,
-    importDialog: false,
-    importErrorText: '',
-    importErrors: false,
-    exporting: false,
-  }),
-  methods: {
-    ...mapActions(['loadSession', 'loadLocalDataset']),
-    async importData() {
-      this.importing = true;
-      this.importErrorText = '';
-      this.importErrors = false;
-      try {
-        await this.djangoRest.import(this.mainSession.id);
-        this.importing = false;
+  setup() {
+    const store = useStore();
+    const snackbar = useSnackbar();
 
-        this.$snackbar({
+    const mainSession = inject('mainSession') as Session;
+    const loadSession = (session: Session) => store.dispatch('loadSession', session);
+    const loadLocalDataset = (files: FileList) => store.dispatch('loadLocalDataset', files);
+
+    let importing = ref(false);
+    let importDialog = ref(false);
+    let importErrorText = ref('');
+    let importErrors = ref(false);
+    let exporting = ref(false);
+
+    async function importData() {
+      importing.value = true;
+      importErrorText.value = '';
+      importErrors.value = false;
+      try {
+        await djangoRest.import(mainSession.id);
+        importing.value = false;
+
+        snackbar.add({
           text: 'Import finished.',
           timeout: 6000,
         });
 
-        await this.loadSession(this.mainSession);
+        await loadSession(mainSession);
       } catch (ex) {
-        this.importing = false;
-        this.$snackbar({
+        importing.value = false;
+        snackbar.add({
           text: 'Import failed. Refer to server logs for details.',
         });
         console.error(ex);
       }
-      this.importDialog = false;
-    },
-    async exportData() {
-      this.exporting = true;
+      importDialog.value = false;
+    }
+    async function exportData(){
+      exporting.value = true;
       try {
-        await this.djangoRest.export(this.mainSession.id);
-        this.$snackbar({
+        await djangoRest.export(mainSession.id);
+        snackbar.add({
           text: 'Saved data to file successfully.',
           timeout: 6000,
         });
       } catch (err) {
-        this.$snackbar({
+        snackbar.add({
           text: `Export failed: ${err.response.data.detail || 'Server error'}`,
           timeout: 6000,
 
         });
       }
-      this.exporting = false;
-    },
-    activateInput() {
-      this.$refs.load.click();
-    },
-    loadFiles(event) {
-      this.loadLocalDataset(event.target.files);
-    },
+      exporting.value = false;
+    }
+    function activateInput(){
+      ref('load').click();
+    }
+    function loadFiles(event: HTMLInputEvent){
+      loadLocalDataset(event.target.files as FileList);
+    }
+
+    return {
+      mainSession,
+      loadSession,
+      loadLocalDataset,
+      importing,
+      importDialog,
+      importErrorText,
+      importErrors,
+      exporting,
+      importData,
+      exportData,
+      activateInput,
+      loadFiles
+    };
   },
-};
+});
 </script>
 
 <template>
