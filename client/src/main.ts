@@ -52,7 +52,7 @@ djangoRest.restoreLogin(store).then(async () => {
     store: store.original,
     render: (h) => h(App),
     provide: {
-      djangoRest, user, mainSession: session,
+      user, mainSession: session,
     },
   })
     .$mount('#app')
