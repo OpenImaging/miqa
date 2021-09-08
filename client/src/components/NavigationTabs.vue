@@ -1,6 +1,6 @@
 <script lang="ts">
-import { mapState, mapMutations } from 'vuex';
-import { defineComponent, inject } from '@vue/composition-api';
+import { mapState, mapMutations, useStore } from 'vuex';
+import { defineComponent, inject, computed } from '@vue/composition-api';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
 
@@ -10,13 +10,15 @@ export default defineComponent({
     GIRDER_URL,
   }),
   setup() {
+    const store = useStore();
     const user = inject('user') as User;
+    const currentDatasetId = computed(
+      () => store.state.currentDatasetId
+    );
     return {
       user,
+      currentDatasetId
     };
-  },
-  computed: {
-    ...mapState(['currentDatasetId']),
   },
   methods: {
     ...mapMutations(['setDrawer']),

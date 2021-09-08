@@ -1,6 +1,7 @@
 <script lang="ts">
+import { defineComponent } from '@vue/composition-api';
 import { PropType } from 'vue';
-export default {
+export default defineComponent({
   name: 'EmailRecipientCombobox',
   props: {
     label: {
@@ -32,7 +33,7 @@ export default {
       return invalid ? 'Recipient is not valid' : true;
     },
   },
-};
+});
 </script>
 
 <template>
