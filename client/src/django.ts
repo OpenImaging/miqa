@@ -75,10 +75,10 @@ const djangoClient = new Vue({
       const { data } = await apiClient.get(`/experiments/${experimentId}`);
       return data;
     },
-    async lockExperiment(experimentId: string) {
+    async unlockExperiment(experimentId: string) {
       await apiClient.post(`/experiments/${experimentId}/lock`);
     },
-    async unlockExperiment(experimentId: string) {
+    async lockExperiment(experimentId: string) {
       await apiClient.delete(`/experiments/${experimentId}/lock`);
     },
     async scans(experimentId: string) {

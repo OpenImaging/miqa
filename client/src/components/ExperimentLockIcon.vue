@@ -31,17 +31,17 @@ export default {
         icon
         v-bind="attrs"
         v-on="on"
-        @click="lockExperiment(experiment)"
+        @click="unlockExperiment(experiment)"
       >
         <v-icon
           :small="small"
           color="grey"
         >
-          mdi-lock-open
+          mdi-lock
         </v-icon>
       </v-btn>
     </template>
-    <span>Click to lock the experiment</span>
+    <span>Click to unlock the experiment</span>
   </v-tooltip>
   <v-tooltip
     v-else-if="experiment.lockOwner.username === user.username"
@@ -52,17 +52,17 @@ export default {
         icon
         v-bind="attrs"
         v-on="on"
-        @click="unlockExperiment(experiment)"
+        @click="lockExperiment(experiment)"
       >
         <v-icon
           :small="small"
           color="green"
         >
-          mdi-lock
+          mdi-lock-open
         </v-icon>
       </v-btn>
     </template>
-    <span>Click to unlock the experiment</span>
+    <span>Click to lock the experiment</span>
   </v-tooltip>
   <v-tooltip
     v-else
@@ -78,10 +78,10 @@ export default {
           :small="small"
           color="orange"
         >
-          mdi-lock
+          mdi-lock-open
         </v-icon>
       </v-btn>
     </template>
-    <span>Currently locked by {{ experiment.lockOwner.username }}</span>
+    <span>Currently unlocked by {{ experiment.lockOwner.username }}</span>
   </v-tooltip>
 </template>
