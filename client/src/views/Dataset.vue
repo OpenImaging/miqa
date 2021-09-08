@@ -524,64 +524,56 @@ export default {
               <v-container class="pa-0">
                 <v-row>
                   <v-col
-                    cols="12"
+                    cols="3"
                     class="pb-1 pt-0"
                   >
-                    <v-container class="pa-0">
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Site
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          {{ getSiteDisplayName(currentSession.site) }}
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Experiment
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          <a
-                            :href="'/xnat/app/action/DisplayItemAction/search_value' +
-                              `/${currentSession.experiment}/search_element/xnat:mrSessionData` +
-                              '/search_field/xnat:mrSessionData.ID'"
-                            target="_blank"
-                          >
-                            {{
-                              getExperimentDisplayName(
-                                currentSession.experiment
-                              )
-                            }}
-                          </a>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Scan
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          {{ currentSession.name }}
-                        </v-col>
-                      </v-row>
-                    </v-container>
+                    Site
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    class="pb-1 pt-0 justifyRight"
+                  >
+                    {{ getSiteDisplayName(currentSession.site) }}
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="3"
+                    class="pb-1 pt-0"
+                  >
+                    Experiment
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    class="pb-1 pt-0 justifyRight"
+                  >
+                    <ExperimentLockIcon :experiment="currentExperiment" />
+                    <a
+                      :href="'/xnat/app/action/DisplayItemAction/search_value' +
+                        `/${currentSession.experiment}/search_element/xnat:mrSessionData` +
+                        '/search_field/xnat:mrSessionData.ID'"
+                      target="_blank"
+                    >
+                      {{
+                        getExperimentDisplayName(
+                          currentSession.experiment
+                        )
+                      }}
+                    </a>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col
+                    cols="3"
+                    class="pb-1 pt-0"
+                  >
+                    Scan
+                  </v-col>
+                  <v-col
+                    cols="9"
+                    class="pb-1 pt-0 justifyRight"
+                  >
+                    {{ currentSession.name }}
                   </v-col>
                 </v-row>
                 <template v-if="!currentDataset.local">
@@ -737,12 +729,6 @@ export default {
                           Extra
                         </v-btn>
                       </v-btn-toggle>
-                    </v-col>
-                    <v-col
-                      cols="1"
-                      class="pb-1 pt-0"
-                    >
-                      <ExperimentLockIcon :experiment="currentExperiment" />
                     </v-col>
                     <v-col
                       cols="2"
