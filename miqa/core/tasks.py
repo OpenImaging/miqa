@@ -23,7 +23,7 @@ from miqa.core.models import (
 )
 from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
-from miqa.learning.nn_classifier import evaluate_many
+from miqa.learning.nn_inference import evaluate_many
 
 
 @shared_task
