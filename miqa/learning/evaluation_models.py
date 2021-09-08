@@ -3,7 +3,7 @@ from typing import List
 
 from uri import URI
 
-from miqa.learning.nn_classifier import get_model
+from miqa.learning.nn_inference import get_model
 
 
 class EvaluationModel(ABC):
@@ -27,8 +27,8 @@ available_evaluation_models = {
         'miqaT1-val0.pth',
         [
             'overall_quality',
-            'signal_noise_ratio',
-            'contrast_noise_ratio',
+            'signal_to_noise_ratio',
+            'contrast_to_noise_ratio',
             'normal_variants',
             'lesions',
             'full_brain_coverage',
