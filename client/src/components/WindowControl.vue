@@ -271,11 +271,11 @@ export default {
               { bind: '=', handler: increaseWindowWidth },
               { bind: '-', handler: decreaseWindowWidth }
             ]"
-            hide-details
             :thumb-size="48"
             :min="active.widthDomain.min"
             :max="active.widthDomain.max"
             :step="active.widthDomain.step"
+            hide-details
           />
         </v-col>
         <v-col
@@ -342,10 +342,10 @@ export default {
               { bind: ']', handler: increaseWindowLevel },
               { bind: '[', handler: decreaseWindowLevel }
             ]"
-            hide-details
             :min="active.levelDomain.min"
             :max="active.levelDomain.max"
             :step="active.levelDomain.step"
+            hide-details
           />
         </v-col>
         <v-col

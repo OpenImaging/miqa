@@ -98,20 +98,20 @@ export default {
           <v-flex>
             <v-text-field
               v-model="filename"
-              label="Filename"
               @keyup.enter="
                 save();
                 close();
               "
+              label="Filename"
             />
           </v-flex>
           <v-flex xs2>
             <v-select
               v-model="fileType"
+              :items="['jpg', 'png']"
               label="File type"
               hide-details
               single-line
-              :items="['jpg', 'png']"
             />
           </v-flex>
         </v-layout>
@@ -119,22 +119,22 @@ export default {
       <v-card-actions>
         <v-spacer />
         <v-btn
-          color="primary"
-          text
           :disabled="!output"
           :download="`${filename}.${fileType}`"
           :href="output"
+          color="primary"
+          text
         >
           Download
         </v-btn>
         <v-btn
-          color="primary"
-          text
           :disabled="!output"
           @click="
             save();
             close();
           "
+          color="primary"
+          text
         >
           Save
         </v-btn>
