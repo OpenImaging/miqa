@@ -6,15 +6,25 @@ module.exports = {
   extends: [
     'plugin:vue/recommended',
     '@vue/airbnb',
-    '@vue/typescript/recommended',
   ],
+  parser: 'vue-eslint-parser',
   parserOptions: {
-    ecmaVersion: 2020,
-    parser: 'babel-eslint',
+    parser: {
+      js: 'babel-eslint',
+      ts: '@typescript-eslint/parser',
+    },
   },
   rules: {
+    'no-console': 'off',
+    'no-param-reassign': 'off',
+    'no-underscore-dangle': 'off',
+    'func-names': 'off',
+    'vue/valid-template-root': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
   },
+  ignorePatterns: [
+    'src/shims-*.d.ts',
+  ],
   overrides: [
     {
       files: [
