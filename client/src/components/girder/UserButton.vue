@@ -1,6 +1,6 @@
 <script lang="ts">
-import { User } from '@/types';
 import { defineComponent, inject } from '@vue/composition-api';
+import { User } from '@/types';
 
 export default defineComponent({
   name: 'UserButton',
