@@ -1,3 +1,5 @@
+/* eslint camelcase: "off" */
+
 interface User {
   id: number,
   username: string,
@@ -10,4 +12,4 @@ interface Session {
   name: string
 }
 
-export { User, Session }
+export { User, Session };
