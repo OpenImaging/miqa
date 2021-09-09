@@ -1,5 +1,6 @@
 <script lang="ts">
 import { PropType } from 'vue';
+
 export default {
   name: 'EmailRecipientCombobox',
   props: {
