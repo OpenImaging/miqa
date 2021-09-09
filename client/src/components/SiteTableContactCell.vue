@@ -96,30 +96,30 @@ export default {
               <v-flex shrink>
                 <v-text-field
                   v-model="contact.name"
+                  :rules="nameRules"
                   label="Name"
                   name="miqa_name"
                   required
-                  :rules="nameRules"
                   style="width:200px"
                 />
               </v-flex>
               <v-flex shrink>
                 <v-text-field
                   v-model="contact.email"
+                  :rules="emailRules"
                   label="Email"
                   name="miqa_email"
                   type="email"
                   required
-                  :rules="emailRules"
                   style="width:250px"
                 />
               </v-flex>
               <v-flex shrink>
                 <v-btn
+                  @click="remove(contact)"
                   text
                   icon
                   color="primary"
-                  @click="remove(contact)"
                 >
                   <v-icon>remove_circle</v-icon>
                 </v-btn>
@@ -129,10 +129,10 @@ export default {
               <v-spacer />
               <v-flex shrink>
                 <v-btn
+                  @click="add"
                   text
                   icon
                   color="primary"
-                  @click="add"
                 >
                   <v-icon>add_circle</v-icon>
                 </v-btn>
@@ -142,8 +142,8 @@ export default {
           <v-card-actions>
             <v-spacer />
             <v-btn
-              text
               @click="cancel"
+              text
             >
               Cancel
             </v-btn>
