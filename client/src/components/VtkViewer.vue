@@ -167,13 +167,13 @@ export default {
 <template>
   <div
     v-resize="onWindowResize"
-    class="vtk-viewer"
     :class="{ fullscreen }"
+    class="vtk-viewer"
   >
     <div
       v-if="name !== 'default'"
-      class="header"
       :class="name"
+      class="header"
     >
       <v-layout align-center>
         <v-slider
@@ -182,11 +182,11 @@ export default {
             { bind: keyboardBindings[1], handler: increaseSlice },
             { bind: keyboardBindings[0], handler: decreaseSlice }
           ]"
-          class="slice-slider mt-0 mx-4"
-          hide-details
           :min="sliceDomain.min"
           :max="sliceDomain.max"
           :step="sliceDomain.step"
+          class="slice-slider mt-0 mx-4"
+          hide-details
         />
         <div class="slice caption px-2">
           {{ roundSlice(slice) }} mm
@@ -195,8 +195,8 @@ export default {
     </div>
     <div
       ref="viewer"
-      class="viewer"
       :style="{ visibility: resized ? 'unset' : 'hidden' }"
+      class="viewer"
     />
     <v-toolbar
       class="toolbar"
@@ -206,16 +206,16 @@ export default {
       max-height="42"
     >
       <div
-        class="indicator body-2"
         :class="name"
+        class="indicator body-2"
       >
         {{ displayName }}
       </div>
       <v-spacer />
       <v-btn
         v-mousetrap="{ bind: keyboardBindings[2], handler: toggleFullscreen }"
-        icon
         @click="toggleFullscreen"
+        icon
       >
         <v-icon v-if="!fullscreen">
           fullscreen
@@ -225,8 +225,8 @@ export default {
         </v-icon>
       </v-btn>
       <v-btn
-        icon
         @click="takeScreenshot"
+        icon
       >
         <v-icon>add_a_photo</v-icon>
       </v-btn>

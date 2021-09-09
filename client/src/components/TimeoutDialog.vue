@@ -129,25 +129,25 @@ export default {
         <v-spacer />
         <v-btn
           v-if="!done"
+          @click="reset"
           color="primary"
           text
-          @click="reset"
         >
           Continue Session
         </v-btn>
         <v-btn
           v-if="!done"
+          @click="logout"
           color="secondary"
           text
-          @click="logout"
         >
           Logout
         </v-btn>
         <v-btn
           v-if="done"
+          @click="reload"
           color="primary"
           text
-          @click="reload"
         >
           Reload
         </v-btn>
