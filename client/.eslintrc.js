@@ -6,16 +6,24 @@ module.exports = {
   extends: [
     'plugin:vue/recommended',
     '@vue/airbnb',
-    '@vue/typescript/recommended'
+    '@vue/typescript/recommended',
   ],
-  rules: {
-    'no-console': 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-param-reassign': 'off',
-    'no-underscore-dangle': 'off',
-  },
   parserOptions: {
+    ecmaVersion: 2020,
     parser: 'babel-eslint',
-    ecmaVersion: 2020
   },
+  rules: {
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+  },
+  overrides: [
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
+      ],
+      env: {
+        jest: true,
+      },
+    },
+  ],
 };
