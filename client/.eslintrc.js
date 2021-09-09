@@ -20,6 +20,7 @@ module.exports = {
     'no-underscore-dangle': 'off',
     'func-names': 'off',
     'vue/valid-template-root': 'off',
+    'vue/attributes-order': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
   },
   ignorePatterns: [
