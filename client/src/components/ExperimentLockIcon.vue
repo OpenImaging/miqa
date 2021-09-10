@@ -33,10 +33,10 @@ export default defineComponent({
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
         @click="lockExperiment(experiment)"
+        icon
       >
         <v-icon
           :small="small"
@@ -54,10 +54,10 @@ export default defineComponent({
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
         @click="unlockExperiment(experiment)"
+        icon
       >
         <v-icon
           :small="small"
@@ -75,9 +75,9 @@ export default defineComponent({
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
+        icon
       >
         <v-icon
           :small="small"

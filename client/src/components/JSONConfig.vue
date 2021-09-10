@@ -55,10 +55,6 @@ export default {
       >
         <v-text-field
           v-model="importpath"
-          label="Import path"
-          placeholder=" "
-          autocomplete="on"
-          name="miqa-json-importpath"
           :rules="[
             v => !!v || 'path is required',
             v =>
@@ -68,6 +64,10 @@ export default {
           ]"
           :error-messages="importpathError"
           @input="changed = true"
+          label="Import path"
+          placeholder=" "
+          autocomplete="on"
+          name="miqa-json-importpath"
         />
       </v-flex>
       <v-flex
@@ -77,10 +77,6 @@ export default {
       >
         <v-text-field
           v-model="exportpath"
-          label="Export path"
-          placeholder=" "
-          autocomplete="on"
-          name="miqa-json-exportpath"
           :rules="[
             v => !!v || 'path is required',
             v =>
@@ -90,16 +86,20 @@ export default {
           ]"
           :error-messages="exportpathError"
           @input="changed = true"
+          label="Export path"
+          placeholder=" "
+          autocomplete="on"
+          name="miqa-json-exportpath"
         />
       </v-flex>
     </v-layout>
     <v-layout>
       <v-flex>
         <v-btn
+          :disabled="!changed"
           type="submit"
           color="primary"
           class="mx-0"
-          :disabled="!changed"
         >
           Save
         </v-btn>

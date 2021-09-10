@@ -119,17 +119,17 @@ export default {
           <li
             v-for="session of sessionsForExperiment(experiment.id)"
             :key="`s.${session.id}`"
-            class="body-1"
             :class="{
               current: session === currentSession
             }"
+            class="body-1"
           >
             <v-btn
+              :to="getIdOfFirstDatasetInSession(session.id)"
               class="ml-0 px-1 scan-name"
               href
               text
               small
-              :to="getIdOfFirstDatasetInSession(session.id)"
               active-class=""
             >
               {{ session.name }}

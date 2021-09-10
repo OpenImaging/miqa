@@ -1,6 +1,6 @@
 <script lang="ts">
-import { User } from '@/types';
 import { defineComponent, inject } from '@vue/composition-api';
+import { User } from '@/types';
 
 export default defineComponent({
   name: 'UserButton',
@@ -16,17 +16,17 @@ export default defineComponent({
 <template>
   <v-btn
     v-if="user"
+    @click="$emit('user')"
     icon
     color="black lighten-1"
     class="mr-4"
-    @click="$emit('user')"
   >
     Logout
   </v-btn>
   <v-btn
     v-else
-    text
     @click="$emit('login')"
+    text
   >
     Login
   </v-btn>
