@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapState } from 'vuex';
 
 import VtkViewer from './VtkViewer.vue';

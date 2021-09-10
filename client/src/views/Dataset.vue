@@ -312,17 +312,17 @@ export default {
       <NavigationTabs />
       <v-spacer />
       <v-btn
+        @click="keyboardShortcutDialog = true"
         icon
         class="mr-4"
-        @click="keyboardShortcutDialog = true"
       >
         <v-icon>keyboard</v-icon>
       </v-btn>
       <v-btn
-        icon
-        class="mr-4"
         :disabled="!currentDataset"
         @click="emailDialog = true"
+        icon
+        class="mr-4"
       >
         <v-badge
           :value="screenshots.length"
@@ -341,11 +341,11 @@ export default {
       />
     </v-app-bar>
     <v-navigation-drawer
+      :value="drawer"
+      @input="setDrawer($event)"
       app
       temporary
       width="350"
-      :value="drawer"
-      @input="setDrawer($event)"
     >
       <div class="sessions-bar">
         <v-toolbar
@@ -371,9 +371,9 @@ export default {
       fill-height
     >
       <v-progress-circular
-        color="primary"
         :width="4"
         :size="50"
+        color="primary"
         indeterminate
       />
     </v-layout>
@@ -420,12 +420,12 @@ export default {
                         keyup: handleMouseUp
                       }
                     }"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
                     :disabled="!previousDataset"
                     @mousedown="handleMouseDown('back')"
                     @mouseup="handleMouseUp()"
+                    fab
+                    small
+                    class="primary--text my-0 elevation-2 smaller"
                   >
                     <v-icon>keyboard_arrow_left</v-icon>
                   </v-btn>
@@ -446,12 +446,12 @@ export default {
                         keyup: handleMouseUp
                       }
                     }"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
                     :disabled="!nextDataset"
                     @mousedown="handleMouseDown('forward')"
                     @mouseup="handleMouseUp()"
+                    fab
+                    small
+                    class="primary--text my-0 elevation-2 smaller"
                   >
                     <v-icon>chevron_right</v-icon>
                   </v-btn>
@@ -460,11 +460,6 @@ export default {
               <v-layout align-center>
                 <v-flex class="ml-3 mr-1">
                   <v-slider
-                    class="dataset-slider"
-                    hide-details
-                    always-dirty
-                    thumb-label
-                    thumb-size="28"
                     :min="1"
                     :max="
                       currentSessionDatasets.length === 1
@@ -475,6 +470,11 @@ export default {
                     :height="24"
                     :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
+                    class="dataset-slider"
+                    hide-details
+                    always-dirty
+                    thumb-label
+                    thumb-size="28"
                   />
                 </v-flex>
               </v-layout>
@@ -484,15 +484,15 @@ export default {
               >
                 <v-row justify="start">
                   <v-btn
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
                     :disabled="!firstDatasetInPreviousSession"
                     :to="
                       firstDatasetInPreviousSession
                         ? firstDatasetInPreviousSession
                         : ''
                     "
+                    fab
+                    small
+                    class="primary--text mb-0 elevation-2 smaller"
                   >
                     <v-icon>fast_rewind</v-icon>
                   </v-btn>
@@ -504,13 +504,13 @@ export default {
                 </v-row>
                 <v-row justify="end">
                   <v-btn
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
                     :disabled="!firstDatasetInNextSession"
                     :to="
                       firstDatasetInNextSession ? firstDatasetInNextSession : ''
                     "
+                    fab
+                    small
+                    class="primary--text mb-0 elevation-2 smaller"
                   >
                     <v-icon>fast_forward</v-icon>
                   </v-btn>
@@ -611,12 +611,12 @@ export default {
                               bind: 'h',
                               handler: () => (showNotePopup = !showNotePopup)
                             }"
+                            :disabled="notes.length < 1"
+                            v-on="on"
                             text
                             small
                             icon
-                            :disabled="notes.length < 1"
                             class="ma-0"
-                            v-on="on"
                           >
                             <v-icon>arrow_drop_up</v-icon>
                           </v-btn>
@@ -651,13 +651,13 @@ export default {
                           bind: 'esc',
                           handler: () => $refs.note.blur()
                         }"
+                        :value="newNote"
+                        :disabled="!lockOwned"
+                        @input="setNote($event)"
                         class="note-field"
                         label="Note"
                         solo
                         hide-details
-                        :value="newNote"
-                        :disabled="!lockOwned"
-                        @input="setNote($event)"
                       />
                     </v-col>
                     <v-col
@@ -667,14 +667,14 @@ export default {
                       <v-tooltip top>
                         <template v-slot:activator="{ on }">
                           <v-btn
+                            :disabled="!decisionChanged"
+                            v-on="on"
+                            @click="reloadScan"
                             text
                             icon
                             small
                             color="grey"
                             class="my-0"
-                            :disabled="!decisionChanged"
-                            v-on="on"
-                            @click="reloadScan"
                           >
                             <v-icon>undo</v-icon>
                           </v-btn>
@@ -694,19 +694,19 @@ export default {
                     >
                       <v-btn-toggle
                         v-model="decision"
-                        class="buttons"
                         @change="onDecisionChanged"
+                        class="buttons"
                       >
                         <v-btn
                           v-mousetrap="{
                             bind: 'b',
                             handler: () => setDecision('BAD')
                           }"
+                          :disabled="(!lockOwned) || (!newNote && notes.length === 0)"
                           text
                           small
                           value="BAD"
                           color="red"
-                          :disabled="(!lockOwned) || (!newNote && notes.length === 0)"
                         >
                           Bad
                         </v-btn>
@@ -715,11 +715,11 @@ export default {
                             bind: 'g',
                             handler: () => setDecision('GOOD')
                           }"
+                          :disabled="!lockOwned"
                           text
                           small
                           value="GOOD"
                           color="green"
-                          :disabled="!lockOwned"
                         >
                           Good
                         </v-btn>
@@ -728,11 +728,11 @@ export default {
                             bind: 'u',
                             handler: () => setDecision('USABLE_EXTRA')
                           }"
+                          :disabled="!lockOwned"
                           text
                           small
                           value="USABLE_EXTRA"
                           color="light-green"
-                          :disabled="!lockOwned"
                         >
                           Extra
                         </v-btn>
@@ -750,12 +750,12 @@ export default {
                     >
                       <v-btn
                         v-mousetrap="{ bind: 'alt+s', handler: save }"
+                        :disabled="(!lockOwned) || (!decisionChanged && !newNote)"
+                        @click="save"
                         color="primary"
                         class="ma-0"
                         style="height: 36px"
                         small
-                        :disabled="(!lockOwned) || (!decisionChanged && !newNote)"
-                        @click="save"
                       >
                         Save
                         <v-icon right>
@@ -804,24 +804,24 @@ export default {
           <v-spacer />
           <v-btn
             v-mousetrap="{ bind: 'y', handler: el => el.focus() }"
+            @click="unsavedDialogYes"
             text
             color="primary"
-            @click="unsavedDialogYes"
           >
             Yes
           </v-btn>
           <v-btn
             v-mousetrap="{ bind: 'n', handler: el => el.focus() }"
+            @click="unsavedDialogNo"
             text
             color="primary"
-            @click="unsavedDialogNo"
           >
             no
           </v-btn>
           <v-btn
             v-mousetrap="{ bind: 'esc', handler: unsavedDialogCancel }"
-            text
             @click="unsavedDialogCancel"
+            text
           >
             Cancel
           </v-btn>

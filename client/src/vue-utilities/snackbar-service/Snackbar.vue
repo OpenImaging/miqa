@@ -7,9 +7,9 @@
     {{ text }}
     <v-btn
       v-if="callback"
+      @click="buttonClicked"
       color="primary"
       text
-      @click="buttonClicked"
     >
       {{ button }}
     </v-btn>
