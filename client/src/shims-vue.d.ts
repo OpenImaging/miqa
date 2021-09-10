@@ -24,7 +24,8 @@ declare module "vuex" {
 }
 
 declare module '*.vue' {
-  import Vue from 'vue';
+  import { Component } from 'vue';
+  var component: Component;
 
-  export { ref }
+  export default component;
 }

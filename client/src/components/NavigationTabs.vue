@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapState, mapMutations, useStore } from 'vuex';
+import { mapMutations, useStore } from 'vuex';
 import { defineComponent, inject, computed } from '@vue/composition-api';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
@@ -13,11 +13,11 @@ export default defineComponent({
     const store = useStore();
     const user = inject('user') as User;
     const currentDatasetId = computed(
-      () => store.state.currentDatasetId
+      () => store.state.currentDatasetId,
     );
     return {
       user,
-      currentDatasetId
+      currentDatasetId,
     };
   },
   methods: {

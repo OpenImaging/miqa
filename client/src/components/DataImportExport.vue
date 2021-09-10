@@ -1,9 +1,7 @@
 <script lang="ts">
-import { ref } from 'vue';
-import { defineComponent, inject } from '@vue/composition-api';
+import { defineComponent, inject, ref } from '@vue/composition-api';
 import { useStore } from 'vuex';
-import { useSnackbar } from "vue3-snackbar";
-import djangoRest from '@/django'
+import djangoRest from '@/django';
 import { HTMLInputEvent, Session } from '@/types';
 
 export default defineComponent({
@@ -11,17 +9,17 @@ export default defineComponent({
   components: {},
   setup() {
     const store = useStore();
-    const snackbar = useSnackbar();
 
     const mainSession = inject('mainSession') as Session;
     const loadSession = (session: Session) => store.dispatch('loadSession', session);
     const loadLocalDataset = (files: FileList) => store.dispatch('loadLocalDataset', files);
 
-    let importing = ref(false);
-    let importDialog = ref(false);
-    let importErrorText = ref('');
-    let importErrors = ref(false);
-    let exporting = ref(false);
+    const importing = ref(false);
+    const importDialog = ref(false);
+    const importErrorText = ref('');
+    const importErrors = ref(false);
+    const exporting = ref(false);
+    const load = ref(null);
 
     async function importData() {
       importing.value = true;
@@ -31,7 +29,7 @@ export default defineComponent({
         await djangoRest.import(mainSession.id);
         importing.value = false;
 
-        snackbar.add({
+        this.$snackbar({
           text: 'Import finished.',
           timeout: 6000,
         });
@@ -39,23 +37,23 @@ export default defineComponent({
         await loadSession(mainSession);
       } catch (ex) {
         importing.value = false;
-        snackbar.add({
+        this.$snackbar({
           text: 'Import failed. Refer to server logs for details.',
         });
         console.error(ex);
       }
       importDialog.value = false;
     }
-    async function exportData(){
+    async function exportData() {
       exporting.value = true;
       try {
         await djangoRest.export(mainSession.id);
-        snackbar.add({
+        this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
         });
       } catch (err) {
-        snackbar.add({
+        this.$snackbar({
           text: `Export failed: ${err.response.data.detail || 'Server error'}`,
           timeout: 6000,
 
@@ -63,10 +61,10 @@ export default defineComponent({
       }
       exporting.value = false;
     }
-    function activateInput(){
-      ref('load').click();
+    function activateInput() {
+      load.click();
     }
-    function loadFiles(event: HTMLInputEvent){
+    function loadFiles(event: HTMLInputEvent) {
       loadLocalDataset(event.target.files as FileList);
     }
 
@@ -79,10 +77,11 @@ export default defineComponent({
       importErrorText,
       importErrors,
       exporting,
+      load,
       importData,
       exportData,
       activateInput,
-      loadFiles
+      loadFiles,
     };
   },
 });
