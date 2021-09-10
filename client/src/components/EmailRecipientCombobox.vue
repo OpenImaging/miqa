@@ -13,7 +13,7 @@ export default {
       type: Array,
     },
     candidates: {
-      type: Array as PropType<Array<string>>,
+      type: Array as PropType<string[]>,
       default: () => [],
     },
     required: {
