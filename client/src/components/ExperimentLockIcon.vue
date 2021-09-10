@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
 import { mapActions } from 'vuex';
+import { defineComponent, inject } from '@vue/composition-api';
+import { User } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'ExperimentLockIcon',
   components: {},
   props: {
@@ -14,11 +16,14 @@ export default {
       default: false,
     },
   },
-  inject: ['user'],
+  setup() {
+    const user = inject('user') as User;
+    return { user };
+  },
   methods: {
     ...mapActions(['lockExperiment', 'unlockExperiment']),
   },
-};
+});
 </script>
 
 <template>
@@ -28,10 +33,10 @@ export default {
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
         @click="lockExperiment(experiment)"
+        icon
       >
         <v-icon
           :small="small"
@@ -49,10 +54,10 @@ export default {
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
         @click="unlockExperiment(experiment)"
+        icon
       >
         <v-icon
           :small="small"
@@ -70,9 +75,9 @@ export default {
   >
     <template v-slot:activator="{ on, attrs }">
       <v-btn
-        icon
         v-bind="attrs"
         v-on="on"
+        icon
       >
         <v-icon
           :small="small"

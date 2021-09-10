@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+import { PropType } from 'vue';
+
 export default {
   name: 'EmailRecipientCombobox',
   props: {
@@ -11,7 +13,7 @@ export default {
       type: Array,
     },
     candidates: {
-      type: Array,
+      type: Array as PropType<string[]>,
       default: () => [],
     },
     required: {
@@ -20,13 +22,13 @@ export default {
     },
   },
   methods: {
-    isValid(recipient) {
+    isValid(recipient: string) {
       if (this.candidates.indexOf(recipient) !== -1) {
         return true;
       }
       return /.+@.+/.test(recipient);
     },
-    allValid(recipients) {
+    allValid(recipients: Array<string>) {
       const invalid = recipients.find((recipient) => !this.isValid(recipient));
       return invalid ? 'Recipient is not valid' : true;
     },
@@ -39,26 +41,26 @@ export default {
     :value="value"
     :items="candidates"
     :label="label"
-    multiple
-    deletable-chips
-    small-chips
     :rules="[
       allValid,
       v =>
         !!v.length || (required ? `at least one recipient is required` : true)
     ]"
-    hide-selected
     @input="$emit('input', $event)"
+    multiple
+    deletable-chips
+    small-chips
+    hide-selected
   >
     <template #selection="{ item, parent, selected }">
       <v-chip
         :key="JSON.stringify(item)"
         :color="isValid(item) ? '' : 'error'"
         :input-value="selected"
-        small
-        close
         @input="parent.selectItem(item)"
         @click:close="parent.selectItem(item)"
+        small
+        close
       >
         {{ item }}
       </v-chip>

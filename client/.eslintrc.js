@@ -7,13 +7,33 @@ module.exports = {
     'plugin:vue/recommended',
     '@vue/airbnb',
   ],
+  parser: 'vue-eslint-parser',
+  parserOptions: {
+    parser: {
+      js: 'babel-eslint',
+      ts: '@typescript-eslint/parser',
+    },
+  },
   rules: {
     'no-console': 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-param-reassign': 'off',
     'no-underscore-dangle': 'off',
+    'func-names': 'off',
+    'vue/valid-template-root': 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
   },
-  parserOptions: {
-    parser: 'babel-eslint',
-  },
+  ignorePatterns: [
+    'src/shims-*.d.ts',
+  ],
+  overrides: [
+    {
+      files: [
+        '**/__tests__/*.{j,t}s?(x)',
+        '**/tests/unit/**/*.spec.{j,t}s?(x)',
+      ],
+      env: {
+        jest: true,
+      },
+    },
+  ],
 };

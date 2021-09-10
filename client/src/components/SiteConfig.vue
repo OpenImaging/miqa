@@ -53,9 +53,9 @@ export default {
 
 <template>
   <v-data-table
-    class="site-config"
     :headers="headers"
     :items="items"
+    class="site-config"
     hide-default-footer
   >
     <template #items="{ item }">

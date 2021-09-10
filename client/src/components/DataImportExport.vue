@@ -67,17 +67,17 @@ export default {
 <template>
   <div>
     <v-btn
+      @click="importDialog = true"
       text
       color="primary"
-      @click="importDialog = true"
     >
       Import
     </v-btn>
     <v-btn
       :disabled="exporting"
+      @click="exportData"
       text
       color="primary"
-      @click="exportData"
     >
       <v-progress-circular
         v-if="exporting"
@@ -92,24 +92,24 @@ export default {
     </v-btn>
 
     <v-btn
+      @click="activateInput"
       text
       color="secondary"
-      @click="activateInput"
     >
       Load
     </v-btn>
 
     <input
       ref="load"
+      @change="loadFiles"
       type="file"
       multiple
       style="display: none;"
-      @change="loadFiles"
     >
     <v-dialog
       v-model="importDialog"
-      width="500"
       :persistent="importing"
+      width="500"
     >
       <v-card>
         <v-card-title class="title">
@@ -122,17 +122,17 @@ export default {
         <v-card-actions>
           <v-spacer />
           <v-btn
-            text
             :disabled="importing"
             @click="importDialog = false"
+            text
           >
             Cancel
           </v-btn>
           <v-btn
-            text
-            color="primary"
             :loading="importing"
             @click="importData"
+            text
+            color="primary"
           >
             Import
           </v-btn>
@@ -153,9 +153,9 @@ export default {
         <v-card-actions>
           <v-spacer />
           <v-btn
+            @click="importErrors = false"
             color="primary"
             text
-            @click="importErrors = false"
           >
             Ok
           </v-btn>
