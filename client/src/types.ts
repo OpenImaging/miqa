@@ -16,5 +16,4 @@ interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
 }
 
-
-export { User, Session, HTMLInputEvent }
+export { User, Session, HTMLInputEvent };
