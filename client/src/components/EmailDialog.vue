@@ -184,8 +184,8 @@ Notes:
 <template>
   <v-dialog
     :value="value"
-    max-width="60%"
     @input="$emit('input', $event)"
+    max-width="60%"
   >
     <v-form
       ref="form"
@@ -196,10 +196,10 @@ Notes:
           Send email
           <v-spacer />
           <v-btn
+            @click="$emit('input', false)"
             small
             icon
             class="ma-0"
-            @click="$emit('input', false)"
           >
             <v-icon>close</v-icon>
           </v-btn>
@@ -212,21 +212,21 @@ Notes:
             <v-flex>
               <EmailRecipientCombobox
                 v-model="to"
-                label="to"
                 :candidates="toCandidates.map(c => c.name)"
                 :required="true"
+                label="to"
               />
             </v-flex>
             <v-flex shrink>
               <a
                 v-if="!showCC"
-                class="px-2"
                 @click="showCC = true"
+                class="px-2"
               >cc</a>
               <a
                 v-if="!showBCC"
-                class="px-2"
                 @click="showBCC = true"
+                class="px-2"
               >bcc</a>
             </v-flex>
           </v-layout>
@@ -234,9 +234,9 @@ Notes:
             <v-flex>
               <EmailRecipientCombobox
                 v-model="cc"
-                label="cc"
                 :candidates="ccCandidates.map(c => c.name)"
                 :required="false"
+                label="cc"
               />
             </v-flex>
           </v-layout>
@@ -244,9 +244,9 @@ Notes:
             <v-flex>
               <EmailRecipientCombobox
                 v-model="bcc"
-                label="bcc"
                 :candidates="bccCandidates.map(c => c.name)"
                 :required="false"
+                label="bcc"
               />
             </v-flex>
           </v-layout>
@@ -254,11 +254,11 @@ Notes:
             <v-flex>
               <v-text-field
                 v-model="subject"
+                :rules="[v => !!v || 'Subject is required']"
                 label="Subject"
                 placeholder=" "
                 name="miqa_subject"
                 autocomplete="on"
-                :rules="[v => !!v || 'Subject is required']"
                 required
               />
             </v-flex>
@@ -284,11 +284,11 @@ Notes:
               >
                 <v-hover #default="{ hover }">
                   <v-card
-                    class="screenshot"
                     :style="{
                       borderColor: getBorder(screenshot)
                     }"
                     @click="toggleScreenshotSelection(screenshot)"
+                    class="screenshot"
                   >
                     <v-img
                       :src="screenshot.dataURL"
@@ -305,11 +305,11 @@ Notes:
                     <v-fade-transition>
                       <v-btn
                         v-if="hover"
+                        @click.stop="removeScreenshot(screenshot)"
                         fab
                         small
                         color="primary"
                         class="close"
-                        @click.stop="removeScreenshot(screenshot)"
                       >
                         <v-icon>close</v-icon>
                       </v-btn>
@@ -323,9 +323,9 @@ Notes:
         <v-card-actions>
           <v-spacer />
           <v-btn
+            :loading="sending"
             color="primary"
             text
-            :loading="sending"
             type="submit"
           >
             Send

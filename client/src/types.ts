@@ -1,3 +1,5 @@
+/* eslint camelcase: "off" */
+
 interface User {
   id: number,
   username: string,

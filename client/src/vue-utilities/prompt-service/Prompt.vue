@@ -17,15 +17,15 @@
         <v-spacer />
         <v-btn
           v-if="confirm"
-          text
           @click="negative"
+          text
         >
           {{ negativeButton }}
         </v-btn>
         <v-btn
+          @click="positive"
           color="primary"
           text
-          @click="positive"
         >
           {{ positiveButton }}
         </v-btn>
