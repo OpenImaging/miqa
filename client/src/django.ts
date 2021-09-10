@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Vue from 'vue';
-import { User } from './types';
 import OAuthClient from '@girder/oauth-client';
+import { User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 const apiClient = axios.create({ baseURL: API_URL });
