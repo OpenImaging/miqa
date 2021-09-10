@@ -20,6 +20,7 @@ from configurations import values
 class MiqaMixin(ConfigMixin):
     WSGI_APPLICATION = 'miqa.wsgi.application'
     ROOT_URLCONF = 'miqa.urls'
+    HOMEPAGE_REDIRECT_URL = values.Value(environ=True, default=None)
 
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -51,7 +52,7 @@ class MiqaMixin(ConfigMixin):
 
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
-    pass
+    HOMEPAGE_REDIRECT_URL = values.Value(environ=True, default='http://localhost:8081')
 
 
 class TestingConfiguration(MiqaMixin, TestingBaseConfiguration):

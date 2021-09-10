@@ -60,9 +60,9 @@ export default {
               <v-flex>
                 <v-text-field
                   v-model="displayName"
+                  :rules="nameRules"
                   label="Display Name"
                   name="miqa_site_name"
-                  :rules="nameRules"
                   style="width:220px"
                 />
               </v-flex>
@@ -71,8 +71,8 @@ export default {
           <v-card-actions>
             <v-spacer />
             <v-btn
-              text
               @click="cancel"
+              text
             >
               Cancel
             </v-btn>

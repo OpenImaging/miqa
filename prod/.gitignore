@@ -1,2 +1,5 @@
 .env
 nginx.conf
+
+# Development SSL certificates
+*.pem

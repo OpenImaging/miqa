@@ -6,8 +6,8 @@ upstream miqa2 {
 
 server {
   # Settings for local testing
-  listen      8001;
-  server_name localhost;
+  listen      443 ssl;
+  server_name miqa.local;
 
   # DJANGO_MIQA_URL_PREFIX=/miqa2
   location /miqa2/ {
@@ -16,4 +16,7 @@ server {
     proxy_set_header X-Forwarded-Host $host;
     proxy_pass http://miqa2/;
   }
+
+  ssl_certificate /etc/nginx/conf.d/miqa.local.pem;
+  ssl_certificate_key /etc/nginx/conf.d/miqa.local-key.pem;
 }

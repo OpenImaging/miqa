@@ -26,7 +26,6 @@ export const ANNOTATIONS = {
     'Origin:&nbsp;${sliceOrigin}<br>Spacing:&nbsp;${sliceSpacing}&nbsp;mm<br>${sliceIndex}&nbsp;of&nbsp;${sliceCount}',
   se: 'WL:&nbsp;${windowLevel}&nbsp;/&nbsp;WW:&nbsp;${windowWidth}',
 };
-/* eslint-enable /* eslint-disable */
 
 export const VIEW_ORIENTATIONS = {
   default: {
