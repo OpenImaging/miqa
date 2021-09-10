@@ -48,9 +48,9 @@ export default {
 <template>
   <v-dialog
     :value="value"
+    @input="$emit('input', $event)"
     max-width="500"
     scrollable
-    @input="$emit('input', $event)"
   >
     <v-card>
       <v-card-title
@@ -79,9 +79,9 @@ export default {
       <v-card-actions>
         <v-spacer />
         <v-btn
+          @click="$emit('input', false)"
           color="primary"
           text
-          @click="$emit('input', false)"
         >
           Close
         </v-btn>
