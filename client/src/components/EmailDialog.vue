@@ -1,15 +1,17 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
-import { mapState, mapGetters, mapMutations } from 'vuex';
-
+import {
+  defineComponent, inject, computed,
+} from '@vue/composition-api';
+import { useStore } from 'vuex';
 import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
+import { User } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'EmailDialog',
   components: {
     EmailRecipientCombobox,
   },
-  inject: ['djangoRest', 'user'],
   props: {
     value: {
       type: Boolean,
@@ -19,6 +21,25 @@ export default {
       type: Array,
       default: () => [],
     },
+  },
+  setup() {
+    const store = useStore();
+    const screenshots = computed(() => store.state.screenshots);
+    const currentDataset = computed(() => store.getters.currentDataset);
+    const currentSession = computed(() => store.getters.currentSession);
+    const siteMap = computed(() => store.getters.siteMap);
+    const removeScreenshot = () => store.commit('removeScreenshot');
+
+    const user = inject('user') as User;
+
+    return {
+      screenshots,
+      currentDataset,
+      currentSession,
+      siteMap,
+      removeScreenshot,
+      user,
+    };
   },
   data: () => ({
     initialized: false,
@@ -36,14 +57,6 @@ export default {
     valid: true,
     sending: false,
   }),
-  computed: {
-    ...mapState(['screenshots']),
-    ...mapGetters([
-      'currentDataset',
-      'currentSession',
-      'siteMap',
-    ]),
-  },
   watch: {
     user(value) {
       if (value) {
@@ -67,7 +80,6 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(['removeScreenshot']),
     initialize() {
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
@@ -178,7 +190,7 @@ Notes:
       return this.$vuetify.theme.currentTheme.primary;
     },
   },
-};
+});
 </script>
 
 <template>
