@@ -46,6 +46,11 @@ setup(
         'djangorestframework',
         'django-click',
         'drf-yasg',
+        # For Neural Net
+        'monai',
+        'sklearn',
+        'tensorboard',
+        'wandb',
         # Production-only
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
