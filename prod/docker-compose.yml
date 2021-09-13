@@ -27,6 +27,13 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     env_file: ./.env
     volumes:
       - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
