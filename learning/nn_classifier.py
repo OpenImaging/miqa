@@ -287,6 +287,15 @@ def evaluate1(model_path, image_path):
     print(f'Network output: {result}')
     print(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
+    labeled_results = {
+        "overall_quality": result[0],
+        "signal_noise_ratio": result[1],
+        "contrast_noise_ratio": result[2],
+    }
+    for index, artifact_name in enumerate(artifacts):
+        labeled_results[artifact_name] = result[index + 3]
+    return labeled_results
+
 
 class CombinedLoss(torch.nn.Module):
     def __init__(self, binary_class_weights, focal_loss=monai.losses.FocalLoss()):
