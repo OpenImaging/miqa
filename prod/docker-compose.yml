@@ -6,7 +6,7 @@ services:
       POSTGRES_DB: django
       POSTGRES_PASSWORD: ${DOCKER_POSTGRES_PASSWORD}
     ports:
-      - ${DOCKER_POSTGRES_PORT-5432}:5432
+      - ${DOCKER_POSTGRES_PORT-5432}
 
   django:
     build:
@@ -28,8 +28,17 @@ services:
     # Log printing via Rich is enhanced by a TTY
     tty: true
     env_file: ./.env
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
       - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
+      - "/home/anne/miqa/samples:/mnt/mydata"
+      - "/home/anne/miqa/samples:/srv/samples"
     ports:
       - ${MIQA_SERVER_PORT}:8000
     depends_on:
