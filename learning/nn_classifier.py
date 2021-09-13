@@ -15,7 +15,6 @@ from sklearn.metrics import classification_report, confusion_matrix, mean_square
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from torchio import transforms
 import wandb
 
 existing_count = 0
@@ -23,31 +22,33 @@ missing_count = 0
 predict_hd_data_root = 'P:/PREDICTHD_BIDS_DEFACE/'
 
 regression_count = 3  # first 3 values are overall QA, SNR and CNR
-artifacts = ['normal_variants',
-             'lesions',
-             'full_brain_coverage',
-             'misalignment',
-             'swap_wraparound',
-             'ghosting_motion',
-             'inhomogeneity',
-             'susceptibility_metal',
-             'flow_artifact',
-             'truncation_artifact',
-             ]
+artifacts = [
+    'normal_variants',
+    'lesions',
+    'full_brain_coverage',
+    'misalignment',
+    'swap_wraparound',
+    'ghosting_motion',
+    'inhomogeneity',
+    'susceptibility_metal',
+    'flow_artifact',
+    'truncation_artifact',
+]
 
 # counts of different QA results is used to calculate class weights
-qa_sample_counts = [374,  # number of samples with qa==0
-                    19,
-                    25,
-                    7,
-                    19,
-                    11,
-                    2903,
-                    521,
-                    2398,
-                    1908,
-                    1290,  # number of samples with qa==10
-                    ]
+qa_sample_counts = [
+    374,  # number of samples with qa==0
+    19,
+    25,
+    7,
+    19,
+    11,
+    2903,
+    521,
+    2398,
+    1908,
+    1290,  # number of samples with qa==10
+]
 
 
 def get_image_dimension(path):
@@ -174,12 +175,12 @@ class TiledClassifier(monai.networks.nets.Classifier):
 
                     # use slicing operator to make a tile
                     tile = inputs[
-                           :,
-                           :,
-                           k_start: k_start + z_tile_size,
-                           j_start: j_start + y_tile_size,
-                           i_start: i_start + x_tile_size,
-                           ]
+                        :,
+                        :,
+                        k_start : k_start + z_tile_size,
+                        j_start : j_start + y_tile_size,
+                        i_start : i_start + x_tile_size,
+                    ]
 
                     # check if the tile is smaller than our NN input
                     x_pad = max(0, x_tile_size - x_size)
@@ -253,9 +254,13 @@ def evaluate1(model_path, image_path):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     evaluation_ds = monai.data.Dataset(
-        data=[{'img': image_path,
-               'info': torch.FloatTensor([0] * (regression_count + len(artifacts)))}],
-        transform=train_transforms
+        data=[
+            {
+                'img': image_path,
+                'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+            }
+        ],
+        transform=train_transforms,
     )
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available()
@@ -326,10 +331,10 @@ class CombinedLoss(torch.nn.Module):
         return loss
 
 
-def convert_bool_to_int(value):
-    if value == True:
+def convert_bool_to_int(value: bool):
+    if value:
         return 1
-    elif value == False:
+    elif not value:
         return 0
     else:  # NaN
         return -1
@@ -368,13 +373,11 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     count_val = df.shape[0] - count_train
     train_files = [
         {'img': img, 'info': info}
-        for img, info in
-        zip(images[:count_train], ground_truth[:count_train])
+        for img, info in zip(images[:count_train], ground_truth[:count_train])
     ]
     val_files = [
         {'img': img, 'info': info}
-        for img, info in
-        zip(images[-count_val:], ground_truth[-count_val:])
+        for img, info in zip(images[-count_val:], ground_truth[-count_val:])
     ]
 
     itk_reader = monai.data.ITKReader()
@@ -576,7 +579,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     epoch_count = math.ceil(epoch_count / val_count) * val_count
 
     count_train = df.shape[0] - vf.shape[0]
-    model_path = os.getcwd() + f'/miqaT1-val{validation_fold}.pth'
+    model_path = os.getcwd() + f'/models/miqaT1-val{validation_fold}.pth'
     sizes = train_and_save_model(
         df,
         count_train,
