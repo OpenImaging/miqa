@@ -2,6 +2,7 @@ import json
 import os
 from pathlib import Path
 import re
+from typing import List
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
@@ -10,6 +11,16 @@ from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
+from miqa.learning.nn_classifier import evaluate1
+
+
+def evaluate_data(images: List[Image], model='miqa/learning/models/miqaT1-val0.pth'):
+    print('\n\n~~ IMAGE EVALUATION RESULTS: ~~')
+    for image in images:
+        print(image.raw_path)
+        result = evaluate1(model, str(image.raw_path))
+        print(result)
+        print()
 
 
 def import_data(user, session: Session):
@@ -92,6 +103,8 @@ def import_data(user, session: Session):
     Image.objects.bulk_create(images)
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
+
+    evaluate_data(images)
 
 
 def export_data(user, session: Session):

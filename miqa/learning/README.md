@@ -32,10 +32,30 @@ python ./miqa/learning/nn_classifier.py -f ./T1_fold -c 3 --all
 ```
 This will produce `miqa01-val0.pth`, `miqa01-val1.pth` and `miqa01-val2.pth`.
 
+## Get pre-trained model files
+This git repository comes with pre-trained model files in the models subdirectory for use of the neural net without waiting for training. These files are large, so they are maintained with Git LFS. Therefore, upon cloning this repository, you will receive pointer files to the content and will not be able to use them yet.
+
+In order to convert these pointer files to the actual content, you must install git-lfs on your system.
+
+```shell
+sudo apt install git-lfs
+```
+
+Then, anywhere in the miqa directory:
+
+```shell
+git lfs install
+git lfs fetch
+git lfs checkout
+```
+
+This will convert your pointer files. You should now be able to use the files in the models subdirectory.
+
+
 ## Run inference
 To run inference on a single file, execute:
 ```shell
-python ./miqa/learning/nn_classifier.py -m ./miqa01-val0.pth -1 ./PredictHD_small/sub-699312/ses-38845/anat/sub-699312_ses-38845_run-003_BADT1w.nii.gz
+python ./miqa/learning/nn_classifier.py -m ./models/miqaT1-val0.pth -1 ./PredictHD_small/sub-699312/ses-38845/anat/sub-699312_ses-38845_run-003_BADT1w.nii.gz
 ```
 The above command uses the neural network weights produced by training on folds 1 and 2.
 
