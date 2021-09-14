@@ -3,7 +3,7 @@ FROM python:3.8-slim
 # * psycopg2
 RUN apt-get update && \
   apt-get install --no-install-recommends --yes \
-  libpq-dev gcc libc6-dev && \
+  libpq-dev gcc libc6-dev git-lfs && \
   rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE 1

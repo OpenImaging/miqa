@@ -38,6 +38,9 @@ jobs:
       - name: Install tox
         run: |
           pip install --upgrade pip
+          git lfs install
+          git lfs fetch
+          git lfs checkout
           pip install tox
       - name: Run tests
         run: |
