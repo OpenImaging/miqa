@@ -1,45 +1,61 @@
-<script>
-export default {
+<script lang="ts">
+import { defineComponent, inject, ref } from '@vue/composition-api';
+import djangoRest from '@/django';
+import { Session } from '@/types';
+
+export default defineComponent({
   name: 'JSONConfig',
-  inject: ['djangoRest', 'mainSession'],
-  data: () => ({
-    importpath: '',
-    exportpath: '',
-    changed: false,
-    importpathError: '',
-    exportpathError: '',
-  }),
-  async created() {
-    const { importpath, exportpath } = await this.djangoRest.settings(this.mainSession.id);
-    this.importpath = importpath;
-    this.exportpath = exportpath;
-  },
-  methods: {
-    async save() {
-      if (!this.$refs.form.validate()) {
+  setup() {
+    const mainSession = inject('mainSession') as Session;
+
+    const importpath = ref('');
+    const exportpath = ref('');
+    const changed = ref(false);
+    const importpathError = ref('');
+    const exportpathError = ref('');
+    const form = ref(null);
+
+    async function created() {
+      const { importpathFetched, exportpathFetched } = await djangoRest.settings(mainSession.id);
+      importpath.value = importpathFetched;
+      exportpath.value = exportpathFetched;
+    }
+    async function save() {
+      if (!form.validate()) {
         return;
       }
       try {
-        await this.djangoRest.setSettings(this.mainSession.id, {
-          importpath: this.importpath,
-          exportpath: this.exportpath,
+        await djangoRest.setSettings(mainSession.id, {
+          importpath,
+          exportpath,
         });
-        this.changed = false;
+        changed.value = false;
       } catch (e) {
         const { message } = e.response.data;
         if (message.includes('import')) {
-          this.importpathError = message;
+          importpathError.value = message;
         } else {
-          this.exportpathError = message;
+          exportpathError.value = message;
         }
         setTimeout(() => {
-          this.importpathError = '';
-          this.exportpathError = '';
+          importpathError.value = '';
+          exportpathError.value = '';
         }, 3000);
       }
-    },
+    }
+
+    return {
+      mainSession,
+      importpath,
+      exportpath,
+      changed,
+      importpathError,
+      exportpathError,
+      created,
+      save,
+    };
   },
-};
+});
 </script>
 
 <template>
