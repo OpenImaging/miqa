@@ -55,7 +55,7 @@ This will convert your pointer files. You should now be able to use the files in
 ## Run inference
 To run inference on a single file, execute:
 ```shell
-python ./miqa/learning/nn_classifier.py -m ./models/miqa01-val0.pth -1 ./PredictHD_small/sub-699312/ses-38845/anat/sub-699312_ses-38845_run-003_BADT1w.nii.gz
+python ./miqa/learning/nn_classifier.py -m ./models/miqaT1-val0.pth -1 ./PredictHD_small/sub-699312/ses-38845/anat/sub-699312_ses-38845_run-003_BADT1w.nii.gz
 ```
 The above command uses the neural network weights produced by training on folds 1 and 2.
 

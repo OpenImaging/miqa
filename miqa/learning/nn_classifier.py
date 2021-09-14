@@ -279,7 +279,7 @@ def evaluate1(model_path, image_path):
     )
     model.to(device)
 
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(model_path, map_location=device))
     print(f'Loaded NN model from file "{model_path}"')
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
@@ -464,10 +464,10 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     pretrained_path = os.path.join(os.getcwd(), 'pretrained.pth')
     if os.path.exists(save_path) and only_evaluate:
-        model.load_state_dict(torch.load(save_path))
+        model.load_state_dict(torch.load(save_path, map_location=device))
         print(f'Loaded NN model from file "{save_path}"')
     elif os.path.exists(pretrained_path):
-        model.load_state_dict(torch.load(pretrained_path))
+        model.load_state_dict(torch.load(pretrained_path, map_location=device))
         print(f'Loaded NN model weights from "{pretrained_path}"')
     else:
         print('Training NN from scratch')
