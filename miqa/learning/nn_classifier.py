@@ -298,9 +298,9 @@ def evaluate1(model_path, image_path):
 
 
 class CombinedLoss(torch.nn.Module):
-    default_focal_loss = monai.losses.FocalLoss()
-
-    def __init__(self, binary_class_weights, focal_loss=default_focal_loss):
+    def __init__(self, binary_class_weights, focal_loss=None):
+        if focal_loss is None:
+            focal_loss = monai.losses.FocalLoss()
         super().__init__()
         self.binary_class_weights = binary_class_weights
         self.focal_loss = focal_loss
@@ -343,9 +343,9 @@ class CombinedLoss(torch.nn.Module):
 
 
 def convert_bool_to_int(value: bool):
-    if value:
+    if value is True:
         return 1
-    elif not value:
+    elif value is False:
         return 0
     else:  # NaN
         return -1
