@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapMutations, useStore } from 'vuex';
+import { useStore } from 'vuex';
 import { defineComponent, inject, computed } from '@vue/composition-api';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
@@ -15,17 +15,15 @@ export default defineComponent({
     const currentDatasetId = computed(
       () => store.state.currentDatasetId,
     );
+
     return {
       user,
       currentDatasetId,
+      setDrawer: () => store.commit('setDrawer'),
+      datasetTabClick: () => this.setDrawer(true),
     };
   },
-  methods: {
-    ...mapMutations(['setDrawer']),
-    datasetTabClick() {
-      this.setDrawer(true);
-    },
-  },
+
 });
 </script>
 
