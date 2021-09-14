@@ -11,7 +11,6 @@ from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
-
 from miqa.learning.nn_classifier import evaluate1
 
 

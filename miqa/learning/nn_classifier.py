@@ -288,9 +288,9 @@ def evaluate1(model_path, image_path):
     print(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
     labeled_results = {
-        "overall_quality": result[0],
-        "signal_noise_ratio": result[1],
-        "contrast_noise_ratio": result[2],
+        'overall_quality': result[0],
+        'signal_noise_ratio': result[1],
+        'contrast_noise_ratio': result[2],
     }
     for index, artifact_name in enumerate(artifacts):
         labeled_results[artifact_name] = result[index + 3]
@@ -298,7 +298,9 @@ def evaluate1(model_path, image_path):
 
 
 class CombinedLoss(torch.nn.Module):
-    def __init__(self, binary_class_weights, focal_loss=monai.losses.FocalLoss()):
+    default_focal_loss = monai.losses.FocalLoss()
+
+    def __init__(self, binary_class_weights, focal_loss=default_focal_loss):
         super().__init__()
         self.binary_class_weights = binary_class_weights
         self.focal_loss = focal_loss
@@ -363,7 +365,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             images.append(row.file_path)
 
             row_targets = [row.overall_qa_assessment, row.snr, row.cnr]
-            for i, artifact in enumerate(artifacts):
+            for i in range(len(artifacts)):
                 artifact_value = row[artifact_column_indices[i]]
                 converted_result = convert_bool_to_int(artifact_value)
                 row_targets.append(converted_result)
