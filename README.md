@@ -4,12 +4,10 @@
 This is the simplest configuration for developers to start with.
 
 ### Initial Setup
-1. Run `docker-compose run --rm npm npm install`
+1. Run `docker-compose run --rm npm npm install` (`docker-compose` must be at least version 1.28)
 2. Run `docker-compose run --rm django ./manage.py migrate`
 3. Run `docker-compose run --rm django ./manage.py createsuperuser`
    and follow the prompts to create your own user.
-   **IMPORTANT**: Set both the Username and Email to the same valid email address.
-   Admin logins will break if you do not.
 4. Run `docker-compose run --rm django ./manage.py makeclient --username your.email@email.com --uri http://localhost:8081/`
 5. Run `docker-compose run --rm django ./manage.py populate --csv /srv/samples/scans_to_review-2019-01-23.csv`. This will populate the DB with the sample scans.
 
