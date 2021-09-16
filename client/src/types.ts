@@ -12,8 +12,15 @@ interface Session {
   name: string
 }
 
+interface Settings {
+  importpath: string,
+  exportpath: string
+}
+
 interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
 }
 
-export { User, Session, HTMLInputEvent };
+export {
+  User, Session, Settings, HTMLInputEvent,
+};
