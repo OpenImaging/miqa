@@ -1,17 +1,22 @@
 <script lang="ts">
-import { mapState } from 'vuex';
-
+import { defineComponent } from '@vue/composition-api';
+import { useStore } from 'vuex';
 import VtkViewer from './VtkViewer.vue';
 
-export default {
+export default defineComponent({
   name: 'Layout',
   components: {
     VtkViewer,
   },
-  computed: {
-    ...mapState(['vtkViews']),
+  setup() {
+    const store = useStore();
+    const { vtkViews } = store.state;
+
+    return {
+      vtkViews,
+    };
   },
-};
+});
 </script>
 
 <template>
