@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapState, mapMutations } from 'vuex';
+import { useStore } from 'vuex';
 import { defineComponent, inject } from '@vue/composition-api';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
@@ -10,20 +10,19 @@ export default defineComponent({
     GIRDER_URL,
   }),
   setup() {
+    const store = useStore();
     const user = inject('user') as User;
+    const { currentDatasetId } = store.state;
+    const setDrawer = (bool: Boolean) => store.commit.setDrawer(bool);
+
     return {
       user,
+      currentDatasetId,
+      setDrawer,
+      datasetTabClick: () => setDrawer(true),
     };
   },
-  computed: {
-    ...mapState(['currentDatasetId']),
-  },
-  methods: {
-    ...mapMutations(['setDrawer']),
-    datasetTabClick() {
-      this.setDrawer(true);
-    },
-  },
+
 });
 </script>
 

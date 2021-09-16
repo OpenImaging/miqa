@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Vue from 'vue';
 import OAuthClient from '@girder/oauth-client';
+import { Settings, User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 const apiClient = axios.create({ baseURL: API_URL });
@@ -56,7 +57,7 @@ const djangoClient = new Vue({
       const { data } = await apiClient.get(`/sessions/${sessionId}/settings`);
       return data;
     },
-    async setSettings(sessionId: string, settings) {
+    async setSettings(sessionId: string, settings: Settings) {
       await apiClient.put(`/sessions/${sessionId}/settings`, settings);
     },
     async sites() {
@@ -92,16 +93,16 @@ const djangoClient = new Vue({
       const { data } = await apiClient.get(`/scans/${scanId}`);
       return data;
     },
-    async setDecision(scanId: string, decision) {
+    async setDecision(scanId: string, decision: string) {
       await apiClient.post('/annotations', { scan: scanId, decision });
     },
-    async addScanNote(scanId: string, note) {
+    async addScanNote(scanId: string, note: string) {
       await apiClient.post('/scan_notes', {
         scan: scanId,
         note,
       });
     },
-    async setScanNote(scanNoteId: string, note) {
+    async setScanNote(scanNoteId: string, note: string) {
       await apiClient.put(`/scan_notes/${scanNoteId}`, { note });
     },
     async images(scanId: string) {
@@ -111,7 +112,7 @@ const djangoClient = new Vue({
       const { results } = data;
       return results;
     },
-    async me() {
+    async me(): Promise<User> {
       const resp = await apiClient.get('/users/me');
       return resp.status === 200 ? resp.data : null;
     },

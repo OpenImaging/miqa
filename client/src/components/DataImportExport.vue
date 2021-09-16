@@ -1,46 +1,53 @@
-<script>
-import { mapActions } from 'vuex';
+<script lang="ts">
+import { defineComponent, inject, ref } from '@vue/composition-api';
+import { useStore } from 'vuex';
+import djangoRest from '@/django';
+import { HTMLInputEvent, Session } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'DataImportExport',
   components: {},
-  inject: ['djangoRest', 'mainSession'],
-  data: () => ({
-    importing: false,
-    importDialog: false,
-    importErrorText: '',
-    importErrors: false,
-    exporting: false,
-  }),
-  methods: {
-    ...mapActions(['loadSession', 'loadLocalDataset']),
-    async importData() {
-      this.importing = true;
-      this.importErrorText = '';
-      this.importErrors = false;
+  setup() {
+    const store = useStore();
+
+    const mainSession = inject('mainSession') as Session;
+    const loadSession = (session: Session) => store.dispatch.loadSession(session);
+    const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
+
+    const importing = ref(false);
+    const importDialog = ref(false);
+    const importErrorText = ref('');
+    const importErrors = ref(false);
+    const exporting = ref(false);
+    const load = ref(null);
+
+    async function importData() {
+      importing.value = true;
+      importErrorText.value = '';
+      importErrors.value = false;
       try {
-        await this.djangoRest.import(this.mainSession.id);
-        this.importing = false;
+        await djangoRest.import(mainSession.id);
+        importing.value = false;
 
         this.$snackbar({
           text: 'Import finished.',
           timeout: 6000,
         });
 
-        await this.loadSession(this.mainSession);
+        await loadSession(mainSession);
       } catch (ex) {
-        this.importing = false;
+        importing.value = false;
         this.$snackbar({
           text: 'Import failed. Refer to server logs for details.',
         });
         console.error(ex);
       }
-      this.importDialog = false;
-    },
-    async exportData() {
-      this.exporting = true;
+      importDialog.value = false;
+    }
+    async function exportData() {
+      exporting.value = true;
       try {
-        await this.djangoRest.export(this.mainSession.id);
+        await djangoRest.export(mainSession.id);
         this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
@@ -52,16 +59,32 @@ export default {
 
         });
       }
-      this.exporting = false;
-    },
-    activateInput() {
-      this.$refs.load.click();
-    },
-    loadFiles(event) {
-      this.loadLocalDataset(event.target.files);
-    },
+      exporting.value = false;
+    }
+    function activateInput() {
+      load.click();
+    }
+    function loadFiles(event: HTMLInputEvent) {
+      loadLocalDataset(event.target.files as FileList);
+    }
+
+    return {
+      mainSession,
+      loadSession,
+      loadLocalDataset,
+      importing,
+      importDialog,
+      importErrorText,
+      importErrors,
+      exporting,
+      load,
+      importData,
+      exportData,
+      activateInput,
+      loadFiles,
+    };
   },
-};
+});
 </script>
 
 <template>
