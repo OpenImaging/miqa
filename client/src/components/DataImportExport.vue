@@ -11,8 +11,8 @@ export default defineComponent({
     const store = useStore();
 
     const mainSession = inject('mainSession') as Session;
-    const loadSession = (session: Session) => store.dispatch('loadSession', session);
-    const loadLocalDataset = (files: FileList) => store.dispatch('loadLocalDataset', files);
+    const loadSession = (session: Session) => store.dispatch.loadSession(session);
+    const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
 
     const importing = ref(false);
     const importDialog = ref(false);

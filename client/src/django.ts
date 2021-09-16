@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Vue from 'vue';
 import OAuthClient from '@girder/oauth-client';
-import { User } from './types';
+import { Settings, User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 const apiClient = axios.create({ baseURL: API_URL });
@@ -57,7 +57,7 @@ const djangoClient = new Vue({
       const { data } = await apiClient.get(`/sessions/${sessionId}/settings`);
       return data;
     },
-    async setSettings(sessionId: string, settings: Object) {
+    async setSettings(sessionId: string, settings: Settings) {
       await apiClient.put(`/sessions/${sessionId}/settings`, settings);
     },
     async sites() {
