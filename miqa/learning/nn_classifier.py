@@ -358,7 +358,7 @@ def convert_bool_to_int(value: bool):
         return -1
 
 
-def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
+def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
     sizes = {}
@@ -458,6 +458,14 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
     )
 
+    return train_loader, val_loader, class_weights, sizes
+
+
+def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
+    train_loader, val_loader, class_weights, sizes = create_train_and_test_data_loaders(
+        df, count_train
+    )
+
     pretrained_path = os.path.join(os.getcwd(), 'pretrained.pth')
     if os.path.exists(save_path) and only_evaluate:
         model = get_model(save_path)
@@ -477,6 +485,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     best_metric_epoch = -1
     writer = SummaryWriter(log_dir=wandb.run.dir)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     if only_evaluate:
         print('Evaluating NN model on validation data')
         evaluate_model(model, val_loader, device, writer, 0, 'val')
@@ -490,7 +500,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         model.train()
         epoch_loss = 0
         step = 0
-        epoch_len = len(train_ds) // train_loader.batch_size
+        epoch_len = len(train_loader.dataset) // train_loader.batch_size
         print(f'epoch_len: {epoch_len}')
         y_true = []
         y_pred = []
@@ -512,7 +522,6 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            epoch_len = len(train_ds) // train_loader.batch_size
             # print(f'{step}:{loss.item():.4f}', end=' ')
             print('.', end='', flush=True)
             if step % 100 == 0:
