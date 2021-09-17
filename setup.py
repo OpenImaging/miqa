@@ -46,6 +46,7 @@ setup(
         'djangorestframework',
         'django-click',
         'drf-yasg',
+        'uri',
         # For Neural Net
         'monai',
         'sklearn',
