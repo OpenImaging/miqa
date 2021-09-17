@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, inject, ref } from '@vue/composition-api';
 import djangoRest from '@/django';
-import { Session } from '@/types';
+import { Session, Settings } from '@/types';
 
 export default defineComponent({
   name: 'JSONConfig',
@@ -10,16 +10,16 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
+    djangoRest.settings(mainSession.id).then((settings: Settings) => {
+      importPath.value = settings.importpath;
+      exportPath.value = settings.exportpath;
+    });
+
     const changed = ref(false);
     const importPathError = ref('');
     const exportPathError = ref('');
     const form = ref(null);
 
-    async function created() {
-      const { importpathFetched, exportpathFetched } = await djangoRest.settings(mainSession.id);
-      importpath.value = importpathFetched;
-      exportpath.value = exportpathFetched;
-    }
     async function save() {
       if (!form.value.validate()) {
         return;
@@ -52,7 +52,6 @@ export default defineComponent({
       importPathError,
       exportPathError,
       form,
-      created,
       save,
     };
   },
