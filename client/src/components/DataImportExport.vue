@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, inject, ref } from '@vue/composition-api';
-import { useStore } from 'vuex';
+import store from '@/store';
 import djangoRest from '@/django';
 import { HTMLInputEvent, Session } from '@/types';
 
@@ -8,8 +8,6 @@ export default defineComponent({
   name: 'DataImportExport',
   components: {},
   setup() {
-    const store = useStore();
-
     const mainSession = inject('mainSession') as Session;
     const loadSession = (session: Session) => store.dispatch.loadSession(session);
     const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
