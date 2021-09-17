@@ -7,22 +7,6 @@ declare module 'vue' {
   export { PropType, ref };
 }
 
-declare module "vuex" {
-  import Vuex from 'vuex';
-  function useStore<T = any>(key?: string): T;
-  function mapState(map: Array<string> | Object<string | function>): Object;
-  function mapMutations(map: Array<string> | Object<string | function>): Object;
-  function mapActions(map: Array<string> | Object<string | function>): Object;
-
-  export default Vuex;
-  export {
-    useStore,
-    mapState,
-    mapMutations,
-    mapActions
-  };
-}
-
 declare module '*.vue' {
   import { Component } from 'vue';
   var component: Component;
