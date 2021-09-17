@@ -1,6 +1,8 @@
-from typing import List
-from uri import URI
 from abc import ABC, abstractclassmethod
+from typing import List
+
+from uri import URI
+
 from miqa.core.models import Image
 
 
