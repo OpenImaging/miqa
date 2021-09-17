@@ -15,12 +15,16 @@ from miqa.learning.evaluation_models import available_evaluation_models
 
 
 def evaluate_data(images: List[Image], session: Session):
-    evaluation_models = {}
+    loaded_evaluation_models = {}
     for image in images:
         scan_type = [image.scan.scan_type][0]
-        evaluation_model = available_evaluation_models[session.evaluation_models[scan_type]]
-        evaluation_models[scan_type] = evaluation_model.load()
-    print(evaluation_models)
+        eval_model_name = session.evaluation_models[scan_type]
+        # only load the necessary models into memory once each
+        if eval_model_name not in loaded_evaluation_models:
+            loaded_evaluation_models[eval_model_name] = available_evaluation_models[
+                eval_model_name
+            ].load()
+    print(loaded_evaluation_models)
     # for image in images:
     # print(image.raw_path)
     # result = evaluate1(model, str(image.raw_path))
