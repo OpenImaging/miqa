@@ -47,6 +47,7 @@ class SessionAdmin(admin.ModelAdmin):
         'creator',
         'import_path',
         'export_path',
+        'evaluation_models',
     )
     list_filter = ('created', 'modified', 'creator')
     search_fields = ('name',)
