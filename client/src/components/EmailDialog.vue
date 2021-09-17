@@ -3,7 +3,7 @@ import _ from 'lodash';
 import {
   defineComponent, inject,
 } from '@vue/composition-api';
-import { useStore } from 'vuex';
+import store from '@/store';
 import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 import { User } from '@/types';
 
@@ -23,7 +23,6 @@ export default defineComponent({
     },
   },
   setup() {
-    const store = useStore();
     const { screenshots, currentDataset, currentSession } = store.state;
     const { siteMap } = store.getters;
     const removeScreenshot = () => store.commit('removeScreenshot');
