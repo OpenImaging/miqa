@@ -350,7 +350,7 @@ const {
       state.sessions = { ...state.sessions };
       state.sessions[scanId] = scan;
     },
-    setDrawer(state, value) {
+    setDrawer(state, value: boolean) {
       state.drawer = value;
     },
     setCurrentScreenshot(state, screenshot) {
