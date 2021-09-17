@@ -83,10 +83,10 @@ class SessionSerializer(serializers.ModelSerializer):
 class SessionSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Session
-        fields = ['importpath', 'exportpath']
+        fields = ['importPath', 'exportPath']
 
-    importpath = serializers.CharField(source='import_path')
-    exportpath = serializers.CharField(source='export_path')
+    importPath = serializers.CharField(source='import_path')  # noqa: N815
+    exportPath = serializers.CharField(source='export_path')  # noqa: N815
 
 
 class SessionViewSet(ReadOnlyModelViewSet):
@@ -129,8 +129,8 @@ class SessionViewSet(ReadOnlyModelViewSet):
         elif request.method == 'PUT':
             serializer = SessionSettingsSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            session.import_path = serializer.data['importpath']
-            session.export_path = serializer.data['exportpath']
+            session.import_path = serializer.data['importPath']
+            session.export_path = serializer.data['exportPath']
             session.save()
         return Response(serializer.data)
 
