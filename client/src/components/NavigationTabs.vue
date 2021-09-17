@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from '@vue/composition-api';
+import { computed, defineComponent, inject } from '@vue/composition-api';
 import store from '@/store';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
@@ -11,8 +11,10 @@ export default defineComponent({
   }),
   setup() {
     const user = inject('user') as User;
-    const { currentDatasetId } = store.state;
-    const setDrawer = (bool: Boolean) => store.commit.setDrawer(bool);
+    const currentDatasetId = computed(
+      () => store.state.currentDatasetId,
+    );
+    const { setDrawer } = store.commit;
 
     return {
       user,
