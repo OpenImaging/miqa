@@ -21,7 +21,7 @@ export default defineComponent({
       exportpath.value = exportpathFetched;
     }
     async function save() {
-      if (!form.validate()) {
+      if (!form.value.validate()) {
         return;
       }
       try {
@@ -51,6 +51,7 @@ export default defineComponent({
       changed,
       importpathError,
       exportpathError,
+      form,
       created,
       save,
     };
