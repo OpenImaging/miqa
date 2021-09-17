@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, inject, ref } from '@vue/composition-api';
 import djangoRest from '@/django';
-import { Session, Settings } from '@/types';
+import { Session } from '@/types';
 
 export default defineComponent({
   name: 'JSONConfig',
@@ -10,7 +10,7 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
-    djangoRest.settings(mainSession.id).then((settings: Settings) => {
+    djangoRest.settings(mainSession.id).then((settings) => {
       importPath.value = settings.importPath;
       exportPath.value = settings.exportPath;
     });

@@ -8,7 +8,7 @@ interface User {
 }
 
 interface Session {
-  id: number,
+  id: string,
   name: string
 }
 
