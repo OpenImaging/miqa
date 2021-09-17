@@ -8,11 +8,11 @@ export default defineComponent({
   setup() {
     const mainSession = inject('mainSession') as Session;
 
-    const importpath = ref('');
-    const exportpath = ref('');
+    const importPath = ref('');
+    const exportPath = ref('');
     const changed = ref(false);
-    const importpathError = ref('');
-    const exportpathError = ref('');
+    const importPathError = ref('');
+    const exportPathError = ref('');
     const form = ref(null);
 
     async function created() {
@@ -26,31 +26,31 @@ export default defineComponent({
       }
       try {
         await djangoRest.setSettings(mainSession.id, {
-          importpath,
-          exportpath,
+          importPath,
+          exportPath,
         });
         changed.value = false;
       } catch (e) {
         const { message } = e.response.data;
         if (message.includes('import')) {
-          importpathError.value = message;
+          importPathError.value = message;
         } else {
-          exportpathError.value = message;
+          exportPathError.value = message;
         }
         setTimeout(() => {
-          importpathError.value = '';
-          exportpathError.value = '';
+          importPathError.value = '';
+          exportPathError.value = '';
         }, 3000);
       }
     }
 
     return {
       mainSession,
-      importpath,
-      exportpath,
+      importPath,
+      exportPath,
       changed,
-      importpathError,
-      exportpathError,
+      importPathError,
+      exportPathError,
       form,
       created,
       save,
@@ -71,7 +71,7 @@ export default defineComponent({
         xs12
       >
         <v-text-field
-          v-model="importpath"
+          v-model="importPath"
           :rules="[
             v => !!v || 'path is required',
             v =>
@@ -79,12 +79,12 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
-          :error-messages="importpathError"
+          :error-messages="importPathError"
           @input="changed = true"
           label="Import path"
           placeholder=" "
           autocomplete="on"
-          name="miqa-json-importpath"
+          name="miqa-json-import-path"
         />
       </v-flex>
       <v-flex
@@ -93,7 +93,7 @@ export default defineComponent({
         xs12
       >
         <v-text-field
-          v-model="exportpath"
+          v-model="exportPath"
           :rules="[
             v => !!v || 'path is required',
             v =>
@@ -101,12 +101,12 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
-          :error-messages="exportpathError"
+          :error-messages="exportPathError"
           @input="changed = true"
           label="Export path"
           placeholder=" "
           autocomplete="on"
-          name="miqa-json-exportpath"
+          name="miqa-json-export-path"
         />
       </v-flex>
     </v-layout>
