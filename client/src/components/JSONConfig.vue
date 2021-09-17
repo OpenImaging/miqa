@@ -11,8 +11,8 @@ export default defineComponent({
     const importPath = ref('');
     const exportPath = ref('');
     djangoRest.settings(mainSession.id).then((settings: Settings) => {
-      importPath.value = settings.importpath;
-      exportPath.value = settings.exportpath;
+      importPath.value = settings.importPath;
+      exportPath.value = settings.exportPath;
     });
 
     const changed = ref(false);
@@ -26,8 +26,8 @@ export default defineComponent({
       }
       try {
         await djangoRest.setSettings(mainSession.id, {
-          importPath,
-          exportPath,
+          importPath: importPath.value,
+          exportPath: exportPath.value,
         });
         changed.value = false;
       } catch (e) {
