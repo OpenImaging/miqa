@@ -17,7 +17,7 @@ import ReaderFactory from '../utils/ReaderFactory';
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
-import djangoRest from '../django';
+import djangoRest, { apiClient } from '@/django';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -108,7 +108,7 @@ function loadFile(imageId) {
     return { imageId, fileP: fileCache.get(imageId) };
   }
   const p = ReaderFactory.downloadDataset(
-    djangoRest.apiClient,
+    apiClient,
     'nifti.nii.gz',
     `/images/${imageId}/download`,
   );
@@ -146,7 +146,7 @@ function poolFunction(webWorker, taskInfo) {
       filePromise = fileCache.get(imageId);
     } else {
       filePromise = ReaderFactory.downloadDataset(
-        djangoRest.apiClient,
+        apiClient,
         'nifti.nii.gz',
         `/images/${imageId}/download`,
       );
