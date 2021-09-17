@@ -11,16 +11,21 @@ from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
-from miqa.learning.nn_classifier import evaluate1
+from miqa.learning.evaluation_models import available_evaluation_models
 
 
-def evaluate_data(images: List[Image], model='miqa/learning/models/miqaT1-val0.pth'):
-    print('\n\n~~ IMAGE EVALUATION RESULTS: ~~')
+def evaluate_data(images: List[Image], session: Session):
+    evaluation_models = {}
     for image in images:
-        print(image.raw_path)
-        result = evaluate1(model, str(image.raw_path))
-        print(result)
-        print()
+        scan_type = [image.scan.scan_type][0]
+        evaluation_model = available_evaluation_models[session.evaluation_models[scan_type]]
+        evaluation_models[scan_type] = evaluation_model.load()
+    print(evaluation_models)
+    # for image in images:
+    # print(image.raw_path)
+    # result = evaluate1(model, str(image.raw_path))
+    # print(result)
+    # print()
 
 
 def import_data(user, session: Session):
@@ -104,7 +109,7 @@ def import_data(user, session: Session):
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
 
-    evaluate_data(images)
+    evaluate_data(images, session)
 
 
 def export_data(user, session: Session):
