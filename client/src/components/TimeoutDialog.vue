@@ -2,6 +2,7 @@
 import {
   mapState, mapActions, mapMutations,
 } from 'vuex';
+import djangoRest from '@/django';
 
 const initMinutes = 1;
 const initSeconds = 59;
@@ -13,7 +14,6 @@ export default {
     minutes: initMinutes,
     seconds: initSeconds,
   }),
-  inject: ['djangoRest'],
   computed: {
     ...mapState(['actionTimeout']),
     minutesStr() {
@@ -84,7 +84,7 @@ export default {
           this.seconds -= 1;
 
           if (this.minutes <= 0 && this.seconds <= 0) {
-            this.djangoRest.logout();
+            djangoRest.logout();
             return;
           }
 
