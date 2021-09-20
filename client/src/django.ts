@@ -45,7 +45,6 @@ const djangoClient = {
     return results;
   },
   async session(sessionId: string) {
-    console.log('hmhmhmhm', sessionId);
     const { data } = await apiClient.get(`/sessions/${sessionId}`);
     return data;
   },
