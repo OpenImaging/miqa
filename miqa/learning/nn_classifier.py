@@ -260,7 +260,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             return outputs
 
 
-def evaluate1(model_path, image_path):
+def evaluate1(model, image_path):
     itk_reader = monai.data.ITKReader()
     # Define transforms for image
     train_transforms = Compose(
@@ -286,8 +286,6 @@ def evaluate1(model_path, image_path):
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available()
     )
-
-    model = get_model(model_path)
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
     result = tensor_output.cpu().tolist()[0]
