@@ -641,7 +641,7 @@ if __name__ == '__main__':
     elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate, args.nfolds)
     elif args.modelfile is not None and args.evaluate1 is not None:
-        evaluate1(args.modelfile, args.evaluate1)
+        evaluate1(get_model(args.modelfile), args.evaluate1)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(
