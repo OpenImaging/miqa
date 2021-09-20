@@ -60,7 +60,7 @@ export default defineComponent({
       exporting.value = false;
     }
     function activateInput() {
-      load.click();
+      load.value.click();
     }
     function loadFiles(event: HTMLInputEvent) {
       loadLocalDataset(event.target.files as FileList);
