@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+from .models import Annotation, Evaluation, Experiment, Image, Scan, ScanNote, Session, Site
 
 
 @admin.register(Experiment)
@@ -35,6 +35,12 @@ class ScanNoteAdmin(admin.ModelAdmin):
 class AnnotationAdmin(admin.ModelAdmin):
     list_display = ('id', 'created', 'creator', 'decision', 'scan')
     list_filter = ('created', 'creator', 'scan')
+
+
+@admin.register(Evaluation)
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'image', 'evaluation_model')
+    list_filter = ('image', 'evaluation_model')
 
 
 @admin.register(Session)

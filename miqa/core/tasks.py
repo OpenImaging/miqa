@@ -9,7 +9,17 @@ from jsonschema.exceptions import ValidationError
 
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common_prefix
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
-from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
+from miqa.core.models import (
+    Annotation,
+    Decision,
+    Evaluation,
+    Experiment,
+    Image,
+    Scan,
+    ScanNote,
+    Session,
+    Site,
+)
 from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_classifier import evaluate1
@@ -27,7 +37,12 @@ def evaluate_data(images: List[Image], session: Session):
             ].load()
         # perform evaluation on each
         current_model = loaded_evaluation_models[eval_model_name]
-        print(evaluate1(current_model, str(image.raw_path)))
+        evaluation = Evaluation(
+            image=image,
+            evaluation_model=eval_model_name,
+            results=evaluate1(current_model, str(image.raw_path)),
+        )
+        evaluation.save()
 
 
 def import_data(user, session: Session):
