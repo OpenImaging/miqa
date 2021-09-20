@@ -12,6 +12,7 @@ from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import Annotation, Decision, Experiment, Image, Scan, ScanNote, Session, Site
 from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
+from miqa.learning.nn_classifier import evaluate1
 
 
 def evaluate_data(images: List[Image], session: Session):
@@ -24,12 +25,9 @@ def evaluate_data(images: List[Image], session: Session):
             loaded_evaluation_models[eval_model_name] = available_evaluation_models[
                 eval_model_name
             ].load()
-    print(loaded_evaluation_models)
-    # for image in images:
-    # print(image.raw_path)
-    # result = evaluate1(model, str(image.raw_path))
-    # print(result)
-    # print()
+        # perform evaluation on each
+        current_model = loaded_evaluation_models[eval_model_name]
+        print(evaluate1(current_model, str(image.raw_path)))
 
 
 def import_data(user, session: Session):
