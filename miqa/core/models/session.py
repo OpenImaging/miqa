@@ -25,25 +25,29 @@ class Session(TimeStampedModel, models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
+    def clean(self):
         if not isinstance(self.evaluation_models, dict):
             raise ValidationError('Specify evaluation models as a dictionary.')
         scan_types = [x[0] for x in SCAN_TYPES]
-        if any([key not in scan_types for key in self.evaluation_models.keys()]):
+        if any(key not in scan_types for key in self.evaluation_models.keys()):
             raise ValidationError(
                 f'Keys in evaluation models must be valid scan types. '
                 f'Valid scan types are {scan_types}.'
             )
         # do we want to demand that every scan type has a chosen evaluation model?
         if any(
-            [
-                value is None or value not in available_evaluation_models
-                for value in self.evaluation_models.values()
-            ]
+            value is None or value not in available_evaluation_models
+            for value in self.evaluation_models.values()
         ):
             raise ValidationError(
                 f'Values in evaluation models must be valid evalution model names. '
                 f'Valid evaluation model names are {available_evaluation_models.keys()}'
             )
 
-        super(Session, self).save(*args, **kwargs)
+        super().clean()
+<<<<<<< HEAD
+=======
+        super(Session, self).clean()
+>>>>>>> 8bb1362... Move Session validation to clean method
+=======
+>>>>>>> 78be858... Update session.py
