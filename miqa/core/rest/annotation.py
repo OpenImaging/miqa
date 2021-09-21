@@ -23,7 +23,7 @@ class AnnotationViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = Annotation.objects.select_related('scan__experiment__session')
+    queryset = Annotation.objects.select_related('scan__experiment__project')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'creator']

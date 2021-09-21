@@ -58,7 +58,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = ['id', 'name', 'lock_owner', 'scans']
-        ref_name = 'session_experiment'
+        ref_name = 'project_experiment'
 
     scans = ScanSerializer(many=True)
     lock_owner = LockOwnerSerializer()
@@ -68,7 +68,7 @@ class SessionRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name', 'experiments']
-        ref_name = 'session'
+        ref_name = 'project'
 
     experiments = ExperimentSerializer(many=True)
 
@@ -77,7 +77,7 @@ class SessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name']
-        ref_name = 'sessions'
+        ref_name = 'projects'
 
 
 class SessionSettingsSerializer(serializers.ModelSerializer):

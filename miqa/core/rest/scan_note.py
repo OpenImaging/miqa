@@ -44,7 +44,7 @@ class ScanNoteViewSet(
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ScanNote.objects.select_related('scan__experiment__session')
+    queryset = ScanNote.objects.select_related('scan__experiment__project')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['scan', 'initials', 'creator']

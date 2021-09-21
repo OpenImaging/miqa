@@ -65,10 +65,10 @@ def import_data(user, session: Project):
         for site in json_content['sites']
     }
 
-    Experiment.objects.filter(session=session).delete()  # cascades to scans -> images, scan_notes
+    Experiment.objects.filter(project=project).delete()  # cascades to scans -> images, scan_notes
 
     experiments = {
-        e['id']: Experiment(name=e['id'], note=e['note'], session=session)
+        e['id']: Experiment(name=e['id'], note=e['note'], project=project)
         for e in json_content['experiments']
     }
     Experiment.objects.bulk_create(experiments.values())
