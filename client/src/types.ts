@@ -7,7 +7,7 @@ interface User {
   is_superuser: boolean
 }
 
-interface Session {
+interface Project {
   id: string,
   name: string
 }
@@ -22,5 +22,5 @@ interface HTMLInputEvent extends Event {
 }
 
 export {
-  User, Session, Settings, HTMLInputEvent,
+  User, Project, Settings, HTMLInputEvent,
 };
