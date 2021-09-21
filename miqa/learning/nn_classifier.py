@@ -17,6 +17,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 
+log_level = os.environ.get('LOGLEVEL', 'WARNING').upper()
+logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 existing_count = 0
@@ -73,7 +75,7 @@ def recursively_search_images(images, decisions, path_prefix, kind):
         images.append(str(path))
         decisions.append(kind)
         count += 1
-    logger.debug(f'{count} images in prefix {path_prefix}')
+    logger.info(f'{count} images in prefix {path_prefix}')
 
 
 def construct_path_from_csv_fields(
@@ -135,7 +137,7 @@ def read_and_normalize_data_frame(tsv_path):
     missing_count = 0
     df['exists'] = df.apply(lambda row: does_file_exist(row['file_path']), axis=1)
     df['dimensions'] = df.apply(lambda row: get_image_dimension(row['file_path']), axis=1)
-    logger.debug(f'Existing files: {existing_count}, non-existent files: {missing_count}')
+    logger.info(f'Existing files: {existing_count}, non-existent files: {missing_count}')
     return df
 
 
@@ -145,10 +147,10 @@ def verify_images(data_frame):
         try:
             dim = get_image_dimension(row.file_path)
             if dim == (0, 0, 0):
-                logger.debug(f'{index}: size of {row.file_path} is zero')
+                logger.info(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
         except Exception as e:
-            logger.debug(f'{index}: there is some problem with: {row.file_path}:\n{e}')
+            logger.info(f'{index}: there is some problem with: {row.file_path}:\n{e}')
             all_ok = False
     return all_ok
 
@@ -211,9 +213,9 @@ def get_model(file_path=None):
 
     if file_path is not None:
         model.load_state_dict(torch.load(file_path, map_location=device))
-        logger.debug(f'Loaded NN model from file "{file_path}"')
+        logger.info(f'Loaded NN model from file "{file_path}"')
     else:
-        logger.debug('NN model is initialized with random weights')
+        logger.info('NN model is initialized with random weights')
 
     model.to(device)
 
@@ -224,6 +226,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     model.eval()
     y_pred = []
     y_pred_continuous = []
+    y_all = []
     y_true = []
     with torch.no_grad():
         metric_count = 0
@@ -232,6 +235,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             info = val_data['info'].to(device)
             outputs = model(inputs)
 
+            y_all.extend(outputs[..., :].cpu().tolist())
             y_true.extend(info[..., 0].cpu().tolist())
             y = outputs[..., 0].cpu().tolist()
             y_pred_continuous.extend(y)
@@ -240,14 +244,14 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y_pred.extend(y)
 
             metric_count += len(info)
-            logger.debug('.', end='', flush=True)
+            print('.', end='', flush=True)
             if metric_count % 100 == 0:
-                logger.debug('', flush=True)
+                print('', flush=True)
 
         if writer is not None:  # this is not a one-off case
-            logger.debug('\n' + run_name + '_confusion_matrix:')
-            logger.debug(confusion_matrix(y_true, y_pred))
-            logger.debug(classification_report(y_true, y_pred))
+            logger.info('\n' + run_name + '_confusion_matrix:')
+            logger.info(confusion_matrix(y_true, y_pred))
+            logger.info(classification_report(y_true, y_pred))
 
             metric = mean_squared_error(y_true, y_pred_continuous, squared=False)
             writer.add_scalar(run_name + '_RMSE', metric, epoch + 1)
@@ -257,7 +261,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             wandb.log({run_name + '_R2': metric})
             return metric
         else:
-            return outputs
+            return y_all
 
 
 def evaluate1(model, image_path):
@@ -286,10 +290,10 @@ def evaluate1(model, image_path):
         evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
     )
 
-    tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
-    result = tensor_output.cpu().tolist()[0]
-    logger.debug(f'Network output: {result}')
-    logger.debug(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
+    output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
+    result = output[0]
+    logger.info(f'Network output: {result}')
+    logger.info(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
     labeled_results = {
         'overall_quality': result[0],
@@ -301,7 +305,7 @@ def evaluate1(model, image_path):
     return labeled_results
 
 
-def evaluateMany(model, image_paths):
+def evaluate_many(model, image_paths):
     itk_reader = monai.data.ITKReader()
     # Define transforms for image
     train_transforms = Compose(
@@ -314,22 +318,18 @@ def evaluateMany(model, image_paths):
     )
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    evaluation_ds = monai.data.Dataset(
-        data=[
-            {
-                'img': image_path,
-                'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
-            }
-            for image_path in image_paths
-        ],
-        transform=train_transforms,
-    )
-    evaluation_loader = DataLoader(
-        evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
-    )
+    evaluation_files = [
+        {
+            'img': image_path,
+            'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+        }
+        for image_path in image_paths
+    ]
 
-    tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluateMany')
-    results = tensor_output.cpu().tolist()[0]
+    evaluation_ds = monai.data.Dataset(evaluation_files, transform=train_transforms)
+    evaluation_loader = DataLoader(evaluation_ds, pin_memory=torch.cuda.is_available())
+    results = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate_many')
+
     labeled_results = []
     for result in results:
         labeled_result = {
@@ -473,7 +473,7 @@ def create_train_and_test_data_loaders(df, count_train):
     weights_array = np.zeros(class_count)
     for i in range(class_count):
         weights_array[i] = count0[i] / (count0[i] + count1[i])
-    logger.debug(f'weights_array: {weights_array}')
+    logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
     qa_weights = [1000.0 / qa_sample_counts[t] for t in range(11)]
@@ -527,20 +527,20 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if only_evaluate:
-        logger.debug('Evaluating NN model on validation data')
+        logger.info('Evaluating NN model on validation data')
         evaluate_model(model, val_loader, device, writer, 0, 'val')
-        logger.debug('Evaluating NN model on training data')
+        logger.info('Evaluating NN model on training data')
         evaluate_model(model, train_loader, device, writer, 0, 'train')
         return sizes
 
     for epoch in range(num_epochs):
-        logger.debug('-' * 25)
-        logger.debug(f'epoch {epoch + 1}/{num_epochs}')
+        logger.info('-' * 25)
+        logger.info(f'epoch {epoch + 1}/{num_epochs}')
         model.train()
         epoch_loss = 0
         step = 0
         epoch_len = len(train_loader.dataset) // train_loader.batch_size
-        logger.debug(f'epoch_len: {epoch_len}')
+        logger.info(f'epoch_len: {epoch_len}')
         y_true = []
         y_pred = []
 
@@ -561,21 +561,21 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            logger.debug(f'{step}:{loss.item():.4f}', end=' ')
-            logger.debug('.', end='', flush=True)
+            logger.debug(f'{step}:{loss.item():.4f}')
+            print('.', end='', flush=True)
             if step % 100 == 0:
-                logger.debug('', flush=True)  # new line
+                print('', flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
         epoch_loss /= step
-        logger.debug(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
+        logger.info(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
         wandb.log({'epoch average loss': epoch_loss})
         epoch_cm = confusion_matrix(y_true, y_pred)
-        logger.debug(f'confusion matrix:\n{epoch_cm}')
+        logger.info(f'confusion matrix:\n{epoch_cm}')
         wandb.log({'confusion matrix': epoch_cm})
 
         if (epoch + 1) % val_interval == 0:
-            logger.debug('Evaluating on validation set')
+            logger.info('Evaluating on validation set')
             metric = evaluate_model(model, val_loader, device, writer, epoch, 'val')
 
             if metric >= best_metric:
@@ -583,16 +583,16 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 best_metric_epoch = epoch + 1
                 torch.save(model.state_dict(), save_path)
                 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt'))
-                logger.debug(f'saved new best metric model as {save_path}')
+                logger.info(f'saved new best metric model as {save_path}')
 
-            logger.debug(
+            logger.info(
                 'current epoch: {} current metric: {:.2f} best metric: {:.2f} at epoch {}'.format(
                     epoch + 1, metric, best_metric, best_metric_epoch
                 )
             )
 
             scheduler.step()
-            logger.debug(
+            logger.info(
                 f'Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]["lr"]}'
             )
             wandb.log({'learn_rate': optimizer.param_groups[0]['lr']})
@@ -601,7 +601,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     torch.save(model.state_dict(), save_path + epoch_suffix)
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt' + epoch_suffix))
 
-    logger.debug(f'train completed, best_metric: {best_metric:.2f} at epoch: {best_metric_epoch}')
+    logger.info(f'train completed, best_metric: {best_metric:.2f} at epoch: {best_metric_epoch}')
     writer.close()
     return sizes
 
@@ -614,16 +614,16 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     for f in range(fold_count):
         csv_name = folds_prefix + f'{f}.csv'
         fold = pd.read_csv(csv_name)
-        logger.debug(f'Verifying input data integrity of {csv_name}')
+        logger.info(f'Verifying input data integrity of {csv_name}')
         if not verify_images(fold):
-            logger.debug('Data verification failed. Exiting...')
+            logger.info('Data verification failed. Exiting...')
             return
         folds.append(fold)
 
     df = pd.concat(folds, ignore_index=True)
-    logger.debug(df)
+    logger.info(df)
 
-    logger.debug(f'Using fold {validation_fold} for validation')
+    logger.info(f'Using fold {validation_fold} for validation')
     vf = folds.pop(validation_fold)
     folds.append(vf)
     df = pd.concat(folds, ignore_index=True)
@@ -644,7 +644,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
         only_evaluate=evaluate_only,
     )
 
-    logger.debug('Image size distribution:\n', sizes)
+    logger.info('Image size distribution:\n', sizes)
 
 
 if __name__ == '__main__':
@@ -670,12 +670,12 @@ if __name__ == '__main__':
     parser.add_argument('--modelfile', '-m', help='Path to neural network model weights', type=str)
 
     args = parser.parse_args()
-    logger.debug(args)
+    logger.info(args)
 
-    monai.config.logger.debug_config()
+    monai.config.print_config()
 
     if args.all:
-        logger.debug(f'Training {args.nfolds} folds')
+        logger.info(f'Training {args.nfolds} folds')
         for f in range(args.nfolds):
             process_folds(args.folds, f, False, args.nfolds)
         # evaluate all at the end, so results are easy to pick up from the log
@@ -690,12 +690,12 @@ if __name__ == '__main__':
         df = read_and_normalize_data_frame(
             predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv'
         )
-        logger.debug(df)
+        logger.info(df)
         full_path = Path('bids_image_qc_information-customized.csv').absolute()
         df.to_csv(full_path, index=False)
-        logger.debug(f'CSV file written: {full_path}')
+        logger.info(f'CSV file written: {full_path}')
     elif args.ncanda is not None:
-        logger.debug('Adding support for NCANDA data is a TODO')
+        logger.info('Adding support for NCANDA data is a TODO')
     else:
-        logger.debug('Not enough arguments specified')
-        logger.debug(parser.format_help())
+        logger.info('Not enough arguments specified')
+        logger.info(parser.format_help())
