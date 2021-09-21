@@ -4,20 +4,20 @@ from .fuzzy import PATH_RE
 
 
 @pytest.mark.django_db
-def test_sessions_list(authenticated_api_client, session):
-    resp = authenticated_api_client.get('/api/v1/sessions')
+def test_projects_list(authenticated_api_client, project):
+    resp = authenticated_api_client.get('/api/v1/projects')
     assert resp.status_code == 200
     assert resp.data == {
         'count': 1,
         'next': None,
         'previous': None,
-        'results': [{'id': session.id, 'name': session.name}],
+        'results': [{'id': project.id, 'name': project.name}],
     }
 
 
 @pytest.mark.django_db
-def test_session_settings_get(staff_api_client, session):
-    resp = staff_api_client.get(f'/api/v1/sessions/{session.id}/settings')
+def test_project_settings_get(staff_api_client, project):
+    resp = staff_api_client.get(f'/api/v1/projects/{project.id}/settings')
     assert resp.status_code == 200
     assert resp.data == {
         'importPath': PATH_RE,
@@ -26,21 +26,21 @@ def test_session_settings_get(staff_api_client, session):
 
 
 @pytest.mark.django_db
-def test_session_settings_put(staff_api_client, session):
+def test_project_settings_put(staff_api_client, project):
     staff_api_client.put(
-        f'/api/v1/sessions/{session.id}/settings',
+        f'/api/v1/projects/{project.id}/settings',
         data={'importPath': '/new/fake/path', 'exportPath': '/new/fake/path'},
     )
-    assert staff_api_client.get(f'/api/v1/sessions/{session.id}/settings').data == {
+    assert staff_api_client.get(f'/api/v1/projects/{project.id}/settings').data == {
         'importPath': '/new/fake/path',
         'exportPath': '/new/fake/path',
     }
 
 
 @pytest.mark.django_db
-def test_settings_endpoint_requires_staff(authenticated_api_client, session):
+def test_settings_endpoint_requires_staff(authenticated_api_client, project):
     resp = authenticated_api_client.put(
-        f'/api/v1/sessions/{session.id}/settings',
+        f'/api/v1/projects/{project.id}/settings',
         data={'importPath': '/new/fake/path', 'exportPath': '/new/fake/path'},
     )
     assert resp.status_code == 403
@@ -57,8 +57,8 @@ def test_experiments_list(authenticated_api_client, experiment):
 def test_experiment_retrieve(authenticated_api_client, experiment):
     resp = authenticated_api_client.get(f'/api/v1/experiments/{experiment.id}')
     assert resp.status_code == 200
-    # We want to assert that the nested session document isn't the giant one
-    assert 'experiments' not in resp.data['session'].keys()
+    # We want to assert that the nested project document isn't the giant one
+    assert 'experiments' not in resp.data['project'].keys()
 
 
 @pytest.mark.django_db
