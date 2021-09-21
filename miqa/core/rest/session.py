@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
+from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Project
 from miqa.core.tasks import export_data, import_data
 
 
