@@ -330,16 +330,17 @@ def evaluate_many(model, image_paths):
     evaluation_loader = DataLoader(evaluation_ds, pin_memory=torch.cuda.is_available())
     results = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate_many')
 
-    labeled_results = []
-    for result in results:
-        labeled_result = {
+    labeled_results = {}
+    for index, result in enumerate(results):
+        corresponding_image_path = image_paths[index]
+        single_labeled = {
             'overall_quality': result[0],
             'signal_noise_ratio': result[1],
             'contrast_noise_ratio': result[2],
         }
         for index, artifact_name in enumerate(artifacts):
-            labeled_result[artifact_name] = result[index + 3]
-        labeled_results.append(labeled_result)
+            single_labeled[artifact_name] = result[index + 3]
+        labeled_results[corresponding_image_path] = single_labeled
     return labeled_results
 
 

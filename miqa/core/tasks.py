@@ -23,7 +23,7 @@ from miqa.core.models import (
 )
 from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
-from miqa.learning.nn_classifier import evaluate1
+from miqa.learning.nn_classifier import evaluate_many
 
 
 @shared_task
@@ -31,23 +31,27 @@ def evaluate_data(image_ids, session_id):
     images = Image.objects.filter(pk__in=image_ids)
     session = Session.objects.get(id=session_id)
 
-    loaded_evaluation_models = {}
+    model_to_images_map = {}
     for image in images:
-        scan_type = [image.scan.scan_type][0]
-        eval_model_name = session.evaluation_models[scan_type]
-        # only load the necessary models into memory once each
-        if eval_model_name not in loaded_evaluation_models:
-            loaded_evaluation_models[eval_model_name] = available_evaluation_models[
-                eval_model_name
-            ].load()
-        # perform evaluation on each
-        current_model = loaded_evaluation_models[eval_model_name]
-        evaluation = Evaluation(
-            image=image,
-            evaluation_model=eval_model_name,
-            results=evaluate1(current_model, str(image.raw_path)),
+        eval_model_name = session.evaluation_models[[image.scan.scan_type][0]]
+        if eval_model_name not in model_to_images_map:
+            model_to_images_map[eval_model_name] = []
+        model_to_images_map[eval_model_name].append(image)
+
+    for model_name, image_set in model_to_images_map.items():
+        current_model = available_evaluation_models[model_name].load()
+        results = evaluate_many(current_model, [str(image.raw_path) for image in image_set])
+
+        Evaluation.objects.bulk_create(
+            [
+                Evaluation(
+                    image=image,
+                    evaluation_model=model_name,
+                    results=results[str(image.raw_path)],
+                )
+                for image in image_set
+            ]
         )
-        evaluation.save()
 
 
 @shared_task
