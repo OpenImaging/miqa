@@ -314,32 +314,33 @@ def evaluateMany(model, image_paths):
     )
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    results = {}
-    for image_path in image_paths:
-        evaluation_ds = monai.data.Dataset(
-            data=[
-                {
-                    'img': image_path,
-                    'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
-                }
-            ],
-            transform=train_transforms,
-        )
-        evaluation_loader = DataLoader(
-            evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
-        )
+    evaluation_ds = monai.data.Dataset(
+        data=[
+            {
+                'img': image_path,
+                'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+            }
+            for image_path in image_paths
+        ],
+        transform=train_transforms,
+    )
+    evaluation_loader = DataLoader(
+        evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
+    )
 
-        tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
-        result = tensor_output.cpu().tolist()[0]
-        labeled_results = {
+    tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluateMany')
+    results = tensor_output.cpu().tolist()[0]
+    labeled_results = []
+    for result in results:
+        labeled_result = {
             'overall_quality': result[0],
             'signal_noise_ratio': result[1],
             'contrast_noise_ratio': result[2],
         }
         for index, artifact_name in enumerate(artifacts):
-            labeled_results[artifact_name] = result[index + 3]
-        results[image_path] = labeled_results
-    return results
+            labeled_result[artifact_name] = result[index + 3]
+        labeled_results.append(labeled_result)
+    return labeled_results
 
 
 class CombinedLoss(torch.nn.Module):
