@@ -64,7 +64,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     lock_owner = LockOwnerSerializer()
 
 
-class SessionRetrieveSerializer(serializers.ModelSerializer):
+class ProjectRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name', 'experiments']
@@ -73,14 +73,14 @@ class SessionRetrieveSerializer(serializers.ModelSerializer):
     experiments = ExperimentSerializer(many=True)
 
 
-class SessionSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name']
         ref_name = 'projects'
 
 
-class SessionSettingsSerializer(serializers.ModelSerializer):
+class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['importPath', 'exportPath']
@@ -89,7 +89,7 @@ class SessionSettingsSerializer(serializers.ModelSerializer):
     exportPath = serializers.CharField(source='export_path')  # noqa: N815
 
 
-class SessionViewSet(ReadOnlyModelViewSet):
+class ProjectViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -102,18 +102,18 @@ class SessionViewSet(ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return SessionRetrieveSerializer
+            return ProjectRetrieveSerializer
         else:
-            return SessionSerializer
+            return ProjectSerializer
 
     @swagger_auto_schema(
         method='GET',
-        responses={200: SessionSettingsSerializer()},
+        responses={200: ProjectSettingsSerializer()},
     )
     @swagger_auto_schema(
         method='PUT',
-        request_body=SessionSettingsSerializer(),
-        responses={200: SessionSettingsSerializer()},
+        request_body=ProjectSettingsSerializer(),
+        responses={200: ProjectSettingsSerializer()},
     )
     @action(
         detail=True,
@@ -125,9 +125,9 @@ class SessionViewSet(ReadOnlyModelViewSet):
     def settings_(self, request, **kwargs):
         project: Project = self.get_object()
         if request.method == 'GET':
-            serializer = SessionSettingsSerializer(instance=project)
+            serializer = ProjectSettingsSerializer(instance=project)
         elif request.method == 'PUT':
-            serializer = SessionSettingsSerializer(data=request.data)
+            serializer = ProjectSettingsSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             project.import_path = serializer.data['importPath']
             project.export_path = serializer.data['exportPath']
