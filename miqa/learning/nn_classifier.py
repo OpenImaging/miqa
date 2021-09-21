@@ -260,7 +260,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             return outputs
 
 
-def evaluate1(model_path, image_path):
+def evaluate1(model, image_path):
     itk_reader = monai.data.ITKReader()
     # Define transforms for image
     train_transforms = Compose(
@@ -286,8 +286,6 @@ def evaluate1(model_path, image_path):
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available()
     )
-
-    model = get_model(model_path)
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
     result = tensor_output.cpu().tolist()[0]
@@ -643,7 +641,7 @@ if __name__ == '__main__':
     elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate, args.nfolds)
     elif args.modelfile is not None and args.evaluate1 is not None:
-        evaluate1(args.modelfile, args.evaluate1)
+        evaluate1(get_model(args.modelfile), args.evaluate1)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+from .models import Annotation, Evaluation, Experiment, Image, Scan, ScanNote, Session, Site
 
 
 @admin.register(Experiment)
@@ -37,6 +37,12 @@ class AnnotationAdmin(admin.ModelAdmin):
     list_filter = ('created', 'creator', 'scan')
 
 
+@admin.register(Evaluation)
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'image', 'evaluation_model')
+    list_filter = ('image', 'evaluation_model')
+
+
 @admin.register(Session)
 class SessionAdmin(admin.ModelAdmin):
     list_display = (
@@ -47,6 +53,7 @@ class SessionAdmin(admin.ModelAdmin):
         'creator',
         'import_path',
         'export_path',
+        'evaluation_models',
     )
     list_filter = ('created', 'modified', 'creator')
     search_fields = ('name',)
