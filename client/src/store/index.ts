@@ -222,9 +222,8 @@ const {
   },
   getters: {
     currentDataset(state) {
-      return state.currentDatasetId
-        ? state.datasets[state.currentDatasetId]
-        : null;
+      const { datasets, currentDatasetId } = state;
+      return currentDatasetId ? datasets[currentDatasetId] : null;
     },
     previousDataset(state, getters) {
       return getters.currentDataset
@@ -343,6 +342,8 @@ const {
       state.currentDatasetId = imageId;
     },
     setImage(state, { imageId, image }) {
+      // Replace with a new object to trigger a Vuex update
+      state.datasets = { ...state.datasets };
       state.datasets[imageId] = image;
     },
     setScan(state, { scanId, scan }) {
@@ -489,6 +490,8 @@ const {
 
       // last image
       state.datasets[prevId].nextDataset = null;
+      // Replace with a new object to trigger a Vuex update
+      state.datasets = { ...state.datasets };
 
       dispatch('swapToDataset', state.datasets[state.sessionDatasets[scanID][0]]);
     },
