@@ -2,12 +2,12 @@ import json
 import os
 from pathlib import Path
 import re
+from celery import shared_task
 
 from django.contrib.auth.models import User
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
-from miqa.celery import app
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common_prefix
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import (
@@ -26,13 +26,10 @@ from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_classifier import evaluate1
 
 
-@app.task
+@shared_task
 def evaluate_data(image_ids, session_id):
-    try:
-        images = [Image.objects.get(id=image_id) for image_id in image_ids]
-        session = Session.objects.get(id=session_id)
-    except (Image.DoesNotExist, Session.DoesNotExist):
-        raise ValueError('Provide the id of the user and the id of the session.')
+    images = Image.objects.filter(pk__in=image_ids)
+    session = Session.objects.get(id=session_id)
 
     loaded_evaluation_models = {}
     for image in images:
@@ -53,13 +50,10 @@ def evaluate_data(image_ids, session_id):
         evaluation.save()
 
 
-@app.task
+@shared_task
 def import_data(user_id, session_id):
-    try:
-        user = User.objects.get(id=user_id)
-        session = Session.objects.get(id=session_id)
-    except (User.DoesNotExist, Session.DoesNotExist):
-        raise ValueError('Provide the id of the user and the id of the session.')
+    user = User.objects.get(id=user_id)
+    session = Session.objects.get(id=session_id)
 
     if session.import_path.endswith('.csv'):
         with open(session.import_path) as fd:
@@ -144,12 +138,9 @@ def import_data(user_id, session_id):
     evaluate_data.delay([image.id for image in images], session.id)
 
 
-@app.task
+@shared_task
 def export_data(session_id):
-    try:
-        session = Session.objects.get(id=session_id)
-    except Session.DoesNotExist:
-        raise ValueError('Provide the id of the session.')
+    session = Session.objects.get(id=session_id)
 
     data_root = None
     experiments = []
