@@ -4,7 +4,7 @@ from .experiment import Experiment
 from .image import Image
 from .scan import Scan
 from .scan_note import ScanNote
-from .session import Session
+from .project import Project
 from .site import Site
 
 __all__ = [
@@ -14,7 +14,7 @@ __all__ = [
     'Scan',
     'ScanNote',
     'Evaluation',
-    'Session',
+    'Project',
     'Site',
     'Annotation',
 ]
