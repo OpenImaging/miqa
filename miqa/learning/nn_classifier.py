@@ -284,7 +284,7 @@ def evaluate1(model, image_path):
         transform=train_transforms,
     )
     evaluation_loader = DataLoader(
-        evaluation_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available()
+        evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
     )
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
