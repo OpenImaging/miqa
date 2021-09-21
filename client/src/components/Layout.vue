@@ -1,6 +1,6 @@
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
-import { useStore } from 'vuex';
+import { computed, defineComponent } from '@vue/composition-api';
+import store from '@/store';
 import VtkViewer from './VtkViewer.vue';
 
 export default defineComponent({
@@ -9,8 +9,7 @@ export default defineComponent({
     VtkViewer,
   },
   setup() {
-    const store = useStore();
-    const { vtkViews } = store.state;
+    const vtkViews = computed(() => store.state.vtkViews);
 
     return {
       vtkViews,

@@ -23,6 +23,7 @@ import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
 import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import DataImportExport from '../components/DataImportExport.vue';
+import djangoRest from '@/django';
 
 export default {
   name: 'Dataset',
@@ -40,7 +41,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs,
   },
-  inject: ['djangoRest', 'mainSession', 'user'],
+  inject: ['mainSession', 'user'],
   data: () => ({
     newNote: '',
     decision: null,
@@ -179,11 +180,11 @@ export default {
     },
     async save() {
       if (this.newNote && this.newNote.trim()) {
-        await this.djangoRest.addScanNote(this.currentSession.id, this.newNote);
+        await djangoRest.addScanNote(this.currentSession.id, this.newNote);
         this.newNote = '';
       }
       if (this.decisionChanged) {
-        await this.djangoRest.setDecision(
+        await djangoRest.setDecision(
           this.currentSession.id,
           this.decision,
         );

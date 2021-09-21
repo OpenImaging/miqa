@@ -20,8 +20,8 @@ def test_session_settings_get(staff_api_client, session):
     resp = staff_api_client.get(f'/api/v1/sessions/{session.id}/settings')
     assert resp.status_code == 200
     assert resp.data == {
-        'importpath': PATH_RE,
-        'exportpath': PATH_RE,
+        'importPath': PATH_RE,
+        'exportPath': PATH_RE,
     }
 
 
@@ -29,11 +29,11 @@ def test_session_settings_get(staff_api_client, session):
 def test_session_settings_put(staff_api_client, session):
     staff_api_client.put(
         f'/api/v1/sessions/{session.id}/settings',
-        data={'importpath': '/new/fake/path', 'exportpath': '/new/fake/path'},
+        data={'importPath': '/new/fake/path', 'exportPath': '/new/fake/path'},
     )
     assert staff_api_client.get(f'/api/v1/sessions/{session.id}/settings').data == {
-        'importpath': '/new/fake/path',
-        'exportpath': '/new/fake/path',
+        'importPath': '/new/fake/path',
+        'exportPath': '/new/fake/path',
     }
 
 
@@ -41,7 +41,7 @@ def test_session_settings_put(staff_api_client, session):
 def test_settings_endpoint_requires_staff(authenticated_api_client, session):
     resp = authenticated_api_client.put(
         f'/api/v1/sessions/{session.id}/settings',
-        data={'importpath': '/new/fake/path', 'exportpath': '/new/fake/path'},
+        data={'importPath': '/new/fake/path', 'exportPath': '/new/fake/path'},
     )
     assert resp.status_code == 403
 
