@@ -21,7 +21,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ImageViewSet(ListModelMixin, GenericViewSet):
     # This ViewSet read-only right now, so we don't need to select_related back to
-    # the Session for permission checking.
+    # the Project for permission checking.
     queryset = Image.objects.all()
 
     filter_backends = [filters.DjangoFilterBackend]

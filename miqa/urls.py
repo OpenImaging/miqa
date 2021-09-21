@@ -14,13 +14,13 @@ from miqa.core.rest import (
     LogoutView,
     ScanNoteViewSet,
     ScanViewSet,
-    SessionViewSet,
+    ProjectViewSet,
     SiteViewSet,
     UserViewSet,
 )
 
 router = routers.SimpleRouter(trailing_slash=False)
-router.register('sessions', SessionViewSet, basename='session')
+router.register('projects', ProjectViewSet, basename='project')
 router.register('experiments', ExperimentViewSet)
 router.register('scans', ScanViewSet)
 router.register('images', ImageViewSet)
