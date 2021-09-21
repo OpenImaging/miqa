@@ -2,8 +2,8 @@ import json
 import os
 from pathlib import Path
 import re
-from celery import shared_task
 
+from celery import shared_task
 from django.contrib.auth.models import User
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
