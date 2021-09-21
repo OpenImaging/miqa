@@ -211,7 +211,7 @@ def get_model(file_path=None):
 
     if file_path is not None:
         model.load_state_dict(torch.load(file_path, map_location=device))
-        print(f'Loaded NN model from file "{file_path}"')
+        # print(f'Loaded NN model from file "{file_path}"')
     else:
         print('NN model is initialized with random weights')
 
@@ -289,8 +289,8 @@ def evaluate1(model, image_path):
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
     result = tensor_output.cpu().tolist()[0]
-    print(f'Network output: {result}')
-    print(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
+    # print(f'Network output: {result}')
+    # print(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
     labeled_results = {
         'overall_quality': result[0],
