@@ -131,6 +131,7 @@ class SessionViewSet(ReadOnlyModelViewSet):
             serializer.is_valid(raise_exception=True)
             session.import_path = serializer.data['importpath']
             session.export_path = serializer.data['exportpath']
+            session.full_clean()
             session.save()
         return Response(serializer.data)
 

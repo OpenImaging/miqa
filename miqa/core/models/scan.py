@@ -5,6 +5,8 @@ from uuid import uuid4
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
+SCAN_TYPES = [('ncanda-t1spgr-v1', 'ncanda-t1spgr-v1'), ('ncanda-mprage-v1', 'ncanda-mprage-v1')]
+
 
 class Scan(TimeStampedModel, models.Model):
     class Meta:
@@ -20,4 +22,4 @@ class Scan(TimeStampedModel, models.Model):
     site = models.ForeignKey('Site', on_delete=models.PROTECT)
 
     scan_id = models.CharField(max_length=127, blank=False)
-    scan_type = models.CharField(max_length=255, blank=False)
+    scan_type = models.CharField(max_length=255, blank=False, choices=SCAN_TYPES)
