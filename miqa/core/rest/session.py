@@ -123,16 +123,16 @@ class SessionViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
-        session: Project = self.get_object()
+        project: Project = self.get_object()
         if request.method == 'GET':
-            serializer = SessionSettingsSerializer(instance=session)
+            serializer = SessionSettingsSerializer(instance=project)
         elif request.method == 'PUT':
             serializer = SessionSettingsSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            session.import_path = serializer.data['importPath']
-            session.export_path = serializer.data['exportPath']
-            session.full_clean()
-            session.save()
+            project.import_path = serializer.data['importPath']
+            project.export_path = serializer.data['exportPath']
+            project.full_clean()
+            project.save()
         return Response(serializer.data)
 
     @swagger_auto_schema(
@@ -141,8 +141,8 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
-        session: Project = self.get_object()
-        import_data(request.user, session)
+        project: Project = self.get_object()
+        import_data(request.user, project)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
@@ -151,6 +151,6 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
-        session: Project = self.get_object()
-        export_data(request.user, session)
+        project: Project = self.get_object()
+        export_data(request.user, project)
         return Response(status=status.HTTP_204_NO_CONTENT)

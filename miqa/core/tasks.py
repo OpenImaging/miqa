@@ -25,11 +25,11 @@ from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_classifier import evaluate1
 
 
-def evaluate_data(images: List[Image], session: Project):
+def evaluate_data(images: List[Image], project: Project):
     loaded_evaluation_models = {}
     for image in images:
         scan_type = [image.scan.scan_type][0]
-        eval_model_name = session.evaluation_models[scan_type]
+        eval_model_name = project.evaluation_models[scan_type]
         # only load the necessary models into memory once each
         if eval_model_name not in loaded_evaluation_models:
             loaded_evaluation_models[eval_model_name] = available_evaluation_models[
@@ -45,18 +45,18 @@ def evaluate_data(images: List[Image], session: Project):
         evaluation.save()
 
 
-def import_data(user, session: Project):
-    if session.import_path.endswith('.csv'):
-        with open(session.import_path) as fd:
+def import_data(user, project: Project):
+    if project.import_path.endswith('.csv'):
+        with open(project.import_path) as fd:
             csv_content = fd.read()
             json_content = csvContentToJsonObject(csv_content)
             validate(json_content, schema)
-    elif session.import_path.endswith('.json'):
-        with open(session.import_path) as json_file:
+    elif project.import_path.endswith('.json'):
+        with open(project.import_path) as json_file:
             json_content = json.load(json_file)
             validate(json_content, schema)
     else:
-        raise ValidationError(f'Invalid import file {session.import_path}')
+        raise ValidationError(f'Invalid import file {project.import_path}')
 
     data_root = Path(json_content['data_root'])
 
@@ -129,13 +129,13 @@ def import_data(user, session: Project):
     evaluate_data(images, session)
 
 
-def export_data(user, session: Project):
+def export_data(user, project: Project):
     data_root = None
     experiments = []
     scans = []
     sites = set()
 
-    for experiment in session.experiments.all():
+    for experiment in project.experiments.all():
         experiments.append(
             {
                 'id': experiment.name,
@@ -192,11 +192,11 @@ def export_data(user, session: Project):
         'sites': [{'name': site} for site in sites],
     }
 
-    if session.export_path.endswith('.csv'):
-        with open(session.export_path, 'w') as csv_file:
+    if project.export_path.endswith('.csv'):
+        with open(project.export_path, 'w') as csv_file:
             csv_content = jsonObjectToCsvContent(json_content)
             csv_file.write(csv_content.getvalue())
     else:
         # Assume JSON
-        with open(session.export_path, 'w') as json_file:
+        with open(project.export_path, 'w') as json_file:
             json_file.write(json.dumps(json_content, indent=4))
