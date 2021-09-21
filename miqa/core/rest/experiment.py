@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
-from miqa.core.rest.session import SessionSerializer
+from miqa.core.rest.project import ProjectSerializer
 
-from .permissions import ArchivedSession, LockContention, UserHoldsExperimentLock
+from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
 
 
 class LockOwnerSerializer(serializers.ModelSerializer):
@@ -26,7 +26,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
         model = Experiment
         fields = ['id', 'name', 'note', 'project', 'lock_owner']
 
-    project = SessionSerializer()
+    project = ProjectSerializer()
     lock_owner = LockOwnerSerializer()
 
 
@@ -55,7 +55,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
 
             if experiment.project.archived:
-                raise ArchivedSession()
+                raise ArchivedProject()
 
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
