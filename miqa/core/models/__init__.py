@@ -2,9 +2,9 @@ from .annotation import Annotation, Decision
 from .evaluation import Evaluation
 from .experiment import Experiment
 from .image import Image
+from .project import Project
 from .scan import Scan
 from .scan_note import ScanNote
-from .project import Project
 from .site import Site
 
 __all__ = [

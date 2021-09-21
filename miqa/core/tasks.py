@@ -15,9 +15,9 @@ from miqa.core.models import (
     Evaluation,
     Experiment,
     Image,
+    Project,
     Scan,
     ScanNote,
-    Project,
     Site,
 )
 from miqa.core.schema.data_import import schema
