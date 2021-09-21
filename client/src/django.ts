@@ -33,36 +33,36 @@ const djangoClient = {
     await apiClient.post('/logout/', undefined, { withCredentials: true });
     await oauthClient.logout();
   },
-  async import(sessionId: string) {
-    await apiClient.post(`/sessions/${sessionId}/import`);
+  async import(projectId: string) {
+    await apiClient.post(`/projects/${projectId}/import`);
   },
-  async export(sessionId: string) {
-    return apiClient.post(`/sessions/${sessionId}/export`);
+  async export(projectId: string) {
+    return apiClient.post(`/projects/${projectId}/export`);
   },
-  async sessions() {
-    const { data } = await apiClient.get('/sessions');
+  async projects() {
+    const { data } = await apiClient.get('/projects');
     const { results } = data;
     return results;
   },
-  async session(sessionId: string) {
-    const { data } = await apiClient.get(`/sessions/${sessionId}`);
+  async project(projectId: string) {
+    const { data } = await apiClient.get(`/projects/${projectId}`);
     return data;
   },
-  async settings(sessionId: string): Promise<Settings> {
-    const { data } = await apiClient.get(`/sessions/${sessionId}/settings`);
+  async settings(projectId: string): Promise<Settings> {
+    const { data } = await apiClient.get(`/projects/${projectId}/settings`);
     return data;
   },
-  async setSettings(sessionId: string, settings: Settings) {
-    await apiClient.put(`/sessions/${sessionId}/settings`, settings);
+  async setSettings(projectId: string, settings: Settings) {
+    await apiClient.put(`/projects/${projectId}/settings`, settings);
   },
   async sites() {
     const { data } = await apiClient.get('/sites');
     const { results } = data;
     return results;
   },
-  async experiments(sessionId: string) {
+  async experiments(projectId: string) {
     const { data } = await apiClient.get('/experiments', {
-      params: { session: sessionId },
+      params: { project: projectId },
     });
     const { results } = data;
     return results;
