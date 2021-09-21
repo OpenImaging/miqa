@@ -146,12 +146,11 @@ def import_data(user_id, session_id):
 
 
 @app.task
-def export_data(user_id, session_id):
+def export_data(session_id):
     try:
-        user = User.objects.get(id=user_id)
         session = Session.objects.get(id=session_id)
-    except (User.DoesNotExist, Session.DoesNotExist):
-        raise ValueError('Provide the id of the user and the id of the session.')
+    except Session.DoesNotExist:
+        raise ValueError('Provide the id of the session.')
 
     data_root = None
     experiments = []

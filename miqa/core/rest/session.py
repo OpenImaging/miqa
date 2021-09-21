@@ -157,6 +157,6 @@ class SessionViewSet(ReadOnlyModelViewSet):
         session: Session = self.get_object()
 
         # tasks sent to celery must use serializable arguments
-        export_data(request.user.id, session.id)
+        export_data(session.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
