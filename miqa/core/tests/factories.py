@@ -24,7 +24,7 @@ class SiteFactory(factory.django.DjangoModelFactory):
     creator = factory.SubFactory(UserFactory)
 
 
-class SessionFactory(factory.django.DjangoModelFactory):
+class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Project
 
@@ -45,7 +45,7 @@ class ExperimentFactory(factory.django.DjangoModelFactory):
     name = factory.Faker('word')
     note = factory.Faker('sentence')
 
-    session = factory.SubFactory(SessionFactory)
+    project = factory.SubFactory(ProjectFactory)
 
 
 class ScanFactory(factory.django.DjangoModelFactory):
