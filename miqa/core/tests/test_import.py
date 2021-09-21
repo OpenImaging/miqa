@@ -69,17 +69,17 @@ def generate_import_json(samples_dir: Path, sample_scans):
 
 
 @pytest.mark.django_db
-def test_import_csv(tmp_path, user, session_factory, sample_scans, authenticated_api_client):
+def test_import_csv(tmp_path, user, project_factory, sample_scans, authenticated_api_client):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
         output, _writer = generate_import_csv(sample_scans)
         fd.write(output.getvalue())
 
-    session = session_factory(import_path=csv_file)
+    project = project_factory(import_path=csv_file)
 
-    import_data(user, session)
+    import_data(user, project)
     # Test that the API import succeeds
-    resp = authenticated_api_client.post(f'/api/v1/sessions/{session.id}/import')
+    resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
     assert resp.status_code == 204
 
 
@@ -87,7 +87,7 @@ def test_import_csv(tmp_path, user, session_factory, sample_scans, authenticated
 def test_import_json(
     tmp_path: Path,
     user,
-    session_factory,
+    project_factory,
     samples_dir: Path,
     sample_scans,
     authenticated_api_client,
@@ -96,25 +96,25 @@ def test_import_json(
     with open(json_file, 'w') as fd:
         fd.write(json.dumps(generate_import_json(samples_dir, sample_scans)))
 
-    session = session_factory(import_path=json_file)
+    project = project_factory(import_path=json_file)
 
-    import_data(user, session)
+    import_data(user, project)
 
     # Test that the API import succeeds
-    resp = authenticated_api_client.post(f'/api/v1/sessions/{session.id}/import')
+    resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
     assert resp.status_code == 204
 
 
 @pytest.mark.django_db
-def test_import_invalid_extension(user, session_factory):
+def test_import_invalid_extension(user, project_factory):
     invalid_file = '/foo/bar.txt'
-    session = session_factory(import_path=invalid_file)
+    project = project_factory(import_path=invalid_file)
     with pytest.raises(ValidationError, match=f'Invalid import file {invalid_file}'):
-        import_data(user, session)
+        import_data(user, project)
 
 
 @pytest.mark.django_db
-def test_import_invalid_csv(tmp_path: Path, user, session_factory, sample_scans):
+def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans):
     csv_file = str(tmp_path / 'import.csv')
     output, writer = generate_import_csv(sample_scans)
 
@@ -135,17 +135,17 @@ def test_import_invalid_csv(tmp_path: Path, user, session_factory, sample_scans)
     with open(csv_file, 'w') as fd:
         fd.write(output.getvalue())
 
-    session = session_factory(import_path=csv_file)
+    project = project_factory(import_path=csv_file)
 
     with pytest.raises(ValueError, match='empty separator'):
-        import_data(user, session)
+        import_data(user, project)
 
 
 @pytest.mark.django_db
 def test_import_invalid_json(
     tmp_path: Path,
     user,
-    session_factory,
+    project_factory,
     samples_dir: Path,
     sample_scans,
 ):
@@ -158,7 +158,7 @@ def test_import_invalid_json(
     with open(json_file, 'w') as fd:
         fd.write(json.dumps(json_content))
 
-    session = session_factory(import_path=json_file)
+    project = project_factory(import_path=json_file)
 
     with pytest.raises(
         ValidationError,
@@ -166,4 +166,4 @@ def test_import_invalid_json(
             "666 is not of type 'string'\n\nFailed validating 'type' in schema['properties']['scans']['items']['properties']['site_id']:\n    {'type': 'string'}\n\nOn instance['scans'][0]['site_id']:\n    666"  # noqa: E501
         ),
     ):
-        import_data(user, session)
+        import_data(user, project)
