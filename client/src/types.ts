@@ -8,13 +8,13 @@ interface User {
 }
 
 interface Session {
-  id: number,
+  id: string,
   name: string
 }
 
 interface Settings {
-  importpath: string,
-  exportpath: string
+  importPath: string,
+  exportPath: string
 }
 
 interface HTMLInputEvent extends Event {

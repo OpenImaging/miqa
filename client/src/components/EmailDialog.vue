@@ -1,9 +1,9 @@
 <script lang="ts">
 import _ from 'lodash';
 import {
-  defineComponent, inject,
+  defineComponent, inject, computed,
 } from '@vue/composition-api';
-import { useStore } from 'vuex';
+import store from '@/store';
 import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 import { User } from '@/types';
 
@@ -23,10 +23,11 @@ export default defineComponent({
     },
   },
   setup() {
-    const store = useStore();
-    const { screenshots, currentDataset, currentSession } = store.state;
-    const { siteMap } = store.getters;
-    const removeScreenshot = () => store.commit('removeScreenshot');
+    const screenshots = computed(() => store.state.screenshots);
+    const currentDataset = computed(() => store.getters.currentDataset);
+    const currentSession = computed(() => store.getters.currentSession);
+    const siteMap = computed(() => store.getters.siteMap);
+    const { removeScreenshot } = store.commit;
 
     const user = inject('user') as User;
 
