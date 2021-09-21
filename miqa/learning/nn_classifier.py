@@ -592,9 +592,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             )
 
             scheduler.step()
-            logger.info(
-                f'Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]["lr"]}'
-            )
+            logger.info(f'Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]["lr"]}')
             wandb.log({'learn_rate': optimizer.param_groups[0]['lr']})
 
     epoch_suffix = '.epoch' + str(num_epochs)
