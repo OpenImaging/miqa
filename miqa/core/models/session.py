@@ -45,9 +45,3 @@ class Session(TimeStampedModel, models.Model):
             )
 
         super().clean()
-<<<<<<< HEAD
-=======
-        super(Session, self).clean()
->>>>>>> 8bb1362... Move Session validation to clean method
-=======
->>>>>>> 78be858... Update session.py
