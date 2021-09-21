@@ -4,7 +4,6 @@ from pathlib import Path
 import re
 
 from django.contrib.auth.models import User
-
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
