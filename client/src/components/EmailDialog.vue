@@ -25,7 +25,7 @@ export default defineComponent({
   setup() {
     const screenshots = computed(() => store.state.screenshots);
     const currentDataset = computed(() => store.getters.currentDataset);
-    const currentSession = computed(() => store.getters.currentSession);
+    const currentProject = computed(() => store.getters.currentProject);
     const siteMap = computed(() => store.getters.siteMap);
     const { removeScreenshot } = store.commit;
 
@@ -34,7 +34,7 @@ export default defineComponent({
     return {
       screenshots,
       currentDataset,
-      currentSession,
+      currentProject,
       siteMap,
       removeScreenshot,
       user,
@@ -83,14 +83,14 @@ export default defineComponent({
       if (this.$refs.form) {
         this.$refs.form.resetValidation();
       }
-      if (!this.currentSession) {
+      if (!this.currentProject) {
         return;
       }
       this.selectedScreenshots = [];
       this.toCandidates = [];
       this.ccCandidates = [];
       this.bccCandidates = [];
-      const site = this.siteMap[this.currentSession.site];
+      const site = this.siteMap[this.currentProject.site];
       if (site && site.meta) {
         Object.values(site.meta).forEach((value) => {
           if (_.isArray(value)) {
@@ -120,10 +120,10 @@ export default defineComponent({
       }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      const experiment = `Regarding ${this.currentSession.experiment}, ${this.currentSession.name}`;
+      const experiment = `Regarding ${this.currentProject.experiment}, ${this.currentProject.name}`;
       this.subject = experiment;
-      this.body = `Experiment: ${this.currentSession.experiment}
-Scan: ${this.currentSession.name}`;
+      this.body = `Experiment: ${this.currentProject.experiment}
+Scan: ${this.currentProject.name}`;
       if (this.notes) {
         this.body = `${this.body}
 Notes:

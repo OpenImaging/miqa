@@ -2,14 +2,14 @@
 import { defineComponent, inject, ref } from '@vue/composition-api';
 import store from '@/store';
 import djangoRest from '@/django';
-import { HTMLInputEvent, Session } from '@/types';
+import { HTMLInputEvent, Project } from '@/types';
 
 export default defineComponent({
   name: 'DataImportExport',
   components: {},
   setup() {
-    const mainSession = inject('mainSession') as Session;
-    const loadSession = (session: Session) => store.dispatch.loadSession(session);
+    const mainProject = inject('mainProject') as Project;
+    const loadProject = (project: Project) => store.dispatch.loadProject(project);
     const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
 
     const importing = ref(false);
@@ -24,7 +24,7 @@ export default defineComponent({
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        await djangoRest.import(mainSession.id);
+        await djangoRest.import(mainProject.id);
         importing.value = false;
 
         this.$snackbar({
@@ -32,7 +32,7 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        await loadSession(mainSession);
+        await loadProject(mainProject);
       } catch (ex) {
         importing.value = false;
         this.$snackbar({
@@ -45,7 +45,7 @@ export default defineComponent({
     async function exportData() {
       exporting.value = true;
       try {
-        await djangoRest.export(mainSession.id);
+        await djangoRest.export(mainProject.id);
         this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
@@ -67,8 +67,8 @@ export default defineComponent({
     }
 
     return {
-      mainSession,
-      loadSession,
+      mainProject,
+      loadProject,
       loadLocalDataset,
       importing,
       importDialog,
