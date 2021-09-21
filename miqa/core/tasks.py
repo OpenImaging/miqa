@@ -2,11 +2,13 @@ import json
 import os
 from pathlib import Path
 import re
-from typing import List
+
+from django.contrib.auth.models import User
 
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
+from miqa.celery import app
 from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common_prefix
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import (
@@ -25,7 +27,14 @@ from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_classifier import evaluate1
 
 
-def evaluate_data(images: List[Image], session: Session):
+@app.task
+def evaluate_data(image_ids, session_id):
+    try:
+        images = [Image.objects.get(id=image_id) for image_id in image_ids]
+        session = Session.objects.get(id=session_id)
+    except (Image.DoesNotExist, Session.DoesNotExist):
+        raise ValueError('Provide the id of the user and the id of the session.')
+
     loaded_evaluation_models = {}
     for image in images:
         scan_type = [image.scan.scan_type][0]
@@ -45,7 +54,14 @@ def evaluate_data(images: List[Image], session: Session):
         evaluation.save()
 
 
-def import_data(user, session: Session):
+@app.task
+def import_data(user_id, session_id):
+    try:
+        user = User.objects.get(id=user_id)
+        session = Session.objects.get(id=session_id)
+    except (User.DoesNotExist, Session.DoesNotExist):
+        raise ValueError('Provide the id of the user and the id of the session.')
+
     if session.import_path.endswith('.csv'):
         with open(session.import_path) as fd:
             csv_content = fd.read()
@@ -126,10 +142,17 @@ def import_data(user, session: Session):
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
 
-    evaluate_data(images, session)
+    evaluate_data.delay([image.id for image in images], session.id)
 
 
-def export_data(user, session: Session):
+@app.task
+def export_data(user_id, session_id):
+    try:
+        user = User.objects.get(id=user_id)
+        session = Session.objects.get(id=session_id)
+    except (User.DoesNotExist, Session.DoesNotExist):
+        raise ValueError('Provide the id of the user and the id of the session.')
+
     data_root = None
     experiments = []
     scans = []

@@ -22,4 +22,4 @@ def command(csv, username):
         name='miqa-dev', import_path=csv, export_path='.', creator=user
     )
 
-    import_data(user, session)
+    import_data(user.id, session.id)
