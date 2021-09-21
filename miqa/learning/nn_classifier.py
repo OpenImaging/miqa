@@ -199,6 +199,27 @@ class TiledClassifier(monai.networks.nets.Classifier):
         return average
 
 
+def get_model(file_path=None):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model = TiledClassifier(
+        in_shape=(1, 64, 64, 64),
+        classes=regression_count + len(artifacts),
+        channels=(2, 4, 8, 16),
+        strides=(2, 2, 2, 2),
+    )
+
+    if file_path is not None:
+        model.load_state_dict(torch.load(file_path, map_location=device))
+        print(f'Loaded NN model from file "{file_path}"')
+    else:
+        print('NN model is initialized with random weights')
+
+    model.to(device)
+
+    return model
+
+
 def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     model.eval()
     y_pred = []
@@ -239,7 +260,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             return outputs
 
 
-def evaluate1(model_path, image_path):
+def evaluate1(model, image_path):
     itk_reader = monai.data.ITKReader()
     # Define transforms for image
     train_transforms = Compose(
@@ -265,22 +286,6 @@ def evaluate1(model_path, image_path):
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, num_workers=1, pin_memory=torch.cuda.is_available()
     )
-
-    model = TiledClassifier(
-        in_shape=(1, 64, 64, 64),
-        classes=regression_count + len(artifacts),
-        channels=(2, 4, 8, 16),
-        strides=(
-            2,
-            2,
-            2,
-            2,
-        ),
-    )
-    model.to(device)
-
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    print(f'Loaded NN model from file "{model_path}"')
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
     result = tensor_output.cpu().tolist()[0]
@@ -351,7 +356,7 @@ def convert_bool_to_int(value: bool):
         return -1
 
 
-def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
+def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
     sizes = {}
@@ -451,26 +456,21 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
     )
 
-    model = TiledClassifier(
-        in_shape=(1, 64, 64, 64),
-        classes=regression_count + len(artifacts),
-        channels=(2, 4, 8, 16),
-        strides=(2, 2, 2, 2),
-    )
+    return train_loader, val_loader, class_weights, sizes
 
-    # # dim = 0 [20, xxx] -> [10, ...], [10, ...] on 2 GPUs
-    # model = torch.nn.DataParallel(model)
-    model.to(device)
+
+def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, only_evaluate):
+    train_loader, val_loader, class_weights, sizes = create_train_and_test_data_loaders(
+        df, count_train
+    )
 
     pretrained_path = os.path.join(os.getcwd(), 'pretrained.pth')
     if os.path.exists(save_path) and only_evaluate:
-        model.load_state_dict(torch.load(save_path, map_location=device))
-        print(f'Loaded NN model from file "{save_path}"')
+        model = get_model(save_path)
     elif os.path.exists(pretrained_path):
-        model.load_state_dict(torch.load(pretrained_path, map_location=device))
-        print(f'Loaded NN model weights from "{pretrained_path}"')
+        model = get_model(pretrained_path)
     else:
-        print('Training NN from scratch')
+        model = get_model()
 
     loss_function = CombinedLoss(class_weights)
     wandb.config.learning_rate = 9e-5
@@ -482,6 +482,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     best_metric = float('-inf')
     best_metric_epoch = -1
     writer = SummaryWriter(log_dir=wandb.run.dir)
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if only_evaluate:
         print('Evaluating NN model on validation data')
@@ -496,7 +498,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         model.train()
         epoch_loss = 0
         step = 0
-        epoch_len = len(train_ds) // train_loader.batch_size
+        epoch_len = len(train_loader.dataset) // train_loader.batch_size
         print(f'epoch_len: {epoch_len}')
         y_true = []
         y_pred = []
@@ -518,7 +520,6 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            epoch_len = len(train_ds) // train_loader.batch_size
             # print(f'{step}:{loss.item():.4f}', end=' ')
             print('.', end='', flush=True)
             if step % 100 == 0:
@@ -640,7 +641,7 @@ if __name__ == '__main__':
     elif args.folds is not None:
         process_folds(args.folds, args.vfold, args.evaluate, args.nfolds)
     elif args.modelfile is not None and args.evaluate1 is not None:
-        evaluate1(args.modelfile, args.evaluate1)
+        evaluate1(get_model(args.modelfile), args.evaluate1)
     elif args.predicthd is not None:
         predict_hd_data_root = args.predicthd
         df = read_and_normalize_data_frame(
