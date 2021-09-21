@@ -17,6 +17,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 
+logger = logging.getLogger(__name__)
+
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = 'P:/PREDICTHD_BIDS_DEFACE/'
@@ -71,7 +73,7 @@ def recursively_search_images(images, decisions, path_prefix, kind):
         images.append(str(path))
         decisions.append(kind)
         count += 1
-    print(f'{count} images in prefix {path_prefix}')
+    logger.debug(f'{count} images in prefix {path_prefix}')
 
 
 def construct_path_from_csv_fields(
@@ -108,11 +110,9 @@ def does_file_exist(file_name):
     global existing_count
     global missing_count
     if my_file.is_file():
-        # print(f'Exists: {fileName}')
         existing_count += 1
         return True
     else:
-        # print(f'Missing: {fileName}')
         missing_count += 1
         return False
 
@@ -135,7 +135,7 @@ def read_and_normalize_data_frame(tsv_path):
     missing_count = 0
     df['exists'] = df.apply(lambda row: does_file_exist(row['file_path']), axis=1)
     df['dimensions'] = df.apply(lambda row: get_image_dimension(row['file_path']), axis=1)
-    print(f'Existing files: {existing_count}, non-existent files: {missing_count}')
+    logger.debug(f'Existing files: {existing_count}, non-existent files: {missing_count}')
     return df
 
 
@@ -145,10 +145,10 @@ def verify_images(data_frame):
         try:
             dim = get_image_dimension(row.file_path)
             if dim == (0, 0, 0):
-                print(f'{index}: size of {row.file_path} is zero')
+                logger.debug(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
         except Exception as e:
-            print(f'{index}: there is some problem with: {row.file_path}:\n{e}')
+            logger.debug(f'{index}: there is some problem with: {row.file_path}:\n{e}')
             all_ok = False
     return all_ok
 
@@ -211,9 +211,9 @@ def get_model(file_path=None):
 
     if file_path is not None:
         model.load_state_dict(torch.load(file_path, map_location=device))
-        # print(f'Loaded NN model from file "{file_path}"')
+        logger.debug(f'Loaded NN model from file "{file_path}"')
     else:
-        print('NN model is initialized with random weights')
+        logger.debug('NN model is initialized with random weights')
 
     model.to(device)
 
@@ -240,14 +240,14 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y_pred.extend(y)
 
             metric_count += len(info)
-            print('.', end='', flush=True)
+            logger.debug('.', end='', flush=True)
             if metric_count % 100 == 0:
-                print('', flush=True)
+                logger.debug('', flush=True)
 
         if writer is not None:  # this is not a one-off case
-            print('\n' + run_name + '_confusion_matrix:')
-            print(confusion_matrix(y_true, y_pred))
-            print(classification_report(y_true, y_pred))
+            logger.debug('\n' + run_name + '_confusion_matrix:')
+            logger.debug(confusion_matrix(y_true, y_pred))
+            logger.debug(classification_report(y_true, y_pred))
 
             metric = mean_squared_error(y_true, y_pred_continuous, squared=False)
             writer.add_scalar(run_name + '_RMSE', metric, epoch + 1)
@@ -271,7 +271,6 @@ def evaluate1(model, image_path):
             ToTensord(keys=['img']),
         ]
     )
-
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     evaluation_ds = monai.data.Dataset(
@@ -289,8 +288,8 @@ def evaluate1(model, image_path):
 
     tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
     result = tensor_output.cpu().tolist()[0]
-    # print(f'Network output: {result}')
-    # print(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
+    logger.debug(f'Network output: {result}')
+    logger.debug(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
     labeled_results = {
         'overall_quality': result[0],
@@ -300,6 +299,47 @@ def evaluate1(model, image_path):
     for index, artifact_name in enumerate(artifacts):
         labeled_results[artifact_name] = result[index + 3]
     return labeled_results
+
+
+def evaluateMany(model, image_paths):
+    itk_reader = monai.data.ITKReader()
+    # Define transforms for image
+    train_transforms = Compose(
+        [
+            LoadImaged(keys=['img'], reader=itk_reader),
+            EnsureChannelFirstd(keys=['img']),
+            ScaleIntensityd(keys=['img']),
+            ToTensord(keys=['img']),
+        ]
+    )
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    results = {}
+    for image_path in image_paths:
+        evaluation_ds = monai.data.Dataset(
+            data=[
+                {
+                    'img': image_path,
+                    'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+                }
+            ],
+            transform=train_transforms,
+        )
+        evaluation_loader = DataLoader(
+            evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
+        )
+
+        tensor_output = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate1')
+        result = tensor_output.cpu().tolist()[0]
+        labeled_results = {
+            'overall_quality': result[0],
+            'signal_noise_ratio': result[1],
+            'contrast_noise_ratio': result[2],
+        }
+        for index, artifact_name in enumerate(artifacts):
+            labeled_results[artifact_name] = result[index + 3]
+        results[image_path] = labeled_results
+    return results
 
 
 class CombinedLoss(torch.nn.Module):
@@ -432,7 +472,7 @@ def create_train_and_test_data_loaders(df, count_train):
     weights_array = np.zeros(class_count)
     for i in range(class_count):
         weights_array[i] = count0[i] / (count0[i] + count1[i])
-    print(f'weights_array: {weights_array}')
+    logger.debug(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
     qa_weights = [1000.0 / qa_sample_counts[t] for t in range(11)]
@@ -486,20 +526,20 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if only_evaluate:
-        print('Evaluating NN model on validation data')
+        logger.debug('Evaluating NN model on validation data')
         evaluate_model(model, val_loader, device, writer, 0, 'val')
-        print('Evaluating NN model on training data')
+        logger.debug('Evaluating NN model on training data')
         evaluate_model(model, train_loader, device, writer, 0, 'train')
         return sizes
 
     for epoch in range(num_epochs):
-        print('-' * 25)
-        print(f'epoch {epoch + 1}/{num_epochs}')
+        logger.debug('-' * 25)
+        logger.debug(f'epoch {epoch + 1}/{num_epochs}')
         model.train()
         epoch_loss = 0
         step = 0
         epoch_len = len(train_loader.dataset) // train_loader.batch_size
-        print(f'epoch_len: {epoch_len}')
+        logger.debug(f'epoch_len: {epoch_len}')
         y_true = []
         y_pred = []
 
@@ -520,21 +560,21 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-            # print(f'{step}:{loss.item():.4f}', end=' ')
-            print('.', end='', flush=True)
+            logger.debug(f'{step}:{loss.item():.4f}', end=' ')
+            logger.debug('.', end='', flush=True)
             if step % 100 == 0:
-                print('', flush=True)  # new line
+                logger.debug('', flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
         epoch_loss /= step
-        print(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
+        logger.debug(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
         wandb.log({'epoch average loss': epoch_loss})
         epoch_cm = confusion_matrix(y_true, y_pred)
-        print(f'confusion matrix:\n{epoch_cm}')
+        logger.debug(f'confusion matrix:\n{epoch_cm}')
         wandb.log({'confusion matrix': epoch_cm})
 
         if (epoch + 1) % val_interval == 0:
-            print('Evaluating on validation set')
+            logger.debug('Evaluating on validation set')
             metric = evaluate_model(model, val_loader, device, writer, epoch, 'val')
 
             if metric >= best_metric:
@@ -542,23 +582,25 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 best_metric_epoch = epoch + 1
                 torch.save(model.state_dict(), save_path)
                 torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt'))
-                print(f'saved new best metric model as {save_path}')
+                logger.debug(f'saved new best metric model as {save_path}')
 
-            print(
+            logger.debug(
                 'current epoch: {} current metric: {:.2f} best metric: {:.2f} at epoch {}'.format(
                     epoch + 1, metric, best_metric, best_metric_epoch
                 )
             )
 
             scheduler.step()
-            print(f'Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]["lr"]}')
+            logger.debug(
+                f'Learning rate after epoch {epoch + 1}: {optimizer.param_groups[0]["lr"]}'
+            )
             wandb.log({'learn_rate': optimizer.param_groups[0]['lr']})
 
     epoch_suffix = '.epoch' + str(num_epochs)
     torch.save(model.state_dict(), save_path + epoch_suffix)
     torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt' + epoch_suffix))
 
-    print(f'train completed, best_metric: {best_metric:.2f} at epoch: {best_metric_epoch}')
+    logger.debug(f'train completed, best_metric: {best_metric:.2f} at epoch: {best_metric_epoch}')
     writer.close()
     return sizes
 
@@ -571,16 +613,16 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     for f in range(fold_count):
         csv_name = folds_prefix + f'{f}.csv'
         fold = pd.read_csv(csv_name)
-        print(f'Verifying input data integrity of {csv_name}')
+        logger.debug(f'Verifying input data integrity of {csv_name}')
         if not verify_images(fold):
-            print('Data verification failed. Exiting...')
+            logger.debug('Data verification failed. Exiting...')
             return
         folds.append(fold)
 
     df = pd.concat(folds, ignore_index=True)
-    print(df)
+    logger.debug(df)
 
-    print(f'Using fold {validation_fold} for validation')
+    logger.debug(f'Using fold {validation_fold} for validation')
     vf = folds.pop(validation_fold)
     folds.append(vf)
     df = pd.concat(folds, ignore_index=True)
@@ -601,7 +643,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
         only_evaluate=evaluate_only,
     )
 
-    print('Image size distribution:\n', sizes)
+    logger.debug('Image size distribution:\n', sizes)
 
 
 if __name__ == '__main__':
@@ -627,12 +669,12 @@ if __name__ == '__main__':
     parser.add_argument('--modelfile', '-m', help='Path to neural network model weights', type=str)
 
     args = parser.parse_args()
-    # print(args)
+    logger.debug(args)
 
-    monai.config.print_config()
+    monai.config.logger.debug_config()
 
     if args.all:
-        print(f'Training {args.nfolds} folds')
+        logger.debug(f'Training {args.nfolds} folds')
         for f in range(args.nfolds):
             process_folds(args.folds, f, False, args.nfolds)
         # evaluate all at the end, so results are easy to pick up from the log
@@ -647,12 +689,12 @@ if __name__ == '__main__':
         df = read_and_normalize_data_frame(
             predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv'
         )
-        print(df)
+        logger.debug(df)
         full_path = Path('bids_image_qc_information-customized.csv').absolute()
         df.to_csv(full_path, index=False)
-        print(f'CSV file written: {full_path}')
+        logger.debug(f'CSV file written: {full_path}')
     elif args.ncanda is not None:
-        print('Adding support for NCANDA data is a TODO')
+        logger.debug('Adding support for NCANDA data is a TODO')
     else:
-        print('Not enough arguments specified')
-        print(parser.format_help())
+        logger.debug('Not enough arguments specified')
+        logger.debug(parser.format_help())
