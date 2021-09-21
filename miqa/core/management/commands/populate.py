@@ -7,7 +7,7 @@ from miqa.core.rest.session import import_data
 
 @click.command()
 @click.option('--csv', type=click.Path(exists=True))
-@click.option('--username', type=click.STRING, help='username for session creator')
+@click.option('--username', type=click.STRING, help='username for project creator')
 def command(csv, username):
 
     if username:
@@ -18,8 +18,8 @@ def command(csv, username):
 
         user = User.objects.first()
 
-    session = Project.objects.create(
+    project = Project.objects.create(
         name='miqa-dev', import_path=csv, export_path='.', creator=user
     )
 
-    import_data(user, session)
+    import_data(user, project)
