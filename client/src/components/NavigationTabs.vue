@@ -1,6 +1,6 @@
 <script lang="ts">
-import { useStore } from 'vuex';
-import { defineComponent, inject } from '@vue/composition-api';
+import { computed, defineComponent, inject } from '@vue/composition-api';
+import store from '@/store';
 import { GIRDER_URL } from '../constants';
 import { User } from '@/types';
 
@@ -10,10 +10,11 @@ export default defineComponent({
     GIRDER_URL,
   }),
   setup() {
-    const store = useStore();
     const user = inject('user') as User;
-    const { currentDatasetId } = store.state;
-    const setDrawer = (bool: Boolean) => store.commit.setDrawer(bool);
+    const currentDatasetId = computed(
+      () => store.state.currentDatasetId,
+    );
+    const { setDrawer } = store.commit;
 
     return {
       user,
@@ -32,7 +33,7 @@ export default defineComponent({
     background-color="transparent"
   >
     <v-tab
-      :to="`/${currentDatasetId ? currentDatasetId : ''}`"
+      :to="`/${currentDatasetId || ''}`"
       @click="datasetTabClick"
     >
       <v-icon>view_column</v-icon>
