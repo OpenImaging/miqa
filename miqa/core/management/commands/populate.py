@@ -18,7 +18,7 @@ def command(csv, username):
 
         user = User.objects.first()
 
-    session = Session.objects.create(
+    session = Project.objects.create(
         name='miqa-dev', import_path=csv, export_path='.', creator=user
     )
 

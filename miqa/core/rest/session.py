@@ -66,7 +66,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
 class SessionRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['id', 'name', 'experiments']
         ref_name = 'session'
 
@@ -75,14 +75,14 @@ class SessionRetrieveSerializer(serializers.ModelSerializer):
 
 class SessionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['id', 'name']
         ref_name = 'sessions'
 
 
 class SessionSettingsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['importPath', 'exportPath']
 
     importPath = serializers.CharField(source='import_path')  # noqa: N815
@@ -94,11 +94,11 @@ class SessionViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         if self.action == 'retrieve':
-            return Session.objects.prefetch_related(
+            return Project.objects.prefetch_related(
                 'experiments__scans__images', 'experiments__scans__notes'
             )
         else:
-            return Session.objects.all()
+            return Project.objects.all()
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -123,7 +123,7 @@ class SessionViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
-        session: Session = self.get_object()
+        session: Project = self.get_object()
         if request.method == 'GET':
             serializer = SessionSettingsSerializer(instance=session)
         elif request.method == 'PUT':
@@ -141,7 +141,7 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
-        session: Session = self.get_object()
+        session: Project = self.get_object()
         import_data(request.user, session)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -151,6 +151,6 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
-        session: Session = self.get_object()
+        session: Project = self.get_object()
         export_data(request.user, session)
         return Response(status=status.HTTP_204_NO_CONTENT)
