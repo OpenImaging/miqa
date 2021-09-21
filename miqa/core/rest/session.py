@@ -142,7 +142,10 @@ class SessionViewSet(ReadOnlyModelViewSet):
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
         session: Session = self.get_object()
-        import_data(request.user, session)
+
+        # tasks sent to celery must use serializable arguments
+        import_data.delay(request.user.id, session.id)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
@@ -152,5 +155,8 @@ class SessionViewSet(ReadOnlyModelViewSet):
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
         session: Session = self.get_object()
-        export_data(request.user, session)
+
+        # tasks sent to celery must use serializable arguments
+        export_data(request.user.id, session.id)
+
         return Response(status=status.HTTP_204_NO_CONTENT)
