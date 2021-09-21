@@ -25,7 +25,7 @@ from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_classifier import evaluate1
 
 
-def evaluate_data(images: List[Image], session: Session):
+def evaluate_data(images: List[Image], session: Project):
     loaded_evaluation_models = {}
     for image in images:
         scan_type = [image.scan.scan_type][0]
@@ -45,7 +45,7 @@ def evaluate_data(images: List[Image], session: Session):
         evaluation.save()
 
 
-def import_data(user, session: Session):
+def import_data(user, session: Project):
     if session.import_path.endswith('.csv'):
         with open(session.import_path) as fd:
             csv_content = fd.read()
@@ -129,7 +129,7 @@ def import_data(user, session: Session):
     evaluate_data(images, session)
 
 
-def export_data(user, session: Session):
+def export_data(user, session: Project):
     data_root = None
     experiments = []
     scans = []
