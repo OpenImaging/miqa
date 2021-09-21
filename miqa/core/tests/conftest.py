@@ -10,8 +10,8 @@ from .factories import (
     ExperimentFactory,
     ImageFactory,
     NoteFactory,
-    ScanFactory,
     ProjectFactory,
+    ScanFactory,
     SiteFactory,
     UserFactory,
 )
