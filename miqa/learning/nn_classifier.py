@@ -17,8 +17,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 
-log_level = os.environ.get('LOGLEVEL', 'WARNING').upper()
-logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 existing_count = 0
@@ -249,7 +247,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
                 print('', flush=True)
 
         if writer is not None:  # this is not a one-off case
-            logger.info('\n' + run_name + '_confusion_matrix:')
+            logger.info(run_name + '_confusion_matrix:')
             logger.info(confusion_matrix(y_true, y_pred))
             logger.info(classification_report(y_true, y_pred))
 
@@ -300,8 +298,8 @@ def evaluate1(model, image_path):
         'signal_noise_ratio': result[1],
         'contrast_noise_ratio': result[2],
     }
-    for index, artifact_name in enumerate(artifacts):
-        labeled_results[artifact_name] = result[index + 3]
+    for artifact_name, value in zip(artifacts, result[regression_count:]):
+        labeled_results[artifact_name] = value
     return labeled_results
 
 
@@ -338,8 +336,8 @@ def evaluate_many(model, image_paths):
             'signal_noise_ratio': result[1],
             'contrast_noise_ratio': result[2],
         }
-        for index, artifact_name in enumerate(artifacts):
-            single_labeled[artifact_name] = result[index + 3]
+        for artifact_name, value in zip(artifacts, result[regression_count:]):
+            single_labeled[artifact_name] = value
         labeled_results[corresponding_image_path] = single_labeled
     return labeled_results
 
@@ -647,6 +645,9 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
 
 
 if __name__ == '__main__':
+    log_level = os.environ.get('LOGLEVEL', 'WARNING').upper()
+    logging.basicConfig(level=log_level)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--predicthd', '-p', help='Path to PredictHD data', type=str)
     parser.add_argument('--ncanda', '-n', help='Path to NCANDA data', type=str)
