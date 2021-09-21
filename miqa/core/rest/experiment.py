@@ -24,18 +24,18 @@ class LockOwnerSerializer(serializers.ModelSerializer):
 class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
-        fields = ['id', 'name', 'note', 'session', 'lock_owner']
+        fields = ['id', 'name', 'note', 'project', 'lock_owner']
 
-    session = SessionSerializer()
+    project = SessionSerializer()
     lock_owner = LockOwnerSerializer()
 
 
 class ExperimentViewSet(ReadOnlyModelViewSet):
     # Our default serializer nests its experiment (not sure why though)
-    queryset = Experiment.objects.select_related('session')
+    queryset = Experiment.objects.select_related('project')
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['session']
+    filterset_fields = ['project']
 
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
@@ -54,7 +54,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
 
-            if experiment.session.archived:
+            if experiment.project.archived:
                 raise ArchivedSession()
 
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:

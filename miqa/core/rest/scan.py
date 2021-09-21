@@ -26,7 +26,7 @@ class ScanSerializer(serializers.ModelSerializer):
 
 
 class ScanViewSet(ReadOnlyModelViewSet):
-    queryset = Scan.objects.select_related('experiment__session')
+    queryset = Scan.objects.select_related('experiment__project')
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_fields = ['experiment', 'site']
