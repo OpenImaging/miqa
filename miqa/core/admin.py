@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Annotation, Evaluation, Experiment, Image, Scan, ScanNote, Session, Site
+from .models import Annotation, Evaluation, Experiment, Image, Project, Scan, ScanNote, Site
 
 
 @admin.register(Experiment)
 class ExperimentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'name', 'note', 'session', 'lock_owner')
-    list_filter = ('created', 'modified', 'session', 'lock_owner')
+    list_display = ('id', 'created', 'modified', 'name', 'note', 'project', 'lock_owner')
+    list_filter = ('created', 'modified', 'project', 'lock_owner')
     search_fields = ('name', 'lock_owner')
 
 
@@ -43,8 +43,8 @@ class EvaluationAdmin(admin.ModelAdmin):
     list_filter = ('image', 'evaluation_model')
 
 
-@admin.register(Session)
-class SessionAdmin(admin.ModelAdmin):
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'created',
