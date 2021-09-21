@@ -17,7 +17,7 @@ from miqa.core.models import (
     Image,
     Scan,
     ScanNote,
-    Session,
+    Project,
     Site,
 )
 from miqa.core.schema.data_import import schema

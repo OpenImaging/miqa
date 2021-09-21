@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Project, Site
 
 
 class UserFactory(factory.django.DjangoModelFactory):
