@@ -26,7 +26,7 @@ class SiteFactory(factory.django.DjangoModelFactory):
 
 class SessionFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Session
+        model = Project
 
     id = factory.Faker('uuid4')
     name = factory.Faker('word')
