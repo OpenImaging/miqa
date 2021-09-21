@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 import djclick as click
 
 from miqa.core.models import Project
-from miqa.core.rest.session import import_data
+from miqa.core.rest.project import import_data
 
 
 @click.command()
