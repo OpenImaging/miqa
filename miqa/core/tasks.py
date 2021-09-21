@@ -126,7 +126,7 @@ def import_data(user, project: Project):
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
 
-    evaluate_data(images, session)
+    evaluate_data(images, project)
 
 
 def export_data(user, project: Project):
