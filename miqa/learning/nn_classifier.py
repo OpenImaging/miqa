@@ -220,6 +220,20 @@ def get_model(file_path=None):
     return model
 
 
+def get_image_transforms():
+    itk_reader = monai.data.ITKReader()
+    # Define transforms for image
+    image_transforms = Compose(
+        [
+            LoadImaged(keys=['img'], reader=itk_reader),
+            EnsureChannelFirstd(keys=['img']),
+            ScaleIntensityd(keys=['img']),
+            ToTensord(keys=['img']),
+        ]
+    )
+    return image_transforms
+
+
 def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     model.eval()
     y_pred = []
@@ -263,16 +277,6 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
 
 
 def evaluate1(model, image_path):
-    itk_reader = monai.data.ITKReader()
-    # Define transforms for image
-    train_transforms = Compose(
-        [
-            LoadImaged(keys=['img'], reader=itk_reader),
-            EnsureChannelFirstd(keys=['img']),
-            ScaleIntensityd(keys=['img']),
-            ToTensord(keys=['img']),
-        ]
-    )
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     evaluation_ds = monai.data.Dataset(
@@ -282,7 +286,7 @@ def evaluate1(model, image_path):
                 'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
             }
         ],
-        transform=train_transforms,
+        transform=get_image_transforms(),
     )
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
@@ -304,16 +308,6 @@ def evaluate1(model, image_path):
 
 
 def evaluate_many(model, image_paths):
-    itk_reader = monai.data.ITKReader()
-    # Define transforms for image
-    train_transforms = Compose(
-        [
-            LoadImaged(keys=['img'], reader=itk_reader),
-            EnsureChannelFirstd(keys=['img']),
-            ScaleIntensityd(keys=['img']),
-            ToTensord(keys=['img']),
-        ]
-    )
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     evaluation_files = [
@@ -324,7 +318,7 @@ def evaluate_many(model, image_paths):
         for image_path in image_paths
     ]
 
-    evaluation_ds = monai.data.Dataset(evaluation_files, transform=train_transforms)
+    evaluation_ds = monai.data.Dataset(evaluation_files, transform=get_image_transforms())
     evaluation_loader = DataLoader(evaluation_ds, pin_memory=torch.cuda.is_available())
     results = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate_many')
 
@@ -436,25 +430,6 @@ def create_train_and_test_data_loaders(df, count_train):
         for img, info in zip(images[-count_val:], ground_truth[-count_val:])
     ]
 
-    itk_reader = monai.data.ITKReader()
-    # Define transforms for image
-    train_transforms = Compose(
-        [
-            LoadImaged(keys=['img'], reader=itk_reader),
-            EnsureChannelFirstd(keys=['img']),
-            ScaleIntensityd(keys=['img']),
-            ToTensord(keys=['img']),
-        ]
-    )
-    val_transforms = Compose(
-        [
-            LoadImaged(keys=['img'], reader=itk_reader),
-            EnsureChannelFirstd(keys=['img']),
-            ScaleIntensityd(keys=['img']),
-            ToTensord(keys=['img']),
-        ]
-    )
-
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # calculate class weights
@@ -485,13 +460,13 @@ def create_train_and_test_data_loaders(df, count_train):
     sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_train)
 
     # create a training data loader
-    train_ds = monai.data.Dataset(data=train_files, transform=train_transforms)
+    train_ds = monai.data.Dataset(data=train_files, transform=get_image_transforms())
     train_loader = DataLoader(
         train_ds, batch_size=1, sampler=sampler, num_workers=4, pin_memory=torch.cuda.is_available()
     )
 
     # create a validation data loader
-    val_ds = monai.data.Dataset(data=val_files, transform=val_transforms)
+    val_ds = monai.data.Dataset(data=val_files, transform=get_image_transforms())
     val_loader = DataLoader(
         val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
     )
