@@ -79,6 +79,7 @@ def get_model(file_path=None):
         classes=regression_count + len(artifacts),
         channels=(2, 4, 8, 16),
         strides=(2, 2, 2, 2),
+        dropout=0.1,
     )
 
     if file_path is not None:
