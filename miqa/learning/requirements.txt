@@ -1,8 +1,8 @@
-numpy==1.20.3
+numpy>=1.21.1
 itk>=5.2.0.post2
 torch
 tensorboard
-monai>=0.5.2
+monai>=0.6.0
 pandas
 scikit-learn
 wandb
