@@ -9,9 +9,9 @@ from rest_framework.views import View
 from miqa.core.models import Experiment
 
 
-class ArchivedSession(APIException):
+class ArchivedProject(APIException):
     status_code = status.HTTP_409_CONFLICT
-    default_detail = 'This experiment belongs to an archived session.'
+    default_detail = 'This experiment belongs to an archived project.'
 
 
 class LockContention(APIException):
@@ -28,10 +28,10 @@ class UserHoldsExperimentLock(BasePermission):
     """
     Permission class for experiment lock policy.
 
-    This permission class enforces the exclusive write lock policy on a Session
-    and all objects belonging to that Session. Any model type that wants to make
-    use of this class should expose a `session` property on itself that returns
-    the Session to which it belongs.
+    This permission class enforces the exclusive write lock policy on a Project
+    and all objects belonging to that Project. Any model type that wants to make
+    use of this class should expose a `project` property on itself that returns
+    the Project to which it belongs.
 
     Rather than just returning a regular 403, this class throws an exception, so
     that it can provide a more specific error message and status code (HTTP 409 Conflict).

@@ -13,7 +13,7 @@ def default_evaluation_model_mapping():
     return {'ncanda-t1spgr-v1': 'MIQAT1-0', 'ncanda-mprage-v1': 'MIQAT1-0'}
 
 
-class Session(TimeStampedModel, models.Model):
+class Project(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=255)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)

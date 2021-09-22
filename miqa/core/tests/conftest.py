@@ -10,8 +10,8 @@ from .factories import (
     ExperimentFactory,
     ImageFactory,
     NoteFactory,
+    ProjectFactory,
     ScanFactory,
-    SessionFactory,
     SiteFactory,
     UserFactory,
 )
@@ -55,7 +55,7 @@ def sample_scans(samples_dir):
 register(AnnotationFactory)
 register(UserFactory)
 register(SiteFactory)
-register(SessionFactory)
+register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
 register(NoteFactory)
