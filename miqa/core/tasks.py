@@ -2,8 +2,9 @@ import json
 import os
 from pathlib import Path
 import re
-from typing import List
 
+from celery import shared_task
+from django.contrib.auth.models import User
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
@@ -22,30 +23,42 @@ from miqa.core.models import (
 )
 from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
-from miqa.learning.nn_classifier import evaluate1
+from miqa.learning.nn_classifier import evaluate_many
 
 
-def evaluate_data(images: List[Image], project: Project):
-    loaded_evaluation_models = {}
+@shared_task
+def evaluate_data(image_ids, project_id):
+    images = Image.objects.filter(pk__in=image_ids)
+    project = Project.objects.get(id=project_id)
+
+    model_to_images_map = {}
     for image in images:
-        scan_type = [image.scan.scan_type][0]
-        eval_model_name = project.evaluation_models[scan_type]
-        # only load the necessary models into memory once each
-        if eval_model_name not in loaded_evaluation_models:
-            loaded_evaluation_models[eval_model_name] = available_evaluation_models[
-                eval_model_name
-            ].load()
-        # perform evaluation on each
-        current_model = loaded_evaluation_models[eval_model_name]
-        evaluation = Evaluation(
-            image=image,
-            evaluation_model=eval_model_name,
-            results=evaluate1(current_model, str(image.raw_path)),
+        eval_model_name = project.evaluation_models[[image.scan.scan_type][0]]
+        if eval_model_name not in model_to_images_map:
+            model_to_images_map[eval_model_name] = []
+        model_to_images_map[eval_model_name].append(image)
+
+    for model_name, image_set in model_to_images_map.items():
+        current_model = available_evaluation_models[model_name].load()
+        results = evaluate_many(current_model, [str(image.raw_path) for image in image_set])
+
+        Evaluation.objects.bulk_create(
+            [
+                Evaluation(
+                    image=image,
+                    evaluation_model=model_name,
+                    results=results[str(image.raw_path)],
+                )
+                for image in image_set
+            ]
         )
-        evaluation.save()
 
 
-def import_data(user, project: Project):
+@shared_task
+def import_data(user_id, project_id):
+    user = User.objects.get(id=user_id)
+    project = Project.objects.get(id=project_id)
+
     if project.import_path.endswith('.csv'):
         with open(project.import_path) as fd:
             csv_content = fd.read()
@@ -126,10 +139,13 @@ def import_data(user, project: Project):
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
 
-    evaluate_data(images, project)
+    evaluate_data.delay([image.id for image in images], project.id)
 
 
-def export_data(user, project: Project):
+@shared_task
+def export_data(project_id):
+    project = Project.objects.get(id=project_id)
+
     data_root = None
     experiments = []
     scans = []
