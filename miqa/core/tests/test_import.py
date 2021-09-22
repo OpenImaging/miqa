@@ -77,7 +77,7 @@ def test_import_csv(tmp_path, user, project_factory, sample_scans, authenticated
 
     project = project_factory(import_path=csv_file)
 
-    import_data(user, project)
+    import_data(user.id, project.id)
     # Test that the API import succeeds
     resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
     assert resp.status_code == 204
@@ -98,7 +98,7 @@ def test_import_json(
 
     project = project_factory(import_path=json_file)
 
-    import_data(user, project)
+    import_data(user.id, project.id)
 
     # Test that the API import succeeds
     resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
@@ -110,7 +110,7 @@ def test_import_invalid_extension(user, project_factory):
     invalid_file = '/foo/bar.txt'
     project = project_factory(import_path=invalid_file)
     with pytest.raises(ValidationError, match=f'Invalid import file {invalid_file}'):
-        import_data(user, project)
+        import_data(user.id, project.id)
 
 
 @pytest.mark.django_db
@@ -138,7 +138,7 @@ def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans)
     project = project_factory(import_path=csv_file)
 
     with pytest.raises(ValueError, match='empty separator'):
-        import_data(user, project)
+        import_data(user.id, project.id)
 
 
 @pytest.mark.django_db
@@ -166,4 +166,4 @@ def test_import_invalid_json(
             "666 is not of type 'string'\n\nFailed validating 'type' in schema['properties']['scans']['items']['properties']['site_id']:\n    {'type': 'string'}\n\nOn instance['scans'][0]['site_id']:\n    666"  # noqa: E501
         ),
     ):
-        import_data(user, project)
+        import_data(user.id, project.id)
