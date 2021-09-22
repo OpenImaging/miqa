@@ -12,9 +12,9 @@ from miqa.core.rest import (
     HomePageView,
     ImageViewSet,
     LogoutView,
+    ProjectViewSet,
     ScanNoteViewSet,
     ScanViewSet,
-    ProjectViewSet,
     SiteViewSet,
     UserViewSet,
 )
