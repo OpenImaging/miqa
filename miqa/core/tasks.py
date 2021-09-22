@@ -16,9 +16,9 @@ from miqa.core.models import (
     Evaluation,
     Experiment,
     Image,
+    Project,
     Scan,
     ScanNote,
-    Session,
     Site,
 )
 from miqa.core.schema.data_import import schema
@@ -27,13 +27,13 @@ from miqa.learning.nn_classifier import evaluate_many
 
 
 @shared_task
-def evaluate_data(image_ids, session_id):
+def evaluate_data(image_ids, project_id):
     images = Image.objects.filter(pk__in=image_ids)
-    session = Session.objects.get(id=session_id)
+    project = Project.objects.get(id=project_id)
 
     model_to_images_map = {}
     for image in images:
-        eval_model_name = session.evaluation_models[[image.scan.scan_type][0]]
+        eval_model_name = project.evaluation_models[[image.scan.scan_type][0]]
         if eval_model_name not in model_to_images_map:
             model_to_images_map[eval_model_name] = []
         model_to_images_map[eval_model_name].append(image)
@@ -55,21 +55,21 @@ def evaluate_data(image_ids, session_id):
 
 
 @shared_task
-def import_data(user_id, session_id):
+def import_data(user_id, project_id):
     user = User.objects.get(id=user_id)
-    session = Session.objects.get(id=session_id)
+    project = Project.objects.get(id=project_id)
 
-    if session.import_path.endswith('.csv'):
-        with open(session.import_path) as fd:
+    if project.import_path.endswith('.csv'):
+        with open(project.import_path) as fd:
             csv_content = fd.read()
             json_content = csvContentToJsonObject(csv_content)
             validate(json_content, schema)
-    elif session.import_path.endswith('.json'):
-        with open(session.import_path) as json_file:
+    elif project.import_path.endswith('.json'):
+        with open(project.import_path) as json_file:
             json_content = json.load(json_file)
             validate(json_content, schema)
     else:
-        raise ValidationError(f'Invalid import file {session.import_path}')
+        raise ValidationError(f'Invalid import file {project.import_path}')
 
     data_root = Path(json_content['data_root'])
 
@@ -78,10 +78,10 @@ def import_data(user_id, session_id):
         for site in json_content['sites']
     }
 
-    Experiment.objects.filter(session=session).delete()  # cascades to scans -> images, scan_notes
+    Experiment.objects.filter(project=project).delete()  # cascades to scans -> images, scan_notes
 
     experiments = {
-        e['id']: Experiment(name=e['id'], note=e['note'], session=session)
+        e['id']: Experiment(name=e['id'], note=e['note'], project=project)
         for e in json_content['experiments']
     }
     Experiment.objects.bulk_create(experiments.values())
@@ -139,19 +139,19 @@ def import_data(user_id, session_id):
     ScanNote.objects.bulk_create(notes)
     Annotation.objects.bulk_create(annotations)
 
-    evaluate_data.delay([image.id for image in images], session.id)
+    evaluate_data.delay([image.id for image in images], project.id)
 
 
 @shared_task
-def export_data(session_id):
-    session = Session.objects.get(id=session_id)
+def export_data(project_id):
+    project = Project.objects.get(id=project_id)
 
     data_root = None
     experiments = []
     scans = []
     sites = set()
 
-    for experiment in session.experiments.all():
+    for experiment in project.experiments.all():
         experiments.append(
             {
                 'id': experiment.name,
@@ -208,11 +208,11 @@ def export_data(session_id):
         'sites': [{'name': site} for site in sites],
     }
 
-    if session.export_path.endswith('.csv'):
-        with open(session.export_path, 'w') as csv_file:
+    if project.export_path.endswith('.csv'):
+        with open(project.export_path, 'w') as csv_file:
             csv_content = jsonObjectToCsvContent(json_content)
             csv_file.write(csv_content.getvalue())
     else:
         # Assume JSON
-        with open(session.export_path, 'w') as json_file:
+        with open(project.export_path, 'w') as json_file:
             json_file.write(json.dumps(json_content, indent=4))

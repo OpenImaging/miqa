@@ -86,7 +86,7 @@ function getData(id, file, webWorker = null) {
               .getRange();
             datasetCache.set(id, { imageData });
             // eslint-disable-next-line no-use-before-define
-            expandSessionRange(id, dataRange);
+            expandProjectRange(id, dataRange);
             resolve({ imageData, webWorker });
           })
           .catch((error) => {
@@ -190,9 +190,9 @@ const initState = {
   drawer: false,
   experimentIds: [],
   experiments: {},
-  experimentSessions: {},
-  sessions: {},
-  sessionDatasets: {},
+  experimentProjects: {},
+  projects: {},
+  projectDatasets: {},
   datasets: {},
   proxyManager: null,
   vtkViews: [],
@@ -203,8 +203,8 @@ const initState = {
   currentScreenshot: null,
   screenshots: [],
   sites: null,
-  sessionCachedPercentage: 0,
-  sessionStatus: null,
+  projectCachedPercentage: 0,
+  projectStatus: null,
 };
 
 const {
@@ -241,41 +241,41 @@ const {
         return state.datasets[datasetId];
       };
     },
-    currentSession(state, getters) {
+    currentProject(state, getters) {
       if (getters.currentDataset) {
-        const curSessionId = getters.currentDataset.session;
-        return state.sessions[curSessionId];
+        const curProjectId = getters.currentDataset.project;
+        return state.projects[curProjectId];
       }
       return null;
     },
     currentExperiment(state, getters) {
-      if (getters.currentSession) {
-        const curExperimentId = getters.currentSession.experiment;
+      if (getters.currentProject) {
+        const curExperimentId = getters.currentProject.experiment;
         return state.experiments[curExperimentId];
       }
       return null;
     },
     experimentDatasets(state) {
       return (expId) => {
-        const experimentSessions = state.experimentSessions[expId];
+        const experimentProjects = state.experimentProjects[expId];
         const expDatasets = [];
-        experimentSessions.forEach((sessionId) => {
-          const sessionDatasets = state.sessionDatasets[sessionId];
-          sessionDatasets.forEach((datasetId) => {
+        experimentProjects.forEach((projectId) => {
+          const projectDatasets = state.projectDatasets[projectId];
+          projectDatasets.forEach((datasetId) => {
             expDatasets.push(datasetId);
           });
         });
         return expDatasets;
       };
     },
-    firstDatasetInPreviousSession(state, getters) {
+    firstDatasetInPreviousProject(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInPreviousSession
+        ? getters.currentDataset.firstDatasetInPreviousProject
         : null;
     },
-    firstDatasetInNextSession(state, getters) {
+    firstDatasetInNextProject(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInNextSession
+        ? getters.currentDataset.firstDatasetInNextProject
         : null;
     },
     firstDatasetInPreviousExeriment(state, getters) {
@@ -283,9 +283,9 @@ const {
         const expIdx = getters.currentExperiment.index;
         if (expIdx >= 1) {
           const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
-          const prevExpSessions = state.experimentSessions[prevExp.id];
-          const prevExpSessionDatasets = state.sessionDatasets[prevExpSessions[0].id];
-          return prevExpSessionDatasets[0];
+          const prevExpProjects = state.experimentProjects[prevExp.id];
+          const prevExpProjectDatasets = state.projectDatasets[prevExpProjects[0].id];
+          return prevExpProjectDatasets[0];
         }
       }
       return null;
@@ -295,9 +295,9 @@ const {
         const expIdx = getters.currentExperiment.index;
         if (expIdx < state.experimentIds.length - 1) {
           const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
-          const nextExpSessions = state.experimentSessions[nextExp.id];
-          const nextExpSessionDatasets = state.sessionDatasets[nextExpSessions[0].id];
-          return nextExpSessionDatasets[0];
+          const nextExpProjects = state.experimentProjects[nextExp.id];
+          const nextExpProjectDatasets = state.projectDatasets[nextExpProjects[0].id];
+          return nextExpProjectDatasets[0];
         }
       }
       return null;
@@ -330,12 +330,12 @@ const {
     reset(state) {
       Object.assign(state, { ...state, ...initState });
     },
-    resetSession(state) {
+    resetProject(state) {
       state.experimentIds = [];
       state.experiments = {};
-      state.experimentSessions = {};
-      state.sessions = {};
-      state.sessionDatasets = {};
+      state.experimentProjects = {};
+      state.projects = {};
+      state.projectDatasets = {};
       state.datasets = {};
     },
     setCurrentImageId(state, imageId) {
@@ -348,8 +348,8 @@ const {
     },
     setScan(state, { scanId, scan }) {
       // Replace with a new object to trigger a Vuex update
-      state.sessions = { ...state.sessions };
-      state.sessions[scanId] = scan;
+      state.projects = { ...state.projects };
+      state.projects[scanId] = scan;
     },
     setDrawer(state, value: boolean) {
       state.drawer = value;
@@ -375,15 +375,15 @@ const {
     setSites(state, sites) {
       state.sites = sites;
     },
-    addSessionDatasets(state, { sid, id }) {
-      state.sessionDatasets[sid].push(id);
+    addProjectDatasets(state, { sid, id }) {
+      state.projectDatasets[sid].push(id);
     },
-    addExperimentSessions(state, { eid, sid }) {
-      state.sessionDatasets[sid] = [];
-      state.experimentSessions[eid].push(sid);
+    addExperimentProjects(state, { eid, sid }) {
+      state.projectDatasets[sid] = [];
+      state.experimentProjects[eid].push(sid);
     },
     addExperiment(state, { id, value }) {
-      state.experimentSessions[id] = [];
+      state.experimentProjects[id] = [];
       state.experimentIds.push(id);
       state.experiments[id] = value;
     },
@@ -392,11 +392,11 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    resetSessionDatasets(state, id) {
-      state.sessionDatasets[id] = [];
+    resetProjectDatasets(state, id) {
+      state.projectDatasets[id] = [];
     },
-    setSessionCachedPercentage(state, percentComplete) {
-      state.sessionCachedPercentage = percentComplete;
+    setProjectCachedPercentage(state, percentComplete) {
+      state.projectCachedPercentage = percentComplete;
     },
     startLoadingExperiment(state) {
       state.loadingExperiment = true;
@@ -438,14 +438,14 @@ const {
         });
       }
 
-      const numSessions = state.experimentSessions[experimentID].length + 1;
+      const numProjects = state.experimentProjects[experimentID].length + 1;
 
-      commit('addExperimentSessions', { eid: experimentID, sid: scanID });
+      commit('addExperimentProjects', { eid: experimentID, sid: scanID });
       commit('setScan', {
         scanId: scanID,
         scan: {
           id: scanID,
-          name: `local-${numSessions}`,
+          name: `local-${numProjects}`,
           experiment: experimentID,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
           numDatasets: files.length,
@@ -461,20 +461,20 @@ const {
         const imageID = uuid();
         const f = files[k];
 
-        commit('addSessionDatasets', { sid: scanID, id: imageID });
+        commit('addProjectDatasets', { sid: scanID, id: imageID });
         commit('setImage', {
           imageId: imageID,
           image: {
             ...f,
             id: imageID,
-            session: scanID,
+            project: scanID,
             experiment: experimentID,
             index: k,
             previousDataset: prevId,
             // TODO link properly
             // nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-            // firstDatasetInPreviousSession: firstInPrev,
-            // firstDatasetInNextSession: nextScan ? nextScan.id : null,
+            // firstDatasetInPreviousProject: firstInPrev,
+            // firstDatasetInNextProject: nextScan ? nextScan.id : null,
             local: true,
           },
         });
@@ -493,29 +493,29 @@ const {
       // Replace with a new object to trigger a Vuex update
       state.datasets = { ...state.datasets };
 
-      dispatch('swapToDataset', state.datasets[state.sessionDatasets[scanID][0]]);
+      dispatch('swapToDataset', state.datasets[state.projectDatasets[scanID][0]]);
     },
-    async loadSession({ commit }, session) {
-      commit('resetSession');
+    async loadProject({ commit }, project) {
+      commit('resetProject');
 
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
 
-      if (session) {
-        // load first available session
-        session = await djangoRest.session(session.id);
+      if (project) {
+        // load first available project
+        project = await djangoRest.project(project.id);
       } else {
-        // no sessions: can't load any
+        // no projects: can't load any
         return;
       }
 
       // place data in state
-      const { experiments } = session;
+      const { experiments } = project;
 
       for (let i = 0; i < experiments.length; i += 1) {
         const experiment = experiments[i];
-        // set experimentSessions[experiment.id] before registering the experiment.id
-        // so SessionsView doesn't update prematurely
+        // set experimentProjects[experiment.id] before registering the experiment.id
+        // so ProjectsView doesn't update prematurely
         commit('addExperiment', {
           id: experiment.id,
           value: {
@@ -526,13 +526,13 @@ const {
           },
         });
 
-        // Web sessions == Django scans
+        // Web projects == Django scans
         // TODO these requests *can* be run in parallel, or collapsed into one XHR
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
-          commit('addExperimentSessions', { eid: experiment.id, sid: scan.id });
+          commit('addExperimentProjects', { eid: experiment.id, sid: scan.id });
 
           // Web datasets == Django images
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
@@ -559,18 +559,18 @@ const {
 
           for (let k = 0; k < images.length; k += 1) {
             const image = images[k];
-            commit('addSessionDatasets', { sid: scan.id, id: image.id });
+            commit('addProjectDatasets', { sid: scan.id, id: image.id });
             commit('setImage', {
               imageId: image.id,
               image: {
                 ...image,
-                session: scan.id,
+                project: scan.id,
                 experiment: experiment.id,
                 index: k,
                 previousDataset: k > 0 ? images[k - 1].id : null,
                 nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-                firstDatasetInPreviousSession: firstInPrev,
-                firstDatasetInNextSession: nextScan ? nextScan.id : null,
+                firstDatasetInPreviousProject: firstInPrev,
+                firstDatasetInNextProject: nextScan ? nextScan.id : null,
               },
             });
           }
@@ -585,14 +585,14 @@ const {
         }
       }
     },
-    // This would be called reloadSession, but session is being renamed to scan
+    // This would be called reloadProject, but project is being renamed to scan
     async reloadScan({ commit, getters }) {
       const currentImage = getters.currentDataset;
       // No need to reload if the image doesn't exist or doesn't exist on the server
       if (!currentImage || currentImage.local) {
         return;
       }
-      const scanId = currentImage.session;
+      const scanId = currentImage.project;
       if (!scanId) {
         return;
       }
@@ -629,12 +629,12 @@ const {
       }
       commit('setLoadingDataset', true);
       commit('setErrorLoadingDataset', false);
-      const oldSession = getters.currentSession;
-      const newSession = state.sessions[dataset.session];
+      const oldProject = getters.currentProject;
+      const newProject = state.projects[dataset.project];
       const oldExperiment = getters.currentExperiment
         ? getters.currentExperiment
         : null;
-      const newExperimentId = state.sessions[dataset.session].experiment;
+      const newExperimentId = state.projects[dataset.project].experiment;
       const newExperiment = state.experiments[newExperimentId];
 
       // Check if we should cancel the currently loading experiment
@@ -649,9 +649,9 @@ const {
       }
 
       let newProxyManager = false;
-      if (oldSession !== newSession && state.proxyManager) {
+      if (oldProject !== newProject && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
-        // "sessions" (a.k.a "scans"), then we can end up with no image
+        // "projects" (a.k.a "scans"), then we can end up with no image
         // slices displayed, even though we have the data and attempted
         // to render it.  This may be due to image extents changing between
         // scans, which is not the case from one timestep of a single scan
@@ -757,7 +757,7 @@ const {
   },
 });
 
-// cache datasets associated with sessions of current experiment
+// cache datasets associated with projects of current experiment
 function checkLoadExperiment(oldValue, newValue) {
   if (
     !newValue
@@ -768,10 +768,10 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   if (oldValue) {
-    const oldExperimentSessions = store.state.experimentSessions[oldValue.id];
-    oldExperimentSessions.forEach((sessionId) => {
-      const sessionDatasets = store.state.sessionDatasets[sessionId];
-      sessionDatasets.forEach((datasetId) => {
+    const oldExperimentProjects = store.state.experimentProjects[oldValue.id];
+    oldExperimentProjects.forEach((projectId) => {
+      const projectDatasets = store.state.projectDatasets[projectId];
+      projectDatasets.forEach((datasetId) => {
         fileCache.delete(datasetId);
         datasetCache.delete(datasetId);
       });
@@ -779,15 +779,15 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   readDataQueue = [];
-  const newExperimentSessions = store.state.experimentSessions[newValue.id];
-  newExperimentSessions.forEach((sessionId) => {
-    const sessionDatasets = store.state.sessionDatasets[sessionId];
-    sessionDatasets.forEach((datasetId) => {
+  const newExperimentProjects = store.state.experimentProjects[newValue.id];
+  newExperimentProjects.forEach((projectId) => {
+    const projectDatasets = store.state.projectDatasets[projectId];
+    projectDatasets.forEach((datasetId) => {
       readDataQueue.push({
-        // TODO don't hardcode sessionId
-        sessionId: 1,
+        // TODO don't hardcode projectId
+        projectId: 1,
         experimentId: newValue.id,
-        scanId: sessionId,
+        scanId: projectId,
         imageId: datasetId,
       });
     });
@@ -797,7 +797,7 @@ function checkLoadExperiment(oldValue, newValue) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit.setSessionCachedPercentage(percentComplete);
+  store.commit.setProjectCachedPercentage(percentComplete);
 }
 
 function startReaderWorkerPool() {
@@ -832,15 +832,15 @@ function startReaderWorkerPool() {
     });
 }
 
-function expandSessionRange(datasetId, dataRange) {
+function expandProjectRange(datasetId, dataRange) {
   if (datasetId in store.state.datasets) {
-    const sessionId = store.state.datasets[datasetId].session;
-    const session = store.state.sessions[sessionId];
-    if (dataRange[0] < session.cumulativeRange[0]) {
-      [session.cumulativeRange[0]] = dataRange;
+    const projectId = store.state.datasets[datasetId].project;
+    const project = store.state.projects[projectId];
+    if (dataRange[0] < project.cumulativeRange[0]) {
+      [project.cumulativeRange[0]] = dataRange;
     }
-    if (dataRange[1] > session.cumulativeRange[1]) {
-      [, session.cumulativeRange[1]] = dataRange;
+    if (dataRange[1] > project.cumulativeRange[1]) {
+      [, project.cumulativeRange[1]] = dataRange;
     }
   }
 }

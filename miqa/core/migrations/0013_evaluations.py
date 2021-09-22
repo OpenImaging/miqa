@@ -5,7 +5,9 @@ import uuid
 from django.db import migrations, models
 import django.db.models.deletion
 
-import miqa.core.models.session
+
+def default_evaluation_model_mapping():
+    return {'ncanda-t1spgr-v1': 'MIQAT1-0', 'ncanda-mprage-v1': 'MIQAT1-0'}
 
 
 class Migration(migrations.Migration):
@@ -24,9 +26,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='session',
             name='evaluation_models',
-            field=models.JSONField(
-                default=miqa.core.models.session.default_evaluation_model_mapping
-            ),
+            field=models.JSONField(default=default_evaluation_model_mapping),
         ),
         migrations.AlterField(
             model_name='scan',

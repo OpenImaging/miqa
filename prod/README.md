@@ -57,15 +57,15 @@ If you have problems logging in, you can reconfigure the OAuth Application from 
 * Click `miqa-client`.
 
 
-### Set up default session
-Although there are plans to support multiple sessions, currently the web client only supports one.
-This session must still be created manually:
+### Set up default project
+Although there are plans to support multiple projects, currently the web client only supports one.
+This project must still be created manually:
 ```
 docker-compose run --rm django ./manage.py populate --username super.user@miqa.com --csv /path/to/your/import.csv
 ```
 This command will also attempt to import from the specified CSV file.
 If the CSV file is invalid, it will fail and throw an error message.
-However, the default session was still created, so there is no need to rerun the command.
+However, the default project was still created, so there is no need to rerun the command.
 You will be able to reconfigure and retry the import through the web UI once that is set up.
 
 ### Test login

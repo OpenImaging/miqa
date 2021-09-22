@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session
+from miqa.core.models import Annotation, Experiment, Image, Project, Scan, ScanNote
 from miqa.core.tasks import export_data, import_data
 
 
@@ -58,62 +58,62 @@ class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = ['id', 'name', 'lock_owner', 'scans']
-        ref_name = 'session_experiment'
+        ref_name = 'project_experiment'
 
     scans = ScanSerializer(many=True)
     lock_owner = LockOwnerSerializer()
 
 
-class SessionRetrieveSerializer(serializers.ModelSerializer):
+class ProjectRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['id', 'name', 'experiments']
-        ref_name = 'session'
+        ref_name = 'project'
 
     experiments = ExperimentSerializer(many=True)
 
 
-class SessionSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['id', 'name']
-        ref_name = 'sessions'
+        ref_name = 'projects'
 
 
-class SessionSettingsSerializer(serializers.ModelSerializer):
+class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Session
+        model = Project
         fields = ['importPath', 'exportPath']
 
     importPath = serializers.CharField(source='import_path')  # noqa: N815
     exportPath = serializers.CharField(source='export_path')  # noqa: N815
 
 
-class SessionViewSet(ReadOnlyModelViewSet):
+class ProjectViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         if self.action == 'retrieve':
-            return Session.objects.prefetch_related(
+            return Project.objects.prefetch_related(
                 'experiments__scans__images', 'experiments__scans__notes'
             )
         else:
-            return Session.objects.all()
+            return Project.objects.all()
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return SessionRetrieveSerializer
+            return ProjectRetrieveSerializer
         else:
-            return SessionSerializer
+            return ProjectSerializer
 
     @swagger_auto_schema(
         method='GET',
-        responses={200: SessionSettingsSerializer()},
+        responses={200: ProjectSettingsSerializer()},
     )
     @swagger_auto_schema(
         method='PUT',
-        request_body=SessionSettingsSerializer(),
-        responses={200: SessionSettingsSerializer()},
+        request_body=ProjectSettingsSerializer(),
+        responses={200: ProjectSettingsSerializer()},
     )
     @action(
         detail=True,
@@ -123,16 +123,16 @@ class SessionViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
-        session: Session = self.get_object()
+        project: Project = self.get_object()
         if request.method == 'GET':
-            serializer = SessionSettingsSerializer(instance=session)
+            serializer = ProjectSettingsSerializer(instance=project)
         elif request.method == 'PUT':
-            serializer = SessionSettingsSerializer(data=request.data)
+            serializer = ProjectSettingsSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            session.import_path = serializer.data['importPath']
-            session.export_path = serializer.data['exportPath']
-            session.full_clean()
-            session.save()
+            project.import_path = serializer.data['importPath']
+            project.export_path = serializer.data['exportPath']
+            project.full_clean()
+            project.save()
         return Response(serializer.data)
 
     @swagger_auto_schema(
@@ -141,10 +141,10 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
-        session: Session = self.get_object()
+        project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
-        import_data.delay(request.user.id, session.id)
+        import_data.delay(request.user.id, project.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -154,9 +154,9 @@ class SessionViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
-        session: Session = self.get_object()
+        project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
-        export_data(session.id)
+        export_data(project.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

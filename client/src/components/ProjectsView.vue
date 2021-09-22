@@ -5,7 +5,7 @@ import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import { API_URL } from '../constants';
 
 export default {
-  name: 'SessionsView',
+  name: 'ProjectsView',
   components: { ExperimentLockIcon },
   props: {
     minimal: {
@@ -20,13 +20,13 @@ export default {
     ...mapState([
       'experiments',
       'experimentIds',
-      'experimentSessions',
+      'experimentProjects',
       'loadingExperiment',
-      'sessions',
-      'sessionDatasets',
+      'projects',
+      'projectDatasets',
       'datasets',
     ]),
-    ...mapGetters(['currentSession', 'currentExperiment']),
+    ...mapGetters(['currentProject', 'currentExperiment']),
     orderedExperiments() {
       const allExperiments = this.experiments;
       return this.experimentIds.map((expId) => allExperiments[expId]);
@@ -41,18 +41,18 @@ export default {
     },
   },
   methods: {
-    sessionsForExperiment(expId) {
-      const expSessionIds = this.experimentSessions[expId];
-      return expSessionIds.map((sessionId) => {
-        const scan = this.sessions[sessionId];
+    projectsForExperiment(expId) {
+      const expProjectIds = this.experimentProjects[expId];
+      return expProjectIds.map((projectId) => {
+        const scan = this.projects[projectId];
         return {
           ...scan,
           ...this.decisionToRating(scan.decisions),
         };
       });
     },
-    getIdOfFirstDatasetInSession(sessionId) {
-      return `${this.sessionDatasets[sessionId][0]}`;
+    getIdOfFirstDatasetInProject(projectId) {
+      return `${this.projectDatasets[projectId][0]}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
@@ -85,7 +85,7 @@ export default {
 </script>
 
 <template>
-  <div class="sessions-view">
+  <div class="projects-view">
     <ul
       v-if="orderedExperiments && orderedExperiments.length"
       class="experiment"
@@ -117,27 +117,27 @@ export default {
         </v-card>
         <ul class="scans">
           <li
-            v-for="session of sessionsForExperiment(experiment.id)"
-            :key="`s.${session.id}`"
+            v-for="project of projectsForExperiment(experiment.id)"
+            :key="`s.${project.id}`"
             :class="{
-              current: session === currentSession
+              current: project === currentProject
             }"
             class="body-1"
           >
             <v-btn
-              :to="getIdOfFirstDatasetInSession(session.id)"
+              :to="getIdOfFirstDatasetInProject(project.id)"
               class="ml-0 px-1 scan-name"
               href
               text
               small
               active-class=""
             >
-              {{ session.name }}
+              {{ project.name }}
               <span
-                v-if="session.decisions.length !== 0"
-                :class="session.css"
+                v-if="project.decisions.length !== 0"
+                :class="project.css"
                 small
-              >&nbsp;&nbsp;({{ session.decision }})</span>
+              >&nbsp;&nbsp;({{ project.decision }})</span>
             </v-btn>
           </li>
         </ul>
@@ -147,7 +147,7 @@ export default {
       v-else
       class="text-xs-center body-2"
     >
-      No imported sessions
+      No imported projects
     </div>
   </div>
 </template>
@@ -171,7 +171,7 @@ ul.scans {
 </style>
 
 <style lang="scss">
-.sessions-view .scan-name .v-btn__content {
+.projects-view .scan-name .v-btn__content {
   text-transform: none;
 }
 </style>
