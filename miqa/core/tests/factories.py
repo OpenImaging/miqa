@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Annotation, Experiment, Image, Scan, ScanNote, Session, Site
+from miqa.core.models import Annotation, Experiment, Image, Project, Scan, ScanNote, Site
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -24,9 +24,9 @@ class SiteFactory(factory.django.DjangoModelFactory):
     creator = factory.SubFactory(UserFactory)
 
 
-class SessionFactory(factory.django.DjangoModelFactory):
+class ProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Session
+        model = Project
 
     id = factory.Faker('uuid4')
     name = factory.Faker('word')
@@ -45,7 +45,7 @@ class ExperimentFactory(factory.django.DjangoModelFactory):
     name = factory.Faker('word')
     note = factory.Faker('sentence')
 
-    session = factory.SubFactory(SessionFactory)
+    project = factory.SubFactory(ProjectFactory)
 
 
 class ScanFactory(factory.django.DjangoModelFactory):

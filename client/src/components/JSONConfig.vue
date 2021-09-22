@@ -1,16 +1,16 @@
 <script lang="ts">
 import { defineComponent, inject, ref } from '@vue/composition-api';
 import djangoRest from '@/django';
-import { Session } from '@/types';
+import { Project } from '@/types';
 
 export default defineComponent({
   name: 'JSONConfig',
   setup() {
-    const mainSession = inject('mainSession') as Session;
+    const mainProject = inject('mainProject') as Project;
 
     const importPath = ref('');
     const exportPath = ref('');
-    djangoRest.settings(mainSession.id).then((settings) => {
+    djangoRest.settings(mainProject.id).then((settings) => {
       importPath.value = settings.importPath;
       exportPath.value = settings.exportPath;
     });
@@ -25,7 +25,7 @@ export default defineComponent({
         return;
       }
       try {
-        await djangoRest.setSettings(mainSession.id, {
+        await djangoRest.setSettings(mainProject.id, {
           importPath: importPath.value,
           exportPath: exportPath.value,
         });
@@ -45,7 +45,7 @@ export default defineComponent({
     }
 
     return {
-      mainSession,
+      mainProject,
       importPath,
       exportPath,
       changed,

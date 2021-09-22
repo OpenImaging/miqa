@@ -1,13 +1,13 @@
 from django.contrib.auth.models import User
 import djclick as click
 
-from miqa.core.models import Session
-from miqa.core.rest.session import import_data
+from miqa.core.models import Project
+from miqa.core.rest.project import import_data
 
 
 @click.command()
 @click.option('--csv', type=click.Path(exists=True))
-@click.option('--username', type=click.STRING, help='username for session creator')
+@click.option('--username', type=click.STRING, help='username for project creator')
 def command(csv, username):
 
     if username:
@@ -18,8 +18,8 @@ def command(csv, username):
 
         user = User.objects.first()
 
-    session = Session.objects.create(
+    project = Project.objects.create(
         name='miqa-dev', import_path=csv, export_path='.', creator=user
     )
 
-    import_data(user.id, session.id)
+    import_data(user.id, project.id)

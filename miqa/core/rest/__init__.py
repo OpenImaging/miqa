@@ -4,9 +4,9 @@ from .experiment import ExperimentViewSet
 from .home import HomePageView
 from .image import ImageViewSet
 from .logout import LogoutView
+from .project import ProjectViewSet
 from .scan import ScanViewSet
 from .scan_note import ScanNoteViewSet
-from .session import SessionViewSet
 from .site import SiteViewSet
 from .user import UserViewSet
 
@@ -15,9 +15,9 @@ __all__ = [
     'HomePageView',
     'ImageViewSet',
     'LogoutView',
+    'ProjectViewSet',
     'ScanNoteViewSet',
     'ScanViewSet',
-    'SessionViewSet',
     'SiteViewSet',
     'UserViewSet',
     'AnnotationViewSet',
