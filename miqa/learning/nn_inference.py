@@ -77,7 +77,7 @@ def get_model(file_path=None):
     model = TiledClassifier(
         in_shape=(1, 64, 64, 64),
         classes=regression_count + len(artifacts),
-        channels=(2, 4, 8, 16),
+        channels=(4, 8, 16, 32),
         strides=(2, 2, 2, 2),
         dropout=0.1,
     )
