@@ -125,3 +125,5 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/django
+samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti/2_ncanda-mprage-v1/image.nii.gz.zarrsamples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti/2_ncanda-mprage-v1/image.nii.gz.zarr
+samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti/2_ncanda-mprage-v1/image.nii.gz.zarr
