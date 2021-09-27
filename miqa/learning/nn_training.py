@@ -426,7 +426,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
         only_evaluate=evaluate_only,
     )
 
-    logger.info('Image size distribution:\n', sizes)
+    logger.info('Image size distribution:\n' + str(sizes))
 
 
 if __name__ == '__main__':
