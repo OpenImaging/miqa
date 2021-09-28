@@ -8,6 +8,11 @@ services:
     ports:
       - ${DOCKER_POSTGRES_PORT-5432}:5432
 
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - ${DOCKER_RABBITMQ_PORT-5672}:5672
+
   django:
     build:
       context: ..
@@ -27,13 +32,13 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
     env_file: ./.env
     volumes:
       - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
@@ -41,3 +46,33 @@ services:
       - ${MIQA_SERVER_PORT}:8000
     depends_on:
       - postgres
+
+  celery:
+    build:
+      context: ..
+      dockerfile: ./prod/django.Dockerfile
+      args:
+        # Pass configuration variables to the build process so manage.py can be used
+        DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+        DJANGO_CONFIGURATION: ${DJANGO_CONFIGURATION}
+        DJANGO_DATABASE_URL: ${DJANGO_DATABASE_URL}
+        DJANGO_DEFAULT_FROM_EMAIL: ${DJANGO_DEFAULT_FROM_EMAIL}
+        DJANGO_EMAIL_URL: ${DJANGO_EMAIL_URL}
+        DJANGO_MIQA_URL_PREFIX: ${DJANGO_MIQA_URL_PREFIX}
+        DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+        VUE_APP_OAUTH_API_ROOT: ${VUE_APP_OAUTH_API_ROOT}
+    command: [
+      "celery",
+      "--app", "miqa.celery",
+      "worker",
+      "--loglevel", "INFO",
+      "--without-heartbeat"
+    ]
+    # Docker Compose does not set the TTY width, which causes Celery errors
+    tty: false
+    env_file: ./.env
+    volumes:
+      - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
+    depends_on:
+      - postgres
+      - rabbitmq
