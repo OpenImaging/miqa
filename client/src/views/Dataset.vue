@@ -13,15 +13,13 @@ import {
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
 import UserButton from '@/components/girder/UserButton.vue';
-import ExperimentsView from '@/components/ExperimentsView.vue';
-import WindowControl from '@/components/WindowControl.vue';
+import ProjectsView from '@/components/ProjectsView.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
 import EmailDialog from '@/components/EmailDialog.vue';
 import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
-import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import DataImportExport from '../components/DataImportExport.vue';
 import djangoRest from '@/django';
 
@@ -32,9 +30,7 @@ export default {
     UserButton,
     Layout,
     DataImportExport,
-    ExperimentLockIcon,
-    ExperimentsView,
-    WindowControl,
+    ProjectsView,
     ScreenshotDialog,
     EmailDialog,
     TimeoutDialog,
@@ -64,27 +60,32 @@ export default {
       'errorLoadingDataset',
       'drawer',
       'screenshots',
-      'scanCachedPercentage',
-      'scanDatasets',
+      'projectCachedPercentage',
+      'projectDatasets',
     ]),
     ...mapGetters([
       'nextDataset',
       'getDataset',
       'currentDataset',
-      'currentExperiment',
       'currentScan',
+      'currentExperiment',
+      'currentProject',
+      'previousExperiment',
+      'nextExperiment',
+      'currentExperimentPosition',
+      'currentScanPosition',
       'previousDataset',
-      'firstDatasetInPreviousScan',
-      'firstDatasetInNextScan',
+      'firstDatasetInPreviousProject',
+      'firstDatasetInNextProject',
       'getSiteDisplayName',
       'getExperimentDisplayName',
     ]),
-    currentScanDatasets() {
-      return this.scanDatasets[this.currentScan.id];
+    currentProjectDatasets() {
+      return this.projectDatasets[this.currentProject.id];
     },
     notes() {
-      if (this.currentScan) {
-        return this.currentScan.notes;
+      if (this.currentProject) {
+        return this.currentProject.notes;
       }
       return [];
     },
@@ -101,14 +102,27 @@ export default {
     },
   },
   watch: {
-    currentScan(scan) {
-      if (scan) {
-        const last = _.head(scan.decisions);
+    currentProject(project) {
+      if (project) {
+        const last = _.head(project.decisions);
         this.decision = last ? last.decision : null;
         this.decisionChanged = false;
         this.newNote = '';
       }
     },
+  },
+  mounted() {
+    window.addEventListener('keyup', (event) => {
+      if (event.key === 'ArrowUp') {
+        this.handleKeyPress('previous');
+      } else if (event.key === 'ArrowDown') {
+        this.handleKeyPress('next');
+      } else if (event.key === 'ArrowLeft') {
+        this.handleKeyPress('back');
+      } else if (event.key === 'ArrowRight') {
+        this.handleKeyPress('forward');
+      }
+    });
   },
   async created() {
     this.debouncedDatasetSliderChange = _.debounce(
@@ -127,14 +141,14 @@ export default {
   },
   async beforeRouteUpdate(to, from, next) {
     const toDataset = this.getDataset(to.params.datasetId);
-    const result = await this.beforeLeaveScan(toDataset);
+    const result = await this.beforeLeaveProject(toDataset);
     next(result);
     if (result && toDataset) {
       this.swapToDataset(toDataset);
     }
   },
   async beforeRouteLeave(to, from, next) {
-    const result = await this.beforeLeaveScan();
+    const result = await this.beforeLeaveProject();
     next(result);
   },
   methods: {
@@ -165,7 +179,7 @@ export default {
       this.scanning = false;
       console.log(`Caught navigation error (${failureType})`);
     },
-    beforeLeaveScan(toDataset) {
+    beforeLeaveProject(toDataset) {
       if (
         this.currentDataset
         && toDataset
@@ -180,12 +194,12 @@ export default {
     },
     async save() {
       if (this.newNote && this.newNote.trim()) {
-        await djangoRest.addScanNote(this.currentScan.id, this.newNote);
+        await djangoRest.addScanNote(this.currentProject.id, this.newNote);
         this.newNote = '';
       }
       if (this.decisionChanged) {
         await djangoRest.setDecision(
-          this.currentScan.id,
+          this.currentProject.id,
           this.decision,
         );
         this.decisionChanged = false;
@@ -221,21 +235,21 @@ export default {
       this.newNote = e;
     },
     async onDecisionChanged() {
-      const last = _.head(this.currentScan.decisions);
+      const last = _.head(this.currentProject.decisions);
       const lastDecision = last ? last.decision : null;
       if (this.decision && this.decision !== lastDecision) {
         this.decisionChanged = true;
         await this.save();
 
-        if (this.firstDatasetInNextScan) {
+        if (this.firstDatasetInNextProject) {
           const { currentDatasetId } = this;
 
           this.$router
-            .push(this.firstDatasetInNextScan)
+            .push(this.firstDatasetInNextProject)
             .catch(this.handleNavigationError);
 
           this.$snackbar({
-            text: 'Proceeded to next scan',
+            text: 'Proceeded to next project',
             button: 'Go back',
             timeout: 6000,
             immediate: true,
@@ -253,7 +267,7 @@ export default {
       e.preventDefault();
     },
     debouncedDatasetSliderChange(index) {
-      const datasetId = this.currentScanDatasets[index];
+      const datasetId = this.currentProjectDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
     updateImage() {
@@ -261,9 +275,17 @@ export default {
         this.$router
           .push(this.previousDataset ? this.previousDataset : '')
           .catch(this.handleNavigationError);
-      } else {
+      } else if (this.direction === 'forward') {
         this.$router
           .push(this.nextDataset ? this.nextDataset : '')
+          .catch(this.handleNavigationError);
+      } else if (this.direction === 'previous') {
+        this.$router
+          .push(this.previousExperiment ? this.previousExperiment : '')
+          .catch(this.handleNavigationError);
+      } else if (this.direction === 'next') {
+        this.$router
+          .push(this.nextExperiment ? this.nextExperiment : '')
           .catch(this.handleNavigationError);
       }
     },
@@ -272,6 +294,11 @@ export default {
         this.updateImage();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
+    },
+    handleKeyPress(direction) {
+      console.log(this.direction);
+      this.direction = direction;
+      this.updateImage();
     },
     handleMouseDown(direction) {
       if (!this.scanning) {
@@ -348,7 +375,7 @@ export default {
       temporary
       width="350"
     >
-      <div class="scans-bar">
+      <div class="projects-bar">
         <v-toolbar
           dense
           flat
@@ -357,7 +384,7 @@ export default {
           <v-toolbar-title>Experiments</v-toolbar-title>
         </v-toolbar>
         <DataImportExport />
-        <ExperimentsView
+        <ProjectsView
           class="mt-1"
           minimal
         />
@@ -404,70 +431,196 @@ export default {
           <v-layout>
             <v-flex
               xs4
-              class="mx-2"
+              class="mx-1"
               style="display:flex;flex-direction:column;"
             >
-              <v-layout align-center>
-                <v-flex shrink>
-                  <v-btn
-                    v-mousetrap="{
-                      bind: 'left',
-                      disabled:
-                        !previousDataset || unsavedDialog || loadingDataset,
-                      handler: {
-                        keydown: function() {
-                          handleMouseDown('back');
-                        },
-                        keyup: handleMouseUp
-                      }
-                    }"
-                    :disabled="!previousDataset"
-                    @mousedown="handleMouseDown('back')"
-                    @mouseup="handleMouseUp()"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
-                  >
-                    <v-icon>keyboard_arrow_left</v-icon>
-                  </v-btn>
-                </v-flex>
-                <v-flex style="text-align: center;">
-                  <span>{{ currentDataset.index + 1 }} of
-                    {{ currentScanDatasets.length }}</span>
-                </v-flex>
-                <v-flex shrink>
-                  <v-btn
-                    v-mousetrap="{
-                      bind: 'right',
-                      disabled: !nextDataset || unsavedDialog || loadingDataset,
-                      handler: {
-                        keydown: function() {
-                          handleMouseDown('forward');
-                        },
-                        keyup: handleMouseUp
-                      }
-                    }"
-                    :disabled="!nextDataset"
-                    @mousedown="handleMouseDown('forward')"
-                    @mouseup="handleMouseUp()"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
-                  >
-                    <v-icon>chevron_right</v-icon>
-                  </v-btn>
-                </v-flex>
+              <v-card elevation="5">
+                <v-container class="panel-label">
+                  EXPERIMENT INFORMATION
+                </v-container>
+                <v-container>
+                  <v-simple-table dense>
+                    <tbody>
+                      <tr>
+                        <td>Site</td>
+                        <td align="right">
+                          <!-- TODO: Display name of this site -->
+                          {{ currentProject.site }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Experiment</td>
+                        <td align="right">
+                          {{ currentExperiment.name }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="vertical-align:top; padding:5px 15px">
+                          Scan
+                        </td>
+                        <td
+                          align="center"
+                          style="width:99%"
+                        >
+                          <div
+                            tabindex="0"
+                            class="d-flex justify-center"
+                          >
+                            <v-row
+                              no-gutters
+                              justify="center"
+                              style="flex-wrap: nowrap;"
+                            >
+                              <v-col
+                                cols="1"
+                                class="flex-grow-0 flex-shrink-0 "
+                              >
+                                <v-btn
+                                  :disabled="!previousExperiment"
+                                  @mousedown="handleMouseDown('previous')"
+                                  @mouseup="handleMouseUp()"
+                                  fab
+                                  small
+                                  depressed
+                                  color="white"
+                                >
+                                  <v-icon>fa-caret-up</v-icon>
+                                </v-btn>
+                              </v-col>
+                              <v-col
+                                cols="1"
+                                style="min-width: 100px;"
+                                class="flex-grow-1 flex-shrink-0 py-2 pl-2"
+                              >
+                                {{ currentScan }}
+                                <div
+                                  style="display:inline; font-weight:100; padding-left:10px"
+                                >
+                                  ({{ currentExperimentPosition }})
+                                </div>
+                              </v-col>
+                              <v-col
+                                cols="1"
+                                class="flex-grow-0 flex-shrink-1"
+                              >
+                                <v-btn
+                                  :disabled="!nextExperiment"
+                                  @mousedown="handleMouseDown('next')"
+                                  @mouseup="handleMouseUp()"
+                                  fab
+                                  small
+                                  depressed
+                                  color="white"
+                                >
+                                  <v-icon>fa-caret-down</v-icon>
+                                </v-btn>
+                              </v-col>
+                            </v-row>
+                          </div>
+                          <div
+                            tabindex="0"
+                            class="d-flex justify-center grey lighten-2"
+                          >
+                            <v-row
+                              no-gutters
+                              style="flex-wrap: nowrap;"
+                            >
+                              <v-col
+                                cols="1"
+                                class="flex-grow-0 flex-shrink-0"
+                              >
+                                <v-btn
+                                  :disabled="!previousDataset"
+                                  @mousedown="handleMouseDown('back')"
+                                  @mouseup="handleMouseUp()"
+                                  fab
+                                  small
+                                  depressed
+                                >
+                                  <v-icon>fa-caret-left</v-icon>
+                                </v-btn>
+                              </v-col>
+                              <v-col
+                                cols="1"
+                                style="min-width: 100px; max-width: 100%;"
+                                class="flex-grow-1 flex-shrink-0 py-2"
+                              >
+                                {{ currentDataset.name }}
+                                <div
+                                  style="display:inline; font-weight:100; padding-left:10px"
+                                >
+                                  ({{ currentScanPosition }})
+                                </div>
+                              </v-col>
+                              <v-col
+                                cols="1"
+                                class="flex-grow-0 flex-shrink-1"
+                              >
+                                <v-btn
+                                  :disabled="!nextDataset"
+                                  @mousedown="handleMouseDown('forward')"
+                                  @mouseup="handleMouseUp()"
+                                  fab
+                                  small
+                                  depressed
+                                  class="pr-5"
+                                >
+                                  <v-icon>fa-caret-right</v-icon>
+                                </v-btn>
+                              </v-col>
+                            </v-row>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-simple-table>
+                </v-container>
+              </v-card>
+            </v-flex>
+            <v-flex
+              xs4
+              class="mx-1"
+              style="display:flex;flex-direction:column;"
+            >
+              <v-card elevation="5">
+                <v-container class="panel-label">
+                  WINDOW CONTROLS
+                </v-container>
+                <v-container>
+                  HERE2
+                </v-container>
+              </v-card>
+            </v-flex>
+            <v-flex
+              xs4
+              class="mx-1"
+              style="display:flex;flex-direction:column;"
+            >
+              <v-card elevation="5">
+                <v-container class="panel-label">
+                  SUBMIT QUALITY REVIEW
+                </v-container>
+                <v-container>
+                  HERE3
+                </v-container>
+              </v-card>
+            </v-flex>
+          </v-layout>
+
+          <!-- <v-layout> -->
+          <!--
+
               </v-layout>
               <v-layout align-center>
                 <v-flex class="ml-3 mr-1">
                   <v-slider
                     :min="1"
                     :max="
-                      currentScanDatasets.length === 1
+                      currentProjectDatasets.length === 1
                         ? 2
-                        : currentScanDatasets.length
+                        : currentProjectDatasets.length
                     "
-                    :disabled="currentScanDatasets.length === 1"
+                    :disabled="currentProjectDatasets.length === 1"
                     :height="24"
                     :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
@@ -485,10 +638,10 @@ export default {
               >
                 <v-row justify="start">
                   <v-btn
-                    :disabled="!firstDatasetInPreviousScan"
+                    :disabled="!firstDatasetInPreviousProject"
                     :to="
-                      firstDatasetInPreviousScan
-                        ? firstDatasetInPreviousScan
+                      firstDatasetInPreviousProject
+                        ? firstDatasetInPreviousProject
                         : ''
                     "
                     fab
@@ -500,14 +653,14 @@ export default {
                 </v-row>
                 <v-row justify="center">
                   <div class="load-completion">
-                    {{ Math.round(scanCachedPercentage * 100) }}%
+                    {{ Math.round(projectCachedPercentage * 100) }}%
                   </div>
                 </v-row>
                 <v-row justify="end">
                   <v-btn
-                    :disabled="!firstDatasetInNextScan"
+                    :disabled="!firstDatasetInNextProject"
                     :to="
-                      firstDatasetInNextScan ? firstDatasetInNextScan : ''
+                      firstDatasetInNextProject ? firstDatasetInNextProject : ''
                     "
                     fab
                     small
@@ -540,7 +693,7 @@ export default {
                           cols="9"
                           class="pb-1 pt-0 justifyRight"
                         >
-                          {{ getSiteDisplayName(currentScan.site) }}
+                          {{ getSiteDisplayName(currentProject.site) }}
                         </v-col>
                       </v-row>
                       <v-row>
@@ -556,13 +709,13 @@ export default {
                         >
                           <a
                             :href="'/xnat/app/action/DisplayItemAction/search_value' +
-                              `/${currentScan.experiment}/search_element/xnat:mrProjectData` +
+                              `/${currentProject.experiment}/search_element/xnat:mrProjectData` +
                               '/search_field/xnat:mrProjectData.ID'"
                             target="_blank"
                           >
                             {{
                               getExperimentDisplayName(
-                                currentScan.experiment
+                                currentProject.experiment
                               )
                             }}
                           </a>
@@ -579,7 +732,7 @@ export default {
                           cols="9"
                           class="pb-1 pt-0 justifyRight"
                         >
-                          {{ currentScan.name }}
+                          {{ currentProject.name }}
                         </v-col>
                       </v-row>
                     </v-container>
@@ -776,8 +929,8 @@ export default {
                 v-if="vtkViews.length"
                 class="py-0"
               />
-            </v-flex>
-          </v-layout>
+            </v-flex> -->
+          <!-- </v-layout> -->
         </v-container>
       </v-flex>
     </template>
@@ -788,7 +941,7 @@ export default {
       fill-height
     >
       <div class="title">
-        Select a scan
+        Select a project
       </div>
     </v-layout>
     <v-dialog
@@ -841,12 +994,12 @@ export default {
 
 <style lang="scss" scoped>
 .dataset {
-  .scans-bar {
+  .projects-bar {
     display: flex;
     flex-direction: column;
     height: 100%;
 
-    .scans-view {
+    .projects-view {
       overflow: auto;
     }
   }
@@ -893,6 +1046,13 @@ export default {
     }
   }
 }
+
+.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.v-btn::before {
+  background-color: transparent !important;
+}
+
 </style>
 
 <style lang="scss">
@@ -923,5 +1083,18 @@ export default {
   width: 500px;
   max-height: 400px;
   overflow-y: auto;
+}
+
+.panel-label {
+  background-color: #e6e6e6;
+  color: #575757;
+  font-size: 12px;
+  padding: 5px 10px!important;
+}
+
+tbody {
+    tr:hover {
+      background-color: transparent !important;
+    }
 }
 </style>
