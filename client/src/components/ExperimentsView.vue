@@ -5,7 +5,7 @@ import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import { API_URL } from '../constants';
 
 export default {
-  name: 'ScansView',
+  name: 'ExperimentsView',
   components: { ExperimentLockIcon },
   props: {
     minimal: {
