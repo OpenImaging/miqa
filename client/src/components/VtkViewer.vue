@@ -24,7 +24,7 @@ export default {
   }),
   computed: {
     ...mapState(['proxyManager', 'loadingDataset']),
-    ...mapGetters(['currentDataset', 'currentProject']),
+    ...mapGetters(['currentDataset', 'currentScan']),
     representation() {
       return (
         // force add dependancy on currentDataset
@@ -78,7 +78,7 @@ export default {
     currentDataset() {
       this.representation.setSlice(this.slice);
     },
-    currentProject() {
+    currentScan() {
       this.initializeSlice();
     },
   },
@@ -135,8 +135,8 @@ export default {
       fill2DView(view, 512, 512);
       const dataURL = await view.captureImage();
       this.setCurrentScreenshot({
-        name: `${this.currentProject.experiment}/${
-          this.currentProject.name
+        name: `${this.currentScan.experiment}/${
+          this.currentScan.name
         }/${cleanDatasetName(this.currentDataset.name)}/${this.displayName}`,
         dataURL,
       });
