@@ -40,6 +40,12 @@ export default defineComponent({
       Experiments
     </v-tab>
     <v-tab
+      to="/projects"
+    >
+      <v-icon>view_column</v-icon>
+      Projects
+    </v-tab>
+    <v-tab
       v-if="user.is_superuser"
       to="/settings"
     >
