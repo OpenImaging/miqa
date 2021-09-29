@@ -784,7 +784,7 @@ function checkLoadExperiment(oldValue, newValue) {
         // TODO don't hardcode projectId
         projectId: 1,
         experimentId: newValue.id,
-        scanId: scanId,
+        scanId,
         imageId: datasetId,
       });
     });
