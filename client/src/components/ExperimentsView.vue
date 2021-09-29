@@ -5,7 +5,7 @@ import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import { API_URL } from '../constants';
 
 export default {
-  name: 'ProjectsView',
+  name: 'ExperimentsView',
   components: { ExperimentLockIcon },
   props: {
     minimal: {
@@ -20,13 +20,13 @@ export default {
     ...mapState([
       'experiments',
       'experimentIds',
-      'experimentProjects',
+      'experimentScans',
       'loadingExperiment',
-      'projects',
-      'projectDatasets',
+      'scans',
+      'scanDatasets',
       'datasets',
     ]),
-    ...mapGetters(['currentProject', 'currentExperiment']),
+    ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
       const allExperiments = this.experiments;
       return this.experimentIds.map((expId) => allExperiments[expId]);
@@ -41,18 +41,18 @@ export default {
     },
   },
   methods: {
-    projectsForExperiment(expId) {
-      const expProjectIds = this.experimentProjects[expId];
-      return expProjectIds.map((projectId) => {
-        const scan = this.projects[projectId];
+    scansForExperiment(expId) {
+      const expScanIds = this.experimentScans[expId];
+      return expScanIds.map((scanId) => {
+        const scan = this.scans[scanId];
         return {
           ...scan,
           ...this.decisionToRating(scan.decisions),
         };
       });
     },
-    getIdOfFirstDatasetInProject(projectId) {
-      return `${this.projectDatasets[projectId][0]}`;
+    getIdOfFirstDatasetInScan(scanId) {
+      return `${this.scanDatasets[scanId][0]}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
@@ -85,7 +85,7 @@ export default {
 </script>
 
 <template>
-  <div class="projects-view">
+  <div class="scans-view">
     <ul
       v-if="orderedExperiments && orderedExperiments.length"
       class="experiment"
@@ -117,27 +117,27 @@ export default {
         </v-card>
         <ul class="scans">
           <li
-            v-for="project of projectsForExperiment(experiment.id)"
-            :key="`s.${project.id}`"
+            v-for="scan of scansForExperiment(experiment.id)"
+            :key="`s.${scan.id}`"
             :class="{
-              current: project === currentProject
+              current: scan === currentScan
             }"
             class="body-1"
           >
             <v-btn
-              :to="getIdOfFirstDatasetInProject(project.id)"
+              :to="getIdOfFirstDatasetInScan(scan.id)"
               class="ml-0 px-1 scan-name"
               href
               text
               small
               active-class=""
             >
-              {{ project.name }}
+              {{ scan.name }}
               <span
-                v-if="project.decisions.length !== 0"
-                :class="project.css"
+                v-if="scan.decisions.length !== 0"
+                :class="scan.css"
                 small
-              >&nbsp;&nbsp;({{ project.decision }})</span>
+              >&nbsp;&nbsp;({{ scan.decision }})</span>
             </v-btn>
           </li>
         </ul>
@@ -171,7 +171,7 @@ ul.scans {
 </style>
 
 <style lang="scss">
-.projects-view .scan-name .v-btn__content {
+.scans-view .scan-name .v-btn__content {
   text-transform: none;
 }
 </style>
