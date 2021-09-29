@@ -86,7 +86,7 @@ function getData(id, file, webWorker = null) {
               .getRange();
             datasetCache.set(id, { imageData });
             // eslint-disable-next-line no-use-before-define
-            expandProjectRange(id, dataRange);
+            expandScanRange(id, dataRange);
             resolve({ imageData, webWorker });
           })
           .catch((error) => {
@@ -190,9 +190,9 @@ const initState = {
   drawer: false,
   experimentIds: [],
   experiments: {},
-  experimentProjects: {},
-  projects: {},
-  projectDatasets: {},
+  experimentScans: {},
+  scans: {},
+  scanDatasets: {},
   datasets: {},
   proxyManager: null,
   vtkViews: [],
@@ -203,8 +203,7 @@ const initState = {
   currentScreenshot: null,
   screenshots: [],
   sites: null,
-  projectCachedPercentage: 0,
-  projectStatus: null,
+  scanCachedPercentage: 0,
 };
 
 const {
@@ -241,41 +240,41 @@ const {
         return state.datasets[datasetId];
       };
     },
-    currentProject(state, getters) {
+    currentScan(state, getters) {
       if (getters.currentDataset) {
-        const curProjectId = getters.currentDataset.project;
-        return state.projects[curProjectId];
+        const curScanId = getters.currentDataset.scan;
+        return state.scans[curScanId];
       }
       return null;
     },
     currentExperiment(state, getters) {
-      if (getters.currentProject) {
-        const curExperimentId = getters.currentProject.experiment;
+      if (getters.currentScan) {
+        const curExperimentId = getters.currentScan.experiment;
         return state.experiments[curExperimentId];
       }
       return null;
     },
     experimentDatasets(state) {
       return (expId) => {
-        const experimentProjects = state.experimentProjects[expId];
+        const experimentScans = state.experimentScans[expId];
         const expDatasets = [];
-        experimentProjects.forEach((projectId) => {
-          const projectDatasets = state.projectDatasets[projectId];
-          projectDatasets.forEach((datasetId) => {
+        experimentScans.forEach((scanId) => {
+          const scanDatasets = state.scanDatasets[scanId];
+          scanDatasets.forEach((datasetId) => {
             expDatasets.push(datasetId);
           });
         });
         return expDatasets;
       };
     },
-    firstDatasetInPreviousProject(state, getters) {
+    firstDatasetInPreviousScan(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInPreviousProject
+        ? getters.currentDataset.firstDatasetInPreviousScan
         : null;
     },
-    firstDatasetInNextProject(state, getters) {
+    firstDatasetInNextScan(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInNextProject
+        ? getters.currentDataset.firstDatasetInNextScan
         : null;
     },
     firstDatasetInPreviousExeriment(state, getters) {
@@ -283,9 +282,9 @@ const {
         const expIdx = getters.currentExperiment.index;
         if (expIdx >= 1) {
           const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
-          const prevExpProjects = state.experimentProjects[prevExp.id];
-          const prevExpProjectDatasets = state.projectDatasets[prevExpProjects[0].id];
-          return prevExpProjectDatasets[0];
+          const prevExpScans = state.experimentScans[prevExp.id];
+          const prevExpScanDatasets = state.scanDatasets[prevExpScans[0].id];
+          return prevExpScanDatasets[0];
         }
       }
       return null;
@@ -295,9 +294,9 @@ const {
         const expIdx = getters.currentExperiment.index;
         if (expIdx < state.experimentIds.length - 1) {
           const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
-          const nextExpProjects = state.experimentProjects[nextExp.id];
-          const nextExpProjectDatasets = state.projectDatasets[nextExpProjects[0].id];
-          return nextExpProjectDatasets[0];
+          const nextExpScans = state.experimentScans[nextExp.id];
+          const nextExpScanDatasets = state.scanDatasets[nextExpScans[0].id];
+          return nextExpScanDatasets[0];
         }
       }
       return null;
@@ -333,9 +332,9 @@ const {
     resetProject(state) {
       state.experimentIds = [];
       state.experiments = {};
-      state.experimentProjects = {};
-      state.projects = {};
-      state.projectDatasets = {};
+      state.experimentScans = {};
+      state.scans = {};
+      state.scanDatasets = {};
       state.datasets = {};
     },
     setCurrentImageId(state, imageId) {
@@ -348,8 +347,8 @@ const {
     },
     setScan(state, { scanId, scan }) {
       // Replace with a new object to trigger a Vuex update
-      state.projects = { ...state.projects };
-      state.projects[scanId] = scan;
+      state.scans = { ...state.scans };
+      state.scans[scanId] = scan;
     },
     setDrawer(state, value: boolean) {
       state.drawer = value;
@@ -375,15 +374,15 @@ const {
     setSites(state, sites) {
       state.sites = sites;
     },
-    addProjectDatasets(state, { sid, id }) {
-      state.projectDatasets[sid].push(id);
+    addScanDatasets(state, { sid, id }) {
+      state.scanDatasets[sid].push(id);
     },
-    addExperimentProjects(state, { eid, sid }) {
-      state.projectDatasets[sid] = [];
-      state.experimentProjects[eid].push(sid);
+    addExperimentScans(state, { eid, sid }) {
+      state.scanDatasets[sid] = [];
+      state.experimentScans[eid].push(sid);
     },
     addExperiment(state, { id, value }) {
-      state.experimentProjects[id] = [];
+      state.experimentScans[id] = [];
       state.experimentIds.push(id);
       state.experiments[id] = value;
     },
@@ -392,11 +391,11 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    resetProjectDatasets(state, id) {
-      state.projectDatasets[id] = [];
+    resetScanDatasets(state, id) {
+      state.scanDatasets[id] = [];
     },
-    setProjectCachedPercentage(state, percentComplete) {
-      state.projectCachedPercentage = percentComplete;
+    setScanCachedPercentage(state, percentComplete) {
+      state.scanCachedPercentage = percentComplete;
     },
     startLoadingExperiment(state) {
       state.loadingExperiment = true;
@@ -438,14 +437,14 @@ const {
         });
       }
 
-      const numProjects = state.experimentProjects[experimentID].length + 1;
+      const numScans = state.experimentScans[experimentID].length + 1;
 
-      commit('addExperimentProjects', { eid: experimentID, sid: scanID });
+      commit('addExperimentScans', { eid: experimentID, sid: scanID });
       commit('setScan', {
         scanId: scanID,
         scan: {
           id: scanID,
-          name: `local-${numProjects}`,
+          name: `local-${numScans}`,
           experiment: experimentID,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
           numDatasets: files.length,
@@ -461,20 +460,20 @@ const {
         const imageID = uuid();
         const f = files[k];
 
-        commit('addProjectDatasets', { sid: scanID, id: imageID });
+        commit('addScanDatasets', { sid: scanID, id: imageID });
         commit('setImage', {
           imageId: imageID,
           image: {
             ...f,
             id: imageID,
-            project: scanID,
+            scan: scanID,
             experiment: experimentID,
             index: k,
             previousDataset: prevId,
             // TODO link properly
             // nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-            // firstDatasetInPreviousProject: firstInPrev,
-            // firstDatasetInNextProject: nextScan ? nextScan.id : null,
+            // firstDatasetInPreviousScan: firstInPrev,
+            // firstDatasetInNextScan: nextScan ? nextScan.id : null,
             local: true,
           },
         });
@@ -493,7 +492,7 @@ const {
       // Replace with a new object to trigger a Vuex update
       state.datasets = { ...state.datasets };
 
-      dispatch('swapToDataset', state.datasets[state.projectDatasets[scanID][0]]);
+      dispatch('swapToDataset', state.datasets[state.scanDatasets[scanID][0]]);
     },
     async loadProject({ commit }, project) {
       commit('resetProject');
@@ -514,8 +513,8 @@ const {
 
       for (let i = 0; i < experiments.length; i += 1) {
         const experiment = experiments[i];
-        // set experimentProjects[experiment.id] before registering the experiment.id
-        // so ProjectsView doesn't update prematurely
+        // set experimentScans[experiment.id] before registering the experiment.id
+        // so ExperimentsView doesn't update prematurely
         commit('addExperiment', {
           id: experiment.id,
           value: {
@@ -526,13 +525,12 @@ const {
           },
         });
 
-        // Web projects == Django scans
         // TODO these requests *can* be run in parallel, or collapsed into one XHR
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
-          commit('addExperimentProjects', { eid: experiment.id, sid: scan.id });
+          commit('addExperimentScans', { eid: experiment.id, sid: scan.id });
 
           // Web datasets == Django images
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
@@ -559,18 +557,18 @@ const {
 
           for (let k = 0; k < images.length; k += 1) {
             const image = images[k];
-            commit('addProjectDatasets', { sid: scan.id, id: image.id });
+            commit('addScanDatasets', { sid: scan.id, id: image.id });
             commit('setImage', {
               imageId: image.id,
               image: {
                 ...image,
-                project: scan.id,
+                scan: scan.id,
                 experiment: experiment.id,
                 index: k,
                 previousDataset: k > 0 ? images[k - 1].id : null,
                 nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-                firstDatasetInPreviousProject: firstInPrev,
-                firstDatasetInNextProject: nextScan ? nextScan.id : null,
+                firstDatasetInPreviousScan: firstInPrev,
+                firstDatasetInNextScan: nextScan ? nextScan.id : null,
               },
             });
           }
@@ -585,14 +583,13 @@ const {
         }
       }
     },
-    // This would be called reloadProject, but project is being renamed to scan
     async reloadScan({ commit, getters }) {
       const currentImage = getters.currentDataset;
       // No need to reload if the image doesn't exist or doesn't exist on the server
       if (!currentImage || currentImage.local) {
         return;
       }
-      const scanId = currentImage.project;
+      const scanId = currentImage.scan;
       if (!scanId) {
         return;
       }
@@ -629,12 +626,12 @@ const {
       }
       commit('setLoadingDataset', true);
       commit('setErrorLoadingDataset', false);
-      const oldProject = getters.currentProject;
-      const newProject = state.projects[dataset.project];
+      const oldScan = getters.currentScan;
+      const newScan = state.scans[dataset.scan];
       const oldExperiment = getters.currentExperiment
         ? getters.currentExperiment
         : null;
-      const newExperimentId = state.projects[dataset.project].experiment;
+      const newExperimentId = state.scans[dataset.scan].experiment;
       const newExperiment = state.experiments[newExperimentId];
 
       // Check if we should cancel the currently loading experiment
@@ -649,9 +646,9 @@ const {
       }
 
       let newProxyManager = false;
-      if (oldProject !== newProject && state.proxyManager) {
+      if (oldScan !== newScan && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
-        // "projects" (a.k.a "scans"), then we can end up with no image
+        // scans, then we can end up with no image
         // slices displayed, even though we have the data and attempted
         // to render it.  This may be due to image extents changing between
         // scans, which is not the case from one timestep of a single scan
@@ -757,7 +754,7 @@ const {
   },
 });
 
-// cache datasets associated with projects of current experiment
+// cache datasets associated with scans of current experiment
 function checkLoadExperiment(oldValue, newValue) {
   if (
     !newValue
@@ -768,10 +765,10 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   if (oldValue) {
-    const oldExperimentProjects = store.state.experimentProjects[oldValue.id];
-    oldExperimentProjects.forEach((projectId) => {
-      const projectDatasets = store.state.projectDatasets[projectId];
-      projectDatasets.forEach((datasetId) => {
+    const oldExperimentScans = store.state.experimentScans[oldValue.id];
+    oldExperimentScans.forEach((scanId) => {
+      const scanDatasets = store.state.scanDatasets[scanId];
+      scanDatasets.forEach((datasetId) => {
         fileCache.delete(datasetId);
         datasetCache.delete(datasetId);
       });
@@ -779,15 +776,15 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   readDataQueue = [];
-  const newExperimentProjects = store.state.experimentProjects[newValue.id];
-  newExperimentProjects.forEach((projectId) => {
-    const projectDatasets = store.state.projectDatasets[projectId];
-    projectDatasets.forEach((datasetId) => {
+  const newExperimentScans = store.state.experimentScans[newValue.id];
+  newExperimentScans.forEach((scanId) => {
+    const scanDatasets = store.state.scanDatasets[scanId];
+    scanDatasets.forEach((datasetId) => {
       readDataQueue.push({
         // TODO don't hardcode projectId
         projectId: 1,
         experimentId: newValue.id,
-        scanId: projectId,
+        scanId,
         imageId: datasetId,
       });
     });
@@ -797,7 +794,7 @@ function checkLoadExperiment(oldValue, newValue) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit.setProjectCachedPercentage(percentComplete);
+  store.commit.setScanCachedPercentage(percentComplete);
 }
 
 function startReaderWorkerPool() {
@@ -832,15 +829,15 @@ function startReaderWorkerPool() {
     });
 }
 
-function expandProjectRange(datasetId, dataRange) {
+function expandScanRange(datasetId, dataRange) {
   if (datasetId in store.state.datasets) {
-    const projectId = store.state.datasets[datasetId].project;
-    const project = store.state.projects[projectId];
-    if (dataRange[0] < project.cumulativeRange[0]) {
-      [project.cumulativeRange[0]] = dataRange;
+    const scanId = store.state.datasets[datasetId].scan;
+    const scan = store.state.scans[scanId];
+    if (dataRange[0] < scan.cumulativeRange[0]) {
+      [scan.cumulativeRange[0]] = dataRange;
     }
-    if (dataRange[1] > project.cumulativeRange[1]) {
-      [, project.cumulativeRange[1]] = dataRange;
+    if (dataRange[1] > scan.cumulativeRange[1]) {
+      [, scan.cumulativeRange[1]] = dataRange;
     }
   }
 }
