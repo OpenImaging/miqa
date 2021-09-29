@@ -13,7 +13,7 @@ import {
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
 import UserButton from '@/components/girder/UserButton.vue';
-import ProjectsView from '@/components/ProjectsView.vue';
+import ExperimentsView from '@/components/ExperimentsView.vue';
 import WindowControl from '@/components/WindowControl.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
 import EmailDialog from '@/components/EmailDialog.vue';
@@ -33,7 +33,7 @@ export default {
     Layout,
     DataImportExport,
     ExperimentLockIcon,
-    ProjectsView,
+    ExperimentsView,
     WindowControl,
     ScreenshotDialog,
     EmailDialog,
@@ -64,27 +64,27 @@ export default {
       'errorLoadingDataset',
       'drawer',
       'screenshots',
-      'projectCachedPercentage',
-      'projectDatasets',
+      'scanCachedPercentage',
+      'scanDatasets',
     ]),
     ...mapGetters([
       'nextDataset',
       'getDataset',
       'currentDataset',
       'currentExperiment',
-      'currentProject',
+      'currentScan',
       'previousDataset',
-      'firstDatasetInPreviousProject',
-      'firstDatasetInNextProject',
+      'firstDatasetInPreviousScan',
+      'firstDatasetInNextScan',
       'getSiteDisplayName',
       'getExperimentDisplayName',
     ]),
-    currentProjectDatasets() {
-      return this.projectDatasets[this.currentProject.id];
+    currentScanDatasets() {
+      return this.scanDatasets[this.currentScan.id];
     },
     notes() {
-      if (this.currentProject) {
-        return this.currentProject.notes;
+      if (this.currentScan) {
+        return this.currentScan.notes;
       }
       return [];
     },
@@ -101,9 +101,9 @@ export default {
     },
   },
   watch: {
-    currentProject(project) {
-      if (project) {
-        const last = _.head(project.decisions);
+    currentScan(scan) {
+      if (scan) {
+        const last = _.head(scan.decisions);
         this.decision = last ? last.decision : null;
         this.decisionChanged = false;
         this.newNote = '';
@@ -127,14 +127,14 @@ export default {
   },
   async beforeRouteUpdate(to, from, next) {
     const toDataset = this.getDataset(to.params.datasetId);
-    const result = await this.beforeLeaveProject(toDataset);
+    const result = await this.beforeLeaveScan(toDataset);
     next(result);
     if (result && toDataset) {
       this.swapToDataset(toDataset);
     }
   },
   async beforeRouteLeave(to, from, next) {
-    const result = await this.beforeLeaveProject();
+    const result = await this.beforeLeaveScan();
     next(result);
   },
   methods: {
@@ -165,7 +165,7 @@ export default {
       this.scanning = false;
       console.log(`Caught navigation error (${failureType})`);
     },
-    beforeLeaveProject(toDataset) {
+    beforeLeaveScan(toDataset) {
       if (
         this.currentDataset
         && toDataset
@@ -180,12 +180,12 @@ export default {
     },
     async save() {
       if (this.newNote && this.newNote.trim()) {
-        await djangoRest.addScanNote(this.currentProject.id, this.newNote);
+        await djangoRest.addScanNote(this.currentScan.id, this.newNote);
         this.newNote = '';
       }
       if (this.decisionChanged) {
         await djangoRest.setDecision(
-          this.currentProject.id,
+          this.currentScan.id,
           this.decision,
         );
         this.decisionChanged = false;
@@ -221,21 +221,21 @@ export default {
       this.newNote = e;
     },
     async onDecisionChanged() {
-      const last = _.head(this.currentProject.decisions);
+      const last = _.head(this.currentScan.decisions);
       const lastDecision = last ? last.decision : null;
       if (this.decision && this.decision !== lastDecision) {
         this.decisionChanged = true;
         await this.save();
 
-        if (this.firstDatasetInNextProject) {
+        if (this.firstDatasetInNextScan) {
           const { currentDatasetId } = this;
 
           this.$router
-            .push(this.firstDatasetInNextProject)
+            .push(this.firstDatasetInNextScan)
             .catch(this.handleNavigationError);
 
           this.$snackbar({
-            text: 'Proceeded to next project',
+            text: 'Proceeded to next scan',
             button: 'Go back',
             timeout: 6000,
             immediate: true,
@@ -253,7 +253,7 @@ export default {
       e.preventDefault();
     },
     debouncedDatasetSliderChange(index) {
-      const datasetId = this.currentProjectDatasets[index];
+      const datasetId = this.currentScanDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
     updateImage() {
@@ -348,7 +348,7 @@ export default {
       temporary
       width="350"
     >
-      <div class="projects-bar">
+      <div class="scans-bar">
         <v-toolbar
           dense
           flat
@@ -357,7 +357,7 @@ export default {
           <v-toolbar-title>Experiments</v-toolbar-title>
         </v-toolbar>
         <DataImportExport />
-        <ProjectsView
+        <ExperimentsView
           class="mt-1"
           minimal
         />
@@ -433,7 +433,7 @@ export default {
                 </v-flex>
                 <v-flex style="text-align: center;">
                   <span>{{ currentDataset.index + 1 }} of
-                    {{ currentProjectDatasets.length }}</span>
+                    {{ currentScanDatasets.length }}</span>
                 </v-flex>
                 <v-flex shrink>
                   <v-btn
@@ -463,11 +463,11 @@ export default {
                   <v-slider
                     :min="1"
                     :max="
-                      currentProjectDatasets.length === 1
+                      currentScanDatasets.length === 1
                         ? 2
-                        : currentProjectDatasets.length
+                        : currentScanDatasets.length
                     "
-                    :disabled="currentProjectDatasets.length === 1"
+                    :disabled="currentScanDatasets.length === 1"
                     :height="24"
                     :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
@@ -485,10 +485,10 @@ export default {
               >
                 <v-row justify="start">
                   <v-btn
-                    :disabled="!firstDatasetInPreviousProject"
+                    :disabled="!firstDatasetInPreviousScan"
                     :to="
-                      firstDatasetInPreviousProject
-                        ? firstDatasetInPreviousProject
+                      firstDatasetInPreviousScan
+                        ? firstDatasetInPreviousScan
                         : ''
                     "
                     fab
@@ -500,14 +500,14 @@ export default {
                 </v-row>
                 <v-row justify="center">
                   <div class="load-completion">
-                    {{ Math.round(projectCachedPercentage * 100) }}%
+                    {{ Math.round(scanCachedPercentage * 100) }}%
                   </div>
                 </v-row>
                 <v-row justify="end">
                   <v-btn
-                    :disabled="!firstDatasetInNextProject"
+                    :disabled="!firstDatasetInNextScan"
                     :to="
-                      firstDatasetInNextProject ? firstDatasetInNextProject : ''
+                      firstDatasetInNextScan ? firstDatasetInNextScan : ''
                     "
                     fab
                     small
@@ -540,7 +540,7 @@ export default {
                           cols="9"
                           class="pb-1 pt-0 justifyRight"
                         >
-                          {{ getSiteDisplayName(currentProject.site) }}
+                          {{ getSiteDisplayName(currentScan.site) }}
                         </v-col>
                       </v-row>
                       <v-row>
@@ -556,13 +556,13 @@ export default {
                         >
                           <a
                             :href="'/xnat/app/action/DisplayItemAction/search_value' +
-                              `/${currentProject.experiment}/search_element/xnat:mrProjectData` +
+                              `/${currentScan.experiment}/search_element/xnat:mrProjectData` +
                               '/search_field/xnat:mrProjectData.ID'"
                             target="_blank"
                           >
                             {{
                               getExperimentDisplayName(
-                                currentProject.experiment
+                                currentScan.experiment
                               )
                             }}
                           </a>
@@ -579,7 +579,7 @@ export default {
                           cols="9"
                           class="pb-1 pt-0 justifyRight"
                         >
-                          {{ currentProject.name }}
+                          {{ currentScan.name }}
                         </v-col>
                       </v-row>
                     </v-container>
@@ -788,7 +788,7 @@ export default {
       fill-height
     >
       <div class="title">
-        Select a project
+        Select a scan
       </div>
     </v-layout>
     <v-dialog
@@ -841,12 +841,12 @@ export default {
 
 <style lang="scss" scoped>
 .dataset {
-  .projects-bar {
+  .scans-bar {
     display: flex;
     flex-direction: column;
     height: 100%;
 
-    .projects-view {
+    .scans-view {
       overflow: auto;
     }
   }
