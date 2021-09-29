@@ -257,6 +257,50 @@ const {
       }
       return null;
     },
+    currentScan(state, getters) {
+      if (getters.currentProject) {
+        return state.projects[getters.currentProject.id].name;
+      }
+      return null;
+    },
+    currentExperimentPosition(state, getters) {
+      if (getters.currentProject) {
+        const curProjectId = getters.currentDataset.project;
+        const curExperimentId = getters.currentProject.experiment;
+        return state.experimentProjects[curExperimentId].indexOf(curProjectId)+1 +'/'+ state.experimentProjects[curExperimentId].length;
+      }
+      return null;
+    },
+    currentScanPosition(state, getters) {
+      if (getters.currentProject) {
+        const curProjectId = getters.currentDataset.project;
+        const curDatasetId = getters.currentDataset.id;
+        return state.projectDatasets[curProjectId].indexOf(curDatasetId)+1+'/'+state.projectDatasets[curProjectId].length
+      }
+      return null;
+    },
+    previousExperiment(state, getters) {
+      if (getters.currentProject) {
+        const curProjectId = getters.currentDataset.project;
+        const curExperimentId = getters.currentProject.experiment;
+        const experimentList = state.experimentProjects[curExperimentId]
+        if(experimentList.indexOf(curProjectId) < 1) return null;
+        const targetId = experimentList[experimentList.indexOf(curProjectId)-1]
+        return state.projectDatasets[targetId][0]
+      }
+      return null;
+    },
+    nextExperiment(state, getters) {
+      if (getters.currentProject) {
+        const curProjectId = getters.currentDataset.project;
+        const curExperimentId = getters.currentProject.experiment;
+        const experimentList = state.experimentProjects[curExperimentId]
+        if(experimentList.indexOf(curProjectId) >= experimentList.length -1) return null;
+        const targetId = experimentList[experimentList.indexOf(curProjectId)+1]
+        return state.projectDatasets[targetId][0]
+      }
+      return null;
+    },
     experimentDatasets(state) {
       return (expId) => {
         const experimentScans = state.experimentScans[expId];
