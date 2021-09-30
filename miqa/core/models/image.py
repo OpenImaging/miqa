@@ -7,6 +7,8 @@ from uuid import uuid4
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
+from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
+
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
@@ -24,6 +26,10 @@ class Image(TimeStampedModel, models.Model):
     @property
     def path(self) -> Path:
         return Path(self.raw_path)
+
+    @property
+    def zarr_path(self: Image) -> Path:
+        return nifti_to_zarr_ngff(self.path)
 
     @property
     def size(self) -> int:
