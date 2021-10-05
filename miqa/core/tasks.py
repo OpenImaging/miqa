@@ -1,24 +1,17 @@
 import json
-import pandas
 from pathlib import Path
 
 from celery import shared_task
 from jsonschema.exceptions import ValidationError
-
-# from django.contrib.auth.models import User
+import pandas
 
 from miqa.core.conversion.csv_to_json import find_common_prefix
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
-from miqa.core.models import (
-    Decision,
-    Evaluation,
-    Experiment,
-    Image,
-    Project,
-    Scan,
-)
+from miqa.core.models import Decision, Evaluation, Experiment, Image, Project, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
+
+# from django.contrib.auth.models import User
 
 
 @shared_task
