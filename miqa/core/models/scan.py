@@ -5,21 +5,22 @@ from uuid import uuid4
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
-SCAN_TYPES = [('ncanda-t1spgr-v1', 'ncanda-t1spgr-v1'), ('ncanda-mprage-v1', 'ncanda-mprage-v1')]
+SCAN_TYPES = [
+    ('T1', 'T1'),
+    ('T2', 'T2'),
+    ('FMRI', 'FMRI'),
+    ('MRA', 'MRA'),
+    ('PD', 'PD'),
+    ('DTI', 'DTI'),
+    ('DWI', 'DWI'),
+]
 
 
 class Scan(TimeStampedModel, models.Model):
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['experiment', 'scan_id', 'scan_type'], name='scan_unique_constraint'
-            )
-        ]
-        ordering = ['scan_id']
+        ordering = ['name', 'scan_type']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=127, blank=False)
     experiment = models.ForeignKey('Experiment', related_name='scans', on_delete=models.CASCADE)
-    site = models.ForeignKey('Site', on_delete=models.PROTECT)
-
-    scan_id = models.CharField(max_length=127, blank=False)
-    scan_type = models.CharField(max_length=255, blank=False, choices=SCAN_TYPES)
+    scan_type = models.CharField(max_length=10, choices=SCAN_TYPES, default='T1')
