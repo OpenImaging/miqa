@@ -28,7 +28,7 @@ class DecisionSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['id', 'name']
+        fields = ['id', 'frame_number']
         ref_name = 'scan_image'
 
 
@@ -46,7 +46,7 @@ class ScanNoteSerializer(serializers.ModelSerializer):
 class ScanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scan
-        fields = ['id', 'scan_id', 'scan_type', 'notes', 'decisions', 'images']
+        fields = ['id', 'name', 'notes', 'decisions', 'images', 'scan_type']
         ref_name = 'experiment_scan'
 
     notes = ScanNoteSerializer(many=True)

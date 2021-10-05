@@ -10,7 +10,15 @@ from miqa.learning.evaluation_models import available_evaluation_models
 
 
 def default_evaluation_model_mapping():
-    return {'ncanda-t1spgr-v1': 'MIQAT1-0', 'ncanda-mprage-v1': 'MIQAT1-0'}
+    return {
+        'T1': 'MIQAT1-0',
+        'T2': 'MIQAT1-0',
+        'FMRI': 'MIQAT1-0',
+        'MRA': 'MIQAT1-0',
+        'PD': 'MIQAT1-0',
+        'DTI': 'MIQAT1-0',
+        'DWI': 'MIQAT1-0',
+    }
 
 
 class Project(TimeStampedModel, models.Model):

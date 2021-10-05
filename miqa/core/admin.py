@@ -13,7 +13,7 @@ class ExperimentAdmin(admin.ModelAdmin):
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'scan', 'raw_path', 'name')
+    list_display = ('id', 'created', 'modified', 'scan', 'raw_path', 'frame_number')
     list_filter = ('created', 'modified')
     raw_id_fields = ('scan',)
     search_fields = ('name',)
@@ -21,7 +21,7 @@ class ImageAdmin(admin.ModelAdmin):
 
 @admin.register(Scan)
 class ScanAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'experiment', 'site', 'scan_id', 'scan_type')
+    list_display = ('id', 'created', 'modified', 'experiment', 'name', 'scan_type')
     list_filter = ('created', 'modified')
 
 
