@@ -1,27 +1,22 @@
 import json
-import os
+import pandas
 from pathlib import Path
-import re
 
 from celery import shared_task
-from django.contrib.auth.models import User
-from jsonschema import validate
 from jsonschema.exceptions import ValidationError
 
-from miqa.core.conversion.csv_to_json import csvContentToJsonObject, find_common_prefix
+# from django.contrib.auth.models import User
+
+from miqa.core.conversion.csv_to_json import find_common_prefix
 from miqa.core.conversion.json_to_csv import jsonObjectToCsvContent
 from miqa.core.models import (
-    Annotation,
     Decision,
     Evaluation,
     Experiment,
     Image,
     Project,
     Scan,
-    ScanNote,
-    Site,
 )
-from miqa.core.schema.data_import import schema
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
@@ -56,90 +51,92 @@ def evaluate_data(image_ids, project_id):
 
 @shared_task
 def import_data(user_id, project_id):
-    user = User.objects.get(id=user_id)
+    # user = User.objects.get(id=user_id)
     project = Project.objects.get(id=project_id)
 
+    all_projects = []
+    all_experiments = []
+    all_scans = []
+    all_frames = []
+
     if project.import_path.endswith('.csv'):
-        with open(project.import_path) as fd:
-            csv_content = fd.read()
-            json_content = csvContentToJsonObject(csv_content)
-            validate(json_content, schema)
-    elif project.import_path.endswith('.json'):
-        with open(project.import_path) as json_file:
-            json_content = json.load(json_file)
-            validate(json_content, schema)
-    else:
-        raise ValidationError(f'Invalid import file {project.import_path}')
-
-    data_root = Path(json_content['data_root'])
-
-    sites = {
-        site['name']: Site.objects.get_or_create(name=site['name'], defaults={'creator': user})[0]
-        for site in json_content['sites']
-    }
-
-    Experiment.objects.filter(project=project).delete()  # cascades to scans -> images, scan_notes
-
-    experiments = {
-        e['id']: Experiment(name=e['id'], note=e['note'], project=project)
-        for e in json_content['experiments']
-    }
-    Experiment.objects.bulk_create(experiments.values())
-
-    scans = []
-    images = []
-    notes = []
-    annotations = []
-    for scan_json in json_content['scans']:
-        experiment = experiments[scan_json['experiment_id']]
-        site = sites[scan_json['site_id']]
-        scan = Scan(
-            scan_id=scan_json['id'],
-            scan_type=scan_json['type'],
-            experiment=experiment,
-            site=site,
-        )
-        scans.append(scan)
-
-        if scan_json['decision']:
-            annotation = Annotation(
-                scan=scan,
-                decision=Decision.from_rating(scan_json['decision']),
+        df = pandas.read_csv(project.import_path)
+        expected_columns = [
+            'project_id',
+            'experiment_id',
+            'scan_id',
+            'scan_type',
+            'frame_number',
+            'file_location',
+        ]
+        if len(df.columns) != len(expected_columns) or any(df.columns != expected_columns):
+            raise ValidationError(
+                f'Import file has invalid columns. Expected {str(expected_columns)}'
             )
-            annotations.append(annotation)
 
-        if scan_json['note']:
-            for note in scan_json['note'].split('\n'):
-                initials, note = note.split(':')
-                scan_note = ScanNote(
-                    initials=initials,
-                    note=note,
-                    scan=scan,
-                )
-                notes.append(scan_note)
+        # TODO: put this back for support of multiple projects in one import
+        # all_projects.append({
+        #     project_name: Project(name=project_name, creator=user)
+        #     for project_name in df['project_id'].unique()
+        # })
+        # for project_name, project_object in all_projects[0].items():
+        for project_name, project_object in [(df['project_id'].mode()[0], project)]:
 
-        if 'images' in scan_json:
-            # TODO implement this
-            raise Exception('use image_pattern for now')
-        elif 'image_pattern' in scan_json:
-            image_pattern = re.compile(scan_json['image_pattern'])
-            image_dir = data_root / scan_json['path']
-            for image_file in os.listdir(image_dir):
-                if image_pattern.fullmatch(image_file):
-                    images.append(
-                        Image(
-                            name=image_file,
-                            raw_path=image_dir / image_file,
-                            scan=scan,
-                        )
+            # delete old imports of these projects
+            Experiment.objects.filter(
+                project=project_object
+            ).delete()  # cascades to scans -> images, scan_notes
+
+            these_experiments = {
+                experiment_name: Experiment(name=experiment_name, project=project_object)
+                for experiment_name in df[df['project_id'] == project_name][
+                    'experiment_id'
+                ].unique()
+            }
+            all_experiments.append(these_experiments)
+            for experiment_name, experiment_object in these_experiments.items():
+                these_scans = {
+                    scan_name: Scan(
+                        name=scan_name, scan_type=scan_type, experiment=experiment_object
                     )
+                    for scan_name, scan_type in df[df['experiment_id'] == experiment_name]
+                    .groupby(['scan_id', 'scan_type'])
+                    .groups
+                }
+                all_scans.append(these_scans)
+                for scan_name, scan_object in these_scans.items():
+                    these_frames = {}
+                    for row in df[df['scan_id'] == scan_name].iterrows():
+                        raw_path = row[1]['file_location']
+                        if raw_path[0] != '/':
+                            # not an absolute file path; refer to project import csv location
+                            # TODO: add support for interpreting URIs not on host machine
+                            raw_path = str(Path(project.import_path).parent.parent) + '/' + raw_path
+                        these_frames[row[1]['frame_number']] = Image(
+                            frame_number=int(row[1]['frame_number']),
+                            scan=scan_object,
+                            raw_path=raw_path,
+                        )
+                    all_frames.append(these_frames)
 
-    Scan.objects.bulk_create(scans)
-    Image.objects.bulk_create(images)
-    ScanNote.objects.bulk_create(notes)
-    Annotation.objects.bulk_create(annotations)
+        for model, list_all in [
+            (Project, all_projects),
+            (Experiment, all_experiments),
+            (Scan, all_scans),
+            (Image, all_frames),
+        ]:
+            all_items = [item for subdict in list_all for item in subdict.values()]
+            model.objects.bulk_create(all_items)
+            if model == Image:
+                # TODO: modify this to support multi-projects, too
+                evaluate_data.delay([item.id for item in all_items], project.id)
+                # evaluate_data([item.id for item in all_items], project.id)
 
-    evaluate_data.delay([image.id for image in images], project.id)
+    # TODO: re-write JSON parsing to be generalized like CSV parsing
+    # elif project.import_path.endswith('.json'):
+    #     pass
+    else:
+        raise ValidationError(f'Invalid import file {project.import_path}.')
 
 
 @shared_task
