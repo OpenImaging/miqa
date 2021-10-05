@@ -13,13 +13,13 @@ if TYPE_CHECKING:
 
 class Image(TimeStampedModel, models.Model):
     class Meta:
-        indexes = [models.Index(fields=['scan', 'name'])]
-        ordering = ['name']
+        indexes = [models.Index(fields=['scan', 'frame_number'])]
+        ordering = ['frame_number']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     scan = models.ForeignKey('Scan', related_name='images', on_delete=models.CASCADE)
     raw_path = models.CharField(max_length=500, blank=False, unique=True)
-    name = models.CharField(max_length=255, blank=False)
+    frame_number = models.IntegerField(default=0)
 
     @property
     def path(self) -> Path:
