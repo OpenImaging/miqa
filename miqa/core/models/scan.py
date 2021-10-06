@@ -18,7 +18,7 @@ SCAN_TYPES = [
 
 class Scan(TimeStampedModel, models.Model):
     class Meta:
-        ordering = ['name', 'scan_type']
+        ordering = ['name']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=127, blank=False)
