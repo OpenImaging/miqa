@@ -425,10 +425,90 @@ export default {
       >
         <v-container
           fluid
-          grid-list-sm
-          class="pa-2"
+          class="pa-0"
         >
-          <v-layout>
+          <v-row no-gutters>
+            <v-col
+              cols="4"
+              class="pa-2 pr-1"
+            >
+              <v-card
+                height="100%"
+                elevation="3"
+              >
+                <v-container fluid>
+                  <v-row dense>
+                    <v-col cols="6">
+                      Project
+                    </v-col>
+                    <v-col
+                      cols="6"
+                      class="grey--text"
+                      style="text-align: right"
+                    >
+                      project
+                    </v-col>
+                  </v-row>
+                  <v-row dense>
+                    <v-col cols="6">
+                      Experiment
+                    </v-col>
+                    <v-col
+                      cols="6"
+                      class="grey--text"
+                      style="text-align: right"
+                    >
+                      experiment
+                    </v-col>
+                  </v-row>
+                  <v-row class="ma-2 fill-height">
+                    <v-col
+                      cols="12"
+                      class="grey lighten-2"
+                    >
+                      text goes here. Here are the notes on the Experiment.
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card>
+            </v-col>
+            <v-col
+              cols="8"
+              class="pa-2 pl-1"
+            >
+              <v-card
+                height="100%"
+                elevation="3"
+              >
+                <v-container
+                  fluid
+                  class="pa-0"
+                >
+                  <v-row no-gutters>
+                    <v-col cols="6">
+                      <v-container fluid>
+                        <v-row dense>
+                          <v-col cols="6">
+                            PANEL 2A
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-container fluid>
+                        <v-row dense>
+                          <v-col cols="6">
+                            PANEL 2B
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card>
+            </v-col>
+          </v-row>
+          <!-- <v-layout>
             <v-flex
               xs4
               class="mx-1"
@@ -444,7 +524,6 @@ export default {
                       <tr>
                         <td>Site</td>
                         <td align="right">
-                          <!-- TODO: Display name of this site -->
                           {{ currentProject.site }}
                         </td>
                       </tr>
@@ -605,8 +684,7 @@ export default {
                 </v-container>
               </v-card>
             </v-flex>
-          </v-layout>
-
+          </v-layout> -->
           <!-- <v-layout> -->
           <!--
 
@@ -1047,11 +1125,11 @@ export default {
   }
 }
 
-.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.v-btn::before {
-  background-color: transparent !important;
-}
+// .theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+// .theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+// .v-btn::before {
+//   background-color: transparent !important;
+// }
 
 </style>
 
@@ -1085,16 +1163,16 @@ export default {
   overflow-y: auto;
 }
 
-.panel-label {
-  background-color: #e6e6e6;
-  color: #575757;
-  font-size: 12px;
-  padding: 5px 10px!important;
-}
+// .panel-label {
+//   background-color: #e6e6e6;
+//   color: #575757;
+//   font-size: 12px;
+//   padding: 5px 10px!important;
+// }
 
-tbody {
-    tr:hover {
-      background-color: transparent !important;
-    }
-}
+// tbody {
+//     tr:hover {
+//       background-color: transparent !important;
+//     }
+// }
 </style>
