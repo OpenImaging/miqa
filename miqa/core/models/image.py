@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class Image(TimeStampedModel, models.Model):
     class Meta:
         indexes = [models.Index(fields=['scan', 'frame_number'])]
-        ordering = ['frame_number']
+        ordering = ['scan', 'frame_number']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     scan = models.ForeignKey('Scan', related_name='images', on_delete=models.CASCADE)

@@ -26,9 +26,7 @@ for file_name in sys.argv[1:]:
     project_name = str(input("Enter a project name for these scans:\n"))
     print()
     scan_type = str(
-        input(
-            "Enter the type of these scans (should be one of T1, T2, FMRI, MRA, PD, DWI, DTI):\n"
-        )
+        input("Enter the type of these scans (should be one of T1, T2, FMRI, MRA, PD, DWI, DTI):\n")
     )
     print()
     new_rows = []
@@ -43,7 +41,7 @@ for file_name in sys.argv[1:]:
                 str(
                     Path(
                         row["nifti_folder"],
-                        str(row["scan_id"]) + "_" + row["scan_type"],
+                        f"{row['scan_id']}_{row['scan_type']}",
                         "image.nii.gz",
                     )
                 ),
@@ -60,6 +58,6 @@ for file_name in sys.argv[1:]:
             "file_location",
         ],
     )
-    new_filename = "new_" + file_name.replace("old_", "")
+    new_filename = f"new_{file_name.replace('old_', '')}"
     new_df.to_csv(new_filename, index=False)
-    print("Wrote converted CSV to " + new_filename + ".")
+    print(f"Wrote converted CSV to {new_filename}.")

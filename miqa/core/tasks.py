@@ -47,10 +47,10 @@ def import_data(user_id, project_id):
     # user = User.objects.get(id=user_id)
     project = Project.objects.get(id=project_id)
 
-    all_projects = []
-    all_experiments = []
-    all_scans = []
-    all_frames = []
+    new_projects = []
+    new_experiments = []
+    new_scans = []
+    new_frames = []
 
     if project.import_path.endswith('.csv'):
         df = pandas.read_csv(project.import_path)
@@ -62,17 +62,18 @@ def import_data(user_id, project_id):
             'frame_number',
             'file_location',
         ]
-        if len(df.columns) != len(expected_columns) or any(df.columns != expected_columns):
+        if list(df.columns) != expected_columns:
             raise ValidationError(
                 f'Import file has invalid columns. Expected {str(expected_columns)}'
             )
 
         # TODO: put this back for support of multiple projects in one import
-        # all_projects.append({
+        # these_projects = {
         #     project_name: Project(name=project_name, creator=user)
         #     for project_name in df['project_id'].unique()
         # })
-        # for project_name, project_object in all_projects[0].items():
+        # new_projects.extend([project for _name, project in these_projects.items()])
+        # for project_name, project_object in new_projects[0].items():
         for project_name, project_object in [(df['project_id'].mode()[0], project)]:
 
             # delete old imports of these projects
@@ -86,44 +87,45 @@ def import_data(user_id, project_id):
                     'experiment_id'
                 ].unique()
             }
-            all_experiments.append(these_experiments)
+            new_experiments.extend([experiment for _name, experiment in these_experiments.items()])
             for experiment_name, experiment_object in these_experiments.items():
                 these_scans = {
                     scan_name: Scan(
                         name=scan_name, scan_type=scan_type, experiment=experiment_object
                     )
-                    for scan_name, scan_type in df[df['experiment_id'] == experiment_name]
+                    for scan_name, scan_type in df[
+                        (df['experiment_id'] == experiment_name)
+                        & (df['project_id'] == project_name)
+                    ]
                     .groupby(['scan_id', 'scan_type'])
                     .groups
                 }
-                all_scans.append(these_scans)
+                new_scans.extend([scan for _name, scan in these_scans.items()])
                 for scan_name, scan_object in these_scans.items():
                     these_frames = {}
-                    for row in df[df['scan_id'] == scan_name].iterrows():
+                    for row in df[
+                        (df['scan_id'] == scan_name)
+                        & (df['experiment_id'] == experiment_name)
+                        & (df['project_id'] == project_name)
+                    ].iterrows():
                         raw_path = row[1]['file_location']
                         if raw_path[0] != '/':
                             # not an absolute file path; refer to project import csv location
                             # TODO: add support for interpreting URIs not on host machine
-                            raw_path = str(Path(project.import_path).parent.parent) + '/' + raw_path
+                            raw_path = str(Path(project.import_path).parent.parent / raw_path)
                         these_frames[row[1]['frame_number']] = Image(
                             frame_number=int(row[1]['frame_number']),
                             scan=scan_object,
                             raw_path=raw_path,
                         )
-                    all_frames.append(these_frames)
+                    new_frames.extend([frame for _name, frame in these_frames.items()])
 
-        for model, list_all in [
-            (Project, all_projects),
-            (Experiment, all_experiments),
-            (Scan, all_scans),
-            (Image, all_frames),
-        ]:
-            all_items = [item for subdict in list_all for item in subdict.values()]
-            model.objects.bulk_create(all_items)
-            if model == Image:
-                # TODO: modify this to support multi-projects, too
-                evaluate_data.delay([item.id for item in all_items], project.id)
-                # evaluate_data([item.id for item in all_items], project.id)
+        Project.objects.bulk_create(new_projects)
+        Experiment.objects.bulk_create(new_experiments)
+        Scan.objects.bulk_create(new_scans)
+        Image.objects.bulk_create(new_frames)
+
+        evaluate_data.delay([frame.id for frame in new_frames], project.id)
 
     # TODO: re-write JSON parsing to be generalized like CSV parsing
     # elif project.import_path.endswith('.json'):
