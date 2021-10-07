@@ -57,7 +57,7 @@ class ScanSerializer(serializers.ModelSerializer):
 class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
-        fields = ['id', 'name', 'lock_owner', 'scans']
+        fields = ['id', 'name', 'lock_owner', 'scans', 'project', 'note']
         ref_name = 'project_experiment'
 
     scans = ScanSerializer(many=True)

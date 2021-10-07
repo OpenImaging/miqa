@@ -61,27 +61,16 @@ export default {
       'drawer',
       'screenshots',
       'projectCachedPercentage',
-      'projectDatasets',
+      'scanDatasets',
     ]),
     ...mapGetters([
+      'currentViewData',
       'nextDataset',
       'getDataset',
       'currentDataset',
-      'currentScan',
-      'currentExperiment',
-      'currentProject',
-      'previousExperiment',
-      'nextExperiment',
-      'currentExperimentPosition',
-      'currentScanPosition',
-      'previousDataset',
-      'firstDatasetInPreviousProject',
-      'firstDatasetInNextProject',
-      'getSiteDisplayName',
-      'getExperimentDisplayName',
     ]),
-    currentProjectDatasets() {
-      return this.projectDatasets[this.currentProject.id];
+    currentscanDatasets() {
+      return this.scanDatasets[this.currentProject.id];
     },
     notes() {
       if (this.currentProject) {
@@ -267,7 +256,7 @@ export default {
       e.preventDefault();
     },
     debouncedDatasetSliderChange(index) {
-      const datasetId = this.currentProjectDatasets[index];
+      const datasetId = this.currentscanDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
     updateImage() {
@@ -446,7 +435,7 @@ export default {
                       class="grey--text"
                       style="text-align: right"
                     >
-                      project
+                      {{ currentViewData.projectName }}
                     </v-col>
                   </v-row>
                   <v-row dense>
@@ -458,15 +447,29 @@ export default {
                       class="grey--text"
                       style="text-align: right"
                     >
-                      experiment
+                      <!-- Inline user avatar of lock owner goes here -->
+                      {{ currentViewData.experimentName }}
                     </v-col>
                   </v-row>
-                  <v-row class="ma-2 fill-height">
+                  <v-row
+                    class="ma-2"
+                    style="height: 99%"
+                  >
                     <v-col
                       cols="12"
                       class="grey lighten-2"
+                      style="height: 100px; overflow:auto"
                     >
-                      text goes here. Here are the notes on the Experiment.
+                      {{ currentViewData.experimentNote ?
+                        currentViewData.experimentNote : "There are no notes on this experiment." }}
+                    </v-col>
+                  </v-row>
+                  <v-row no-gutters>
+                    <v-col
+                      style="text-align: right"
+                      class="grey--text"
+                    >
+                      Save Note
                     </v-col>
                   </v-row>
                 </v-container>
@@ -489,16 +492,133 @@ export default {
                       <v-container fluid>
                         <v-row dense>
                           <v-col cols="6">
-                            PANEL 2A
+                            Scan
+                          </v-col>
+                          <v-col
+                            cols="6"
+                            class="grey--text"
+                            style="text-align: right"
+                          >
+                            <div
+                              class="font-weight-bold"
+                              style="display:inline"
+                            >
+                              {{ currentViewData.scanName }}
+                            </div>
+                            {{ currentViewData.scanPositionString }}
+                            U/D
+                          </v-col>
+                        </v-row>
+                        <v-row dense>
+                          <v-col cols="6">
+                            Frame
+                          </v-col>
+                          <v-col
+                            cols="6"
+                            class="grey--text"
+                            style="text-align: right"
+                          >
+                            {{ currentViewData.framePositionString }}
+                            L/R
+                          </v-col>
+                        </v-row>
+                        <v-row dense>
+                          <v-col cols="3">
+                            Window (i)
+                          </v-col>
+                          <v-col
+                            cols="6"
+                            style="text-align: center"
+                          >
+                            long thing
+                          </v-col>
+                          <v-col
+                            cols="3"
+                            style="text-align: right"
+                          >
+                            control
+                          </v-col>
+                        </v-row>
+                        <v-row dense>
+                          <v-col cols="3">
+                            Level (i)
+                          </v-col>
+                          <v-col
+                            cols="6"
+                            style="text-align: center"
+                          >
+                            long thing
+                          </v-col>
+                          <v-col
+                            cols="3"
+                            style="text-align: right"
+                          >
+                            control
+                          </v-col>
+                        </v-row>
+                        <v-row class="py-3">
+                          <v-col
+                            cols="12"
+                            style="text-align: center"
+                          >
+                            Messages and Loading Zone
                           </v-col>
                         </v-row>
                       </v-container>
                     </v-col>
                     <v-col cols="6">
-                      <v-container fluid>
-                        <v-row dense>
+                      <v-container
+                        fluid
+                        class="px-5"
+                      >
+                        <v-row>
+                          <v-col
+                            cols="12"
+                            class="grey lighten-4"
+                            style="height: 80px; overflow:auto"
+                          >
+                            comments section
+                          </v-col>
+                        </v-row>
+                        <v-row>
                           <v-col cols="6">
-                            PANEL 2B
+                            Automatic Evaluation (i)
+                          </v-col>
+                          <v-col
+                            cols="6"
+                            class="font-weight-bold orange--text"
+                            style="text-align: right"
+                          >
+                            Percentage
+                          </v-col>
+                        </v-row>
+                        <v-row>
+                          <v-col
+                            cols="12"
+                            class="grey lighten-2"
+                            style="height: 80px; overflow:auto"
+                          >
+                            evaluation section
+                          </v-col>
+                        </v-row>
+                        <v-row no-gutters>
+                          <v-col
+                            cols="4"
+                            style="text-align: center"
+                          >
+                            GOOD
+                          </v-col>
+                          <v-col
+                            cols="4"
+                            style="text-align: center"
+                          >
+                            BAD
+                          </v-col>
+                          <v-col
+                            cols="4"
+                            style="text-align: center"
+                          >
+                            OTHER
                           </v-col>
                         </v-row>
                       </v-container>
@@ -694,11 +814,11 @@ export default {
                   <v-slider
                     :min="1"
                     :max="
-                      currentProjectDatasets.length === 1
+                      currentscanDatasets.length === 1
                         ? 2
-                        : currentProjectDatasets.length
+                        : currentscanDatasets.length
                     "
-                    :disabled="currentProjectDatasets.length === 1"
+                    :disabled="currentscanDatasets.length === 1"
                     :height="24"
                     :value="currentDataset.index + 1"
                     @input="debouncedDatasetSliderChange($event - 1)"
