@@ -87,7 +87,7 @@ function getData(id, file, webWorker = null) {
               .getRange();
             datasetCache.set(id, { imageData });
             // eslint-disable-next-line no-use-before-define
-            expandScanRange(id, dataRange);
+            expandProjectRange(id, dataRange);
             resolve({ imageData, webWorker });
           })
           .catch((error) => {
@@ -206,7 +206,8 @@ const initState = {
   currentScreenshot: null,
   screenshots: [],
   sites: null,
-  scanCachedPercentage: 0,
+  projectCachedPercentage: 0,
+  projectStatus: null,
 };
 
 const {
@@ -223,6 +224,35 @@ const {
     actionTimeout: false,
   },
   getters: {
+    wholeState(state){
+      return state
+    },
+    currentViewData(state){
+      const currentDataset = state.currentDatasetId ? state.datasets[state.currentDatasetId] : null
+      const scan = state.scans[currentDataset.project] // fix that frontend calls scans projects
+      const experiment = currentDataset.experiment ? state.experiments[currentDataset.experiment] : null
+      const project = state.sites.filter(x => x.id===experiment.project)[0]
+      const experimentScansList = state.experimentScans[experiment.id]
+      const scanFramesList = state.scanDatasets[scan.id]
+      return {
+        projectName: project.name,
+        experimentName: experiment.name,
+        experimentNote: experiment.note,
+        locked: experiment.lockOwner != null,
+        lockOwner: experiment.lockOwner,
+        scanName: scan.name,
+        scanPositionString: `(${experimentScansList.indexOf(scan.id)+1}/${experimentScansList.length})`,
+        framePositionString: `(${scanFramesList.indexOf(currentDataset.id)+1}/${scanFramesList.length})`,
+        currentlyLoading: state.loadingDataset && state.loadingExperiment,
+        currentLoadingPercentage: state.projectCachedPercentage,
+        backTo: currentDataset.previousDataset,
+        forwardTo: currentDataset.nextDataset,
+        upTo: currentDataset.firstDatasetInPreviousProject,
+        downTo: currentDataset.firstDatasetInNextProject
+      }
+    },
+
+
     currentDataset(state) {
       const { datasets, currentDatasetId } = state;
       return currentDatasetId ? datasets[currentDatasetId] : null;
@@ -243,23 +273,23 @@ const {
         return state.datasets[datasetId];
       };
     },
-    currentScan(state, getters) {
+    currentProject(state, getters) {
       if (getters.currentDataset) {
-        const curScanId = getters.currentDataset.scan;
-        return state.scans[curScanId];
+        const curProjectId = getters.currentDataset.project;
+        return state.scans[curProjectId];
       }
       return null;
     },
     currentExperiment(state, getters) {
-      if (getters.currentScan) {
-        const curExperimentId = getters.currentScan.experiment;
+      if (getters.currentProject) {
+        const curExperimentId = getters.currentProject.experiment;
         return state.experiments[curExperimentId];
       }
       return null;
     },
     currentScan(state, getters) {
       if (getters.currentProject) {
-        return state.projects[getters.currentProject.id].name;
+        return state.scans[getters.currentProject.id].name;
       }
       return null;
     },
@@ -267,7 +297,7 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        return state.experimentProjects[curExperimentId].indexOf(curProjectId)+1 +'/'+ state.experimentProjects[curExperimentId].length;
+        return state.experimentScans[curExperimentId].indexOf(curProjectId)+1 +'/'+ state.experimentScans[curExperimentId].length;
       }
       return null;
     },
@@ -275,7 +305,7 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curDatasetId = getters.currentDataset.id;
-        return state.projectDatasets[curProjectId].indexOf(curDatasetId)+1+'/'+state.projectDatasets[curProjectId].length
+        return state.scanDatasets[curProjectId].indexOf(curDatasetId)+1+'/'+state.scanDatasets[curProjectId].length
       }
       return null;
     },
@@ -283,10 +313,10 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentProjects[curExperimentId]
+        const experimentList = state.experimentScans[curExperimentId]
         if(experimentList.indexOf(curProjectId) < 1) return null;
         const targetId = experimentList[experimentList.indexOf(curProjectId)-1]
-        return state.projectDatasets[targetId][0]
+        return state.scanDatasets[targetId][0]
       }
       return null;
     },
@@ -294,10 +324,10 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentProjects[curExperimentId]
+        const experimentList = state.experimentScans[curExperimentId]
         if(experimentList.indexOf(curProjectId) >= experimentList.length -1) return null;
         const targetId = experimentList[experimentList.indexOf(curProjectId)+1]
-        return state.projectDatasets[targetId][0]
+        return state.scanDatasets[targetId][0]
       }
       return null;
     },
@@ -305,8 +335,8 @@ const {
       return (expId) => {
         const experimentScans = state.experimentScans[expId];
         const expDatasets = [];
-        experimentScans.forEach((scanId) => {
-          const scanDatasets = state.scanDatasets[scanId];
+        experimentScans.forEach((projectId) => {
+          const scanDatasets = state.scanDatasets[projectId];
           scanDatasets.forEach((datasetId) => {
             expDatasets.push(datasetId);
           });
@@ -314,14 +344,14 @@ const {
         return expDatasets;
       };
     },
-    firstDatasetInPreviousScan(state, getters) {
+    firstDatasetInPreviousProject(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInPreviousScan
+        ? getters.currentDataset.firstDatasetInPreviousProject
         : null;
     },
-    firstDatasetInNextScan(state, getters) {
+    firstDatasetInNextProject(state, getters) {
       return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInNextScan
+        ? getters.currentDataset.firstDatasetInNextProject
         : null;
     },
     firstDatasetInPreviousExeriment(state, getters) {
@@ -330,8 +360,8 @@ const {
         if (expIdx >= 1) {
           const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
           const prevExpScans = state.experimentScans[prevExp.id];
-          const prevExpScanDatasets = state.scanDatasets[prevExpScans[0].id];
-          return prevExpScanDatasets[0];
+          const prevExpscanDatasets = state.scanDatasets[prevExpScans[0].id];
+          return prevExpscanDatasets[0];
         }
       }
       return null;
@@ -342,8 +372,8 @@ const {
         if (expIdx < state.experimentIds.length - 1) {
           const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
           const nextExpScans = state.experimentScans[nextExp.id];
-          const nextExpScanDatasets = state.scanDatasets[nextExpScans[0].id];
-          return nextExpScanDatasets[0];
+          const nextExpscanDatasets = state.scanDatasets[nextExpScans[0].id];
+          return nextExpscanDatasets[0];
         }
       }
       return null;
@@ -427,10 +457,10 @@ const {
     setSites(state, sites) {
       state.sites = sites;
     },
-    addScanDatasets(state, { sid, id }) {
+    addscanDatasets(state, { sid, id }) {
       state.scanDatasets[sid].push(id);
     },
-    addExperimentScans(state, { eid, sid }) {
+    addexperimentScans(state, { eid, sid }) {
       state.scanDatasets[sid] = [];
       state.experimentScans[eid].push(sid);
     },
@@ -444,11 +474,11 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    resetScanDatasets(state, id) {
+    resetscanDatasets(state, id) {
       state.scanDatasets[id] = [];
     },
-    setScanCachedPercentage(state, percentComplete) {
-      state.scanCachedPercentage = percentComplete;
+    setProjectCachedPercentage(state, percentComplete) {
+      state.projectCachedPercentage = percentComplete;
     },
     startLoadingExperiment(state) {
       state.loadingExperiment = true;
@@ -492,7 +522,7 @@ const {
 
       const numScans = state.experimentScans[experimentID].length + 1;
 
-      commit('addExperimentScans', { eid: experimentID, sid: scanID });
+      commit('addexperimentScans', { eid: experimentID, sid: scanID });
       commit('setScan', {
         scanId: scanID,
         scan: {
@@ -513,20 +543,20 @@ const {
         const imageID = uuid();
         const f = files[k];
 
-        commit('addScanDatasets', { sid: scanID, id: imageID });
+        commit('addscanDatasets', { sid: scanID, id: imageID });
         commit('setImage', {
           imageId: imageID,
           image: {
             ...f,
             id: imageID,
-            scan: scanID,
+            project: scanID,
             experiment: experimentID,
             index: k,
             previousDataset: prevId,
             // TODO link properly
             // nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-            // firstDatasetInPreviousScan: firstInPrev,
-            // firstDatasetInNextScan: nextScan ? nextScan.id : null,
+            // firstDatasetInPreviousProject: firstInPrev,
+            // firstDatasetInNextProject: nextScan ? nextScan.id : null,
             local: true,
           },
         });
@@ -557,9 +587,13 @@ const {
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
 
-      // Refresh the project from the API
-      project = await djangoRest.project(project.id);
-      commit('setCurrentProject', project);
+      if (project) {
+        // load first available project
+        project = await djangoRest.project(project.id);
+      } else {
+        // no scans: can't load any
+        return;
+      }
 
       // place data in state
       const { experiments } = project;
@@ -567,12 +601,14 @@ const {
       for (let i = 0; i < experiments.length; i += 1) {
         const experiment = experiments[i];
         // set experimentScans[experiment.id] before registering the experiment.id
-        // so ExperimentsView doesn't update prematurely
+        // so ProjectsView doesn't update prematurely
         commit('addExperiment', {
           id: experiment.id,
           value: {
             id: experiment.id,
             name: experiment.name,
+            note: experiment.note,
+            project: experiment.project,
             index: i,
             lockOwner: experiment.lock_owner,
           },
@@ -583,7 +619,7 @@ const {
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
-          commit('addExperimentScans', { eid: experiment.id, sid: scan.id });
+          commit('addexperimentScans', { eid: experiment.id, sid: scan.id });
 
           // Web datasets == Django images
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
@@ -594,7 +630,7 @@ const {
             scanId: scan.id,
             scan: {
               id: scan.id,
-              name: scan.name,
+              name: scan.scan_type,
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
               numDatasets: images.length,
@@ -610,18 +646,18 @@ const {
 
           for (let k = 0; k < images.length; k += 1) {
             const image = images[k];
-            commit('addScanDatasets', { sid: scan.id, id: image.id });
+            commit('addscanDatasets', { sid: scan.id, id: image.id });
             commit('setImage', {
               imageId: image.id,
               image: {
                 ...image,
-                scan: scan.id,
+                project: scan.id,
                 experiment: experiment.id,
                 index: k,
                 previousDataset: k > 0 ? images[k - 1].id : null,
                 nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-                firstDatasetInPreviousScan: firstInPrev,
-                firstDatasetInNextScan: nextScan ? nextScan.id : null,
+                firstDatasetInPreviousProject: firstInPrev,
+                firstDatasetInNextProject: nextScan ? nextScan.id : null,
               },
             });
           }
@@ -630,19 +666,20 @@ const {
             firstInPrev = images[0].id;
           } else {
             console.error(
-              `${experiment.name}/${scan.name} has no datasets`,
+              `${experiment.name}/${scan.scan_type} has no datasets`,
             );
           }
         }
       }
     },
+    // This would be called reloadProject, but project is being renamed to scan
     async reloadScan({ commit, getters }) {
       const currentImage = getters.currentDataset;
       // No need to reload if the image doesn't exist or doesn't exist on the server
       if (!currentImage || currentImage.local) {
         return;
       }
-      const scanId = currentImage.scan;
+      const scanId = currentImage.project;
       if (!scanId) {
         return;
       }
@@ -652,7 +689,7 @@ const {
         scanId: scan.id,
         scan: {
           id: scan.id,
-          name: scan.name,
+          name: scan.scan_type,
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
           numDatasets: images.length,
@@ -679,12 +716,12 @@ const {
       }
       commit('setLoadingDataset', true);
       commit('setErrorLoadingDataset', false);
-      const oldScan = getters.currentScan;
-      const newScan = state.scans[dataset.scan];
+      const oldProject = getters.currentProject;
+      const newProject = state.scans[dataset.project];
       const oldExperiment = getters.currentExperiment
         ? getters.currentExperiment
         : null;
-      const newExperimentId = state.scans[dataset.scan].experiment;
+      const newExperimentId = state.scans[dataset.project].experiment;
       const newExperiment = state.experiments[newExperimentId];
 
       // Check if we should cancel the currently loading experiment
@@ -699,7 +736,7 @@ const {
       }
 
       let newProxyManager = false;
-      if (oldScan !== newScan && state.proxyManager) {
+      if (oldProject !== newProject && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
         // scans, then we can end up with no image
         // slices displayed, even though we have the data and attempted
@@ -762,7 +799,7 @@ const {
       checkLoadExperiment(oldExperiment, newExperiment);
     },
     async loadSites({ commit }) {
-      const sites = await djangoRest.sites();
+      const sites = await djangoRest.projects();
       commit('setSites', sites);
     },
     async lockExperiment({ commit }, experiment) {
@@ -772,10 +809,12 @@ const {
         // Failing to acquire the lock probably means that someone else got the lock before you.
         // The following refresh will disable the button and show who currently owns the lock.
       }
-      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const { id, name, note, project, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
+        note,
+        project,
         index: experiment.index,
         lockOwner,
       });
@@ -787,10 +826,12 @@ const {
         // Failing to unlock the lock probably means that someone else unlocked it for you.
         // The following refresh will show who currently owns the lock.
       }
-      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const { id, name, note, project, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
+        note,
+        project,
         index: experiment.index,
         lockOwner,
       });
@@ -818,9 +859,9 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   if (oldValue) {
-    const oldExperimentScans = store.state.experimentScans[oldValue.id];
-    oldExperimentScans.forEach((scanId) => {
-      const scanDatasets = store.state.scanDatasets[scanId];
+    const oldexperimentScans = store.state.experimentScans[oldValue.id];
+    oldexperimentScans.forEach((projectId) => {
+      const scanDatasets = store.state.scanDatasets[projectId];
       scanDatasets.forEach((datasetId) => {
         fileCache.delete(datasetId);
         datasetCache.delete(datasetId);
@@ -829,15 +870,15 @@ function checkLoadExperiment(oldValue, newValue) {
   }
 
   readDataQueue = [];
-  const newExperimentScans = store.state.experimentScans[newValue.id];
-  newExperimentScans.forEach((scanId) => {
-    const scanDatasets = store.state.scanDatasets[scanId];
+  const newexperimentScans = store.state.experimentScans[newValue.id];
+  newexperimentScans.forEach((projectId) => {
+    const scanDatasets = store.state.scanDatasets[projectId];
     scanDatasets.forEach((datasetId) => {
       readDataQueue.push({
         // TODO don't hardcode projectId
         projectId: 1,
         experimentId: newValue.id,
-        scanId,
+        scanId: projectId,
         imageId: datasetId,
       });
     });
@@ -847,7 +888,7 @@ function checkLoadExperiment(oldValue, newValue) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit.setScanCachedPercentage(percentComplete);
+  store.commit.setProjectCachedPercentage(percentComplete);
 }
 
 function startReaderWorkerPool() {
@@ -882,15 +923,15 @@ function startReaderWorkerPool() {
     });
 }
 
-function expandScanRange(datasetId, dataRange) {
+function expandProjectRange(datasetId, dataRange) {
   if (datasetId in store.state.datasets) {
-    const scanId = store.state.datasets[datasetId].scan;
-    const scan = store.state.scans[scanId];
-    if (dataRange[0] < scan.cumulativeRange[0]) {
-      [scan.cumulativeRange[0]] = dataRange;
+    const projectId = store.state.datasets[datasetId].project;
+    const project = store.state.scans[projectId];
+    if (dataRange[0] < project.cumulativeRange[0]) {
+      [project.cumulativeRange[0]] = dataRange;
     }
-    if (dataRange[1] > scan.cumulativeRange[1]) {
-      [, scan.cumulativeRange[1]] = dataRange;
+    if (dataRange[1] > project.cumulativeRange[1]) {
+      [, project.cumulativeRange[1]] = dataRange;
     }
   }
 }

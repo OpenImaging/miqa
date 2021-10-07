@@ -5,7 +5,7 @@ import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import { API_URL } from '../constants';
 
 export default {
-  name: 'ExperimentsView',
+  name: 'ScansView',
   components: { ExperimentLockIcon },
   props: {
     minimal: {
@@ -147,7 +147,7 @@ export default {
       v-else
       class="text-xs-center body-2"
     >
-      No imported projects
+      No imported scans
     </div>
   </div>
 </template>
