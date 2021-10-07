@@ -55,9 +55,9 @@ def import_data(user_id, project_id):
     if project.import_path.endswith('.csv'):
         df = pandas.read_csv(project.import_path)
         expected_columns = [
-            'project_id',
-            'experiment_id',
-            'scan_id',
+            'project_name',
+            'experiment_name',
+            'scan_name',
             'scan_type',
             'frame_number',
             'file_location',
@@ -70,11 +70,11 @@ def import_data(user_id, project_id):
         # TODO: put this back for support of multiple projects in one import
         # these_projects = {
         #     project_name: Project(name=project_name, creator=user)
-        #     for project_name in df['project_id'].unique()
+        #     for project_name in df['project_name'].unique()
         # })
         # new_projects.extend([project for _name, project in these_projects.items()])
         # for project_name, project_object in new_projects[0].items():
-        for project_name, project_object in [(df['project_id'].mode()[0], project)]:
+        for project_name, project_object in [(df['project_name'].mode()[0], project)]:
 
             # delete old imports of these projects
             Experiment.objects.filter(
@@ -83,8 +83,8 @@ def import_data(user_id, project_id):
 
             these_experiments = {
                 experiment_name: Experiment(name=experiment_name, project=project_object)
-                for experiment_name in df[df['project_id'] == project_name][
-                    'experiment_id'
+                for experiment_name in df[df['project_name'] == project_name][
+                    'experiment_name'
                 ].unique()
             }
             new_experiments.extend([experiment for _name, experiment in these_experiments.items()])
@@ -94,19 +94,19 @@ def import_data(user_id, project_id):
                         name=scan_name, scan_type=scan_type, experiment=experiment_object
                     )
                     for scan_name, scan_type in df[
-                        (df['experiment_id'] == experiment_name)
-                        & (df['project_id'] == project_name)
+                        (df['experiment_name'] == experiment_name)
+                        & (df['project_name'] == project_name)
                     ]
-                    .groupby(['scan_id', 'scan_type'])
+                    .groupby(['scan_name', 'scan_type'])
                     .groups
                 }
                 new_scans.extend([scan for _name, scan in these_scans.items()])
                 for scan_name, scan_object in these_scans.items():
                     these_frames = {}
                     for row in df[
-                        (df['scan_id'] == scan_name)
-                        & (df['experiment_id'] == experiment_name)
-                        & (df['project_id'] == project_name)
+                        (df['scan_name'] == scan_name)
+                        & (df['experiment_name'] == experiment_name)
+                        & (df['project_name'] == project_name)
                     ].iterrows():
                         raw_path = row[1]['file_location']
                         if raw_path[0] != '/':

@@ -25,18 +25,14 @@ for file_name in sys.argv[1:]:
 
     project_name = str(input("Enter a project name for these scans:\n"))
     print()
-    scan_type = str(
-        input("Enter the type of these scans (should be one of T1, T2, FMRI, MRA, PD, DWI, DTI):\n")
-    )
-    print()
     new_rows = []
     for index, row in df.iterrows():
         new_rows.append(
             [
                 project_name,
                 row["xnat_experiment_id"],
+                f"{row['xnat_experiment_id']}_{row['scan_type']}",
                 row["scan_type"],
-                scan_type,
                 row["scan_id"],
                 str(
                     Path(
@@ -50,9 +46,9 @@ for file_name in sys.argv[1:]:
     new_df = pandas.DataFrame(
         new_rows,
         columns=[
-            "project_id",
-            "experiment_id",
-            "scan_id",
+            "project_name",
+            "experiment_name",
+            "scan_name",
             "scan_type",
             "frame_number",
             "file_location",

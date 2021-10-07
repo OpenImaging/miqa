@@ -18,6 +18,14 @@ def default_evaluation_model_mapping():
         'PD': 'MIQAT1-0',
         'DTI': 'MIQAT1-0',
         'DWI': 'MIQAT1-0',
+        'ncanda-t1spgr-v1': 'MIQAT1-0',
+        'ncanda-mprage-v1': 'MIQAT1-0',
+        'ncanda-t2fse-v1': 'MIQAT1-0',
+        'ncanda-dti6b500pepolar-v1': 'MIQAT1-0',
+        'ncanda-dti30b400-v1': 'MIQAT1-0',
+        'ncanda-dti60b1000-v1': 'MIQAT1-0',
+        'ncanda-grefieldmap-v1': 'MIQAT1-0',
+        'ncanda-rsfmri-v1': 'MIQAT1-0',
     }
 
 

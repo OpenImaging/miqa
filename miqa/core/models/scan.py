@@ -13,6 +13,14 @@ SCAN_TYPES = [
     ('PD', 'PD'),
     ('DTI', 'DTI'),
     ('DWI', 'DWI'),
+    ('ncanda-t1spgr-v1', 'ncanda-t1spgr-v1'),
+    ('ncanda-mprage-v1', 'ncanda-mprage-v1'),
+    ('ncanda-t2fse-v1', 'ncanda-t2fse-v1'),
+    ('ncanda-dti6b500pepolar-v1', 'ncanda-dti6b500pepolar-v1'),
+    ('ncanda-dti30b400-v1', 'ncanda-dti30b400-v1'),
+    ('ncanda-dti60b1000-v1', 'ncanda-dti60b1000-v1'),
+    ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'),
+    ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'),
 ]
 
 
@@ -23,4 +31,4 @@ class Scan(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=127, blank=False)
     experiment = models.ForeignKey('Experiment', related_name='scans', on_delete=models.CASCADE)
-    scan_type = models.CharField(max_length=10, choices=SCAN_TYPES, default='T1')
+    scan_type = models.CharField(max_length=25, choices=SCAN_TYPES, default='T1')
