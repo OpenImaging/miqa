@@ -24,7 +24,7 @@ class LockOwnerSerializer(serializers.ModelSerializer):
 class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
-        fields = ['id', 'name', 'note', 'project', 'lock_owner']
+        fields = ['id', 'name', 'note', 'project', 'note', 'lock_owner']
 
     project = ProjectSerializer()
     lock_owner = LockOwnerSerializer()
