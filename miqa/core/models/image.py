@@ -7,8 +7,6 @@ from uuid import uuid4
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
-from miqa.core.conversion.nifti_to_zarr_ngff import convert_to_store_path, nifti_to_zarr_ngff
-
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
@@ -23,17 +21,9 @@ class Image(TimeStampedModel, models.Model):
     raw_path = models.CharField(max_length=500, blank=False, unique=True)
     frame_number = models.IntegerField(default=0)
 
-    def clean(self):
-        super().clean()
-        nifti_to_zarr_ngff.delay(self.path)
-
     @property
     def path(self) -> Path:
         return Path(self.raw_path)
-
-    @property
-    def zarr_path(self: Image) -> Path:
-        return convert_to_store_path(self.path)
 
     @property
     def size(self) -> int:
