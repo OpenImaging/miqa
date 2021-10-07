@@ -12,6 +12,7 @@ import {
 
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
+import ControlPanel from '@/components/ControlPanel.vue';
 import UserButton from '@/components/girder/UserButton.vue';
 import ProjectsView from '@/components/ProjectsView.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
@@ -36,6 +37,7 @@ export default {
     TimeoutDialog,
     KeyboardShortcutDialog,
     NavigationTabs,
+    ControlPanel,
   },
   inject: ['user'],
   data: () => ({
@@ -64,9 +66,9 @@ export default {
       'scanDatasets',
     ]),
     ...mapGetters([
-      'currentViewData',
       'nextDataset',
       'getDataset',
+      'previousDataset',
       'currentDataset',
     ]),
     currentscanDatasets() {
@@ -99,19 +101,6 @@ export default {
         this.newNote = '';
       }
     },
-  },
-  mounted() {
-    window.addEventListener('keyup', (event) => {
-      if (event.key === 'ArrowUp') {
-        this.handleKeyPress('previous');
-      } else if (event.key === 'ArrowDown') {
-        this.handleKeyPress('next');
-      } else if (event.key === 'ArrowLeft') {
-        this.handleKeyPress('back');
-      } else if (event.key === 'ArrowRight') {
-        this.handleKeyPress('forward');
-      }
-    });
   },
   async created() {
     this.debouncedDatasetSliderChange = _.debounce(
@@ -259,56 +248,10 @@ export default {
       const datasetId = this.currentscanDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
-    updateImage() {
-      if (this.direction === 'back') {
-        this.$router
-          .push(this.previousDataset ? this.previousDataset : '')
-          .catch(this.handleNavigationError);
-      } else if (this.direction === 'forward') {
-        this.$router
-          .push(this.nextDataset ? this.nextDataset : '')
-          .catch(this.handleNavigationError);
-      } else if (this.direction === 'previous') {
-        this.$router
-          .push(this.previousExperiment ? this.previousExperiment : '')
-          .catch(this.handleNavigationError);
-      } else if (this.direction === 'next') {
-        this.$router
-          .push(this.nextExperiment ? this.nextExperiment : '')
-          .catch(this.handleNavigationError);
-      }
-    },
     advanceLoop() {
       if (this.scanning) {
         this.updateImage();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
-      }
-    },
-    handleKeyPress(direction) {
-      console.log(this.direction);
-      this.direction = direction;
-      this.updateImage();
-    },
-    handleMouseDown(direction) {
-      if (!this.scanning) {
-        this.scanning = true;
-        this.direction = direction;
-        this.updateImage();
-        const self = this;
-        this.advanceTimeoutId = window.setTimeout(() => {
-          window.requestAnimationFrame(self.advanceLoop);
-        }, 300);
-      }
-    },
-    handleMouseUp() {
-      this.scanning = false;
-      if (this.advanceTimeoutId !== null) {
-        window.clearTimeout(this.advanceTimeoutId);
-        this.advanceTimeoutId = null;
-      }
-      if (this.nextAnimRequest !== null) {
-        window.cancelAnimationFrame(this.nextAnimRequest);
-        this.nextAnimRequest = null;
       }
     },
   },
@@ -408,407 +351,9 @@ export default {
           </div>
         </v-layout>
       </v-flex>
-      <v-flex
-        shrink
-        class="bottom"
-      >
-        <v-container
-          fluid
-          class="pa-0"
-        >
-          <v-row no-gutters>
-            <v-col
-              cols="4"
-              class="pa-2 pr-1"
-            >
-              <v-card
-                height="100%"
-                elevation="3"
-              >
-                <v-container fluid>
-                  <v-row dense>
-                    <v-col cols="6">
-                      Project
-                    </v-col>
-                    <v-col
-                      cols="6"
-                      class="grey--text"
-                      style="text-align: right"
-                    >
-                      {{ currentViewData.projectName }}
-                    </v-col>
-                  </v-row>
-                  <v-row dense>
-                    <v-col cols="6">
-                      Experiment
-                    </v-col>
-                    <v-col
-                      cols="6"
-                      class="grey--text"
-                      style="text-align: right"
-                    >
-                      <!-- Inline user avatar of lock owner goes here -->
-                      {{ currentViewData.experimentName }}
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="ma-2"
-                    style="height: 99%"
-                  >
-                    <v-col
-                      cols="12"
-                      class="grey lighten-2"
-                      style="height: 100px; overflow:auto"
-                    >
-                      {{ currentViewData.experimentNote ?
-                        currentViewData.experimentNote : "There are no notes on this experiment." }}
-                    </v-col>
-                  </v-row>
-                  <v-row no-gutters>
-                    <v-col
-                      style="text-align: right"
-                      class="grey--text"
-                    >
-                      Save Note
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card>
-            </v-col>
-            <v-col
-              cols="8"
-              class="pa-2 pl-1"
-            >
-              <v-card
-                height="100%"
-                elevation="3"
-              >
-                <v-container
-                  fluid
-                  class="pa-0"
-                >
-                  <v-row no-gutters>
-                    <v-col cols="6">
-                      <v-container fluid>
-                        <v-row dense>
-                          <v-col cols="6">
-                            Scan
-                          </v-col>
-                          <v-col
-                            cols="6"
-                            class="grey--text"
-                            style="text-align: right"
-                          >
-                            <div
-                              class="font-weight-bold"
-                              style="display:inline"
-                            >
-                              {{ currentViewData.scanName }}
-                            </div>
-                            {{ currentViewData.scanPositionString }}
-                            U/D
-                          </v-col>
-                        </v-row>
-                        <v-row dense>
-                          <v-col cols="6">
-                            Frame
-                          </v-col>
-                          <v-col
-                            cols="6"
-                            class="grey--text"
-                            style="text-align: right"
-                          >
-                            {{ currentViewData.framePositionString }}
-                            L/R
-                          </v-col>
-                        </v-row>
-                        <v-row dense>
-                          <v-col cols="3">
-                            Window (i)
-                          </v-col>
-                          <v-col
-                            cols="6"
-                            style="text-align: center"
-                          >
-                            long thing
-                          </v-col>
-                          <v-col
-                            cols="3"
-                            style="text-align: right"
-                          >
-                            control
-                          </v-col>
-                        </v-row>
-                        <v-row dense>
-                          <v-col cols="3">
-                            Level (i)
-                          </v-col>
-                          <v-col
-                            cols="6"
-                            style="text-align: center"
-                          >
-                            long thing
-                          </v-col>
-                          <v-col
-                            cols="3"
-                            style="text-align: right"
-                          >
-                            control
-                          </v-col>
-                        </v-row>
-                        <v-row class="py-3">
-                          <v-col
-                            cols="12"
-                            style="text-align: center"
-                          >
-                            Messages and Loading Zone
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-container
-                        fluid
-                        class="px-5"
-                      >
-                        <v-row>
-                          <v-col
-                            cols="12"
-                            class="grey lighten-4"
-                            style="height: 80px; overflow:auto"
-                          >
-                            comments section
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="6">
-                            Automatic Evaluation (i)
-                          </v-col>
-                          <v-col
-                            cols="6"
-                            class="font-weight-bold orange--text"
-                            style="text-align: right"
-                          >
-                            Percentage
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col
-                            cols="12"
-                            class="grey lighten-2"
-                            style="height: 80px; overflow:auto"
-                          >
-                            evaluation section
-                          </v-col>
-                        </v-row>
-                        <v-row no-gutters>
-                          <v-col
-                            cols="4"
-                            style="text-align: center"
-                          >
-                            GOOD
-                          </v-col>
-                          <v-col
-                            cols="4"
-                            style="text-align: center"
-                          >
-                            BAD
-                          </v-col>
-                          <v-col
-                            cols="4"
-                            style="text-align: center"
-                          >
-                            OTHER
-                          </v-col>
-                        </v-row>
-                      </v-container>
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card>
-            </v-col>
-          </v-row>
-          <!-- <v-layout>
-            <v-flex
-              xs4
-              class="mx-1"
-              style="display:flex;flex-direction:column;"
-            >
-              <v-card elevation="5">
-                <v-container class="panel-label">
-                  EXPERIMENT INFORMATION
-                </v-container>
-                <v-container>
-                  <v-simple-table dense>
-                    <tbody>
-                      <tr>
-                        <td>Site</td>
-                        <td align="right">
-                          {{ currentProject.site }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Experiment</td>
-                        <td align="right">
-                          {{ currentExperiment.name }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td style="vertical-align:top; padding:5px 15px">
-                          Scan
-                        </td>
-                        <td
-                          align="center"
-                          style="width:99%"
-                        >
-                          <div
-                            tabindex="0"
-                            class="d-flex justify-center"
-                          >
-                            <v-row
-                              no-gutters
-                              justify="center"
-                              style="flex-wrap: nowrap;"
-                            >
-                              <v-col
-                                cols="1"
-                                class="flex-grow-0 flex-shrink-0 "
-                              >
-                                <v-btn
-                                  :disabled="!previousExperiment"
-                                  @mousedown="handleMouseDown('previous')"
-                                  @mouseup="handleMouseUp()"
-                                  fab
-                                  small
-                                  depressed
-                                  color="white"
-                                >
-                                  <v-icon>fa-caret-up</v-icon>
-                                </v-btn>
-                              </v-col>
-                              <v-col
-                                cols="1"
-                                style="min-width: 100px;"
-                                class="flex-grow-1 flex-shrink-0 py-2 pl-2"
-                              >
-                                {{ currentScan }}
-                                <div
-                                  style="display:inline; font-weight:100; padding-left:10px"
-                                >
-                                  ({{ currentExperimentPosition }})
-                                </div>
-                              </v-col>
-                              <v-col
-                                cols="1"
-                                class="flex-grow-0 flex-shrink-1"
-                              >
-                                <v-btn
-                                  :disabled="!nextExperiment"
-                                  @mousedown="handleMouseDown('next')"
-                                  @mouseup="handleMouseUp()"
-                                  fab
-                                  small
-                                  depressed
-                                  color="white"
-                                >
-                                  <v-icon>fa-caret-down</v-icon>
-                                </v-btn>
-                              </v-col>
-                            </v-row>
-                          </div>
-                          <div
-                            tabindex="0"
-                            class="d-flex justify-center grey lighten-2"
-                          >
-                            <v-row
-                              no-gutters
-                              style="flex-wrap: nowrap;"
-                            >
-                              <v-col
-                                cols="1"
-                                class="flex-grow-0 flex-shrink-0"
-                              >
-                                <v-btn
-                                  :disabled="!previousDataset"
-                                  @mousedown="handleMouseDown('back')"
-                                  @mouseup="handleMouseUp()"
-                                  fab
-                                  small
-                                  depressed
-                                >
-                                  <v-icon>fa-caret-left</v-icon>
-                                </v-btn>
-                              </v-col>
-                              <v-col
-                                cols="1"
-                                style="min-width: 100px; max-width: 100%;"
-                                class="flex-grow-1 flex-shrink-0 py-2"
-                              >
-                                {{ currentDataset.name }}
-                                <div
-                                  style="display:inline; font-weight:100; padding-left:10px"
-                                >
-                                  ({{ currentScanPosition }})
-                                </div>
-                              </v-col>
-                              <v-col
-                                cols="1"
-                                class="flex-grow-0 flex-shrink-1"
-                              >
-                                <v-btn
-                                  :disabled="!nextDataset"
-                                  @mousedown="handleMouseDown('forward')"
-                                  @mouseup="handleMouseUp()"
-                                  fab
-                                  small
-                                  depressed
-                                  class="pr-5"
-                                >
-                                  <v-icon>fa-caret-right</v-icon>
-                                </v-btn>
-                              </v-col>
-                            </v-row>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </v-simple-table>
-                </v-container>
-              </v-card>
-            </v-flex>
-            <v-flex
-              xs4
-              class="mx-1"
-              style="display:flex;flex-direction:column;"
-            >
-              <v-card elevation="5">
-                <v-container class="panel-label">
-                  WINDOW CONTROLS
-                </v-container>
-                <v-container>
-                  HERE2
-                </v-container>
-              </v-card>
-            </v-flex>
-            <v-flex
-              xs4
-              class="mx-1"
-              style="display:flex;flex-direction:column;"
-            >
-              <v-card elevation="5">
-                <v-container class="panel-label">
-                  SUBMIT QUALITY REVIEW
-                </v-container>
-                <v-container>
-                  HERE3
-                </v-container>
-              </v-card>
-            </v-flex>
-          </v-layout> -->
-          <!-- <v-layout> -->
-          <!--
+      <ControlPanel />
 
-              </v-layout>
+      <!-- </v-layout>
               <v-layout align-center>
                 <v-flex class="ml-3 mr-1">
                   <v-slider
@@ -1128,9 +673,7 @@ export default {
                 class="py-0"
               />
             </v-flex> -->
-          <!-- </v-layout> -->
-        </v-container>
-      </v-flex>
+      <!-- </v-layout> -->
     </template>
     <v-layout
       v-if="!currentDataset && !loadingDataset"
@@ -1245,11 +788,11 @@ export default {
   }
 }
 
-// .theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-// .theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-// .v-btn::before {
-//   background-color: transparent !important;
-// }
+.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.v-btn::before {
+  background-color: transparent !important;
+}
 
 </style>
 
