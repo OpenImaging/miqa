@@ -55,9 +55,7 @@ class ScanFactory(factory.django.DjangoModelFactory):
     id = factory.Faker('uuid4')
 
     experiment = factory.SubFactory(ExperimentFactory)
-    site = factory.SubFactory(SiteFactory)
-
-    scan_id = factory.Faker('pystr')
+    # site = factory.SubFactory(SiteFactory)
     scan_type = factory.Faker('pystr')
 
 
@@ -90,6 +88,6 @@ class ImageFactory(factory.django.DjangoModelFactory):
 
     id = factory.Faker('uuid4')
     raw_path = factory.Faker('file_path')
-    name = factory.Faker('word')
+    frame_number = factory.Faker('pyint')
 
     scan = factory.SubFactory(ScanFactory)

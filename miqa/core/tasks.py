@@ -111,8 +111,10 @@ def import_data(user_id, project_id):
                         raw_path = row[1]['file_location']
                         if raw_path[0] != '/':
                             # not an absolute file path; refer to project import csv location
-                            # TODO: add support for interpreting URIs not on host machine
                             raw_path = str(Path(project.import_path).parent.parent / raw_path)
+                            # TODO: add support for interpreting URIs not on host machine
+                        if not Path(raw_path).exists():
+                            raise ValidationError(f'Could not locate file "{raw_path}".')
                         these_frames[row[1]['frame_number']] = Image(
                             frame_number=int(row[1]['frame_number']),
                             scan=scan_object,
