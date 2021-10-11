@@ -99,7 +99,7 @@ def test_import_json(
 
     with pytest.raises(
         ValidationError,
-        match=re.escape("Invalid import file"),
+        match=re.escape('Invalid import file'),
     ):
         import_data(user.id, project.id)
 
@@ -163,7 +163,7 @@ def test_import_invalid_json(
 
     with pytest.raises(
         ValidationError,
-        match=re.escape("Invalid import file"),
+        match=re.escape('Invalid import file'),
         # ValidationError,
         # match=re.escape(
         #     "666 is not of type 'string'\n\nFailed validating 'type' in schema['properties']['scans']['items']['properties']['site_id']:\n    {'type': 'string'}\n\nOn instance['scans'][0]['site_id']:\n    666"  # noqa: E501
