@@ -84,17 +84,17 @@ def import_data(user_id, project_id):
                 )
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
-                    raw_path = frame_data['file_location']
-                    if raw_path[0] != '/':
+                    raw_path = Path(frame_data['file_location'])
+                    if not raw_path.is_absolute():
                         # not an absolute file path; refer to project import csv location
                         raw_path = str(Path(project.import_path).parent.parent / raw_path)
                         # TODO: add support for interpreting URIs not on host machine
-                    if not Path(raw_path).exists():
+                    if not raw_path.exists():
                         raise ValueError(f'Could not locate file "{raw_path}".')
 
                     frame_object = Image(
                         frame_number=frame_number,
-                        raw_path=raw_path,
+                        raw_path=str(raw_path),
                         scan=scan_object,
                     )
                     new_frames.append(frame_object)
