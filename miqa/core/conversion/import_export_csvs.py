@@ -48,10 +48,10 @@ def import_dataframe_to_dict(df):
                             scan_name: {
                                 'type': scan_df['scan_type'].mode()[0],
                                 'frames': {
-                                    frame_number: {
-                                        'file_location': frame_df['file_location'].mode()[0]
+                                    row[1]['frame_number']: {
+                                        'file_location': row[1]['file_location']
                                     }
-                                    for frame_number, frame_df in scan_df.groupby('frame_number')
+                                    for row in scan_df.iterrows()
                                 },
                             }
                             for scan_name, scan_df in experiment_df.groupby('scan_name')
