@@ -45,13 +45,6 @@ export default defineComponent({
       <v-icon>view_column</v-icon>
       Projects
     </v-tab>
-    <v-tab
-      v-if="user.is_superuser"
-      to="/settings"
-    >
-      <v-icon>settings</v-icon>
-      Settings
-    </v-tab>
   </v-tabs>
 </template>
 
