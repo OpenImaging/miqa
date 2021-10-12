@@ -13,8 +13,6 @@ from miqa.core.models import Evaluation, Experiment, Image, Project, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
-# from django.contrib.auth.models import User
-
 
 @shared_task
 def evaluate_data(image_ids, project_id):
@@ -44,7 +42,6 @@ def evaluate_data(image_ids, project_id):
         )
 
 
-@shared_task
 def import_data(user_id, project_id):
     project = Project.objects.get(id=project_id)
 
@@ -55,13 +52,20 @@ def import_data(user_id, project_id):
     else:
         raise ValueError(f'Invalid import file {project.import_path}.')
 
-    if not validate_import_dict(import_dict):
-        raise ValueError(f'Invalid format of import file {project.import_path}')
+    import_dict = validate_import_dict(import_dict, project)
+    perform_import.delay(import_dict, project_id)
 
+
+@shared_task
+def perform_import(import_dict, project_id):
     new_projects = []
     new_experiments = []
     new_scans = []
     new_frames = []
+
+    # comment out the below line and remove project_id param
+    # when multi-project imports are supported
+    project = Project.objects.get(id=project_id)
 
     for _project_name, project_data in import_dict['projects'].items():
         # Switch these lines to support multi-project imports
@@ -84,17 +88,10 @@ def import_data(user_id, project_id):
                 )
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
-                    raw_path = Path(frame_data['file_location'])
-                    if not raw_path.is_absolute():
-                        # not an absolute file path; refer to project import csv location
-                        raw_path = str(Path(project.import_path).parent.parent / raw_path)
-                        # TODO: add support for interpreting URIs not on host machine
-                    if not raw_path.exists():
-                        raise ValueError(f'Could not locate file "{raw_path}".')
 
                     frame_object = Image(
                         frame_number=frame_number,
-                        raw_path=str(raw_path),
+                        raw_path=frame_data['file_location'],
                         scan=scan_object,
                     )
                     new_frames.append(frame_object)
@@ -107,17 +104,21 @@ def import_data(user_id, project_id):
     evaluate_data.delay([frame.id for frame in new_frames], project.id)
 
 
-@shared_task
 def export_data(project_id):
     project_object = Project.objects.get(id=project_id)
     parent_location = Path(project_object.export_path).parent
     if not parent_location.exists():
         raise ValueError(f'No such location {parent_location} to create export file.')
+    perform_export.delay(project_id)
 
-    export_data = []
+
+@shared_task
+def perform_export(project_id):
+    project_object = Project.objects.get(id=project_id)
+    data = []
 
     for frame_object in Image.objects.filter(scan__experiment__project=project_object):
-        export_data.append(
+        data.append(
             [
                 project_object.name,
                 frame_object.scan.experiment.name,
@@ -127,5 +128,5 @@ def export_data(project_id):
                 frame_object.raw_path,
             ]
         )
-    export_df = pandas.DataFrame(export_data, columns=IMPORT_CSV_COLUMNS)
+    export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(project_object.export_path, index=False)

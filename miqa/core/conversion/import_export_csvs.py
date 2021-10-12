@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from schema import And, Schema, SchemaError, Use
 
 IMPORT_CSV_COLUMNS = [
@@ -10,7 +12,25 @@ IMPORT_CSV_COLUMNS = [
 ]
 
 
-def validate_import_dict(import_dict):
+def validate_file_locations(input_dict, project):
+    if not isinstance(input_dict, dict):
+        return input_dict
+    for key, value in input_dict.items():
+        if key == 'file_location':
+            raw_path = Path(value)
+            if not raw_path.is_absolute():
+                # not an absolute file path; refer to project import csv location
+                raw_path = str(Path(project.import_path).parent.parent / raw_path)
+                # TODO: add support for interpreting URIs not on host machine
+            if not raw_path.exists():
+                raise ValueError(f'Could not locate file "{raw_path}".')
+            input_dict[key] = str(raw_path)
+        else:
+            input_dict[key] = validate_file_locations(value, project)
+    return input_dict
+
+
+def validate_import_dict(import_dict, project):
     import_schema = Schema(
         {
             'projects': {
@@ -31,9 +51,10 @@ def validate_import_dict(import_dict):
     )
     try:
         import_schema.validate(import_dict)
-        return True
+        import_dict = validate_file_locations(import_dict, project)
+        return import_dict
     except SchemaError:
-        return False
+        raise ValueError(f'Invalid format of import file {project.import_path}')
 
 
 def import_dataframe_to_dict(df):
