@@ -144,7 +144,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
-        import_data.delay(request.user.id, project.id)
+        import_data(request.user.id, project.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
