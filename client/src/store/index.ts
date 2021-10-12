@@ -18,6 +18,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
+import { Project } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -188,6 +189,7 @@ function getNextDataset(experiments, i, j) {
 
 const initState = {
   drawer: false,
+  projects: [] as Project[],
   experimentIds: [],
   experiments: {},
   experimentScans: {},
@@ -350,6 +352,9 @@ const {
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
     },
+    setProjects(state, projects: Project[]) {
+      state.projects = projects;
+    },
     setDrawer(state, value: boolean) {
       state.drawer = value;
     },
@@ -493,6 +498,10 @@ const {
       state.datasets = { ...state.datasets };
 
       dispatch('swapToDataset', state.datasets[state.scanDatasets[scanID][0]]);
+    },
+    async loadProjects({ commit }) {
+      const projects = await djangoRest.projects();
+      commit('setProjects', projects);
     },
     async loadProject({ commit }, project) {
       commit('resetProject');
