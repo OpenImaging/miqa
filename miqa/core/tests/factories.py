@@ -55,7 +55,6 @@ class ScanFactory(factory.django.DjangoModelFactory):
     id = factory.Faker('uuid4')
 
     experiment = factory.SubFactory(ExperimentFactory)
-    # site = factory.SubFactory(SiteFactory)
     scan_type = factory.Faker('pystr')
 
 
