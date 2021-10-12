@@ -56,7 +56,7 @@ setup(
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
         'gunicorn',
-        'jsonschema',
+        'schema',
         'spatial_image_ngff',
         'spatial_image_multiscale',
         'itk-io',
