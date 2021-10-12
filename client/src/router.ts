@@ -1,26 +1,11 @@
 import Vue from 'vue';
-import Router, { Route } from 'vue-router';
+import Router from 'vue-router';
 
-import django from './django';
-import Settings from './views/Settings.vue';
+import Projects from './views/Projects.vue';
 import Dataset from './views/Dataset.vue';
 import Login from './views/Login.vue';
 
 Vue.use(Router);
-
-async function beforeEnterAdmin(_to: Route, _from: Route, next: any) {
-  const user = await django.me();
-  if (user && user.is_superuser) {
-    // logged in && admin
-    next();
-  } else if (user) {
-    // logged in, but not admin
-    next('/');
-  } else {
-    // not logged in
-    next(false);
-  }
-}
 
 export default new Router({
   routes: [
@@ -30,10 +15,9 @@ export default new Router({
       component: Login,
     },
     {
-      path: '/settings',
-      name: 'settings',
-      component: Settings,
-      beforeEnter: beforeEnterAdmin,
+      path: '/projects',
+      name: 'projects',
+      component: Projects,
     },
     // Order matters
     {
