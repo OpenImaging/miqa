@@ -1,18 +1,22 @@
 <script lang="ts">
-import { defineComponent, inject, ref } from '@vue/composition-api';
+import {
+  computed, defineComponent, ref, watchEffect,
+} from '@vue/composition-api';
+import store from '@/store';
 import djangoRest from '@/django';
-import { Project } from '@/types';
 
 export default defineComponent({
   name: 'JSONConfig',
   setup() {
-    const mainProject = inject('mainProject') as Project;
+    const currentProject = computed(() => store.state.currentProject);
 
     const importPath = ref('');
     const exportPath = ref('');
-    djangoRest.settings(mainProject.id).then((settings) => {
-      importPath.value = settings.importPath;
-      exportPath.value = settings.exportPath;
+    watchEffect(() => {
+      djangoRest.settings(currentProject.value.id).then((settings) => {
+        importPath.value = settings.importPath;
+        exportPath.value = settings.exportPath;
+      });
     });
 
     const changed = ref(false);
@@ -25,7 +29,7 @@ export default defineComponent({
         return;
       }
       try {
-        await djangoRest.setSettings(mainProject.id, {
+        await djangoRest.setSettings(currentProject.value.id, {
           importPath: importPath.value,
           exportPath: exportPath.value,
         });
@@ -45,7 +49,7 @@ export default defineComponent({
     }
 
     return {
-      mainProject,
+      currentProject,
       importPath,
       exportPath,
       changed,
