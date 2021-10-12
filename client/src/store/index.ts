@@ -578,13 +578,9 @@ const {
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
 
-      if (project) {
-        // load first available project
-        project = await djangoRest.project(project.id);
-      } else {
-        // no scans: can't load any
-        return;
-      }
+      // Refresh the project from the API
+      project = await djangoRest.project(project.id);
+      commit('setCurrentProject', project);
 
       // place data in state
       const { experiments } = project;
