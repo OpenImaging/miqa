@@ -116,18 +116,16 @@ def export_data(project_id):
 
     export_data = []
 
-    for experiment_object in Experiment.objects.filter(project=project_object):
-        for scan_object in Scan.objects.filter(experiment=experiment_object):
-            for frame_object in Image.objects.filter(scan=scan_object):
-                export_data.append(
-                    [
-                        project_object.name,
-                        experiment_object.name,
-                        scan_object.name,
-                        scan_object.scan_type,
-                        frame_object.frame_number,
-                        frame_object.raw_path,
-                    ]
-                )
+    for frame_object in Image.objects.filter(scan__experiment__project=project_object):
+        export_data.append(
+            [
+                project_object.name,
+                frame_object.scan.experiment.name,
+                frame_object.scan.name,
+                frame_object.scan.scan_type,
+                frame_object.frame_number,
+                frame_object.raw_path,
+            ]
+        )
     export_df = pandas.DataFrame(export_data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(project_object.export_path, index=False)
