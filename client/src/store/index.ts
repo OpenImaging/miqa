@@ -243,15 +243,12 @@ const {
         scanName: scan.name,
         scanPositionString: `(${experimentScansList.indexOf(scan.id)+1}/${experimentScansList.length})`,
         framePositionString: `(${scanFramesList.indexOf(currentDataset.id)+1}/${scanFramesList.length})`,
-        currentlyLoading: state.loadingDataset && state.loadingExperiment,
-        currentLoadingPercentage: state.projectCachedPercentage,
         backTo: currentDataset.previousDataset,
         forwardTo: currentDataset.nextDataset,
         upTo: currentDataset.firstDatasetInPreviousProject,
         downTo: currentDataset.firstDatasetInNextProject
       }
     },
-
 
     currentDataset(state) {
       const { datasets, currentDatasetId } = state;

@@ -10,11 +10,13 @@ export default {
   },
   inject: ['mainProject', 'user'],
   data: () => ({
-
+    window: 256,
+    level: 150,
   }),
   computed: {
     ...mapState([
-
+      'proxyManager',
+      'projectCachedPercentage',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -25,11 +27,42 @@ export default {
       'previousDataset',
       'currentDataset',
     ]),
+    representation() {
+      return this.currentDataset && this.proxyManager.getRepresentations()[0];
+    },
+    winMin() {
+      return this.representation.getPropertyDomainByName('windowWidth').min;
+    },
+    winMax() {
+      return this.representation.getPropertyDomainByName('windowWidth').max;
+    },
+    levMin() {
+      return this.representation.getPropertyDomainByName('windowLevel').min;
+    },
+    levMax() {
+      return this.representation.getPropertyDomainByName('windowLevel').max;
+    },
   },
   watch: {
+    window(value) {
+      if (Number.isInteger(value)) {
+        this.representation.setWindowWidth(value);
+      }
+    },
+    level(value) {
+      if (Number.isInteger(value)) {
+        this.representation.setWindowLevel(value);
+      }
+    },
+    currentDataset() {
+      this.representation.setWindowWidth(this.window);
+      this.representation.setWindowLevel(this.level);
+    },
   },
   mounted() {
-    window.addEventListener('keyup', (event) => {
+    this.representation.setWindowWidth(this.window);
+    this.representation.setWindowLevel(this.level);
+    window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp') {
         this.handleKeyPress('previous');
       } else if (event.key === 'ArrowDown') {
@@ -64,9 +97,6 @@ export default {
     handleKeyPress(direction) {
       this.direction = direction;
       this.updateImage();
-    },
-    adjustWindow(event) {
-      console.log(event);
     },
   },
 };
@@ -154,8 +184,11 @@ export default {
             >
               <v-row no-gutters>
                 <v-col cols="6">
-                  <v-container fluid>
-                    <v-row dense>
+                  <v-container
+                    fill-height
+                    fluid
+                  >
+                    <v-row no-gutters>
                       <v-col cols="3">
                         Scan
                       </v-col>
@@ -178,8 +211,7 @@ export default {
                       >
                         <v-btn
                           :disabled="!previousExperiment"
-                          @mousedown="handleMouseDown('previous')"
-                          @mouseup="handleMouseUp()"
+                          @mousedown="handleKeyPress('previous')"
                           small
                           depressed
                           color="white"
@@ -188,8 +220,7 @@ export default {
                         </v-btn>
                         <v-btn
                           :disabled="!nextExperiment"
-                          @mousedown="handleMouseDown('next')"
-                          @mouseup="handleMouseUp()"
+                          @mousedown="handleKeyPress('next')"
                           small
                           depressed
                           color="white"
@@ -198,7 +229,7 @@ export default {
                         </v-btn>
                       </v-col>
                     </v-row>
-                    <v-row dense>
+                    <v-row no-gutters>
                       <v-col cols="3">
                         Frame
                       </v-col>
@@ -215,8 +246,7 @@ export default {
                       >
                         <v-btn
                           :disabled="!previousDataset"
-                          @mousedown="handleMouseDown('back')"
-                          @mouseup="handleMouseUp()"
+                          @mousedown="handleKeyPress('back')"
                           small
                           depressed
                         >
@@ -224,8 +254,7 @@ export default {
                         </v-btn>
                         <v-btn
                           :disabled="!nextDataset"
-                          @mousedown="handleMouseDown('forward')"
-                          @mouseup="handleMouseUp()"
+                          @mousedown="handleKeyPress('forward')"
                           small
                           depressed
                         >
@@ -233,9 +262,15 @@ export default {
                         </v-btn>
                       </v-col>
                     </v-row>
-                    <v-row dense>
-                      <v-col cols="3">
-                        Window
+                    <v-row
+                      no-gutters
+                      fill-height
+                      align="center"
+                    >
+                      <v-col
+                        cols="4"
+                      >
+                        Window width
                         <v-tooltip bottom>
                           <template v-slot:activator="{ on, attrs }">
                             <v-icon
@@ -246,30 +281,33 @@ export default {
                               info
                             </v-icon>
                           </template>
-                          <span>Tooltip</span>
+                          <span>
+                            The measure of the range of CT numbers that an image contains.
+                            A significantly wide window displaying all the CT numbers will
+                            obscure different attenuations between soft tissues.
+                          </span>
                         </v-tooltip>
                       </v-col>
                       <v-col
-                        cols="9"
+                        cols="8"
                         style="text-align: center"
                       >
                         <v-slider
-                          v-model="slider"
+                          v-model="window"
                           :max="winMax"
                           :min="winMin"
                           class="align-center"
                           hide-details
                         >
                           <template v-slot:prepend>
-                            min
+                            {{ winMin }}
                           </template>
                           <template v-slot:append>
                             <div class="pr-5 pt-2">
-                              max
+                              {{ winMax }}
                             </div>
                             <v-text-field
-                              v-model="slider"
-                              @change="adjustWindow($event)"
+                              v-model="window"
                               class="mt-0 pt-0"
                               hide-details
                               single-line
@@ -280,9 +318,13 @@ export default {
                         </v-slider>
                       </v-col>
                     </v-row>
-                    <v-row dense>
-                      <v-col cols="3">
-                        Level
+                    <v-row
+                      no-gutters
+                      fill-height
+                      align="center"
+                    >
+                      <v-col cols="4">
+                        Window level
                         <v-tooltip bottom>
                           <template v-slot:activator="{ on, attrs }">
                             <v-icon
@@ -293,22 +335,56 @@ export default {
                               info
                             </v-icon>
                           </template>
-                          <span>Tooltip</span>
+                          <span>
+                            The midpoint of the range of the CT numbers displayed.
+                            When the window level is decreased the CT image will be brighter.
+                          </span>
                         </v-tooltip>
                       </v-col>
                       <v-col
-                        cols="9"
+                        cols="8"
                         style="text-align: center"
                       >
-                        long thing
+                        <v-slider
+                          v-model="level"
+                          :max="levMax"
+                          :min="levMin"
+                          class="align-center"
+                          hide-details
+                        >
+                          <template v-slot:prepend>
+                            {{ levMin }}
+                          </template>
+                          <template v-slot:append>
+                            <div class="pr-5 pt-2">
+                              {{ levMax }}
+                            </div>
+                            <v-text-field
+                              v-model="level"
+                              class="mt-0 pt-0"
+                              hide-details
+                              single-line
+                              type="number"
+                              style="width: 60px"
+                            />
+                          </template>
+                        </v-slider>
                       </v-col>
                     </v-row>
                     <v-row class="py-3">
                       <v-col
                         cols="12"
-                        style="text-align: center"
+                        style="text-align: center; height: 70px"
                       >
-                        Messages and Loading Zone
+                        <transition name="bounce">
+                          <div v-if="projectCachedPercentage < 1">
+                            <v-progress-circular
+                              :value="projectCachedPercentage * 100"
+                              color="blue"
+                            />
+                            <div> Loading... </div>
+                          </div>
+                        </transition>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -340,7 +416,10 @@ export default {
                               info
                             </v-icon>
                           </template>
-                          <span>Tooltip</span>
+                          <span>
+                            An evaluation performed by a computer, using artificial intelligence
+                            or classic image processing algorithms
+                          </span>
                         </v-tooltip>
                       </v-col>
                       <v-col
@@ -418,6 +497,24 @@ export default {
 .theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
 .v-btn::before {
   background-color: transparent !important;
+}
+
+.bounce-enter-active {
+  animation: bounce-in .5s;
+}
+.bounce-leave-active {
+  animation: bounce-in .5s reverse;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 </style>

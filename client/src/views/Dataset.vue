@@ -50,7 +50,6 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: 'forward',
     advanceTimeoutId: null,
     nextAnimRequest: null,
   }),
@@ -62,7 +61,6 @@ export default {
       'errorLoadingDataset',
       'drawer',
       'screenshots',
-      'projectCachedPercentage',
       'scanDatasets',
     ]),
     ...mapGetters([
@@ -354,63 +352,14 @@ export default {
       <ControlPanel />
 
       <!-- </v-layout>
-              <v-layout align-center>
-                <v-flex class="ml-3 mr-1">
-                  <v-slider
-                    :min="1"
-                    :max="
-                      currentscanDatasets.length === 1
-                        ? 2
-                        : currentscanDatasets.length
-                    "
-                    :disabled="currentscanDatasets.length === 1"
-                    :height="24"
-                    :value="currentDataset.index + 1"
-                    @input="debouncedDatasetSliderChange($event - 1)"
-                    class="dataset-slider"
-                    hide-details
-                    always-dirty
-                    thumb-label
-                    thumb-size="28"
-                  />
-                </v-flex>
-              </v-layout>
               <v-layout
                 align-center
                 class="bottom-row ml-3 mr-1"
               >
-                <v-row justify="start">
-                  <v-btn
-                    :disabled="!firstDatasetInPreviousProject"
-                    :to="
-                      firstDatasetInPreviousProject
-                        ? firstDatasetInPreviousProject
-                        : ''
-                    "
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
-                  >
-                    <v-icon>fast_rewind</v-icon>
-                  </v-btn>
-                </v-row>
                 <v-row justify="center">
                   <div class="load-completion">
                     {{ Math.round(projectCachedPercentage * 100) }}%
                   </div>
-                </v-row>
-                <v-row justify="end">
-                  <v-btn
-                    :disabled="!firstDatasetInNextProject"
-                    :to="
-                      firstDatasetInNextProject ? firstDatasetInNextProject : ''
-                    "
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
-                  >
-                    <v-icon>fast_forward</v-icon>
-                  </v-btn>
                 </v-row>
               </v-layout>
             </v-flex>
