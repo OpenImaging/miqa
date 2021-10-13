@@ -541,7 +541,7 @@ const {
             scanId: scan.id,
             scan: {
               id: scan.id,
-              name: scan.scan_type,
+              name: scan.name,
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
               numDatasets: images.length,
@@ -577,7 +577,7 @@ const {
             firstInPrev = images[0].id;
           } else {
             console.error(
-              `${experiment.name}/${scan.scan_type} has no datasets`,
+              `${experiment.name}/${scan.name} has no datasets`,
             );
           }
         }
@@ -599,7 +599,7 @@ const {
         scanId: scan.id,
         scan: {
           id: scan.id,
-          name: scan.scan_type,
+          name: scan.name,
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
           numDatasets: images.length,

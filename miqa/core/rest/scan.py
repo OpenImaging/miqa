@@ -19,7 +19,7 @@ class DecisionSerializer(serializers.ModelSerializer):
 class ScanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scan
-        fields = ['id', 'scan_id', 'scan_type', 'notes', 'experiment', 'site', 'decisions']
+        fields = ['id', 'name', 'scan_type', 'notes', 'experiment', 'decisions']
 
     notes = ScanNoteSerializer(many=True)
     decisions = DecisionSerializer(many=True)
@@ -29,7 +29,7 @@ class ScanViewSet(ReadOnlyModelViewSet):
     queryset = Scan.objects.select_related('experiment__project')
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['experiment', 'site']
+    filterset_fields = ['experiment', 'scan_type']
 
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
