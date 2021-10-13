@@ -6,7 +6,7 @@ from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from miqa.core.models import Experiment
 from miqa.core.rest.project import ProjectSerializer
@@ -30,7 +30,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     lock_owner = LockOwnerSerializer()
 
 
-class ExperimentViewSet(ReadOnlyModelViewSet):
+class ExperimentViewSet(ModelViewSet):
     # Our default serializer nests its experiment (not sure why though)
     queryset = Experiment.objects.select_related('project')
 
@@ -40,6 +40,14 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
     serializer_class = ExperimentSerializer
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def note(self, request, pk=None):
+        # TODO when Experiment model gains read_write_users field, check permission to edit.
+        experiment_object = self.get_object()
+        experiment_object.note = request.data['note']
+        experiment_object.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
         request_body=no_body,

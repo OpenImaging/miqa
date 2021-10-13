@@ -2,6 +2,7 @@
 import {
   mapState, mapGetters,
 } from 'vuex';
+import djangoRest from '@/django';
 
 export default {
   name: 'Dataset',
@@ -12,6 +13,7 @@ export default {
   data: () => ({
     window: 256,
     level: 150,
+    newExperimentNote: '',
   }),
   computed: {
     ...mapState([
@@ -55,13 +57,11 @@ export default {
       }
     },
     currentDataset() {
-      this.representation.setWindowWidth(this.window);
-      this.representation.setWindowLevel(this.level);
+      this.updateWinLev();
     },
   },
   mounted() {
-    this.representation.setWindowWidth(this.window);
-    this.representation.setWindowLevel(this.level);
+    this.updateWinLev();
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp') {
         this.handleKeyPress('previous');
@@ -75,6 +75,12 @@ export default {
     });
   },
   methods: {
+    updateWinLev() {
+      this.representation.setWindowWidth(this.window);
+      this.representation.setWindowLevel(this.level);
+      this.window = Math.ceil((this.winMax * 0.3) / 10) * 10;
+      this.level = Math.ceil((this.levMax * 0.2) / 10) * 10;
+    },
     updateImage() {
       if (this.direction === 'back') {
         this.$router
@@ -97,6 +103,29 @@ export default {
     handleKeyPress(direction) {
       this.direction = direction;
       this.updateImage();
+    },
+    handleExperimentNoteChange(value) {
+      this.newExperimentNote = value;
+    },
+    async handleExperimentNoteSave() {
+      if (this.newExperimentNote.length > 0) {
+        try {
+          await djangoRest.setExperimentNote(
+            this.currentViewData.experimentId, this.newExperimentNote,
+          );
+          this.$snackbar({
+            text: 'Saved note successfully.',
+            timeout: 6000,
+          });
+          this.newExperimentNote = '';
+        } catch (err) {
+          this.$snackbar({
+            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
+            timeout: 6000,
+
+          });
+        }
+      }
     },
   },
 };
@@ -146,23 +175,25 @@ export default {
                   {{ currentViewData.experimentName }}
                 </v-col>
               </v-row>
-              <v-row
-                class="ma-2"
-                style="height: 99%"
-              >
-                <v-col
-                  cols="12"
-                  class="grey lighten-2"
-                  style="height: 100px; overflow:auto"
-                >
-                  {{ currentViewData.experimentNote ?
-                    currentViewData.experimentNote : "There are no notes on this experiment." }}
-                </v-col>
-              </v-row>
+
+              <v-textarea
+                v-model="currentViewData.experimentNote"
+                @input="handleExperimentNoteChange"
+                filled
+                no-resize
+                height="120px"
+                hide-details
+                class="mt-3"
+                name="input-experiment-notes"
+                label="Experiment Notes"
+                placeholder="There are no notes on this experiment."
+              />
+
               <v-row no-gutters>
                 <v-col
+                  v-on:click="handleExperimentNoteSave()"
+                  :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
                   style="text-align: right"
-                  class="grey--text"
                 >
                   Save Note
                 </v-col>
