@@ -236,6 +236,7 @@ const {
       const scanFramesList = state.scanDatasets[scan.id]
       return {
         projectName: project.name,
+        experimentId: experiment.id,
         experimentName: experiment.name,
         experimentNote: experiment.note,
         locked: experiment.lockOwner != null,
