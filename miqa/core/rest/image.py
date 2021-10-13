@@ -16,7 +16,7 @@ from .permissions import UserHoldsExperimentLock
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['id', 'name', 'scan']
+        fields = ['id', 'frame_number', 'scan']
 
 
 class ImageViewSet(ListModelMixin, GenericViewSet):
@@ -39,6 +39,6 @@ class ImageViewSet(ListModelMixin, GenericViewSet):
             return HttpResponseServerError('File no longer exists.')
 
         fd = open(path, 'rb')
-        resp = FileResponse(fd, filename=image.name)
+        resp = FileResponse(fd, filename=str(image.frame_number))
         resp['Content-Length'] = image.size
         return resp

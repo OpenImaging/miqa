@@ -9,7 +9,7 @@ This is the simplest configuration for developers to start with.
 3. Run `docker-compose run --rm django ./manage.py createsuperuser`
    and follow the prompts to create your own user.
 4. Run `docker-compose run --rm django ./manage.py makeclient --username your.email@email.com --uri http://localhost:8081/`
-5. Run `docker-compose run --rm django ./manage.py populate --csv /srv/samples/scans_to_review-2019-01-23.csv`. This will populate the DB with the sample scans.
+5. Run `docker-compose run --rm django ./manage.py populate --csv /srv/samples/new_scans_to_review.csv`. This will populate the DB with the sample scans.
 
 ### Run Application
 1. Run `docker-compose up`
