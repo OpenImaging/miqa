@@ -20,7 +20,7 @@ def validate_file_locations(input_dict, project):
             raw_path = Path(value)
             if not raw_path.is_absolute():
                 # not an absolute file path; refer to project import csv location
-                raw_path = str(Path(project.import_path).parent.parent / raw_path)
+                raw_path = Path(project.import_path).parent.parent / raw_path
                 # TODO: add support for interpreting URIs not on host machine
             if not raw_path.exists():
                 raise ValueError(f'Could not locate file "{raw_path}".')
