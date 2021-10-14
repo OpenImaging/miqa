@@ -1,6 +1,4 @@
 <script lang="ts">
-// import { mapState, mapActions } from "vuex";
-
 import { computed, defineComponent, ref } from '@vue/composition-api';
 import store from '@/store';
 import { Project } from '@/types';
@@ -27,8 +25,6 @@ export default defineComponent({
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
-    console.log(projects.value, currentProject.value);
-    console.log('compute', selectedProjectIndex.value);
     const selectProject = (project: Project) => {
       store.dispatch.loadProject(project);
     };
