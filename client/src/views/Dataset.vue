@@ -41,7 +41,7 @@ export default {
     KeyboardShortcutDialog,
     NavigationTabs,
   },
-  inject: ['mainProject', 'user'],
+  inject: ['user'],
   data: () => ({
     newNote: '',
     decision: null,
@@ -115,7 +115,7 @@ export default {
       this.debouncedDatasetSliderChange,
       30,
     );
-    await Promise.all([this.loadProject(this.mainProject), this.loadSites()]);
+    await this.loadSites();
     const { datasetId } = this.$route.params;
     const dataset = this.getDataset(datasetId);
     if (dataset) {
