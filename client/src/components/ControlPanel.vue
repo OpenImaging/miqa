@@ -1,6 +1,6 @@
 <script>
 import {
-  mapState, mapGetters,
+  mapState, mapGetters, mapMutations,
 } from 'vuex';
 import djangoRest from '@/django';
 
@@ -22,13 +22,18 @@ export default {
     ]),
     ...mapGetters([
       'currentViewData',
-      'previousExperiment',
-      'nextExperiment',
       'nextDataset',
       'getDataset',
       'previousDataset',
       'currentDataset',
     ]),
+    ...mapMutations([
+      'updateExperiment',
+    ]),
+    experimentIsEditable() {
+      const { locked, lockOwner } = this.currentViewData;
+      return !locked || lockOwner === this.user;
+    },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
     },
@@ -36,13 +41,13 @@ export default {
       return this.representation.getPropertyDomainByName('windowWidth').min;
     },
     winMax() {
-      return this.representation.getPropertyDomainByName('windowWidth').max;
+      return Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max);
     },
     levMin() {
       return this.representation.getPropertyDomainByName('windowLevel').min;
     },
     levMax() {
-      return this.representation.getPropertyDomainByName('windowLevel').max;
+      return Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max);
     },
   },
   watch: {
@@ -61,6 +66,7 @@ export default {
     },
   },
   mounted() {
+    this.toggleLock();
     this.updateWinLev();
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp') {
@@ -74,7 +80,16 @@ export default {
       }
     });
   },
+  unmounted() {
+    this.toggleLock();
+  },
   methods: {
+    toggleLock() {
+      const { experimentId, locked, lockOwner } = this.currentViewData;
+      if (this.experimentIsEditable) {
+        console.log(experimentId, locked, lockOwner);
+      }
+    },
     updateWinLev() {
       this.representation.setWindowWidth(this.window);
       this.representation.setWindowLevel(this.level);
@@ -92,11 +107,11 @@ export default {
           .catch(this.handleNavigationError);
       } else if (this.direction === 'previous') {
         this.$router
-          .push(this.previousExperiment ? this.previousExperiment : '')
+          .push(this.currentViewData.upTo ? this.currentViewData.upTo : '')
           .catch(this.handleNavigationError);
       } else if (this.direction === 'next') {
         this.$router
-          .push(this.nextExperiment ? this.nextExperiment : '')
+          .push(this.currentViewData.downTo ? this.currentViewData.downTo : '')
           .catch(this.handleNavigationError);
       }
     },
@@ -118,6 +133,7 @@ export default {
             timeout: 6000,
           });
           this.newExperimentNote = '';
+          this.updateExperiment();
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
@@ -241,7 +257,7 @@ export default {
                         style="text-align: right"
                       >
                         <v-btn
-                          :disabled="!previousExperiment"
+                          :disabled="!currentViewData.upTo"
                           @mousedown="handleKeyPress('previous')"
                           small
                           depressed
@@ -250,7 +266,7 @@ export default {
                           <v-icon>fa-caret-up</v-icon>
                         </v-btn>
                         <v-btn
-                          :disabled="!nextExperiment"
+                          :disabled="!currentViewData.downTo"
                           @mousedown="handleKeyPress('next')"
                           small
                           depressed
@@ -448,8 +464,7 @@ export default {
                             </v-icon>
                           </template>
                           <span>
-                            An evaluation performed by a computer, using artificial intelligence
-                            or classic image processing algorithms
+                            An evaluation performed by the MIQA server using artificial intelligence
                           </span>
                         </v-tooltip>
                       </v-col>

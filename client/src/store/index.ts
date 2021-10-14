@@ -245,8 +245,8 @@ const {
         framePositionString: `(${scanFramesList.indexOf(currentDataset.id)+1}/${scanFramesList.length})`,
         backTo: currentDataset.previousDataset,
         forwardTo: currentDataset.nextDataset,
-        upTo: currentDataset.firstDatasetInPreviousProject,
-        downTo: currentDataset.firstDatasetInNextProject
+        upTo: currentDataset.firstDatasetInPreviousScan,
+        downTo: currentDataset.firstDatasetInNextScan
       }
     },
 
