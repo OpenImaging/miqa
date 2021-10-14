@@ -1,6 +1,6 @@
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
-import { Settings, User } from './types';
+import { Project, Settings, User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 const apiClient = axios.create({ baseURL: API_URL });
@@ -39,12 +39,12 @@ const djangoClient = {
   async export(projectId: string) {
     return apiClient.post(`/projects/${projectId}/export`);
   },
-  async projects() {
+  async projects(): Promise<Project[]> {
     const { data } = await apiClient.get('/projects');
     const { results } = data;
     return results;
   },
-  async project(projectId: string) {
+  async project(projectId: string): Promise<Project> {
     const { data } = await apiClient.get(`/projects/${projectId}`);
     return data;
   },

@@ -45,14 +45,13 @@ Vue.config.productionTip = true;
 
 djangoRest.restoreLogin(store).then(async () => {
   const user = await djangoRest.me();
-  const [project] = await djangoRest.projects();
   new Vue({
     vuetify,
     router,
     store: store.original,
     render: (h) => h(App),
     provide: {
-      user, mainProject: project,
+      user,
     },
   })
     .$mount('#app')
