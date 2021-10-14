@@ -24,8 +24,10 @@ class Image(TimeStampedModel, models.Model):
     frame_number = models.IntegerField(default=0)
 
     def clean(self):
+        # celery tasks must receive serializable types; using string raw_path here
+        nifti_to_zarr_ngff.delay(str(self.raw_path))
         super().clean()
-        nifti_to_zarr_ngff.delay(self.path)
+        return self
 
     @property
     def path(self) -> Path:
