@@ -10,6 +10,7 @@ from miqa.core.conversion.import_export_csvs import (
     validate_import_dict,
 )
 from miqa.core.models import Evaluation, Experiment, Image, Project, Scan
+from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
@@ -94,7 +95,8 @@ def perform_import(import_dict, project_id):
                         raw_path=frame_data['file_location'],
                         scan=scan_object,
                     )
-                    new_frames.append(frame_object.clean())
+                    new_frames.append(frame_object)
+                    nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
