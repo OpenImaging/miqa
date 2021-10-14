@@ -9,8 +9,8 @@ from miqa.core.conversion.import_export_csvs import (
     import_dataframe_to_dict,
     validate_import_dict,
 )
-from miqa.core.models import Evaluation, Experiment, Image, Project, Scan
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
+from miqa.core.models import Evaluation, Experiment, Image, Project, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
