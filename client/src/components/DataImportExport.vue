@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject, ref } from '@vue/composition-api';
+import { computed, defineComponent, ref } from '@vue/composition-api';
 import store from '@/store';
 import djangoRest from '@/django';
 import { HTMLInputEvent, Project } from '@/types';
@@ -8,7 +8,7 @@ export default defineComponent({
   name: 'DataImportExport',
   components: {},
   setup() {
-    const mainProject = inject('mainProject') as Project;
+    const currentProject = computed(() => store.state.currentProject);
     const loadProject = (project: Project) => store.dispatch.loadProject(project);
     const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
 
@@ -24,7 +24,7 @@ export default defineComponent({
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        await djangoRest.import(mainProject.id);
+        await djangoRest.import(currentProject.value.id);
         importing.value = false;
 
         this.$snackbar({
@@ -32,7 +32,7 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        await loadProject(mainProject);
+        await loadProject(currentProject.value);
       } catch (ex) {
         importing.value = false;
         this.$snackbar({
@@ -45,7 +45,7 @@ export default defineComponent({
     async function exportData() {
       exporting.value = true;
       try {
-        await djangoRest.export(mainProject.id);
+        await djangoRest.export(currentProject.value.id);
         this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
@@ -67,7 +67,7 @@ export default defineComponent({
     }
 
     return {
-      mainProject,
+      currentProject,
       loadProject,
       loadLocalDataset,
       importing,

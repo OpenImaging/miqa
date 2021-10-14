@@ -18,6 +18,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
+import { Project } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -188,6 +189,8 @@ function getNextDataset(experiments, i, j) {
 
 const initState = {
   drawer: false,
+  currentProject: null as Project | null,
+  projects: [] as Project[],
   experimentIds: [],
   experiments: {},
   experimentScans: {},
@@ -350,6 +353,12 @@ const {
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
     },
+    setCurrentProject(state, project: Project | null) {
+      state.currentProject = project;
+    },
+    setProjects(state, projects: Project[]) {
+      state.projects = projects;
+    },
     setDrawer(state, value: boolean) {
       state.drawer = value;
     },
@@ -494,19 +503,19 @@ const {
 
       dispatch('swapToDataset', state.datasets[state.scanDatasets[scanID][0]]);
     },
-    async loadProject({ commit }, project) {
+    async loadProjects({ commit }) {
+      const projects = await djangoRest.projects();
+      commit('setProjects', projects);
+    },
+    async loadProject({ commit }, project: Project) {
       commit('resetProject');
 
       // Build navigation links throughout the dataset to improve performance.
       let firstInPrev = null;
 
-      if (project) {
-        // load first available project
-        project = await djangoRest.project(project.id);
-      } else {
-        // no projects: can't load any
-        return;
-      }
+      // Refresh the project from the API
+      project = await djangoRest.project(project.id);
+      commit('setCurrentProject', project);
 
       // place data in state
       const { experiments } = project;
