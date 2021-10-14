@@ -94,7 +94,7 @@ def perform_import(import_dict, project_id):
                         raw_path=frame_data['file_location'],
                         scan=scan_object,
                     )
-                    new_frames.append(frame_object)
+                    new_frames.append(frame_object.clean())
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
