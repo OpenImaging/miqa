@@ -207,6 +207,7 @@ const initState = {
   screenshots: [],
   sites: null,
   scanCachedPercentage: 0,
+  currentAutoEvaluation: {}
 };
 
 const {
@@ -246,7 +247,8 @@ const {
         backTo: currentDataset.previousDataset,
         forwardTo: currentDataset.nextDataset,
         upTo: currentDataset.firstDatasetInPreviousScan,
-        downTo: currentDataset.firstDatasetInNextScan
+        downTo: currentDataset.firstDatasetInNextScan,
+        currentAutoEvaluation: currentDataset.auto_evaluation,
       }
     },
 

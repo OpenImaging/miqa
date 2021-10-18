@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Annotation, Experiment, Image, Project, Scan, ScanNote
+from miqa.core.models import Annotation, Evaluation, Experiment, Image, Project, Scan, ScanNote
 from miqa.core.tasks import export_data, import_data
 
 
@@ -25,11 +25,26 @@ class DecisionSerializer(serializers.ModelSerializer):
     decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
 
 
+class EvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evaluation
+        fields = ['results', 'evaluation_model']
+
+
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['id', 'frame_number']
+        fields = ['id', 'frame_number', 'auto_evaluation']
         ref_name = 'scan_image'
+
+    auto_evaluation = serializers.SerializerMethodField()
+
+    def get_auto_evaluation(self, image_object):
+        try:
+            evaluation_object = Evaluation.objects.get(image=image_object)
+            return EvaluationSerializer(evaluation_object).data
+        except Evaluation.DoesNotExist:
+            return None
 
 
 class ScanNoteSerializer(serializers.ModelSerializer):
