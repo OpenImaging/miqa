@@ -72,7 +72,7 @@ const djangoClient = {
     return data;
   },
   async setExperimentNote(experimentId: string, note: string) {
-    const { data } = await apiClient.post(`/experiments/${experimentId}/note`, {'note': note});
+    const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
     return data;
   },
   async lockExperiment(experimentId: string) {
