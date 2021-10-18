@@ -4,12 +4,14 @@ import {
 } from 'vuex';
 import djangoRest from '@/django';
 
+import EvaluationResults from './EvaluationResults.vue';
+
 export default {
   name: 'Dataset',
   components: {
-
+    EvaluationResults,
   },
-  inject: ['mainProject', 'user'],
+  inject: ['user'],
   data: () => ({
     window: 256,
     level: 150,
@@ -450,7 +452,7 @@ export default {
                         comments section
                       </v-col>
                     </v-row>
-                    <v-row>
+                    <v-row v-if="currentViewData.currentAutoEvaluation">
                       <v-col cols="6">
                         Automatic Evaluation
                         <v-tooltip bottom>
@@ -468,34 +470,12 @@ export default {
                           </span>
                         </v-tooltip>
                       </v-col>
-                      <v-col
-                        cols="6"
-                        class="font-weight-bold orange--text"
-                        style="text-align: right"
-                      >
-                        <v-tooltip
-                          left
-                          color="rgba(0,0,0,0)"
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <div
-                              v-bind="attrs"
-                              v-on="on"
-                            >
-                              Percentage
-                              <v-img
-                                class="float-right ml-3"
-                                src="evaluation-details.png"
-                                height="20"
-                                width="20"
-                              />
-                            </div>
-                          </template>
-                          <v-card class="pa-5">
-                            Lots of text in here
-                          </v-card>
-                        </v-tooltip>
-                      </v-col>
+                      <EvaluationResults
+                        :results="currentViewData.currentAutoEvaluation.results"
+                      />
+                    </v-row>
+                    <v-row v-else>
+                      <v-col cols="12" />
                     </v-row>
                     <v-row>
                       <v-col
