@@ -207,7 +207,7 @@ const initState = {
   screenshots: [],
   sites: null,
   scanCachedPercentage: 0,
-  currentAutoEvaluation: {}
+  currentAutoEvaluation: {},
 };
 
 const {
@@ -224,16 +224,17 @@ const {
     actionTimeout: false,
   },
   getters: {
-    wholeState(state){
-      return state
+    wholeState(state) {
+      return state;
     },
-    currentViewData(state){
-      const currentDataset = state.currentDatasetId ? state.datasets[state.currentDatasetId] : null
-      const scan = state.scans[currentDataset.scan]
-      const experiment = currentDataset.experiment ? state.experiments[currentDataset.experiment] : null
-      const project = state.sites.filter(x => x.id===experiment.project)[0]
-      const experimentScansList = state.experimentScans[experiment.id]
-      const scanFramesList = state.scanDatasets[scan.id]
+    currentViewData(state) {
+      const currentDataset = state.currentDatasetId ? state.datasets[state.currentDatasetId] : null;
+      const scan = state.scans[currentDataset.scan];
+      const experiment = currentDataset.experiment
+        ? state.experiments[currentDataset.experiment] : null;
+      const project = state.sites.filter((x) => x.id === experiment.project)[0];
+      const experimentScansList = state.experimentScans[experiment.id];
+      const scanFramesList = state.scanDatasets[scan.id];
       return {
         projectName: project.name,
         experimentId: experiment.id,
@@ -242,14 +243,14 @@ const {
         locked: experiment.lockOwner != null,
         lockOwner: experiment.lockOwner,
         scanName: scan.name,
-        scanPositionString: `(${experimentScansList.indexOf(scan.id)+1}/${experimentScansList.length})`,
-        framePositionString: `(${scanFramesList.indexOf(currentDataset.id)+1}/${scanFramesList.length})`,
+        scanPositionString: `(${experimentScansList.indexOf(scan.id) + 1}/${experimentScansList.length})`,
+        framePositionString: `(${scanFramesList.indexOf(currentDataset.id) + 1}/${scanFramesList.length})`,
         backTo: currentDataset.previousDataset,
         forwardTo: currentDataset.nextDataset,
         upTo: currentDataset.firstDatasetInPreviousScan,
         downTo: currentDataset.firstDatasetInNextScan,
         currentAutoEvaluation: currentDataset.auto_evaluation,
-      }
+      };
     },
 
     currentDataset(state) {
@@ -290,7 +291,7 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        return state.experimentScans[curExperimentId].indexOf(curProjectId)+1 +'/'+ state.experimentScans[curExperimentId].length;
+        return `${state.experimentScans[curExperimentId].indexOf(curProjectId) + 1}/${state.experimentScans[curExperimentId].length}`;
       }
       return null;
     },
@@ -298,7 +299,7 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curDatasetId = getters.currentDataset.id;
-        return state.scanDatasets[curProjectId].indexOf(curDatasetId)+1+'/'+state.scanDatasets[curProjectId].length
+        return `${state.scanDatasets[curProjectId].indexOf(curDatasetId) + 1}/${state.scanDatasets[curProjectId].length}`;
       }
       return null;
     },
@@ -306,10 +307,10 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentScans[curExperimentId]
-        if(experimentList.indexOf(curProjectId) < 1) return null;
-        const targetId = experimentList[experimentList.indexOf(curProjectId)-1]
-        return state.scanDatasets[targetId][0]
+        const experimentList = state.experimentScans[curExperimentId];
+        if (experimentList.indexOf(curProjectId) < 1) return null;
+        const targetId = experimentList[experimentList.indexOf(curProjectId) - 1];
+        return state.scanDatasets[targetId][0];
       }
       return null;
     },
@@ -317,10 +318,10 @@ const {
       if (getters.currentProject) {
         const curProjectId = getters.currentDataset.project;
         const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentScans[curExperimentId]
-        if(experimentList.indexOf(curProjectId) >= experimentList.length -1) return null;
-        const targetId = experimentList[experimentList.indexOf(curProjectId)+1]
-        return state.scanDatasets[targetId][0]
+        const experimentList = state.experimentScans[curExperimentId];
+        if (experimentList.indexOf(curProjectId) >= experimentList.length - 1) return null;
+        const targetId = experimentList[experimentList.indexOf(curProjectId) + 1];
+        return state.scanDatasets[targetId][0];
       }
       return null;
     },
@@ -797,7 +798,9 @@ const {
         // Failing to acquire the lock probably means that someone else got the lock before you.
         // The following refresh will disable the button and show who currently owns the lock.
       }
-      const { id, name, note, project, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const {
+        id, name, note, project, lock_owner: lockOwner,
+      } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
@@ -814,7 +817,9 @@ const {
         // Failing to unlock the lock probably means that someone else unlocked it for you.
         // The following refresh will show who currently owns the lock.
       }
-      const { id, name, note, project, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const {
+        id, name, note, project, lock_owner: lockOwner,
+      } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
