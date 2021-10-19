@@ -23,11 +23,11 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingDataset']),
+    ...mapState(['proxyManager', 'loadingDataset', 'xSlice', 'ySlice', 'zSlice']),
     ...mapGetters(['currentDataset', 'currentScan']),
     representation() {
       return (
-        // force add dependancy on currentDataset
+        // force add dependency on currentDataset
         this.currentDataset
         && this.proxyManager.getRepresentation(null, this.view)
       );
@@ -65,9 +65,19 @@ export default {
   },
   watch: {
     slice(value) {
-      if (value !== this.representation.getSlice()) {
-        this.representation.setSlice(value);
+      this.representation.setSlice(value);
+      if (this.setCurrentVtkSlices) {
+        this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
       }
+    },
+    xSlice() {
+      this.updateCrosshairs();
+    },
+    ySlice() {
+      this.updateCrosshairs();
+    },
+    zSlice() {
+      this.updateCrosshairs();
     },
     view(view, oldView) {
       this.cleanup();
@@ -85,12 +95,13 @@ export default {
   mounted() {
     this.initializeView();
     this.initializeSlice();
+    this.updateCrosshairs();
   },
   beforeDestroy() {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot']),
+    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices']),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -116,18 +127,16 @@ export default {
       }
     },
     increaseSlice() {
-      const slice = Math.min(
-        (this.slice += this.sliceDomain.step),
+      this.slice = Math.min(
+        (this.slice + this.sliceDomain.step),
         this.sliceDomain.max,
       );
-      this.slice = slice;
     },
     decreaseSlice() {
-      const slice = Math.max(
-        (this.slice -= this.sliceDomain.step),
+      this.slice = Math.max(
+        (this.slice - this.sliceDomain.step),
         this.sliceDomain.min,
       );
-      this.slice = slice;
     },
     async takeScreenshot() {
       const view = getView(this.proxyManager, `ScreenshotView2D_${this.name}:${this.name}`, this.screenshotContainer);
@@ -159,6 +168,33 @@ export default {
     roundSlice(value) {
       if (!value) return '';
       return Math.round(value * 100) / 100;
+    },
+    updateCrosshairs() {
+      const myCanvas = document.getElementById(`crosshairs-${this.name}`);
+      if (myCanvas.getContext) {
+        const ctx = myCanvas.getContext('2d');
+        ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+        const originX = myCanvas.width / 2;
+        const originY = myCanvas.height / 2;
+        const crosshairHeight = myCanvas.height - 30;
+        const crosshairWidth = myCanvas.width - 80;
+        if (this.name === 'x') {
+          ctx.fillStyle = '#4caf50';
+          ctx.fillRect(originX + this.ySlice, originY - crosshairHeight / 2, 1, crosshairHeight);
+          ctx.fillStyle = '#b71c1c';
+          ctx.fillRect(originX - crosshairWidth / 2, originY - this.zSlice, crosshairWidth, 1);
+        } else if (this.name === 'y') {
+          ctx.fillStyle = '#fdd835';
+          ctx.fillRect(originX + this.xSlice, originY - crosshairHeight / 2, 1, crosshairHeight);
+          ctx.fillStyle = '#b71c1c';
+          ctx.fillRect(originX - crosshairWidth / 2, originY - this.zSlice, crosshairWidth, 1);
+        } else if (this.name === 'z') {
+          ctx.fillStyle = '#fdd835';
+          ctx.fillRect(originX + this.xSlice, originY - crosshairHeight / 2, 1, crosshairHeight);
+          ctx.fillStyle = '#4caf50';
+          ctx.fillRect(originX - crosshairWidth / 2, originY + this.ySlice, crosshairWidth, 1);
+        }
+      }
     },
   },
 };
@@ -197,6 +233,10 @@ export default {
       ref="viewer"
       :style="{ visibility: resized ? 'unset' : 'hidden' }"
       class="viewer"
+    />
+    <canvas
+      :id="'crosshairs-'+name"
+      class="crosshairs"
     />
     <v-toolbar
       class="toolbar"
@@ -241,7 +281,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(#3a3a3a, #1d1d1d);
+  background: black;
   z-index: 0;
 
   display: flex;
@@ -324,6 +364,14 @@ export default {
     position: relative;
     overflow-y: hidden;
   }
+}
+
+.crosshairs {
+  z-index: 3;
+  position: absolute;
+  top: 30px;
+  width: 100%;
+  height: calc(100% - 60px);
 }
 </style>
 
