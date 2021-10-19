@@ -24,16 +24,21 @@ export default {
         'red darken-4',
         'black'];
       const thisColor = colors[Math.floor(value * (colors.length - 1))];
-      if (text) return thisColor.replace(' ', '--text text--');
+      if (text) {
+        return `font-weight-bold ${thisColor.replace(' ', '--text text--')}`;
+      }
       return thisColor;
     },
+  },
+  convertOverallQualityToColor(text = true) {
+    return this.convertValueToColor(1 - this.results.overall_quality, text);
   },
 };
 </script>
 
 <template>
   <v-col
-    :class="'font-weight-bold ' + convertValueToColor(1 - results.overall_quality)"
+    :class="convertValueToColor(1 - results.overall_quality)"
     cols="6"
     style="text-align: right"
   >
@@ -76,14 +81,14 @@ export default {
               class="pr-3"
             >
               <v-sheet
-                :color="convertValueToColor(1 - results.overall_quality, text=false)"
+                :color="convertOverallQualityToColor(text=false)"
                 :width="(results.overall_quality *100)+'%'"
                 height="5"
                 class="mt-2"
               />
             </v-col>
             <v-col
-              :class="'font-weight-bold ' + convertValueToColor(1 - results.overall_quality)"
+              :class="convertOverallQualityToColor()"
               cols="1"
             >
               {{ results.overall_quality }}
@@ -126,7 +131,7 @@ export default {
               />
             </v-col>
             <v-col
-              :class="'font-weight-bold ' + convertValueToColor(value)"
+              :class="convertValueToColor(value)"
               cols="1"
             >
               {{ value }}

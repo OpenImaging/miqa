@@ -287,44 +287,6 @@ const {
       }
       return null;
     },
-    currentExperimentPosition(state, getters) {
-      if (getters.currentProject) {
-        const curProjectId = getters.currentDataset.project;
-        const curExperimentId = getters.currentProject.experiment;
-        return `${state.experimentScans[curExperimentId].indexOf(curProjectId) + 1}/${state.experimentScans[curExperimentId].length}`;
-      }
-      return null;
-    },
-    currentScanPosition(state, getters) {
-      if (getters.currentProject) {
-        const curProjectId = getters.currentDataset.project;
-        const curDatasetId = getters.currentDataset.id;
-        return `${state.scanDatasets[curProjectId].indexOf(curDatasetId) + 1}/${state.scanDatasets[curProjectId].length}`;
-      }
-      return null;
-    },
-    previousExperiment(state, getters) {
-      if (getters.currentProject) {
-        const curProjectId = getters.currentDataset.project;
-        const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentScans[curExperimentId];
-        if (experimentList.indexOf(curProjectId) < 1) return null;
-        const targetId = experimentList[experimentList.indexOf(curProjectId) - 1];
-        return state.scanDatasets[targetId][0];
-      }
-      return null;
-    },
-    nextExperiment(state, getters) {
-      if (getters.currentProject) {
-        const curProjectId = getters.currentDataset.project;
-        const curExperimentId = getters.currentProject.experiment;
-        const experimentList = state.experimentScans[curExperimentId];
-        if (experimentList.indexOf(curProjectId) >= experimentList.length - 1) return null;
-        const targetId = experimentList[experimentList.indexOf(curProjectId) + 1];
-        return state.scanDatasets[targetId][0];
-      }
-      return null;
-    },
     experimentDatasets(state) {
       return (expId) => {
         const experimentScans = state.experimentScans[expId];
