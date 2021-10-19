@@ -207,6 +207,9 @@ const initState = {
   screenshots: [],
   sites: null,
   scanCachedPercentage: 0,
+  xSlice: 0,
+  ySlice: 0,
+  zSlice: 0,
 };
 
 const {
@@ -411,6 +414,9 @@ const {
     },
     stopLoadingExperiment(state) {
       state.loadingExperiment = false;
+    },
+    setCurrentVtkSlices(state, { axis, value }) {
+      state[axis+'Slice'] = value
     },
   },
   actions: {
