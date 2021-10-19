@@ -6,7 +6,7 @@ from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
 from miqa.core.rest.project import ProjectSerializer
@@ -30,7 +30,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
     lock_owner = LockOwnerSerializer()
 
 
-class ExperimentViewSet(ModelViewSet):
+class ExperimentViewSet(ReadOnlyModelViewSet):
     # Our default serializer nests its experiment (not sure why though)
     queryset = Experiment.objects.select_related('project')
 
