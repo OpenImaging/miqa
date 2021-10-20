@@ -12,16 +12,15 @@ import {
 
 import Layout from '@/components/Layout.vue';
 import NavbarTitle from '@/components/NavbarTitle.vue';
+import ControlPanel from '@/components/ControlPanel.vue';
 import UserButton from '@/components/girder/UserButton.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
-import WindowControl from '@/components/WindowControl.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
 import EmailDialog from '@/components/EmailDialog.vue';
 import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
-import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
 import DataImportExport from '../components/DataImportExport.vue';
 import djangoRest from '@/django';
 
@@ -32,14 +31,13 @@ export default {
     UserButton,
     Layout,
     DataImportExport,
-    ExperimentLockIcon,
     ExperimentsView,
-    WindowControl,
     ScreenshotDialog,
     EmailDialog,
     TimeoutDialog,
     KeyboardShortcutDialog,
     NavigationTabs,
+    ControlPanel,
   },
   inject: ['user'],
   data: () => ({
@@ -52,7 +50,6 @@ export default {
     showNotePopup: false,
     keyboardShortcutDialog: false,
     scanning: false,
-    direction: 'forward',
     advanceTimeoutId: null,
     nextAnimRequest: null,
   }),
@@ -256,43 +253,10 @@ export default {
       const datasetId = this.currentScanDatasets[index];
       this.$router.push(datasetId).catch(this.handleNavigationError);
     },
-    updateImage() {
-      if (this.direction === 'back') {
-        this.$router
-          .push(this.previousDataset ? this.previousDataset : '')
-          .catch(this.handleNavigationError);
-      } else {
-        this.$router
-          .push(this.nextDataset ? this.nextDataset : '')
-          .catch(this.handleNavigationError);
-      }
-    },
     advanceLoop() {
       if (this.scanning) {
         this.updateImage();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
-      }
-    },
-    handleMouseDown(direction) {
-      if (!this.scanning) {
-        this.scanning = true;
-        this.direction = direction;
-        this.updateImage();
-        const self = this;
-        this.advanceTimeoutId = window.setTimeout(() => {
-          window.requestAnimationFrame(self.advanceLoop);
-        }, 300);
-      }
-    },
-    handleMouseUp() {
-      this.scanning = false;
-      if (this.advanceTimeoutId !== null) {
-        window.clearTimeout(this.advanceTimeoutId);
-        this.advanceTimeoutId = null;
-      }
-      if (this.nextAnimRequest !== null) {
-        window.cancelAnimationFrame(this.nextAnimRequest);
-        this.nextAnimRequest = null;
       }
     },
   },
@@ -392,394 +356,7 @@ export default {
           </div>
         </v-layout>
       </v-flex>
-      <v-flex
-        shrink
-        class="bottom"
-      >
-        <v-container
-          fluid
-          grid-list-sm
-          class="pa-2"
-        >
-          <v-layout>
-            <v-flex
-              xs4
-              class="mx-2"
-              style="display:flex;flex-direction:column;"
-            >
-              <v-layout align-center>
-                <v-flex shrink>
-                  <v-btn
-                    v-mousetrap="{
-                      bind: 'left',
-                      disabled:
-                        !previousDataset || unsavedDialog || loadingDataset,
-                      handler: {
-                        keydown: function() {
-                          handleMouseDown('back');
-                        },
-                        keyup: handleMouseUp
-                      }
-                    }"
-                    :disabled="!previousDataset"
-                    @mousedown="handleMouseDown('back')"
-                    @mouseup="handleMouseUp()"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
-                  >
-                    <v-icon>keyboard_arrow_left</v-icon>
-                  </v-btn>
-                </v-flex>
-                <v-flex style="text-align: center;">
-                  <span>{{ currentDataset.index + 1 }} of
-                    {{ currentScanDatasets.length }}</span>
-                </v-flex>
-                <v-flex shrink>
-                  <v-btn
-                    v-mousetrap="{
-                      bind: 'right',
-                      disabled: !nextDataset || unsavedDialog || loadingDataset,
-                      handler: {
-                        keydown: function() {
-                          handleMouseDown('forward');
-                        },
-                        keyup: handleMouseUp
-                      }
-                    }"
-                    :disabled="!nextDataset"
-                    @mousedown="handleMouseDown('forward')"
-                    @mouseup="handleMouseUp()"
-                    fab
-                    small
-                    class="primary--text my-0 elevation-2 smaller"
-                  >
-                    <v-icon>chevron_right</v-icon>
-                  </v-btn>
-                </v-flex>
-              </v-layout>
-              <v-layout align-center>
-                <v-flex class="ml-3 mr-1">
-                  <v-slider
-                    :min="1"
-                    :max="
-                      currentScanDatasets.length === 1
-                        ? 2
-                        : currentScanDatasets.length
-                    "
-                    :disabled="currentScanDatasets.length === 1"
-                    :height="24"
-                    :value="currentDataset.index + 1"
-                    @input="debouncedDatasetSliderChange($event - 1)"
-                    class="dataset-slider"
-                    hide-details
-                    always-dirty
-                    thumb-label
-                    thumb-size="28"
-                  />
-                </v-flex>
-              </v-layout>
-              <v-layout
-                align-center
-                class="bottom-row ml-3 mr-1"
-              >
-                <v-row justify="start">
-                  <v-btn
-                    :disabled="!firstDatasetInPreviousScan"
-                    :to="
-                      firstDatasetInPreviousScan
-                        ? firstDatasetInPreviousScan
-                        : ''
-                    "
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
-                  >
-                    <v-icon>fast_rewind</v-icon>
-                  </v-btn>
-                </v-row>
-                <v-row justify="center">
-                  <div class="load-completion">
-                    {{ Math.round(scanCachedPercentage * 100) }}%
-                  </div>
-                </v-row>
-                <v-row justify="end">
-                  <v-btn
-                    :disabled="!firstDatasetInNextScan"
-                    :to="
-                      firstDatasetInNextScan ? firstDatasetInNextScan : ''
-                    "
-                    fab
-                    small
-                    class="primary--text mb-0 elevation-2 smaller"
-                  >
-                    <v-icon>fast_forward</v-icon>
-                  </v-btn>
-                </v-row>
-              </v-layout>
-            </v-flex>
-            <v-flex
-              xs4
-              class="mx-2"
-            >
-              <v-container class="pa-0">
-                <v-row>
-                  <v-col
-                    cols="12"
-                    class="pb-1 pt-0"
-                  >
-                    <v-container class="pa-0">
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Site
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          {{ getSiteDisplayName(currentScan.site) }}
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Experiment
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          <a
-                            :href="'/xnat/app/action/DisplayItemAction/search_value' +
-                              `/${currentScan.experiment}/search_element/xnat:mrProjectData` +
-                              '/search_field/xnat:mrProjectData.ID'"
-                            target="_blank"
-                          >
-                            {{
-                              getExperimentDisplayName(
-                                currentScan.experiment
-                              )
-                            }}
-                          </a>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col
-                          cols="3"
-                          class="pb-1 pt-0"
-                        >
-                          Scan
-                        </v-col>
-                        <v-col
-                          cols="9"
-                          class="pb-1 pt-0 justifyRight"
-                        >
-                          {{ currentScan.name }}
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-col>
-                </v-row>
-                <template v-if="!currentDataset.local">
-                  <v-row>
-                    <v-col
-                      class="pb-1 pt-0"
-                      cols="10"
-                    >
-                      Note history: {{ lastNoteTruncated }}
-                    </v-col>
-                    <v-col
-                      class="pb-1 pt-0"
-                      cols="1"
-                    >
-                      <v-menu
-                        ref="historyMenu"
-                        v-model="showNotePopup"
-                        :close-on-content-click="false"
-                        offset-y
-                        open-on-hover
-                        top
-                        left
-                      >
-                        <template v-slot:activator="{ on }">
-                          <v-btn
-                            v-mousetrap="{
-                              bind: 'h',
-                              handler: () => (showNotePopup = !showNotePopup)
-                            }"
-                            :disabled="notes.length < 1"
-                            v-on="on"
-                            text
-                            small
-                            icon
-                            class="ma-0"
-                          >
-                            <v-icon>arrow_drop_up</v-icon>
-                          </v-btn>
-                        </template>
-                        <v-card>
-                          <v-list-item
-                            v-for="note in notes"
-                            :key="note.id"
-                          >
-                            <v-list-item-content class="note-history">
-                              <v-list-item-title class="grey--text darken-2">
-                                {{ creatorName(note) }}: {{ note.created }}
-                              </v-list-item-title>
-                              {{ note.note }}
-                            </v-list-item-content>
-                          </v-list-item>
-                        </v-card>
-                      </v-menu>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    class="pb-1 pt-1"
-                  >
-                    <v-col
-                      cols="11"
-                      class="pb-1 pt-0 pr-0"
-                    >
-                      <v-text-field
-                        ref="note"
-                        v-mousetrap="{ bind: 'n', handler: focusNote }"
-                        v-mousetrap.element="{
-                          bind: 'esc',
-                          handler: () => $refs.note.blur()
-                        }"
-                        :value="newNote"
-                        :disabled="!lockOwned"
-                        @input="setNote($event)"
-                        class="note-field"
-                        label="Note"
-                        solo
-                        hide-details
-                      />
-                    </v-col>
-                    <v-col
-                      cols="1"
-                      class="pb-1 pt-0"
-                    >
-                      <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                          <v-btn
-                            :disabled="!decisionChanged"
-                            v-on="on"
-                            @click="reloadScan"
-                            text
-                            icon
-                            small
-                            color="grey"
-                            class="my-0"
-                          >
-                            <v-icon>undo</v-icon>
-                          </v-btn>
-                        </template>
-                        <span>Revert</span>
-                      </v-tooltip>
-                    </v-col>
-                  </v-row>
-                  <v-row
-                    no-gutters
-                    justify="space-between"
-                    class="pb-1"
-                  >
-                    <v-col
-                      cols="6"
-                      class="pb-1 pt-0"
-                    >
-                      <v-btn-toggle
-                        v-model="decision"
-                        @change="onDecisionChanged"
-                        class="buttons"
-                      >
-                        <v-btn
-                          v-mousetrap="{
-                            bind: 'b',
-                            handler: () => setDecision('BAD')
-                          }"
-                          :disabled="(!lockOwned) || (!newNote && notes.length === 0)"
-                          text
-                          small
-                          value="BAD"
-                          color="red"
-                        >
-                          Bad
-                        </v-btn>
-                        <v-btn
-                          v-mousetrap="{
-                            bind: 'g',
-                            handler: () => setDecision('GOOD')
-                          }"
-                          :disabled="!lockOwned"
-                          text
-                          small
-                          value="GOOD"
-                          color="green"
-                        >
-                          Good
-                        </v-btn>
-                        <v-btn
-                          v-mousetrap="{
-                            bind: 'u',
-                            handler: () => setDecision('USABLE_EXTRA')
-                          }"
-                          :disabled="!lockOwned"
-                          text
-                          small
-                          value="USABLE_EXTRA"
-                          color="light-green"
-                        >
-                          Extra
-                        </v-btn>
-                      </v-btn-toggle>
-                    </v-col>
-                    <v-col
-                      cols="1"
-                      class="pb-1 pt-0"
-                    >
-                      <ExperimentLockIcon :experiment="currentExperiment" />
-                    </v-col>
-                    <v-col
-                      cols="2"
-                      class="pb-1 pt-0"
-                    >
-                      <v-btn
-                        v-mousetrap="{ bind: 'alt+s', handler: save }"
-                        :disabled="(!lockOwned) || (!decisionChanged && !newNote)"
-                        @click="save"
-                        color="primary"
-                        class="ma-0"
-                        style="height: 36px"
-                        small
-                      >
-                        Save
-                        <v-icon right>
-                          save
-                        </v-icon>
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </template>
-              </v-container>
-            </v-flex>
-            <v-flex
-              xs4
-              class="mx-2"
-            >
-              <WindowControl
-                v-if="vtkViews.length"
-                class="py-0"
-              />
-            </v-flex>
-          </v-layout>
-        </v-container>
-      </v-flex>
+      <ControlPanel />
     </template>
     <v-layout
       v-if="!currentDataset && !loadingDataset"
@@ -893,6 +470,13 @@ export default {
     }
   }
 }
+
+.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
+.v-btn::before {
+  background-color: transparent !important;
+}
+
 </style>
 
 <style lang="scss">
