@@ -24,7 +24,7 @@ class LockOwnerSerializer(serializers.ModelSerializer):
 class ExperimentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
-        fields = ['id', 'name', 'note', 'project', 'lock_owner']
+        fields = ['id', 'name', 'note', 'project', 'note', 'lock_owner']
 
     project = ProjectSerializer()
     lock_owner = LockOwnerSerializer()
@@ -40,6 +40,14 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
 
     serializer_class = ExperimentSerializer
+
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
+    def note(self, request, pk=None):
+        # TODO when Experiment model gains read_write_users field, check permission to edit.
+        experiment_object = self.get_object()
+        experiment_object.note = request.data['note']
+        experiment_object.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
         request_body=no_body,
