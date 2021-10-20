@@ -147,7 +147,7 @@ export default {
       v-else
       class="text-xs-center body-2"
     >
-      No imported projects
+      No imported scans
     </div>
   </div>
 </template>

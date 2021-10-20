@@ -207,6 +207,7 @@ const initState = {
   screenshots: [],
   sites: null,
   scanCachedPercentage: 0,
+  currentAutoEvaluation: {},
 };
 
 const {
@@ -223,6 +224,35 @@ const {
     actionTimeout: false,
   },
   getters: {
+    wholeState(state) {
+      return state;
+    },
+    currentViewData(state) {
+      const currentDataset = state.currentDatasetId ? state.datasets[state.currentDatasetId] : null;
+      const scan = state.scans[currentDataset.scan];
+      const experiment = currentDataset.experiment
+        ? state.experiments[currentDataset.experiment] : null;
+      const project = state.sites.filter((x) => x.id === experiment.project)[0];
+      const experimentScansList = state.experimentScans[experiment.id];
+      const scanFramesList = state.scanDatasets[scan.id];
+      return {
+        projectName: project.name,
+        experimentId: experiment.id,
+        experimentName: experiment.name,
+        experimentNote: experiment.note,
+        locked: experiment.lockOwner != null,
+        lockOwner: experiment.lockOwner,
+        scanName: scan.name,
+        scanPositionString: `(${experimentScansList.indexOf(scan.id) + 1}/${experimentScansList.length})`,
+        framePositionString: `(${scanFramesList.indexOf(currentDataset.id) + 1}/${scanFramesList.length})`,
+        backTo: currentDataset.previousDataset,
+        forwardTo: currentDataset.nextDataset,
+        upTo: currentDataset.firstDatasetInPreviousScan,
+        downTo: currentDataset.firstDatasetInNextScan,
+        currentAutoEvaluation: currentDataset.auto_evaluation,
+      };
+    },
+
     currentDataset(state) {
       const { datasets, currentDatasetId } = state;
       return currentDatasetId ? datasets[currentDatasetId] : null;
@@ -529,6 +559,8 @@ const {
           value: {
             id: experiment.id,
             name: experiment.name,
+            note: experiment.note,
+            project: experiment.project,
             index: i,
             lockOwner: experiment.lock_owner,
           },
@@ -718,7 +750,7 @@ const {
       checkLoadExperiment(oldExperiment, newExperiment);
     },
     async loadSites({ commit }) {
-      const sites = await djangoRest.sites();
+      const sites = await djangoRest.projects();
       commit('setSites', sites);
     },
     async lockExperiment({ commit }, experiment) {
@@ -728,10 +760,14 @@ const {
         // Failing to acquire the lock probably means that someone else got the lock before you.
         // The following refresh will disable the button and show who currently owns the lock.
       }
-      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const {
+        id, name, note, project, lock_owner: lockOwner,
+      } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
+        note,
+        project,
         index: experiment.index,
         lockOwner,
       });
@@ -743,10 +779,14 @@ const {
         // Failing to unlock the lock probably means that someone else unlocked it for you.
         // The following refresh will show who currently owns the lock.
       }
-      const { id, name, lock_owner: lockOwner } = await djangoRest.experiment(experiment.id);
+      const {
+        id, name, note, project, lock_owner: lockOwner,
+      } = await djangoRest.experiment(experiment.id);
       commit('updateExperiment', {
         id,
         name,
+        note,
+        project,
         index: experiment.index,
         lockOwner,
       });
