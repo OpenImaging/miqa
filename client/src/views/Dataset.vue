@@ -32,40 +32,23 @@ export default {
   },
   inject: ['user'],
   data: () => ({
-    newNote: '',
-    decision: null,
-    decisionChanged: false,
-    unsavedDialog: false,
-    unsavedDialogResolve: null,
     emailDialog: false,
-    showNotePopup: false,
     keyboardShortcutDialog: false,
-    scanning: false,
     advanceTimeoutId: null,
-    nextAnimRequest: null,
   }),
   computed: {
     ...mapState([
-      'currentDatasetId',
       'vtkViews',
-      'loadingDataset',
-      'errorLoadingDataset',
       'drawer',
       'screenshots',
       'scanCachedPercentage',
       'scanDatasets',
+      'loadingDataset',
+      'errorLoadingDataset',
     ]),
     ...mapGetters([
-      'nextDataset',
       'getDataset',
       'currentDataset',
-      'currentExperiment',
-      'currentScan',
-      'previousDataset',
-      'firstDatasetInPreviousScan',
-      'firstDatasetInNextScan',
-      'getSiteDisplayName',
-      'getExperimentDisplayName',
     ]),
     currentScanDatasets() {
       return this.scanDatasets[this.currentScan.id];
@@ -75,17 +58,6 @@ export default {
         return this.currentScan.notes;
       }
       return [];
-    },
-    lastNoteTruncated() {
-      if (this.notes.length > 0) {
-        const lastNote = this.notes.slice(-1)[0];
-        return `${lastNote.note.substring(0, 32)}...`;
-      }
-      return '';
-    },
-    lockOwned() {
-      const { lockOwner } = this.currentExperiment;
-      return !!lockOwner && lockOwner.username === this.user.username;
     },
   },
   watch: {
@@ -113,6 +85,18 @@ export default {
       this.setDrawer(true);
     }
   },
+  async beforeRouteUpdate(to, from, next) {
+    const toDataset = this.getDataset(to.params.datasetId);
+    const result = await this.beforeLeaveScan();
+    next(result);
+    if (result && toDataset) {
+      this.swapToDataset(toDataset);
+    }
+  },
+  async beforeRouteLeave(to, from, next) {
+    const result = await this.beforeLeaveScan();
+    next(result);
+  },
   methods: {
     ...mapMutations(['setDrawer']),
     ...mapActions([
@@ -136,6 +120,9 @@ export default {
         this.updateImage();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
+    },
+    beforeLeaveScan() {
+      return Promise.resolve(true);
     },
   },
 };
