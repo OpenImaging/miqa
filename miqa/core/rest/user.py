@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'is_superuser']
+        fields = ['id', 'username', 'email', 'is_superuser', 'first_name', 'last_name']
         ref_name = 'user'
 
 
