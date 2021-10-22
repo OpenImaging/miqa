@@ -12,9 +12,6 @@ interface Image {
   name: string,
 }
 
-interface ScanNote {
-  // TODO
-}
 
 interface ScanDecision {
   // TODO
@@ -25,7 +22,6 @@ interface Scan {
   name: string,
   scan_id: string,
   scan_type: string,
-  notes: ScanNote[],
   experiment: string,
   site: string,
   decisions: ScanDecision[],
