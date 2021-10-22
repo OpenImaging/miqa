@@ -1,6 +1,7 @@
-import pandas
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import pandas
 
 for file_name in sys.argv[1:]:
     if not Path(file_name).exists():
