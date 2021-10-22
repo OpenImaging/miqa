@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Annotation, Evaluation, Experiment, Image, Project, Scan, ScanNote, Site
+from .models import Evaluation, Experiment, Image, Project, Scan, ScanDecision, Site
 
 
 @admin.register(Experiment)
@@ -25,15 +25,9 @@ class ScanAdmin(admin.ModelAdmin):
     list_filter = ('created', 'modified')
 
 
-@admin.register(ScanNote)
-class ScanNoteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'modified', 'initials', 'creator', 'note', 'scan')
-    list_filter = ('created', 'initials', 'creator', 'scan')
-
-
-@admin.register(Annotation)
-class AnnotationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created', 'creator', 'decision', 'scan')
+@admin.register(ScanDecision)
+class ScanDecisionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'created', 'creator', 'decision', 'scan', 'note')
     list_filter = ('created', 'creator', 'scan')
 
 

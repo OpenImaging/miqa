@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Annotation, Experiment
+from miqa.core.models import Experiment, ScanDecision
 from miqa.core.rest.scan import ScanSerializer
 
 from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
@@ -23,10 +23,10 @@ class LockOwnerSerializer(serializers.ModelSerializer):
 
 class DecisionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Annotation
+        model = ScanDecision
         fields = ['id', 'decision']
 
-    decision = serializers.ChoiceField(choices=Annotation.decision.field.choices)
+    decision = serializers.ChoiceField(choices=ScanDecision.decision.field.choices)
 
 
 class ExperimentSerializer(serializers.ModelSerializer):
