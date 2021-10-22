@@ -6,12 +6,14 @@ import djangoRest from '@/django';
 
 import EvaluationResults from './EvaluationResults.vue';
 import UserAvatar from './UserAvatar.vue';
+import ScanDecision from './ScanDecision.vue';
 
 export default {
   name: 'Dataset',
   components: {
     EvaluationResults,
     UserAvatar,
+    ScanDecision,
   },
   inject: ['user'],
   data: () => ({
@@ -168,7 +170,6 @@ export default {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
             timeout: 6000,
-
           });
         }
       }
@@ -177,9 +178,25 @@ export default {
       this.newComment = value;
     },
     async handleCommentSave(decision) {
-      if (this.newComment.trim().length > 0 || decision === 'good') {
-        console.log(this.newComment, decision);
-        this.warnDecision = false;
+      if (this.newComment.trim().length > 0 || decision === 'Good') {
+        try {
+          await djangoRest.setDecision(
+            this.currentViewData.scanId,
+            decision,
+            this.newComment,
+          );
+          this.handleKeyPress('next');
+          this.$snackbar({
+            text: 'Saved decision successfully.',
+            timeout: 6000,
+          });
+          this.warnDecision = false;
+        } catch (err) {
+          this.$snackbar({
+            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
+            timeout: 6000,
+          });
+        }
       } else {
         this.warnDecision = true;
       }
@@ -232,6 +249,7 @@ export default {
                   <UserAvatar
                     :user="lockOwner"
                     :me="user"
+                    as-editor
                   />
                   {{ currentViewData.experimentName }}
                 </v-col>
@@ -490,12 +508,23 @@ export default {
                     class="px-5"
                   >
                     <v-row>
-                      <v-col
-                        cols="12"
-                        class="grey lighten-4"
-                        style="height: 80px; overflow:auto"
-                      >
-                        Comment section
+                      <v-col cols="12">
+                        <v-container
+                          class="grey lighten-4"
+                          style="height: 90px; overflow:auto"
+                        >
+                          <ScanDecision
+                            v-for="decision in currentViewData.scanDecisions"
+                            :key="decision.id"
+                            :decision="decision"
+                          />
+                          <div
+                            v-if="currentViewData.scanDecisions.length === 0"
+                            class="grey--text"
+                          >
+                            This scan has no prior comments.
+                          </div>
+                        </v-container>
                       </v-col>
                     </v-row>
                     <v-row v-if="currentViewData.currentAutoEvaluation">
@@ -536,7 +565,7 @@ export default {
                           height="60px"
                           name="input-comment"
                           label="Evaluation Comment"
-                          placeholder="Write a comment about the whole scan and submit decision"
+                          placeholder="Write a comment about the scan and submit a decision"
                         />
                       </v-col>
                     </v-row>
@@ -561,7 +590,7 @@ export default {
                         style="text-align: center"
                       >
                         <v-btn
-                          @click="handleCommentSave('good')"
+                          @click="handleCommentSave('Good')"
                           color="green darken-3 white--text"
                         >
                           GOOD (G)
@@ -572,7 +601,7 @@ export default {
                         style="text-align: center"
                       >
                         <v-btn
-                          @click="handleCommentSave('bad')"
+                          @click="handleCommentSave('Bad')"
                           color="red darken-3 white--text"
                         >
                           BAD (B)
@@ -583,7 +612,7 @@ export default {
                         style="text-align: center"
                       >
                         <v-btn
-                          @click="handleCommentSave('other')"
+                          @click="handleCommentSave('Other')"
                           color="grey darken-3 white--text"
                         >
                           OTHER (O)
