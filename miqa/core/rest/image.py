@@ -8,15 +8,31 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Image
+from miqa.core.models import Image, Evaluation
 
 from .permissions import UserHoldsExperimentLock
+
+
+class EvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evaluation
+        fields = ['results', 'evaluation_model']
 
 
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['id', 'frame_number', 'scan']
+        fields = ['id', 'frame_number', 'auto_evaluation']
+        ref_name = 'scan_image'
+
+    auto_evaluation = serializers.SerializerMethodField()
+
+    def get_auto_evaluation(self, image_object):
+        try:
+            evaluation_object = Evaluation.objects.get(image=image_object)
+            return EvaluationSerializer(evaluation_object).data
+        except Evaluation.DoesNotExist:
+            return None
 
 
 class ImageViewSet(ListModelMixin, GenericViewSet):
