@@ -5,17 +5,20 @@ import {
 import djangoRest from '@/django';
 
 import EvaluationResults from './EvaluationResults.vue';
+import UserAvatar from './UserAvatar.vue';
 
 export default {
   name: 'Dataset',
   components: {
     EvaluationResults,
+    UserAvatar,
   },
   inject: ['user'],
   data: () => ({
     window: 256,
     level: 150,
     newExperimentNote: '',
+    lockOwner: null,
   }),
   computed: {
     ...mapState([
@@ -32,9 +35,11 @@ export default {
     ...mapMutations([
       'updateExperiment',
     ]),
+    experimentId() {
+      return this.currentViewData.experimentId;
+    },
     experimentIsEditable() {
-      const { locked, lockOwner } = this.currentViewData;
-      return !locked || lockOwner === this.user;
+      return this.lockOwner && this.lockOwner.username === this.user.username;
     },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
@@ -66,9 +71,12 @@ export default {
     currentDataset() {
       this.updateWinLev();
     },
+    experimentId(newValue, oldValue) {
+      this.switchLock(newValue, oldValue);
+    },
   },
   mounted() {
-    this.toggleLock();
+    this.switchLock(this.experimentId);
     this.updateWinLev();
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp') {
@@ -82,14 +90,30 @@ export default {
       }
     });
   },
-  unmounted() {
-    this.toggleLock();
+  beforeDestroy() {
+    this.toggleLock(this.experimentId, false);
   },
   methods: {
-    toggleLock() {
-      const { experimentId, locked, lockOwner } = this.currentViewData;
-      if (this.experimentIsEditable) {
-        console.log(experimentId, locked, lockOwner);
+    async switchLock(newExp, oldExp = null) {
+      if (oldExp) {
+        await this.toggleLock(oldExp, false);
+        this.toggleLock(newExp, true);
+      } else {
+        this.toggleLock(newExp, true);
+      }
+    },
+    async toggleLock(experimentId, lock) {
+      try {
+        if (lock) {
+          await djangoRest.lockExperiment(experimentId);
+          this.lockOwner = this.user;
+        } else {
+          await djangoRest.unlockExperiment(experimentId);
+          this.lockOwner = null;
+        }
+      } catch (ex) {
+        console.log(this.currentViewData.lockOwner, 'owns it');
+        this.lockOwner = this.currentViewData.lockOwner;
       }
     },
     updateWinLev() {
@@ -151,6 +175,7 @@ export default {
 
 <template>
   <v-flex
+    v-if="representation"
     shrink
     class="bottom"
   >
@@ -189,7 +214,10 @@ export default {
                   class="grey--text"
                   style="text-align: right"
                 >
-                  <!-- Inline user avatar of lock owner goes here -->
+                  <UserAvatar
+                    :user="lockOwner"
+                    :me="user"
+                  />
                   {{ currentViewData.experimentName }}
                 </v-col>
               </v-row>
@@ -197,6 +225,7 @@ export default {
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 @input="handleExperimentNoteChange"
+                :disabled="!experimentIsEditable"
                 filled
                 no-resize
                 height="120px"
