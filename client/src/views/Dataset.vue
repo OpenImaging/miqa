@@ -1,11 +1,5 @@
 <script>
 import _ from 'lodash';
-
-import {
-  NavigationFailureType,
-  isNavigationFailure,
-} from 'vue-router/src/util/errors';
-
 import {
   mapState, mapActions, mapGetters, mapMutations,
 } from 'vuex';
@@ -21,7 +15,6 @@ import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
-import djangoRest from '@/django';
 
 export default {
   name: 'Dataset',
@@ -120,18 +113,6 @@ export default {
       this.setDrawer(true);
     }
   },
-  async beforeRouteUpdate(to, from, next) {
-    const toDataset = this.getDataset(to.params.datasetId);
-    const result = await this.beforeLeaveScan(toDataset);
-    next(result);
-    if (result && toDataset) {
-      this.swapToDataset(toDataset);
-    }
-  },
-  async beforeRouteLeave(to, from, next) {
-    const result = await this.beforeLeaveScan();
-    next(result);
-  },
   methods: {
     ...mapMutations(['setDrawer']),
     ...mapActions([
@@ -145,107 +126,6 @@ export default {
     async logoutUser() {
       await this.logout();
       this.$router.go('/'); // trigger re-render into oauth flow
-    },
-    handleNavigationError(fail) {
-      let failureType = 'unknown';
-      if (isNavigationFailure(fail, NavigationFailureType.redirected)) {
-        failureType = 'redirected';
-      } else if (isNavigationFailure(fail, NavigationFailureType.aborted)) {
-        failureType = 'aborted';
-      } else if (isNavigationFailure(fail, NavigationFailureType.cancelled)) {
-        failureType = 'cancelled';
-      } else if (isNavigationFailure(fail, NavigationFailureType.duplicated)) {
-        failureType = 'duplicated';
-      }
-      this.scanning = false;
-      console.log(`Caught navigation error (${failureType})`);
-    },
-    beforeLeaveScan(toDataset) {
-      if (
-        this.currentDataset
-        && toDataset
-        && (this.decisionChanged || this.newNote)
-      ) {
-        this.unsavedDialog = true;
-        return new Promise((resolve) => {
-          this.unsavedDialogResolve = resolve;
-        });
-      }
-      return Promise.resolve(true);
-    },
-    async save() {
-      if (this.newNote && this.newNote.trim()) {
-        await djangoRest.addScanNote(this.currentScan.id, this.newNote);
-        this.newNote = '';
-      }
-      if (this.decisionChanged) {
-        await djangoRest.setDecision(
-          this.currentScan.id,
-          this.decision,
-        );
-        this.decisionChanged = false;
-      }
-      this.reloadScan();
-    },
-    async unsavedDialogYes() {
-      await this.save();
-      this.unsavedDialogResolve(true);
-      this.unsavedDialog = false;
-    },
-    unsavedDialogNo() {
-      this.unsavedDialogResolve(true);
-      this.unsavedDialog = false;
-    },
-    unsavedDialogCancel() {
-      this.unsavedDialogResolve(false);
-      this.unsavedDialog = false;
-    },
-    setDecision(decision) {
-      if (decision !== this.decision) {
-        this.decision = decision;
-        this.onDecisionChanged();
-      }
-    },
-    creatorName(note) {
-      if (note.creator) {
-        return `${note.creator.first_name} ${note.creator.last_name}`;
-      }
-      return note.initials;
-    },
-    setNote(e) {
-      this.newNote = e;
-    },
-    async onDecisionChanged() {
-      const last = _.head(this.currentScan.decisions);
-      const lastDecision = last ? last.decision : null;
-      if (this.decision && this.decision !== lastDecision) {
-        this.decisionChanged = true;
-        await this.save();
-
-        if (this.firstDatasetInNextScan) {
-          const { currentDatasetId } = this;
-
-          this.$router
-            .push(this.firstDatasetInNextScan)
-            .catch(this.handleNavigationError);
-
-          this.$snackbar({
-            text: 'Proceeded to next scan',
-            button: 'Go back',
-            timeout: 6000,
-            immediate: true,
-            callback: () => {
-              this.$router
-                .push(currentDatasetId)
-                .catch(this.handleNavigationError);
-            },
-          });
-        }
-      }
-    },
-    focusNote(el, e) {
-      this.$refs.note.focus();
-      e.preventDefault();
     },
     debouncedDatasetSliderChange(index) {
       const datasetId = this.currentScanDatasets[index];
@@ -365,44 +245,6 @@ export default {
         Select a scan
       </div>
     </v-layout>
-    <v-dialog
-      v-model="unsavedDialog"
-      persistent
-      max-width="400"
-    >
-      <v-card>
-        <v-card-title class="title">
-          Review is not saved
-        </v-card-title>
-        <v-card-text>Do you want save before continue?</v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            v-mousetrap="{ bind: 'y', handler: el => el.focus() }"
-            @click="unsavedDialogYes"
-            text
-            color="primary"
-          >
-            Yes
-          </v-btn>
-          <v-btn
-            v-mousetrap="{ bind: 'n', handler: el => el.focus() }"
-            @click="unsavedDialogNo"
-            text
-            color="primary"
-          >
-            no
-          </v-btn>
-          <v-btn
-            v-mousetrap="{ bind: 'esc', handler: unsavedDialogCancel }"
-            @click="unsavedDialogCancel"
-            text
-          >
-            Cancel
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <ScreenshotDialog />
     <EmailDialog
       v-model="emailDialog"

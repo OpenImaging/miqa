@@ -18,7 +18,9 @@ export default {
     window: 256,
     level: 150,
     newExperimentNote: '',
+    newComment: '',
     lockOwner: null,
+    warnDecision: false,
   }),
   computed: {
     ...mapState([
@@ -74,6 +76,9 @@ export default {
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
     },
+    newComment() {
+      this.warnDecision = false;
+    },
   },
   mounted() {
     this.switchLock(this.experimentId);
@@ -112,7 +117,6 @@ export default {
           this.lockOwner = null;
         }
       } catch (ex) {
-        console.log(this.currentViewData.lockOwner, 'owns it');
         this.lockOwner = this.currentViewData.lockOwner;
       }
     },
@@ -167,6 +171,17 @@ export default {
 
           });
         }
+      }
+    },
+    handleCommentChange(value) {
+      this.newComment = value;
+    },
+    async handleCommentSave(decision) {
+      if (this.newComment.trim().length > 0 || decision === 'good') {
+        console.log(this.newComment, decision);
+        this.warnDecision = false;
+      } else {
+        this.warnDecision = true;
       }
     },
   },
@@ -292,7 +307,7 @@ export default {
                           @mousedown="handleKeyPress('previous')"
                           small
                           depressed
-                          color="white"
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-up</v-icon>
                         </v-btn>
@@ -301,7 +316,7 @@ export default {
                           @mousedown="handleKeyPress('next')"
                           small
                           depressed
-                          color="white"
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-down</v-icon>
                         </v-btn>
@@ -327,6 +342,7 @@ export default {
                           @mousedown="handleKeyPress('back')"
                           small
                           depressed
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-left</v-icon>
                         </v-btn>
@@ -335,6 +351,7 @@ export default {
                           @mousedown="handleKeyPress('forward')"
                           small
                           depressed
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-right</v-icon>
                         </v-btn>
@@ -478,7 +495,7 @@ export default {
                         class="grey lighten-4"
                         style="height: 80px; overflow:auto"
                       >
-                        comments section
+                        Comment section
                       </v-col>
                     </v-row>
                     <v-row v-if="currentViewData.currentAutoEvaluation">
@@ -503,36 +520,74 @@ export default {
                         :results="currentViewData.currentAutoEvaluation.results"
                       />
                     </v-row>
-                    <v-row v-else>
-                      <v-col cols="12" />
-                    </v-row>
-                    <v-row>
+                    <v-row
+                      v-if="experimentIsEditable"
+                    >
                       <v-col
                         cols="12"
-                        class="grey lighten-2"
-                        style="height: 80px; overflow:auto"
+                        class="pb-0 mb-0"
                       >
-                        evaluation section
+                        <v-textarea
+                          @input="handleCommentChange"
+                          :counter="!warnDecision"
+                          :hide-details="warnDecision"
+                          filled
+                          no-resize
+                          height="60px"
+                          name="input-comment"
+                          label="Evaluation Comment"
+                          placeholder="Write a comment about the whole scan and submit decision"
+                        />
                       </v-col>
                     </v-row>
-                    <v-row no-gutters>
+                    <v-row
+                      v-if="warnDecision"
+                      no-gutters
+                    >
+                      <v-col
+                        cols="12"
+                        class="red--text"
+                        style="text-align: center"
+                      >
+                        "Bad" and "Other" decisions must have a comment.
+                      </v-col>
+                    </v-row>
+                    <v-row
+                      v-if="experimentIsEditable"
+                      no-gutters
+                    >
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        GOOD
+                        <v-btn
+                          @click="handleCommentSave('good')"
+                          color="green darken-3 white--text"
+                        >
+                          GOOD (G)
+                        </v-btn>
                       </v-col>
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        BAD
+                        <v-btn
+                          @click="handleCommentSave('bad')"
+                          color="red darken-3 white--text"
+                        >
+                          BAD (B)
+                        </v-btn>
                       </v-col>
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        OTHER
+                        <v-btn
+                          @click="handleCommentSave('other')"
+                          color="grey darken-3 white--text"
+                        >
+                          OTHER (O)
+                        </v-btn>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -547,10 +602,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
-.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.v-btn::before {
+.transparent-btn.v-btn--disabled, .transparent-btn.v-btn--disabled::before,
+.transparent-btn, .transparent-btn::before,
+.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined) {
   background-color: transparent !important;
 }
 

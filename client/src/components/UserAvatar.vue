@@ -18,7 +18,6 @@ export default {
       return s.split('').reduce((a, b) => { a = ((a < 5) - a) + b.charCodeAt(0); return a && a; }, 0);
     },
     computeColor() {
-      console.log(this.user.username);
       const colors = [
         'purple lighten-1',
         'purple darken-1',
