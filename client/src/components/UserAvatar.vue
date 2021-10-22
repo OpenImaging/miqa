@@ -12,6 +12,20 @@ export default {
       type: User,
       required: true,
     },
+    asEditor: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+  },
+  computed: {
+    tooltipText() {
+      if (this.asEditor) {
+        if (this.user.username === this.me.username) return 'You are editing this experiment.';
+        return `${this.user.username} is editing this experiment.`;
+      }
+      return this.user.username;
+    },
   },
   methods: {
     hashCode(s) {
@@ -64,8 +78,7 @@ export default {
       </v-avatar>
     </template>
     <span>
-      {{ user.username === me.username ? 'You are' : user.username +' is' }}
-      currently editing this Experiment.
+      {{ tooltipText }}
     </span>
   </v-tooltip>
 </template>

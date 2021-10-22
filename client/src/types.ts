@@ -14,7 +14,11 @@ interface Image {
 
 
 interface ScanDecision {
-  // TODO
+  id: string,
+  creator: User,
+  created: string,
+  decision: string,
+  note: string
 }
 
 interface Scan {
@@ -56,5 +60,5 @@ interface HTMLInputEvent extends Event {
 }
 
 export {
-  User, Project, Settings, HTMLInputEvent,
+  User, Project, Settings, HTMLInputEvent, ScanDecision
 };
