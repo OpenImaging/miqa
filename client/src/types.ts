@@ -12,7 +12,6 @@ interface Image {
   name: string,
 }
 
-
 interface ScanDecision {
   id: string,
   creator: User,
@@ -60,5 +59,5 @@ interface HTMLInputEvent extends Event {
 }
 
 export {
-  User, Project, Settings, HTMLInputEvent, ScanDecision
+  User, Project, Settings, HTMLInputEvent, ScanDecision,
 };
