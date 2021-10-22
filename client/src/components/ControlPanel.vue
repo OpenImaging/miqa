@@ -191,6 +191,7 @@ export default {
             timeout: 6000,
           });
           this.warnDecision = false;
+          this.newComment = '';
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
@@ -560,6 +561,7 @@ export default {
                           @input="handleCommentChange"
                           :counter="!warnDecision"
                           :hide-details="warnDecision"
+                          v-model="newComment"
                           filled
                           no-resize
                           height="60px"
