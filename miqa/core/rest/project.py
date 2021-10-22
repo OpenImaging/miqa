@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Project
-from miqa.core.tasks import export_data, import_data
 from miqa.core.rest.experiment import ExperimentSerializer
+from miqa.core.tasks import export_data, import_data
 
 
 class ProjectRetrieveSerializer(serializers.ModelSerializer):
@@ -41,7 +41,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'retrieve':
             return Project.objects.prefetch_related(
-                'experiments__scans__images', 'experiments__scans__notes'
+                'experiments__scans__images', 'experiments__scans__decisions'
             )
         else:
             return Project.objects.all()

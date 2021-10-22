@@ -8,7 +8,7 @@ from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Image, Evaluation
+from miqa.core.models import Evaluation, Image
 
 from .permissions import UserHoldsExperimentLock
 

@@ -160,9 +160,9 @@ def test_create_note_without_lock_fails(authenticated_api_client, scan):
 
 
 @pytest.mark.django_db
-def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
+def test_create_scan_decision_without_lock_fails(authenticated_api_client, scan):
     resp = authenticated_api_client.post(
-        '/api/v1/annotations',
+        '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
             'decision': 'GOOD',
@@ -173,13 +173,13 @@ def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
 
 
 @pytest.mark.django_db
-def test_create_annotation_with_lock(api_client, scan, user):
+def test_create_scan_decision_with_lock(api_client, scan, user):
     scan.experiment.lock_owner = user
     scan.experiment.save(update_fields=['lock_owner'])
     api_client.force_authenticate(user=user)
 
     resp = api_client.post(
-        '/api/v1/annotations',
+        '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
             'decision': 'GOOD',

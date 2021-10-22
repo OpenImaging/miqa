@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Annotation, Experiment, Image, Project, Scan, ScanNote, Site
+from miqa.core.models import Experiment, Image, Project, Scan, ScanDecision, Site
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -58,27 +58,12 @@ class ScanFactory(factory.django.DjangoModelFactory):
     scan_type = factory.Faker('pystr')
 
 
-class AnnotationFactory(factory.django.DjangoModelFactory):
+class ScanDecisionFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Annotation
+        model = ScanDecision
 
     scan = factory.SubFactory(ScanFactory)
     creator = factory.SubFactory(UserFactory)
-
-
-class NoteFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = ScanNote
-
-    id = factory.Faker('uuid4')
-    note = factory.Faker('sentence')
-
-    creator = factory.SubFactory(UserFactory)
-    scan = factory.SubFactory(ScanFactory)
-
-    @factory.lazy_attribute
-    def initials(self):
-        return f'{self.creator.first_name[0]}{self.creator.last_name[0]}'
 
 
 class ImageFactory(factory.django.DjangoModelFactory):
