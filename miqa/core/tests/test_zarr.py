@@ -25,6 +25,6 @@ def test_convert_to_zarr():
         result = str(sample) + '.zarr'
         if os.path.exists(result):
             shutil.rmtree(result)
-        result_path = nifti_to_zarr_ngff(sample)
+        result_path = nifti_to_zarr_ngff(str(sample))
         assert str(result_path) == result
         assert os.path.exists(result)
