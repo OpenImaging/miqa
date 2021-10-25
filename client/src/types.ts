@@ -22,6 +22,7 @@ interface ScanDecision {
 
 interface Scan {
   id: string,
+  name: string,
   scan_id: string,
   scan_type: string,
   notes: ScanNote[],
