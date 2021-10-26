@@ -317,6 +317,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         evaluate_model(model, train_loader, device, writer, 0, 'train')
         return sizes
 
+    _, file_name = os.path.split(save_path)
+
     for epoch in range(num_epochs):
         logger.info('-' * 25)
         logger.info(f'epoch {epoch + 1}/{num_epochs}')
@@ -366,7 +368,8 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 best_metric = metric
                 best_metric_epoch = epoch + 1
                 torch.save(model.state_dict(), save_path)
-                torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt'))
+
+                torch.save(model.state_dict(), os.path.join(wandb.run.dir, file_name))
                 logger.info(f'saved new best metric model as {save_path}')
 
             logger.info(
@@ -381,7 +384,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     epoch_suffix = '.epoch' + str(num_epochs)
     torch.save(model.state_dict(), save_path + epoch_suffix)
-    torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'miqaT1.pt' + epoch_suffix))
+    torch.save(model.state_dict(), os.path.join(wandb.run.dir, file_name + epoch_suffix))
 
     logger.info(f'train completed, best_metric: {best_metric:.2f} at epoch: {best_metric_epoch}')
     writer.close()
