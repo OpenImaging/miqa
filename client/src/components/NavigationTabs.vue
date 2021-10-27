@@ -33,14 +33,7 @@ export default defineComponent({
     background-color="transparent"
   >
     <v-tab
-      :to="`/${currentDatasetId || ''}`"
-      @click="datasetTabClick"
-    >
-      <v-icon>view_column</v-icon>
-      Experiments
-    </v-tab>
-    <v-tab
-      to="/projects"
+      to="/"
     >
       <v-icon>view_column</v-icon>
       Projects
