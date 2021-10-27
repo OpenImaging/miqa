@@ -21,7 +21,6 @@ import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import NavigationTabs from '@/components/NavigationTabs.vue';
 import { cleanDatasetName } from '@/utils/helper';
-import DataImportExport from '../components/DataImportExport.vue';
 import djangoRest from '@/django';
 
 export default {
@@ -30,7 +29,6 @@ export default {
     NavbarTitle,
     UserButton,
     Layout,
-    DataImportExport,
     ExperimentsView,
     ScreenshotDialog,
     EmailDialog,
@@ -306,26 +304,25 @@ export default {
       />
     </v-app-bar>
     <v-navigation-drawer
-      :value="drawer"
-      @input="setDrawer($event)"
+      expand-on-hover
       app
-      temporary
       width="350"
     >
-      <div class="scans-bar">
-        <v-toolbar
-          dense
-          flat
-          max-height="48px"
-        >
-          <v-toolbar-title>Experiments</v-toolbar-title>
-        </v-toolbar>
-        <DataImportExport />
-        <ExperimentsView
-          class="mt-1"
-          minimal
-        />
-      </div>
+      <v-list>
+        <v-list-item>
+          <v-icon>fas fa-list</v-icon>
+          <v-toolbar-title class="pl-5">
+            Experiments
+          </v-toolbar-title>
+        </v-list-item>
+        <v-list-item>
+          <v-icon />
+          <ExperimentsView
+            class="mt-1"
+            minimal
+          />
+        </v-list-item>
+      </v-list>
     </v-navigation-drawer>
     <v-layout
       v-if="loadingDataset"
