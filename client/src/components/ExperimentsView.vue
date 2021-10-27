@@ -142,7 +142,7 @@ export default {
           </ul>
         </li>
       </ul>
-      <DataImportExport export-only />
+      <DataImportExport />
     </div>
     <div
       v-else

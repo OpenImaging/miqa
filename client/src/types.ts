@@ -46,6 +46,8 @@ interface Project {
   id: string,
   name: string,
   experiments?: Experiment[],
+  import_path: string,
+  export_path: string
 }
 
 interface Settings {
