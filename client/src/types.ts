@@ -22,6 +22,7 @@ interface ScanDecision {
 
 interface Scan {
   id: string,
+  name: string,
   scan_id: string,
   scan_type: string,
   notes: ScanNote[],
@@ -45,6 +46,8 @@ interface Project {
   id: string,
   name: string,
   experiments?: Experiment[],
+  import_path: string,
+  export_path: string
 }
 
 interface Settings {

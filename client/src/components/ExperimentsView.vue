@@ -2,11 +2,12 @@
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
+import DataImportExport from '@/components/DataImportExport.vue';
 import { API_URL } from '../constants';
 
 export default {
   name: 'ExperimentsView',
-  components: { ExperimentLockIcon },
+  components: { ExperimentLockIcon, DataImportExport },
   props: {
     minimal: {
       type: Boolean,
@@ -86,68 +87,69 @@ export default {
 
 <template>
   <div class="scans-view">
-    <ul
-      v-if="orderedExperiments && orderedExperiments.length"
-      class="experiment"
-    >
-      <li
-        v-for="experiment of orderedExperiments"
-        :key="`e.${experiment.id}`"
-        class="body-2"
-      >
-        <v-card
-          flat
-          class="d-flex justify-space-between pr-2"
+    <div v-if="orderedExperiments && orderedExperiments.length">
+      <ul class="experiment">
+        <li
+          v-for="experiment of orderedExperiments"
+          :key="`e.${experiment.id}`"
+          class="body-2"
         >
-          <v-card flat>
-            {{ experiment.name }}
-            <ExperimentLockIcon
-              :experiment="experiment"
-              small
-            />
-          </v-card>
-          <v-card flat>
-            <v-icon
-              v-show="experiment === currentExperiment"
-              :color="loadingIconColor"
-            >
-              {{ loadingIcon }}
-            </v-icon>
-          </v-card>
-        </v-card>
-        <ul class="scans">
-          <li
-            v-for="scan of scansForExperiment(experiment.id)"
-            :key="`s.${scan.id}`"
-            :class="{
-              current: scan === currentScan
-            }"
-            class="body-1"
+          <v-card
+            flat
+            class="d-flex justify-space-between pr-2"
           >
-            <v-btn
-              :to="getIdOfFirstDatasetInScan(scan.id)"
-              class="ml-0 px-1 scan-name"
-              href
-              text
-              small
-              active-class=""
-            >
-              {{ scan.name }}
-              <span
-                v-if="scan.decisions.length !== 0"
-                :class="scan.css"
+            <v-card flat>
+              {{ experiment.name }}
+              <ExperimentLockIcon
+                :experiment="experiment"
                 small
-              >&nbsp;&nbsp;({{ scan.decision }})</span>
-            </v-btn>
-          </li>
-        </ul>
-      </li>
-    </ul>
+              />
+            </v-card>
+            <v-card flat>
+              <v-icon
+                v-show="experiment === currentExperiment"
+                :color="loadingIconColor"
+              >
+                {{ loadingIcon }}
+              </v-icon>
+            </v-card>
+          </v-card>
+          <ul class="scans">
+            <li
+              v-for="scan of scansForExperiment(experiment.id)"
+              :key="`s.${scan.id}`"
+              :class="{
+                current: scan === currentScan
+              }"
+              class="body-1"
+            >
+              <v-btn
+                :to="getIdOfFirstDatasetInScan(scan.id)"
+                class="ml-0 px-1 scan-name"
+                href
+                text
+                small
+                active-class=""
+              >
+                {{ scan.name }}
+                <span
+                  v-if="scan.decisions.length !== 0"
+                  :class="scan.css"
+                  small
+                >&nbsp;&nbsp;({{ scan.decision }})</span>
+              </v-btn>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <DataImportExport />
+    </div>
     <div
       v-else
-      class="text-xs-center body-2"
+      class="pa-5"
     >
-      No imported scans
+      <span class="px-5">No imported data.</span>
+      <DataImportExport import-only />
     </div>
   </div>
 </template>
