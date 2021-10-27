@@ -3,17 +3,10 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Scan, ScanDecision
+from miqa.core.models import Scan
 from miqa.core.rest.image import ImageSerializer
 from miqa.core.rest.permissions import UserHoldsExperimentLock
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
-
-
-class DecisionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ScanDecision
-        fields = ['id', 'decision', 'created', 'creator']
-        ref_name = 'scan_decision'
 
 
 class ScanSerializer(serializers.ModelSerializer):

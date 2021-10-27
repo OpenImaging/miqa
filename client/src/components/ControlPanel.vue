@@ -98,18 +98,18 @@ export default {
     });
   },
   beforeDestroy() {
-    this.toggleLock(this.experimentId, false);
+    this.setLock(this.experimentId, false);
   },
   methods: {
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
-        await this.toggleLock(oldExp, false);
-        this.toggleLock(newExp, true);
+        await this.setLock(oldExp, false);
+        this.setLock(newExp, true);
       } else {
-        this.toggleLock(newExp, true);
+        this.setLock(newExp, true);
       }
     },
-    async toggleLock(experimentId, lock) {
+    async setLock(experimentId, lock) {
       try {
         if (lock) {
           await djangoRest.lockExperiment(experimentId);
