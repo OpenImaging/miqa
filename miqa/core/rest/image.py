@@ -38,6 +38,11 @@ class ImageViewSet(ListModelMixin, GenericViewSet):
         if not path.is_file():
             return HttpResponseServerError('File no longer exists.')
 
+        # send client zarr data instead when client is ready
+        # path: Path = image.zarr_path
+        # if not path.exists():
+        #     return HttpResponseServerError('File no longer exists.')
+
         fd = open(path, 'rb')
         resp = FileResponse(fd, filename=str(image.frame_number))
         resp['Content-Length'] = image.size
