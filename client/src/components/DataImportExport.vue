@@ -2,22 +2,30 @@
 import { computed, defineComponent, ref } from '@vue/composition-api';
 import store from '@/store';
 import djangoRest from '@/django';
-import { HTMLInputEvent, Project } from '@/types';
+import { Project } from '@/types';
 
 export default defineComponent({
   name: 'DataImportExport',
   components: {},
+  props: {
+    importOnly: {
+      type: Boolean,
+      default: false,
+    },
+    exportOnly: {
+      type: Boolean,
+      default: false,
+    },
+  },
   setup() {
     const currentProject = computed(() => store.state.currentProject);
     const loadProject = (project: Project) => store.dispatch.loadProject(project);
-    const loadLocalDataset = (files: FileList) => store.dispatch.loadLocalDataset(files);
 
     const importing = ref(false);
     const importDialog = ref(false);
     const importErrorText = ref('');
     const importErrors = ref(false);
     const exporting = ref(false);
-    const load = ref(null);
 
     async function importData() {
       importing.value = true;
@@ -59,74 +67,70 @@ export default defineComponent({
       }
       exporting.value = false;
     }
-    function activateInput() {
-      load.value.click();
-    }
-    function loadFiles(event: HTMLInputEvent) {
-      loadLocalDataset(event.target.files as FileList);
-    }
 
     return {
       currentProject,
       loadProject,
-      loadLocalDataset,
       importing,
       importDialog,
       importErrorText,
       importErrors,
       exporting,
-      load,
       importData,
       exportData,
-      activateInput,
-      loadFiles,
     };
   },
 });
 </script>
 
 <template>
-  <div>
-    <v-btn
-      @click="importDialog = true"
-      text
-      color="primary"
+  <div class="py-5">
+    <v-tooltip
+      v-if="!exportOnly"
+      top
     >
-      Import
-    </v-btn>
-    <v-btn
-      :disabled="exporting"
-      @click="exportData"
-      text
-      color="primary"
-    >
-      <v-progress-circular
-        v-if="exporting"
-        :size="25"
-        :width="2"
-        indeterminate
-        color="primary"
-      />
-      <span v-else>
-        Export
-      </span>
-    </v-btn>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          @click="importDialog = true"
+          v-bind="attrs"
+          v-on="on"
+          text
+          color="primary"
+        >
+          Import
+        </v-btn>
+      </template>
+      <span>Import from {{ currentProject.import_path }}</span>
+    </v-tooltip>
 
-    <v-btn
-      @click="activateInput"
-      text
-      color="secondary"
+    <v-tooltip
+      v-if="!importOnly"
+      top
     >
-      Load
-    </v-btn>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          :disabled="exporting"
+          @click="exportData"
+          v-bind="attrs"
+          v-on="on"
+          text
+          color="primary"
+        >
+          <v-progress-circular
+            v-if="exporting"
+            :size="25"
+            :width="2"
+            indeterminate
+            color="primary"
+          />
+          <span v-else>
+            Export
+          </span>
+        </v-btn>
+      </template>
+      <span>Export to {{ currentProject.export_path }}</span>
+    </v-tooltip>
 
-    <input
-      ref="load"
-      @change="loadFiles"
-      type="file"
-      multiple
-      style="display: none;"
-    >
     <v-dialog
       v-model="importDialog"
       :persistent="importing"
@@ -137,7 +141,7 @@ export default defineComponent({
           Import
         </v-card-title>
         <v-card-text>
-          Import data would delete outdated records from the system, do you want
+          Importing data will overwrite all objects in this project, do you want
           to continue?
         </v-card-text>
         <v-card-actions>
