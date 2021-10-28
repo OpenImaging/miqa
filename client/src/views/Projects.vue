@@ -3,17 +3,15 @@ import { computed, defineComponent, ref } from '@vue/composition-api';
 import store from '@/store';
 import { Project } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
-import GenericNavigationBar from '@/components/GenericNavigationBar.vue';
+import Navbar from '@/components/Navbar.vue';
 import JSONConfig from '@/components/JSONConfig.vue';
-import SiteConfig from '@/components/SiteConfig.vue';
 
 export default defineComponent({
   name: 'Projects',
   components: {
     ExperimentsView,
-    GenericNavigationBar,
+    Navbar,
     JSONConfig,
-    SiteConfig,
   },
   setup() {
     store.dispatch.loadProjects();
@@ -39,8 +37,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="sites">
-    <GenericNavigationBar />
+  <div>
+    <Navbar />
     <div class="d-flex">
       <v-card>
         <v-navigation-drawer permanent>
@@ -87,5 +85,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

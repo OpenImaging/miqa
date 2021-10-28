@@ -1,46 +1,27 @@
 <script>
 import _ from 'lodash';
 import {
-  mapState, mapActions, mapGetters, mapMutations,
+  mapState, mapActions, mapGetters,
 } from 'vuex';
 
-import Layout from '@/components/Layout.vue';
-import NavbarTitle from '@/components/NavbarTitle.vue';
+import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
-import UserButton from '@/components/girder/UserButton.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
-import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
-import EmailDialog from '@/components/EmailDialog.vue';
-import TimeoutDialog from '@/components/TimeoutDialog.vue';
-import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
-import NavigationTabs from '@/components/NavigationTabs.vue';
+import VtkViewer from '@/components/VtkViewer.vue';
 import { cleanDatasetName } from '@/utils/helper';
 
 export default {
   name: 'Dataset',
   components: {
-    NavbarTitle,
-    UserButton,
-    Layout,
+    Navbar,
     ExperimentsView,
-    ScreenshotDialog,
-    EmailDialog,
-    TimeoutDialog,
-    KeyboardShortcutDialog,
-    NavigationTabs,
+    VtkViewer,
     ControlPanel,
   },
   inject: ['user'],
-  data: () => ({
-    emailDialog: false,
-    keyboardShortcutDialog: false,
-    advanceTimeoutId: null,
-  }),
   computed: {
     ...mapState([
       'vtkViews',
-      'drawer',
-      'screenshots',
       'scanCachedPercentage',
       'scanDatasets',
       'loadingDataset',
@@ -52,12 +33,6 @@ export default {
     ]),
     currentScanDatasets() {
       return this.scanDatasets[this.currentScan.id];
-    },
-    notes() {
-      if (this.currentScan) {
-        return this.currentScan.notes;
-      }
-      return [];
     },
   },
   watch: {
@@ -75,14 +50,12 @@ export default {
       this.debouncedDatasetSliderChange,
       30,
     );
-    await this.loadSites();
     const { datasetId } = this.$route.params;
     const dataset = this.getDataset(datasetId);
     if (dataset) {
       await this.swapToDataset(dataset);
     } else {
       this.$router.replace('/').catch(this.handleNavigationError);
-      this.setDrawer(true);
     }
   },
   async beforeRouteUpdate(to, from, next) {
@@ -96,11 +69,9 @@ export default {
     next(true);
   },
   methods: {
-    ...mapMutations(['setDrawer']),
     ...mapActions([
       'loadProject',
       'reloadScan',
-      'loadSites',
       'logout',
       'swapToDataset',
     ]),
@@ -129,42 +100,7 @@ export default {
     fill-height
     column
   >
-    <v-app-bar
-      app
-      dense
-    >
-      <NavbarTitle />
-      <NavigationTabs />
-      <v-spacer />
-      <v-btn
-        @click="keyboardShortcutDialog = true"
-        icon
-        class="mr-4"
-      >
-        <v-icon>keyboard</v-icon>
-      </v-btn>
-      <v-btn
-        :disabled="!currentDataset"
-        @click="emailDialog = true"
-        icon
-        class="mr-4"
-      >
-        <v-badge
-          :value="screenshots.length"
-          right
-        >
-          <span
-            slot="badge"
-            dark
-          >{{ screenshots.length }}</span>
-          <v-icon>email</v-icon>
-        </v-badge>
-      </v-btn>
-      <UserButton
-        @user="logoutUser()"
-        @login="djangoRest.login()"
-      />
-    </v-app-bar>
+    <Navbar dataset-view />
     <v-navigation-drawer
       expand-on-hover
       app
@@ -203,7 +139,15 @@ export default {
     </v-layout>
     <template v-if="currentDataset">
       <v-flex class="layout-container">
-        <Layout />
+        <div class="my-layout">
+          <div
+            v-for="(vtkView, index) in vtkViews"
+            :key="index"
+            class="view"
+          >
+            <VtkViewer :view="vtkView" />
+          </div>
+        </div>
         <v-layout
           v-if="errorLoadingDataset"
           align-center
@@ -217,27 +161,36 @@ export default {
       </v-flex>
       <ControlPanel />
     </template>
-    <v-layout
-      v-if="!currentDataset && !loadingDataset"
-      align-center
-      justify-center
-      fill-height
-    >
-      <div class="title">
-        Select a scan
-      </div>
-    </v-layout>
-    <ScreenshotDialog />
-    <EmailDialog
-      v-model="emailDialog"
-      :notes="notes"
-    />
-    <TimeoutDialog />
-    <KeyboardShortcutDialog v-model="keyboardShortcutDialog" />
   </v-layout>
 </template>
 
 <style lang="scss" scoped>
+.my-layout {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+
+  .view {
+    position: relative;
+    flex: 1 0 0px;
+
+    border: 1.5px solid white;
+    border-top: none;
+    border-bottom: none;
+
+    &:first-child {
+      border-left: none;
+    }
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
 .dataset {
   .scans-bar {
     display: flex;
