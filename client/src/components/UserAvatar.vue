@@ -62,6 +62,7 @@ export default {
         v-on="on"
         :color="computeColor()"
         size="30"
+        style="border-radius: 50%"
       >
         <span
           v-if="user.first_name && user.last_name"
@@ -82,7 +83,3 @@ export default {
     </span>
   </v-tooltip>
 </template>
-
-<style scoped>
-
-</style>

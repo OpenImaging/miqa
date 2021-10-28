@@ -26,7 +26,6 @@ interface Scan {
   scan_id: string,
   scan_type: string,
   experiment: string,
-  site: string,
   decisions: ScanDecision[],
   images: Image[],
 }
@@ -39,6 +38,8 @@ interface Experiment {
     username: string,
   },
   scans?: Scan[],
+  project: string,
+  note: string,
 }
 
 interface Project {
@@ -54,10 +55,6 @@ interface Settings {
   exportPath: string
 }
 
-interface HTMLInputEvent extends Event {
-  target: HTMLInputElement & EventTarget;
-}
-
 export {
-  User, Project, Settings, HTMLInputEvent, ScanDecision,
+  User, Project, Settings, ScanDecision,
 };
