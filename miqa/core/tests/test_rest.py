@@ -60,7 +60,14 @@ def test_experiment_retrieve(authenticated_api_client, experiment):
     resp = authenticated_api_client.get(f'/api/v1/experiments/{experiment.id}')
     assert resp.status_code == 200
     # We want to assert that the nested project document is only the id
-    assert isinstance(resp.data['project'], uuid.UUID)
+    assert resp.json() == {
+      'id': experiment.id,
+      'lock_owner': None,
+      'name': experiment.name,
+      'note': experiment.note,
+      'project': experiment.project.id,
+      'scans': [],
+    }
 
 
 @pytest.mark.django_db
