@@ -3,6 +3,7 @@ import {
   mapState, mapGetters, mapMutations,
 } from 'vuex';
 import djangoRest from '@/django';
+import store from '@/store';
 
 import EvaluationResults from './EvaluationResults.vue';
 import UserAvatar from './UserAvatar.vue';
@@ -38,12 +39,13 @@ export default {
     ]),
     ...mapMutations([
       'updateExperiment',
+      'addScanDecision',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
     },
     experimentIsEditable() {
-      return this.lockOwner && this.lockOwner.username === this.user.username;
+      return this.lockOwner && this.lockOwner.id === this.user.id;
     },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
@@ -104,10 +106,8 @@ export default {
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
         await this.setLock(oldExp, false);
-        this.setLock(newExp, true);
-      } else {
-        this.setLock(newExp, true);
       }
+      await this.setLock(newExp, true);
     },
     async setLock(experimentId, lock) {
       try {
@@ -180,11 +180,16 @@ export default {
     async handleCommentSave(decision) {
       if (this.newComment.trim().length > 0 || decision === 'Good') {
         try {
-          await djangoRest.setDecision(
+          const { addScanDecision } = store.commit;
+          const savedObj = await djangoRest.setDecision(
             this.currentViewData.scanId,
             decision,
             this.newComment,
           );
+          addScanDecision({
+            currentScan: this.currentViewData.scanId,
+            newDecision: savedObj,
+          });
           this.handleKeyPress('next');
           this.$snackbar({
             text: 'Saved decision successfully.',
@@ -193,6 +198,7 @@ export default {
           this.warnDecision = false;
           this.newComment = '';
         } catch (err) {
+          console.log(err);
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
             timeout: 6000,
