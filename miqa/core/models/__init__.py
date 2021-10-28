@@ -1,20 +1,17 @@
-from .annotation import Annotation, Decision
 from .evaluation import Evaluation
 from .experiment import Experiment
 from .image import Image
 from .project import Project
 from .scan import Scan
-from .scan_note import ScanNote
+from .scan_decision import ScanDecision
 from .site import Site
 
 __all__ = [
-    'Decision',
     'Experiment',
     'Image',
     'Scan',
-    'ScanNote',
     'Evaluation',
     'Project',
     'Site',
-    'Annotation',
+    'ScanDecision',
 ]
