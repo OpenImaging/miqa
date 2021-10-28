@@ -87,15 +87,13 @@ export default {
   },
   async beforeRouteUpdate(to, from, next) {
     const toDataset = this.getDataset(to.params.datasetId);
-    const result = await this.beforeLeaveScan();
-    next(result);
-    if (result && toDataset) {
+    next(true);
+    if (toDataset) {
       this.swapToDataset(toDataset);
     }
   },
   async beforeRouteLeave(to, from, next) {
-    const result = await this.beforeLeaveScan();
-    next(result);
+    next(true);
   },
   methods: {
     ...mapMutations(['setDrawer']),
@@ -120,9 +118,6 @@ export default {
         this.updateImage();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
-    },
-    beforeLeaveScan() {
-      return Promise.resolve(true);
     },
   },
 };
