@@ -102,8 +102,7 @@ export default {
             <v-card flat>
               {{ experiment.name }}
               <UserAvatar
-                :user="experiment.lockOwner"
-                :me="user"
+                :target-user="experiment.lockOwner"
                 as-editor
               />
             </v-card>
