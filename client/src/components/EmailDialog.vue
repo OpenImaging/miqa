@@ -1,5 +1,4 @@
 <script lang="ts">
-import _ from 'lodash';
 import {
   defineComponent, inject, computed,
 } from '@vue/composition-api';
@@ -26,7 +25,6 @@ export default defineComponent({
     const screenshots = computed(() => store.state.screenshots);
     const currentDataset = computed(() => store.getters.currentDataset);
     const currentScan = computed(() => store.getters.currentScan);
-    const siteMap = computed(() => store.getters.siteMap);
     const { removeScreenshot } = store.commit;
 
     const user = inject('user') as User;
@@ -35,7 +33,6 @@ export default defineComponent({
       screenshots,
       currentDataset,
       currentScan,
-      siteMap,
       removeScreenshot,
       user,
     };
@@ -90,28 +87,6 @@ export default defineComponent({
       this.toCandidates = [];
       this.ccCandidates = [];
       this.bccCandidates = [];
-      const site = this.siteMap[this.currentScan.site];
-      if (site && site.meta) {
-        Object.values(site.meta).forEach((value) => {
-          if (_.isArray(value)) {
-            value.forEach((contact) => {
-              switch (contact.mode) {
-                case 'to':
-                  this.toCandidates.push(contact);
-                  break;
-                case 'cc':
-                  this.ccCandidates.push(contact);
-                  break;
-                case 'bcc':
-                  this.bccCandidates.push(contact);
-                  break;
-                default:
-                  break;
-              }
-            });
-          }
-        });
-      }
       this.to = this.toCandidates.map((c) => c.name);
       this.cc = this.ccCandidates.map((c) => c.name);
       this.bcc = this.bccCandidates.map((c) => c.name);
