@@ -43,4 +43,4 @@ class ScanDecisionViewSet(
         ensure_experiment_lock(request_data['scan'], request_data['creator'])
         new_obj = ScanDecision(**request_data)
         new_obj.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(ScanDecisionSerializer(new_obj).data, status=status.HTTP_201_CREATED)
