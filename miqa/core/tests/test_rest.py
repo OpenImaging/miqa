@@ -57,8 +57,15 @@ def test_experiments_list(authenticated_api_client, experiment):
 def test_experiment_retrieve(authenticated_api_client, experiment):
     resp = authenticated_api_client.get(f'/api/v1/experiments/{experiment.id}')
     assert resp.status_code == 200
-    # We want to assert that the nested project document isn't the giant one
-    assert 'experiments' not in resp.data['project'].keys()
+    # We want to assert that the nested project document is only the id
+    assert resp.json() == {
+        'id': experiment.id,
+        'lock_owner': None,
+        'name': experiment.name,
+        'note': experiment.note,
+        'project': experiment.project.id,
+        'scans': [],
+    }
 
 
 @pytest.mark.django_db
@@ -69,8 +76,8 @@ def test_scans_list(authenticated_api_client, scan):
 
 
 @pytest.mark.django_db
-def test_scan_notes_list(authenticated_api_client, scan_note):
-    resp = authenticated_api_client.get('/api/v1/scan_notes')
+def test_scan_decisions_list(authenticated_api_client, scan_decision):
+    resp = authenticated_api_client.get('/api/v1/scan-decisions')
     assert resp.status_code == 200
     assert resp.data['count'] == 1
 
@@ -141,17 +148,18 @@ def test_experiment_lock_only_owner_can_release(
 
 
 @pytest.mark.django_db
-def test_read_without_lock_ok(authenticated_api_client, scan_note):
-    resp = authenticated_api_client.get(f'/api/v1/scan_notes/{scan_note.id}')
+def test_read_without_lock_ok(authenticated_api_client, scan_decision):
+    resp = authenticated_api_client.get(f'/api/v1/scan-decisions/{scan_decision.id}')
     assert resp.status_code == 200
 
 
 @pytest.mark.django_db
 def test_create_note_without_lock_fails(authenticated_api_client, scan):
     resp = authenticated_api_client.post(
-        '/api/v1/scan_notes',
+        '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
+            'decision': 'Good',
             'note': 'hello',
         },
     )
@@ -160,12 +168,12 @@ def test_create_note_without_lock_fails(authenticated_api_client, scan):
 
 
 @pytest.mark.django_db
-def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
+def test_create_scan_decision_without_lock_fails(authenticated_api_client, scan):
     resp = authenticated_api_client.post(
-        '/api/v1/annotations',
+        '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
-            'decision': 'GOOD',
+            'decision': 'Good',
         },
     )
     assert resp.status_code == 403
@@ -173,19 +181,20 @@ def test_create_annotation_without_lock_fails(authenticated_api_client, scan):
 
 
 @pytest.mark.django_db
-def test_create_annotation_with_lock(api_client, scan, user):
+def test_create_scan_decision_with_lock(api_client, scan, user):
     scan.experiment.lock_owner = user
     scan.experiment.save(update_fields=['lock_owner'])
     api_client.force_authenticate(user=user)
 
     resp = api_client.post(
-        '/api/v1/annotations',
+        '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
-            'decision': 'GOOD',
+            'decision': 'Good',
+            'note': '',
         },
     )
     assert resp.status_code == 201
     decisions = scan.decisions.all()
     assert len(decisions) == 1
-    assert decisions[0].decision == 'GOOD'
+    assert decisions[0].decision == 'Good'

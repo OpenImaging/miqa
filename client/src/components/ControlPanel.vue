@@ -3,19 +3,27 @@ import {
   mapState, mapGetters, mapMutations,
 } from 'vuex';
 import djangoRest from '@/django';
+import store from '@/store';
 
 import EvaluationResults from './EvaluationResults.vue';
+import UserAvatar from './UserAvatar.vue';
+import ScanDecision from './ScanDecision.vue';
 
 export default {
   name: 'Dataset',
   components: {
     EvaluationResults,
+    UserAvatar,
+    ScanDecision,
   },
   inject: ['user'],
   data: () => ({
     window: 256,
     level: 150,
     newExperimentNote: '',
+    newComment: '',
+    lockOwner: null,
+    warnDecision: false,
   }),
   computed: {
     ...mapState([
@@ -31,10 +39,13 @@ export default {
     ]),
     ...mapMutations([
       'updateExperiment',
+      'addScanDecision',
     ]),
+    experimentId() {
+      return this.currentViewData.experimentId;
+    },
     experimentIsEditable() {
-      const { locked, lockOwner } = this.currentViewData;
-      return !locked || lockOwner === this.user;
+      return this.lockOwner && this.lockOwner.id === this.user.id;
     },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
@@ -66,9 +77,15 @@ export default {
     currentDataset() {
       this.updateWinLev();
     },
+    experimentId(newValue, oldValue) {
+      this.switchLock(newValue, oldValue);
+    },
+    newComment() {
+      this.warnDecision = false;
+    },
   },
   mounted() {
-    this.toggleLock();
+    this.switchLock(this.experimentId);
     this.updateWinLev();
     window.addEventListener('keydown', (event) => {
       if (event.key === 'ArrowUp') {
@@ -82,14 +99,27 @@ export default {
       }
     });
   },
-  unmounted() {
-    this.toggleLock();
+  beforeDestroy() {
+    this.setLock(this.experimentId, false);
   },
   methods: {
-    toggleLock() {
-      const { experimentId, locked, lockOwner } = this.currentViewData;
-      if (this.experimentIsEditable) {
-        console.log(experimentId, locked, lockOwner);
+    async switchLock(newExp, oldExp = null) {
+      if (oldExp) {
+        await this.setLock(oldExp, false);
+      }
+      await this.setLock(newExp, true);
+    },
+    async setLock(experimentId, lock) {
+      try {
+        if (lock) {
+          await djangoRest.lockExperiment(experimentId);
+          this.lockOwner = this.user;
+        } else {
+          await djangoRest.unlockExperiment(experimentId);
+          this.lockOwner = null;
+        }
+      } catch (ex) {
+        this.lockOwner = this.currentViewData.lockOwner;
       }
     },
     updateWinLev() {
@@ -140,9 +170,42 @@ export default {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
             timeout: 6000,
-
           });
         }
+      }
+    },
+    handleCommentChange(value) {
+      this.newComment = value;
+    },
+    async handleCommentSave(decision) {
+      if (this.newComment.trim().length > 0 || decision === 'Good') {
+        try {
+          const { addScanDecision } = store.commit;
+          const savedObj = await djangoRest.setDecision(
+            this.currentViewData.scanId,
+            decision,
+            this.newComment,
+          );
+          addScanDecision({
+            currentScan: this.currentViewData.scanId,
+            newDecision: savedObj,
+          });
+          this.handleKeyPress('next');
+          this.$snackbar({
+            text: 'Saved decision successfully.',
+            timeout: 6000,
+          });
+          this.warnDecision = false;
+          this.newComment = '';
+        } catch (err) {
+          console.log(err);
+          this.$snackbar({
+            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
+            timeout: 6000,
+          });
+        }
+      } else {
+        this.warnDecision = true;
       }
     },
   },
@@ -151,6 +214,7 @@ export default {
 
 <template>
   <v-flex
+    v-if="representation"
     shrink
     class="bottom"
   >
@@ -189,7 +253,11 @@ export default {
                   class="grey--text"
                   style="text-align: right"
                 >
-                  <!-- Inline user avatar of lock owner goes here -->
+                  <UserAvatar
+                    :user="lockOwner"
+                    :me="user"
+                    as-editor
+                  />
                   {{ currentViewData.experimentName }}
                 </v-col>
               </v-row>
@@ -197,6 +265,7 @@ export default {
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 @input="handleExperimentNoteChange"
+                :disabled="!experimentIsEditable"
                 filled
                 no-resize
                 height="120px"
@@ -263,7 +332,7 @@ export default {
                           @mousedown="handleKeyPress('previous')"
                           small
                           depressed
-                          color="white"
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-up</v-icon>
                         </v-btn>
@@ -272,7 +341,7 @@ export default {
                           @mousedown="handleKeyPress('next')"
                           small
                           depressed
-                          color="white"
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-down</v-icon>
                         </v-btn>
@@ -298,6 +367,7 @@ export default {
                           @mousedown="handleKeyPress('back')"
                           small
                           depressed
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-left</v-icon>
                         </v-btn>
@@ -306,6 +376,7 @@ export default {
                           @mousedown="handleKeyPress('forward')"
                           small
                           depressed
+                          class="transparent-btn"
                         >
                           <v-icon>fa-caret-right</v-icon>
                         </v-btn>
@@ -444,12 +515,23 @@ export default {
                     class="px-5"
                   >
                     <v-row>
-                      <v-col
-                        cols="12"
-                        class="grey lighten-4"
-                        style="height: 80px; overflow:auto"
-                      >
-                        comments section
+                      <v-col cols="12">
+                        <v-container
+                          class="grey lighten-4"
+                          style="height: 90px; overflow:auto"
+                        >
+                          <ScanDecision
+                            v-for="decision in currentViewData.scanDecisions"
+                            :key="decision.id"
+                            :decision="decision"
+                          />
+                          <div
+                            v-if="currentViewData.scanDecisions.length === 0"
+                            class="grey--text"
+                          >
+                            This scan has no prior comments.
+                          </div>
+                        </v-container>
                       </v-col>
                     </v-row>
                     <v-row v-if="currentViewData.currentAutoEvaluation">
@@ -474,36 +556,75 @@ export default {
                         :results="currentViewData.currentAutoEvaluation.results"
                       />
                     </v-row>
-                    <v-row v-else>
-                      <v-col cols="12" />
-                    </v-row>
-                    <v-row>
+                    <v-row
+                      v-if="experimentIsEditable"
+                    >
                       <v-col
                         cols="12"
-                        class="grey lighten-2"
-                        style="height: 80px; overflow:auto"
+                        class="pb-0 mb-0"
                       >
-                        evaluation section
+                        <v-textarea
+                          @input="handleCommentChange"
+                          :counter="!warnDecision"
+                          :hide-details="warnDecision"
+                          v-model="newComment"
+                          filled
+                          no-resize
+                          height="60px"
+                          name="input-comment"
+                          label="Evaluation Comment"
+                          placeholder="Write a comment about the scan and submit a decision"
+                        />
                       </v-col>
                     </v-row>
-                    <v-row no-gutters>
+                    <v-row
+                      v-if="warnDecision"
+                      no-gutters
+                    >
+                      <v-col
+                        cols="12"
+                        class="red--text"
+                        style="text-align: center"
+                      >
+                        "Bad" and "Other" decisions must have a comment.
+                      </v-col>
+                    </v-row>
+                    <v-row
+                      v-if="experimentIsEditable"
+                      no-gutters
+                    >
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        GOOD
+                        <v-btn
+                          @click="handleCommentSave('Good')"
+                          color="green darken-3 white--text"
+                        >
+                          GOOD (G)
+                        </v-btn>
                       </v-col>
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        BAD
+                        <v-btn
+                          @click="handleCommentSave('Bad')"
+                          color="red darken-3 white--text"
+                        >
+                          BAD (B)
+                        </v-btn>
                       </v-col>
                       <v-col
                         cols="4"
                         style="text-align: center"
                       >
-                        OTHER
+                        <v-btn
+                          @click="handleCommentSave('Other')"
+                          color="grey darken-3 white--text"
+                        >
+                          OTHER (O)
+                        </v-btn>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -518,10 +639,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
-.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.theme--light.v-btn:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined),
-.v-btn::before {
+.transparent-btn.v-btn--disabled, .transparent-btn.v-btn--disabled::before,
+.transparent-btn, .transparent-btn::before,
+.theme--light.v-btn.v-btn--disabled:not(.v-btn--flat):not(.v-btn--text):not(.v-btn-outlined) {
   background-color: transparent !important;
 }
 

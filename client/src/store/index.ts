@@ -242,7 +242,9 @@ const {
         experimentNote: experiment.note,
         locked: experiment.lockOwner != null,
         lockOwner: experiment.lockOwner,
+        scanId: scan.id,
         scanName: scan.name,
+        scanDecisions: scan.decisions,
         scanPositionString: `(${experimentScansList.indexOf(scan.id) + 1}/${experimentScansList.length})`,
         framePositionString: `(${scanFramesList.indexOf(currentDataset.id) + 1}/${scanFramesList.length})`,
         backTo: currentDataset.previousDataset,
@@ -388,6 +390,9 @@ const {
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
+    },
+    addScanDecision(state, { currentScan, newDecision }) {
+      state.scans[currentScan].decisions.push(newDecision);
     },
     setDrawer(state, value: boolean) {
       state.drawer = value;

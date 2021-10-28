@@ -9,6 +9,9 @@ export default {
     },
   },
   methods: {
+    convertOverallQualityToColor(text = true) {
+      return this.convertValueToColor(1 - this.results.overall_quality, text);
+    },
     convertValueToColor(value, text = true) {
       const colors = [
         'green darken-4',
@@ -29,9 +32,6 @@ export default {
       }
       return thisColor;
     },
-  },
-  convertOverallQualityToColor(text = true) {
-    return this.convertValueToColor(1 - this.results.overall_quality, text);
   },
 };
 </script>
