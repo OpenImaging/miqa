@@ -3,12 +3,9 @@ import { User } from '@/types';
 
 export default {
   name: 'UserAvatar',
+  inject: ['user'],
   props: {
-    user: {
-      type: User,
-      required: true,
-    },
-    me: {
+    targetUser: {
       type: User,
       required: true,
     },
@@ -21,10 +18,10 @@ export default {
   computed: {
     tooltipText() {
       if (this.asEditor) {
-        if (this.user.username === this.me.username) return 'You are editing this experiment.';
-        return `${this.user.username} is editing this experiment.`;
+        if (this.targetUser.username === this.user.username) return 'You are editing this experiment.';
+        return `${this.targetUser.username} is editing this experiment.`;
       }
-      return this.user.username;
+      return this.targetUser.username;
     },
   },
   methods: {
@@ -44,7 +41,7 @@ export default {
         'teal lighten-1',
         'teal darken-1',
       ];
-      const colorIndex = Math.abs(this.hashCode(this.user.username) % colors.length);
+      const colorIndex = Math.abs(this.hashCode(this.targetUser.username) % colors.length);
       return colors[colorIndex];
     },
   },
@@ -53,7 +50,7 @@ export default {
 
 <template>
   <v-tooltip
-    v-if="user"
+    v-if="targetUser"
     bottom
   >
     <template v-slot:activator="{ on, attrs }">
@@ -62,12 +59,13 @@ export default {
         v-on="on"
         :color="computeColor()"
         size="30"
+        style="border-radius: 50%"
       >
         <span
-          v-if="user.first_name && user.last_name"
+          v-if="targetUser.first_name && targetUser.last_name"
           class="white--text text--h5"
         >
-          {{ user.first_name[0] }}{{ user.last_name[0] }}
+          {{ targetUser.first_name[0] }}{{ targetUser.last_name[0] }}
         </span>
         <v-icon
           v-else
@@ -82,7 +80,3 @@ export default {
     </span>
   </v-tooltip>
 </template>
-
-<style scoped>
-
-</style>

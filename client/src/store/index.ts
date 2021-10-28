@@ -1,11 +1,11 @@
+/* eslint-disable no-use-before-define */
+
 import BluebirdPromise from 'bluebird';
 import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
 import { InterpolationType } from 'vtk.js/Sources/Rendering/Core/ImageProperty/Constants';
-import _ from 'lodash';
-import { v4 as uuid } from 'uuid';
 
 import '../utils/registerReaders';
 
@@ -86,7 +86,6 @@ function getData(id, file, webWorker = null) {
               .getArray(0)
               .getRange();
             datasetCache.set(id, { imageData });
-            // eslint-disable-next-line no-use-before-define
             expandScanRange(id, dataRange);
             resolve({ imageData, webWorker });
           })
@@ -166,6 +165,76 @@ function poolFunction(webWorker, taskInfo) {
   });
 }
 
+function progressHandler(completed, total) {
+  const percentComplete = completed / total;
+  store.commit.setScanCachedPercentage(percentComplete);
+}
+
+function startReaderWorkerPool() {
+  const taskArgsArray = [];
+  readDataQueue.forEach((taskInfo) => {
+    taskArgsArray.push([taskInfo]);
+  });
+
+  readDataQueue = [];
+
+  const { runId, promise } = store.state.workerPool.runTasks(
+    taskArgsArray,
+    progressHandler,
+  );
+  taskRunId = runId;
+
+  promise
+    .then((results) => {
+      console.log(`WorkerPool finished with ${results.length} results`);
+      taskRunId = -1;
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      store.state.workerPool.terminateWorkers();
+    });
+}
+
+// cache datasets associated with scans of current experiment
+function checkLoadExperiment(oldValue, newValue) {
+  if (
+    !newValue
+    || newValue === oldValue
+    || (newValue && oldValue && newValue.folderId === oldValue.folderId)
+  ) {
+    return;
+  }
+
+  if (oldValue) {
+    const oldExperimentScans = store.state.experimentScans[oldValue.id];
+    oldExperimentScans.forEach((scanId) => {
+      const scanDatasets = store.state.scanDatasets[scanId];
+      scanDatasets.forEach((datasetId) => {
+        fileCache.delete(datasetId);
+        datasetCache.delete(datasetId);
+      });
+    });
+  }
+
+  readDataQueue = [];
+  const newExperimentScans = store.state.experimentScans[newValue.id];
+  newExperimentScans.forEach((scanId) => {
+    const scanDatasets = store.state.scanDatasets[scanId];
+    scanDatasets.forEach((datasetId) => {
+      readDataQueue.push({
+        // TODO don't hardcode projectId
+        projectId: 1,
+        experimentId: newValue.id,
+        scanId,
+        imageId: datasetId,
+      });
+    });
+  });
+  startReaderWorkerPool();
+}
+
 // get next scan (across experiments)
 function getNextDataset(experiments, i, j) {
   const experiment = experiments[i];
@@ -187,8 +256,20 @@ function getNextDataset(experiments, i, j) {
   return nextScan.images[0];
 }
 
+function expandScanRange(datasetId, dataRange) {
+  if (datasetId in store.state.datasets) {
+    const scanId = store.state.datasets[datasetId].scan;
+    const scan = store.state.scans[scanId];
+    if (dataRange[0] < scan.cumulativeRange[0]) {
+      [scan.cumulativeRange[0]] = dataRange;
+    }
+    if (dataRange[1] > scan.cumulativeRange[1]) {
+      [, scan.cumulativeRange[1]] = dataRange;
+    }
+  }
+}
+
 const initState = {
-  drawer: false,
   currentProject: null as Project | null,
   projects: [] as Project[],
   experimentIds: [],
@@ -205,7 +286,6 @@ const initState = {
   loadingExperiment: false,
   currentScreenshot: null,
   screenshots: [],
-  sites: null,
   scanCachedPercentage: 0,
   currentAutoEvaluation: {},
 };
@@ -232,7 +312,7 @@ const {
       const scan = state.scans[currentDataset.scan];
       const experiment = currentDataset.experiment
         ? state.experiments[currentDataset.experiment] : null;
-      const project = state.sites.filter((x) => x.id === experiment.project)[0];
+      const project = state.projects.filter((x) => x.id === experiment.project)[0];
       const experimentScansList = state.experimentScans[experiment.id];
       const scanFramesList = state.scanDatasets[scan.id];
       return {
@@ -254,7 +334,6 @@ const {
         currentAutoEvaluation: currentDataset.auto_evaluation,
       };
     },
-
     currentDataset(state) {
       const { datasets, currentDatasetId } = state;
       return currentDatasetId ? datasets[currentDatasetId] : null;
@@ -288,76 +367,6 @@ const {
         return state.experiments[curExperimentId];
       }
       return null;
-    },
-    experimentDatasets(state) {
-      return (expId) => {
-        const experimentScans = state.experimentScans[expId];
-        const expDatasets = [];
-        experimentScans.forEach((scanId) => {
-          const scanDatasets = state.scanDatasets[scanId];
-          scanDatasets.forEach((datasetId) => {
-            expDatasets.push(datasetId);
-          });
-        });
-        return expDatasets;
-      };
-    },
-    firstDatasetInPreviousScan(state, getters) {
-      return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInPreviousScan
-        : null;
-    },
-    firstDatasetInNextScan(state, getters) {
-      return getters.currentDataset
-        ? getters.currentDataset.firstDatasetInNextScan
-        : null;
-    },
-    firstDatasetInPreviousExeriment(state, getters) {
-      if (getters.currentExperiment) {
-        const expIdx = getters.currentExperiment.index;
-        if (expIdx >= 1) {
-          const prevExp = state.experiments[state.experimentIds[expIdx - 1]];
-          const prevExpScans = state.experimentScans[prevExp.id];
-          const prevExpScanDatasets = state.scanDatasets[prevExpScans[0].id];
-          return prevExpScanDatasets[0];
-        }
-      }
-      return null;
-    },
-    firstDatasetInNextExeriment(state, getters) {
-      if (getters.currentExperiment) {
-        const expIdx = getters.currentExperiment.index;
-        if (expIdx < state.experimentIds.length - 1) {
-          const nextExp = state.experiments[state.experimentIds[expIdx + 1]];
-          const nextExpScans = state.experimentScans[nextExp.id];
-          const nextExpScanDatasets = state.scanDatasets[nextExpScans[0].id];
-          return nextExpScanDatasets[0];
-        }
-      }
-      return null;
-    },
-    siteMap(state) {
-      if (!state.sites) {
-        return {};
-      }
-      return _.keyBy(state.sites, 'id');
-    },
-    getSiteDisplayName(state, getters) {
-      return (id) => {
-        const { siteMap } = getters;
-        if (siteMap[id]) {
-          return siteMap[id].name;
-        }
-        return id;
-      };
-    },
-    getExperimentDisplayName(state) {
-      return (id) => {
-        if (state.experiments[id]) {
-          return state.experiments[id].name;
-        }
-        return id;
-      };
     },
   },
   mutations: {
@@ -394,9 +403,6 @@ const {
     addScanDecision(state, { currentScan, newDecision }) {
       state.scans[currentScan].decisions.push(newDecision);
     },
-    setDrawer(state, value: boolean) {
-      state.drawer = value;
-    },
     setCurrentScreenshot(state, screenshot) {
       state.currentScreenshot = screenshot;
     },
@@ -415,9 +421,6 @@ const {
     setErrorLoadingDataset(state, value) {
       state.errorLoadingDataset = value;
     },
-    setSites(state, sites) {
-      state.sites = sites;
-    },
     addScanDatasets(state, { sid, id }) {
       state.scanDatasets[sid].push(id);
     },
@@ -435,17 +438,8 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    resetScanDatasets(state, id) {
-      state.scanDatasets[id] = [];
-    },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
-    },
-    startLoadingExperiment(state) {
-      state.loadingExperiment = true;
-    },
-    stopLoadingExperiment(state) {
-      state.loadingExperiment = false;
     },
   },
   actions: {
@@ -454,89 +448,13 @@ const {
         state.workerPool.cancel(taskRunId);
         taskRunId = -1;
       }
-
       commit('reset');
-
       fileCache.clear();
       datasetCache.clear();
     },
     async logout({ dispatch }) {
       dispatch('reset');
       await djangoRest.logout();
-    },
-    // load all nifti files into a single experiment + single scan
-    async loadLocalDataset({ state, commit, dispatch }, files) {
-      // Use a static UUID for the experiment which contains all local scans
-      const experimentID = '276be8dd-aa3c-4ee7-a3a9-581783717a50';
-      const scanID = uuid();
-
-      if (!(experimentID in state.experiments)) {
-        commit('addExperiment', {
-          id: experimentID,
-          value: {
-            id: experimentID,
-            name: 'LOCAL',
-            index: 0,
-          },
-        });
-      }
-
-      const numScans = state.experimentScans[experimentID].length + 1;
-
-      commit('addExperimentScans', { eid: experimentID, sid: scanID });
-      commit('setScan', {
-        scanId: scanID,
-        scan: {
-          id: scanID,
-          name: `local-${numScans}`,
-          experiment: experimentID,
-          cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-          numDatasets: files.length,
-          site: 'local',
-          notes: [],
-          decisions: [],
-        },
-      });
-
-      let prevId = null;
-
-      for (let k = 0; k < files.length; k += 1) {
-        const imageID = uuid();
-        const f = files[k];
-
-        commit('addScanDatasets', { sid: scanID, id: imageID });
-        commit('setImage', {
-          imageId: imageID,
-          image: {
-            ...f,
-            id: imageID,
-            scan: scanID,
-            experiment: experimentID,
-            index: k,
-            previousDataset: prevId,
-            // TODO link properly
-            // nextDataset: k < images.length - 1 ? images[k + 1].id : null,
-            // firstDatasetInPreviousScan: firstInPrev,
-            // firstDatasetInNextScan: nextScan ? nextScan.id : null,
-            local: true,
-          },
-        });
-
-        fileCache.set(imageID, BluebirdPromise.resolve(f));
-
-        if (prevId) {
-          state.datasets[prevId].nextDataset = imageID;
-        }
-
-        prevId = imageID;
-      }
-
-      // last image
-      state.datasets[prevId].nextDataset = null;
-      // Replace with a new object to trigger a Vuex update
-      state.datasets = { ...state.datasets };
-
-      dispatch('swapToDataset', state.datasets[state.scanDatasets[scanID][0]]);
     },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
@@ -591,7 +509,6 @@ const {
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
               numDatasets: images.length,
-              site: scan.site,
               // The experiment.scans.note serialization does not contain note metadata.
               // Just set notes to [] and let reloadScan set the complete values later.
               notes: [],
@@ -649,7 +566,6 @@ const {
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
           numDatasets: images.length,
-          site: scan.site,
           notes: scan.notes,
           decisions: scan.decisions,
         },
@@ -751,50 +667,7 @@ const {
       }
 
       // If necessary, queue loading scans of new experiment
-      // eslint-disable-next-line no-use-before-define
       checkLoadExperiment(oldExperiment, newExperiment);
-    },
-    async loadSites({ commit }) {
-      const sites = await djangoRest.projects();
-      commit('setSites', sites);
-    },
-    async lockExperiment({ commit }, experiment) {
-      try {
-        await djangoRest.lockExperiment(experiment.id);
-      } catch {
-        // Failing to acquire the lock probably means that someone else got the lock before you.
-        // The following refresh will disable the button and show who currently owns the lock.
-      }
-      const {
-        id, name, note, project, lock_owner: lockOwner,
-      } = await djangoRest.experiment(experiment.id);
-      commit('updateExperiment', {
-        id,
-        name,
-        note,
-        project,
-        index: experiment.index,
-        lockOwner,
-      });
-    },
-    async unlockExperiment({ commit }, experiment) {
-      try {
-        await djangoRest.unlockExperiment(experiment.id);
-      } catch {
-        // Failing to unlock the lock probably means that someone else unlocked it for you.
-        // The following refresh will show who currently owns the lock.
-      }
-      const {
-        id, name, note, project, lock_owner: lockOwner,
-      } = await djangoRest.experiment(experiment.id);
-      commit('updateExperiment', {
-        id,
-        name,
-        note,
-        project,
-        index: experiment.index,
-        lockOwner,
-      });
     },
     startActionTimer({ state, commit }) {
       state.actionTimer = setTimeout(() => {
@@ -807,94 +680,6 @@ const {
     },
   },
 });
-
-// cache datasets associated with scans of current experiment
-function checkLoadExperiment(oldValue, newValue) {
-  if (
-    !newValue
-    || newValue === oldValue
-    || (newValue && oldValue && newValue.folderId === oldValue.folderId)
-  ) {
-    return;
-  }
-
-  if (oldValue) {
-    const oldExperimentScans = store.state.experimentScans[oldValue.id];
-    oldExperimentScans.forEach((scanId) => {
-      const scanDatasets = store.state.scanDatasets[scanId];
-      scanDatasets.forEach((datasetId) => {
-        fileCache.delete(datasetId);
-        datasetCache.delete(datasetId);
-      });
-    });
-  }
-
-  readDataQueue = [];
-  const newExperimentScans = store.state.experimentScans[newValue.id];
-  newExperimentScans.forEach((scanId) => {
-    const scanDatasets = store.state.scanDatasets[scanId];
-    scanDatasets.forEach((datasetId) => {
-      readDataQueue.push({
-        // TODO don't hardcode projectId
-        projectId: 1,
-        experimentId: newValue.id,
-        scanId,
-        imageId: datasetId,
-      });
-    });
-  });
-  startReaderWorkerPool(); // eslint-disable-line no-use-before-define
-}
-
-function progressHandler(completed, total) {
-  const percentComplete = completed / total;
-  store.commit.setScanCachedPercentage(percentComplete);
-}
-
-function startReaderWorkerPool() {
-  const taskArgsArray = [];
-
-  store.commit.startLoadingExperiment();
-
-  readDataQueue.forEach((taskInfo) => {
-    taskArgsArray.push([taskInfo]);
-  });
-
-  readDataQueue = [];
-
-  const { runId, promise } = store.state.workerPool.runTasks(
-    taskArgsArray,
-    progressHandler,
-  );
-  taskRunId = runId;
-
-  promise
-    .then((results) => {
-      console.log(`WorkerPool finished with ${results.length} results`);
-      taskRunId = -1;
-    })
-    .catch((err) => {
-      console.log('startReaderWorkerPool: workerPool error');
-      console.log(err);
-    })
-    .finally(() => {
-      store.commit.stopLoadingExperiment();
-      store.state.workerPool.terminateWorkers();
-    });
-}
-
-function expandScanRange(datasetId, dataRange) {
-  if (datasetId in store.state.datasets) {
-    const scanId = store.state.datasets[datasetId].scan;
-    const scan = store.state.scans[scanId];
-    if (dataRange[0] < scan.cumulativeRange[0]) {
-      [scan.cumulativeRange[0]] = dataRange;
-    }
-    if (dataRange[1] > scan.cumulativeRange[1]) {
-      [, scan.cumulativeRange[1]] = dataRange;
-    }
-  }
-}
 
 // Export the direct-store instead of the classic Vuex store.
 export default store;
@@ -909,11 +694,3 @@ export {
 };
 
 export type AppStore = typeof store;
-
-// The following lines enable types in the injected store '$store'.
-// They are causing linting errors, so they are skipped for now.
-// declare module "vuex" {
-//   interface Store<S> {
-//     direct: AppStore
-//   }
-// }

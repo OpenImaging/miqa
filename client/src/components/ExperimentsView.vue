@@ -1,19 +1,20 @@
 <script>
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
-import ExperimentLockIcon from '@/components/ExperimentLockIcon.vue';
+import UserAvatar from '@/components/UserAvatar.vue';
 import DataImportExport from '@/components/DataImportExport.vue';
 import { API_URL } from '../constants';
 
 export default {
   name: 'ExperimentsView',
-  components: { ExperimentLockIcon, DataImportExport },
+  components: { UserAvatar, DataImportExport },
   props: {
     minimal: {
       type: Boolean,
       default: false,
     },
   },
+  inject: ['user'],
   data: () => ({
     API_URL,
   }),
@@ -100,9 +101,9 @@ export default {
           >
             <v-card flat>
               {{ experiment.name }}
-              <ExperimentLockIcon
-                :experiment="experiment"
-                small
+              <UserAvatar
+                :target-user="experiment.lockOwner"
+                as-editor
               />
             </v-card>
             <v-card flat>
