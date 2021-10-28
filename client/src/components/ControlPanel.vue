@@ -157,7 +157,8 @@ export default {
     async handleExperimentNoteSave() {
       if (this.newExperimentNote.length > 0) {
         try {
-          await djangoRest.setExperimentNote(
+          const { updateExperiment } = store.commit;
+          const newExpData = await djangoRest.setExperimentNote(
             this.currentViewData.experimentId, this.newExperimentNote,
           );
           this.$snackbar({
@@ -165,7 +166,7 @@ export default {
             timeout: 6000,
           });
           this.newExperimentNote = '';
-          this.updateExperiment();
+          updateExperiment(newExpData);
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,

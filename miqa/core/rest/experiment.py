@@ -56,7 +56,9 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         experiment_object = self.get_object()
         experiment_object.note = request.data['note']
         experiment_object.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            ExperimentSerializer(experiment_object).data, status=status.HTTP_201_CREATED
+        )
 
     @swagger_auto_schema(
         request_body=no_body,
