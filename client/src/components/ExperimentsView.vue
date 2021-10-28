@@ -64,9 +64,9 @@ export default {
             decision: 'G',
             css: 'green--text',
           };
-        case 'usable_extra':
+        case 'other':
           return {
-            decision: 'E',
+            decision: 'O',
             css: 'blue--text',
           };
         case 'bad':

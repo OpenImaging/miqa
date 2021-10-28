@@ -18,7 +18,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project } from '@/types';
+import { Project, Scan, ScanDecision } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -390,6 +390,9 @@ const {
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
+    },
+    addScanDecision(state, { currentScan, newDecision }) {
+      state.scans[currentScan].decisions.push(newDecision);
     },
     setDrawer(state, value: boolean) {
       state.drawer = value;
