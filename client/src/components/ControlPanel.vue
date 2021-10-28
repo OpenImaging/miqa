@@ -254,8 +254,7 @@ export default {
                   style="text-align: right"
                 >
                   <UserAvatar
-                    :user="lockOwner"
-                    :me="user"
+                    :target-user="lockOwner"
                     as-editor
                   />
                   {{ currentViewData.experimentName }}
