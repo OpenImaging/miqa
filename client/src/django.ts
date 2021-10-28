@@ -55,11 +55,6 @@ const djangoClient = {
   async setSettings(projectId: string, settings: Settings) {
     await apiClient.put(`/projects/${projectId}/settings`, settings);
   },
-  async sites() {
-    const { data } = await apiClient.get('/sites');
-    const { results } = data;
-    return results;
-  },
   async experiments(projectId: string) {
     const { data } = await apiClient.get('/experiments', {
       params: { project: projectId },

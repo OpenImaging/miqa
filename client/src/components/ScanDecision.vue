@@ -7,7 +7,6 @@ export default {
   components: {
     UserAvatar,
   },
-  inject: ['user'],
   props: {
     decision: {
       type: ScanDecision,
@@ -32,8 +31,7 @@ export default {
   <v-row dense>
     <v-col cols="1">
       <UserAvatar
-        :user="decision.creator"
-        :me="user"
+        :target-user="decision.creator"
       />
     </v-col>
     <v-col
