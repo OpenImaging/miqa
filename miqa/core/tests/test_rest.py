@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 
 from .fuzzy import PATH_RE
@@ -61,12 +59,12 @@ def test_experiment_retrieve(authenticated_api_client, experiment):
     assert resp.status_code == 200
     # We want to assert that the nested project document is only the id
     assert resp.json() == {
-      'id': experiment.id,
-      'lock_owner': None,
-      'name': experiment.name,
-      'note': experiment.note,
-      'project': experiment.project.id,
-      'scans': [],
+        'id': experiment.id,
+        'lock_owner': None,
+        'name': experiment.name,
+        'note': experiment.note,
+        'project': experiment.project.id,
+        'scans': [],
     }
 
 
@@ -196,7 +194,7 @@ def test_create_scan_decision_with_lock(api_client, scan, user):
             'note': '',
         },
     )
-    assert resp.status_code == 204
+    assert resp.status_code == 201
     decisions = scan.decisions.all()
     assert len(decisions) == 1
     assert decisions[0].decision == 'Good'
