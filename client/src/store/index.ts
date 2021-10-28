@@ -18,7 +18,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project, Scan, ScanDecision } from '@/types';
+import { Project } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
