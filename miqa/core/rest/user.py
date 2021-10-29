@@ -1,8 +1,21 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_out
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from miqa.core.models import Experiment
+
+
+def remove_locks(sender, user, request, **kwargs):
+    previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
+    for previously_locked_experiment in previously_locked_experiments:
+        previously_locked_experiment.lock_owner = None
+        previously_locked_experiment.save()
+
+
+user_logged_out.connect(remove_locks)
 
 
 class UserSerializer(serializers.ModelSerializer):

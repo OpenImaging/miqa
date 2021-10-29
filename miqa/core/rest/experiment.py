@@ -63,7 +63,8 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     @swagger_auto_schema(
         request_body=no_body,
         responses={
-            204: 'Lock acquired.',
+            200: 'Lock acquired.',
+            204: 'Lock already owned',
             409: 'The lock is held by a different user.',
         },
     )
@@ -80,15 +81,24 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
                 raise LockContention()
 
             if experiment.lock_owner is None:
+                previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
+                for previously_locked_experiment in previously_locked_experiments:
+                    previously_locked_experiment.lock_owner = None
+                    previously_locked_experiment.save()
                 experiment.lock_owner = request.user
                 experiment.save(update_fields=['lock_owner'])
 
+                return Response(
+                    ExperimentSerializer(experiment).data,
+                    status=status.HTTP_200_OK,
+                )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
         request_body=no_body,
         responses={
-            204: 'Lock released.',
+            200: 'Lock released.',
+            204: 'Lock not yet acquired for release.',
             409: 'The lock is held by a different user.',
         },
     )
@@ -105,4 +115,8 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
                 experiment.lock_owner = None
                 experiment.save(update_fields=['lock_owner'])
 
+                return Response(
+                    ExperimentSerializer(experiment).data,
+                    status=status.HTTP_200_OK,
+                )
         return Response(status=status.HTTP_204_NO_CONTENT)

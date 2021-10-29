@@ -13,6 +13,7 @@ export default defineComponent({
     Navbar,
     JSONConfig,
   },
+  inject: ['user'],
   setup() {
     store.dispatch.loadProjects();
     const currentProject = computed(() => store.state.currentProject);
@@ -59,7 +60,10 @@ export default defineComponent({
         class="flex-grow-1 ma-3"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
-        <v-layout class="pa-5">
+        <v-layout
+          v-if="user.is_superuser"
+          class="pa-5"
+        >
           <v-flex>
             <JSONConfig />
           </v-flex>

@@ -71,10 +71,12 @@ const djangoClient = {
     return data;
   },
   async lockExperiment(experimentId: string) {
-    await apiClient.post(`/experiments/${experimentId}/lock`);
+    const { data } = await apiClient.post(`/experiments/${experimentId}/lock`);
+    return data;
   },
   async unlockExperiment(experimentId: string) {
-    await apiClient.delete(`/experiments/${experimentId}/lock`);
+    const { data } = await apiClient.delete(`/experiments/${experimentId}/lock`);
+    return data;
   },
   async scans(experimentId: string) {
     const { data } = await apiClient.get('/scans', {
