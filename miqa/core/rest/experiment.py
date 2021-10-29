@@ -80,7 +80,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
 
-            if experiment.lock_owner is None:
+            if experiment.lock_owner is None or experiment.lock_owner == request.user:
                 previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
                 for previously_locked_experiment in previously_locked_experiments:
                     previously_locked_experiment.lock_owner = None

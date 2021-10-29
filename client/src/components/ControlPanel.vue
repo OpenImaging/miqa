@@ -27,7 +27,7 @@ export default {
   computed: {
     ...mapState([
       'proxyManager',
-      'projectCachedPercentage',
+      'scanCachedPercentage',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -39,6 +39,8 @@ export default {
     ...mapMutations([
       'updateExperiment',
       'addScanDecision',
+      'setExperimentAutoWindow',
+      'setExperimentAutoLevel',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
@@ -47,7 +49,6 @@ export default {
       return this.lockOwner && this.lockOwner.id === this.user.id;
     },
     lockOwner() {
-      console.log(this.currentViewData);
       return this.currentViewData.lockOwner;
     },
     representation() {
@@ -59,21 +60,33 @@ export default {
     winMax() {
       return Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max);
     },
+    autoWindow() {
+      return this.currentViewData.autoWindow
+        || Math.ceil((this.winMax * 0.3) / 10) * 10;
+    },
     levMin() {
       return this.representation.getPropertyDomainByName('windowLevel').min;
     },
     levMax() {
       return Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max);
     },
+    autoLevel() {
+      return this.currentViewData.autoLevel
+        || Math.ceil((this.levMax * 0.2) / 10) * 10;
+    },
   },
   watch: {
     window(value) {
-      if (Number.isInteger(value)) {
+      if (Number.isInteger(value) && value !== this.autoWindow) {
+        const { setExperimentAutoWindow } = store.commit;
+        setExperimentAutoWindow({ experimentId: this.experimentId, autoWindow: value });
         this.representation.setWindowWidth(value);
       }
     },
     level(value) {
-      if (Number.isInteger(value)) {
+      if (Number.isInteger(value) && value !== this.autoLevel) {
+        const { setExperimentAutoLevel } = store.commit;
+        setExperimentAutoLevel({ experimentId: this.experimentId, autoLevel: value });
         this.representation.setWindowLevel(value);
       }
     },
@@ -111,15 +124,29 @@ export default {
     ]),
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
-        await this.setLock({ experimentId: oldExp, lock: false });
+        try {
+          await this.setLock({ experimentId: oldExp, lock: false });
+        } catch (err) {
+          console.log(err);
+          this.$snackbar({
+            text: 'Failed to release edit access on Experiment.',
+            timeout: 6000,
+          });
+        }
       }
-      await this.setLock({ experimentId: newExp, lock: true });
+      try {
+        await this.setLock({ experimentId: newExp, lock: true });
+      } catch (err) {
+        console.log(err);
+        this.$snackbar({
+          text: 'Failed to claim edit access on Experiment.',
+          timeout: 6000,
+        });
+      }
     },
     updateWinLev() {
-      this.representation.setWindowWidth(this.window);
-      this.representation.setWindowLevel(this.level);
-      this.window = Math.ceil((this.winMax * 0.3) / 10) * 10;
-      this.level = Math.ceil((this.levMax * 0.2) / 10) * 10;
+      this.window = this.autoWindow;
+      this.level = this.autoLevel;
     },
     updateImage() {
       if (this.direction === 'back') {
@@ -490,9 +517,9 @@ export default {
                         style="text-align: center; height: 70px"
                       >
                         <transition name="bounce">
-                          <div v-if="projectCachedPercentage < 1">
+                          <div v-if="scanCachedPercentage < 1">
                             <v-progress-circular
-                              :value="projectCachedPercentage * 100"
+                              :value="scanCachedPercentage * 100"
                               color="blue"
                             />
                             <div> Loading... </div>
