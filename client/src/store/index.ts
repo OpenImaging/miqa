@@ -185,8 +185,7 @@ function startReaderWorkerPool() {
   taskRunId = runId;
 
   promise
-    .then((results) => {
-      console.log(`WorkerPool finished with ${results.length} results`);
+    .then(() => {
       taskRunId = -1;
     })
     .catch((err) => {
@@ -331,6 +330,8 @@ const {
         upTo: currentDataset.firstDatasetInPreviousScan,
         downTo: currentDataset.firstDatasetInNextScan,
         currentAutoEvaluation: currentDataset.auto_evaluation,
+        autoWindow: experiment.autoWindow,
+        autoLevel: experiment.autoLevel,
       };
     },
     currentDataset(state) {
@@ -436,6 +437,12 @@ const {
       // Necessary for reactivity
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
+    },
+    setExperimentAutoWindow(state, { experimentId, autoWindow }) {
+      state.experiments[experimentId].autoWindow = autoWindow;
+    },
+    setExperimentAutoLevel(state, { experimentId, autoLevel }) {
+      state.experiments[experimentId].autoLevel = autoLevel;
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
@@ -668,20 +675,18 @@ const {
       // If necessary, queue loading scans of new experiment
       checkLoadExperiment(oldExperiment, newExperiment);
     },
-    async setLock({state, commit }, {experimentId, lock}) {
-      try {
-        if (lock) {
-          commit(
-            'updateExperiment',
-            await djangoRest.lockExperiment(experimentId)
-          );
-        } else {
-          commit(
-            'updateExperiment',
-            await djangoRest.unlockExperiment(experimentId)
-          );
-        }
-      } catch (ex) {}
+    async setLock({ commit }, { experimentId, lock }) {
+      if (lock) {
+        commit(
+          'updateExperiment',
+          await djangoRest.lockExperiment(experimentId),
+        );
+      } else {
+        commit(
+          'updateExperiment',
+          await djangoRest.unlockExperiment(experimentId),
+        );
+      }
     },
     startActionTimer({ state, commit }) {
       state.actionTimer = setTimeout(() => {
