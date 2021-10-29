@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Experiment, Image, Project, Scan, ScanDecision, Site
+from miqa.core.models import Experiment, Image, Project, Scan, ScanDecision
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -12,16 +12,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.Faker('safe_email')
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
-
-
-class SiteFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Site
-
-    id = factory.Faker('uuid4')
-    name = factory.Faker('word')
-
-    creator = factory.SubFactory(UserFactory)
 
 
 class ProjectFactory(factory.django.DjangoModelFactory):
