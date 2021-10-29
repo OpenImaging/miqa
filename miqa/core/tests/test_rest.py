@@ -99,7 +99,7 @@ def test_experiment_lock_acquire_requires_auth(api_client, experiment):
 def test_experiment_lock_acquire(api_client, experiment, user):
     api_client.force_authenticate(user=user)
     resp = api_client.post(f'/api/v1/experiments/{experiment.id}/lock')
-    assert resp.status_code == 204
+    assert resp.status_code == 200
     experiment.refresh_from_db()
     assert experiment.lock_owner == user
 
@@ -109,7 +109,7 @@ def test_experiment_lock_reacquire_ok(api_client, experiment_factory, user):
     experiment = experiment_factory(lock_owner=user)
     api_client.force_authenticate(user=user)
     resp = api_client.post(f'/api/v1/experiments/{experiment.id}/lock')
-    assert resp.status_code == 204
+    assert resp.status_code == 200
 
 
 @pytest.mark.django_db
@@ -128,7 +128,7 @@ def test_experiment_lock_release(api_client, experiment_factory, user):
     experiment = experiment_factory(lock_owner=user)
     api_client.force_authenticate(user=user)
     resp = api_client.delete(f'/api/v1/experiments/{experiment.id}/lock')
-    assert resp.status_code == 201
+    assert resp.status_code == 200
 
     experiment.refresh_from_db()
     assert experiment.lock_owner is None
