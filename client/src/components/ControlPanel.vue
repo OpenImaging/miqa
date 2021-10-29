@@ -1,6 +1,6 @@
 <script>
 import {
-  mapState, mapGetters, mapMutations,
+  mapState, mapGetters, mapMutations, mapActions,
 } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
@@ -22,7 +22,6 @@ export default {
     level: 150,
     newExperimentNote: '',
     newComment: '',
-    lockOwner: null,
     warnDecision: false,
   }),
   computed: {
@@ -46,6 +45,10 @@ export default {
     },
     experimentIsEditable() {
       return this.lockOwner && this.lockOwner.id === this.user.id;
+    },
+    lockOwner() {
+      console.log(this.currentViewData);
+      return this.currentViewData.lockOwner;
     },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
@@ -100,27 +103,17 @@ export default {
     });
   },
   beforeDestroy() {
-    this.setLock(this.experimentId, false);
+    this.setLock({ experimentId: this.experimentId, lock: false });
   },
   methods: {
+    ...mapActions([
+      'setLock',
+    ]),
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
-        await this.setLock(oldExp, false);
+        await this.setLock({ experimentId: oldExp, lock: false });
       }
-      await this.setLock(newExp, true);
-    },
-    async setLock(experimentId, lock) {
-      try {
-        if (lock) {
-          await djangoRest.lockExperiment(experimentId);
-          this.lockOwner = this.user;
-        } else {
-          await djangoRest.unlockExperiment(experimentId);
-          this.lockOwner = null;
-        }
-      } catch (ex) {
-        this.lockOwner = this.currentViewData.lockOwner;
-      }
+      await this.setLock({ experimentId: newExp, lock: true });
     },
     updateWinLev() {
       this.representation.setWindowWidth(this.window);

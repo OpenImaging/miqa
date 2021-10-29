@@ -320,8 +320,7 @@ const {
         experimentId: experiment.id,
         experimentName: experiment.name,
         experimentNote: experiment.note,
-        locked: experiment.lockOwner != null,
-        lockOwner: experiment.lockOwner,
+        lockOwner: experiment.lock_owner,
         scanId: scan.id,
         scanName: scan.name,
         scanDecisions: scan.decisions,
@@ -668,6 +667,21 @@ const {
 
       // If necessary, queue loading scans of new experiment
       checkLoadExperiment(oldExperiment, newExperiment);
+    },
+    async setLock({state, commit }, {experimentId, lock}) {
+      try {
+        if (lock) {
+          commit(
+            'updateExperiment',
+            await djangoRest.lockExperiment(experimentId)
+          );
+        } else {
+          commit(
+            'updateExperiment',
+            await djangoRest.unlockExperiment(experimentId)
+          );
+        }
+      } catch (ex) {}
     },
     startActionTimer({ state, commit }) {
       state.actionTimer = setTimeout(() => {
