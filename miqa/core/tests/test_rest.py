@@ -128,7 +128,7 @@ def test_experiment_lock_release(api_client, experiment_factory, user):
     experiment = experiment_factory(lock_owner=user)
     api_client.force_authenticate(user=user)
     resp = api_client.delete(f'/api/v1/experiments/{experiment.id}/lock')
-    assert resp.status_code == 204
+    assert resp.status_code == 201
 
     experiment.refresh_from_db()
     assert experiment.lock_owner is None
