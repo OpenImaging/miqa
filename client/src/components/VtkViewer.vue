@@ -23,7 +23,7 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingDataset', 'xSlice', 'ySlice', 'zSlice']),
+    ...mapState(['proxyManager', 'loadingDataset', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentDataset', 'currentScan']),
     representation() {
       return (
@@ -67,7 +67,16 @@ export default {
     slice(value) {
       this.representation.setSlice(value);
       if (this.setCurrentVtkSlices) {
+        const ijkMapping = {
+          x: 'i',
+          y: 'j',
+          z: 'k',
+        };
         this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
+        this.setCurrentVtkIndexSlices({
+          indexAxis: ijkMapping[this.name],
+          value: this.representation.getSliceIndex(),
+        });
       }
     },
     xSlice() {
@@ -101,7 +110,7 @@ export default {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices']),
+    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -169,30 +178,108 @@ export default {
       if (!value) return '';
       return Math.round(value * 100) / 100;
     },
+    convertWorldSlicesToLines() {
+      const imageData = this.representation.getInputDataSet();
+      const [iMax, jMax, kMax] = imageData.getDimensions();
+      if (this.name === 'x') {
+        return [
+          [
+            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
+            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
+          ],
+        ];
+      } if (this.name === 'y') {
+        return [
+          [
+            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
+            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
+          ],
+        ];
+      }
+      if (this.name === 'z') {
+        return [
+          [
+            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
+            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
+            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
+          ],
+        ];
+      }
+      return null;
+    },
+    convertWorldLinesToDisplayLines(worldLines) {
+      const renderer = this.view.getRenderer();
+      const renderWindow = this.view.getOpenglRenderWindow();
+      const mappedLine0 = worldLines[0].map(
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer).slice(0, 2),
+      );
+      const mappedLine1 = worldLines[1].map(
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer).slice(0, 2),
+      );
+      return [mappedLine0, mappedLine1];
+    },
     updateCrosshairs() {
       const myCanvas = document.getElementById(`crosshairs-${this.name}`);
       if (myCanvas.getContext) {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
-        const originX = myCanvas.width / 2;
-        const originY = myCanvas.height / 2;
-        const crosshairHeight = myCanvas.height - 30;
-        const crosshairWidth = myCanvas.width - 80;
+
+        const worldLines = this.convertWorldSlicesToLines();
         if (this.name === 'x') {
-          ctx.fillStyle = '#4caf50';
-          ctx.fillRect(originX + this.ySlice, originY - crosshairHeight / 2, 1, crosshairHeight);
-          ctx.fillStyle = '#b71c1c';
-          ctx.fillRect(originX - crosshairWidth / 2, originY - this.zSlice, crosshairWidth, 1);
-        } else if (this.name === 'y') {
-          ctx.fillStyle = '#fdd835';
-          ctx.fillRect(originX + this.xSlice, originY - crosshairHeight / 2, 1, crosshairHeight);
-          ctx.fillStyle = '#b71c1c';
-          ctx.fillRect(originX - crosshairWidth / 2, originY - this.zSlice, crosshairWidth, 1);
-        } else if (this.name === 'z') {
-          ctx.fillStyle = '#fdd835';
-          ctx.fillRect(originX + this.xSlice, originY - crosshairHeight / 2, 1, crosshairHeight);
-          ctx.fillStyle = '#4caf50';
-          ctx.fillRect(originX - crosshairWidth / 2, originY + this.ySlice, crosshairWidth, 1);
+          const [displayYLine, displayZLine] = this.convertWorldLinesToDisplayLines(worldLines);
+
+          ctx.strokeStyle = '#b71c1c';
+          ctx.beginPath();
+          ctx.moveTo(...displayYLine[0]);
+          ctx.lineTo(...displayYLine[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#4caf50';
+          ctx.beginPath();
+          ctx.moveTo(...displayZLine[0]);
+          ctx.lineTo(...displayZLine[1]);
+          ctx.stroke();
+        }
+        if (this.name === 'y') {
+          const [displayXLine, displayZLine] = this.convertWorldLinesToDisplayLines(worldLines);
+
+          ctx.strokeStyle = '#b71c1c';
+          ctx.beginPath();
+          ctx.moveTo(...displayXLine[0]);
+          ctx.lineTo(...displayXLine[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#fdd835';
+          ctx.beginPath();
+          ctx.moveTo(...displayZLine[0]);
+          ctx.lineTo(...displayZLine[1]);
+          ctx.stroke();
+        }
+        if (this.name === 'z') {
+          const [displayXLine, displayYLine] = this.convertWorldLinesToDisplayLines(worldLines);
+
+          ctx.strokeStyle = '#4caf50';
+          ctx.beginPath();
+          ctx.moveTo(...displayXLine[0]);
+          ctx.lineTo(...displayXLine[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#fdd835';
+          ctx.beginPath();
+          ctx.moveTo(...displayYLine[0]);
+          ctx.lineTo(...displayYLine[1]);
+          ctx.stroke();
         }
       }
     },
@@ -281,7 +368,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: black;
+  background: gray;
   z-index: 0;
 
   display: flex;
