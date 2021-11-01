@@ -60,27 +60,15 @@ export default defineComponent({
         v-if="currentProject"
         class="flex-grow-1 ma-3"
       >
-        <v-card-title>Experiments</v-card-title>
-        <ExperimentsView />
+        <v-card-title>Project: {{ currentProject.name }}</v-card-title>
+        <v-layout class="pa-5">
+          <v-flex>
+            <JSONConfig />
+          </v-flex>
+        </v-layout>
         <v-divider />
-        <v-container grid-list-md>
-          <div class="subheading">
-            Import/Export files
-          </div>
-          <v-layout>
-            <v-flex>
-              <JSONConfig />
-            </v-flex>
-          </v-layout>
-          <div class="subheading mt-4">
-            Sites
-          </div>
-          <v-layout justify-center>
-            <v-flex>
-              <SiteConfig />
-            </v-flex>
-          </v-layout>
-        </v-container>
+        <v-card-subtitle>Experiments</v-card-subtitle>
+        <ExperimentsView />
       </v-card>
       <v-card
         v-else
