@@ -67,7 +67,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 class ProjectRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'name', 'experiments']
+        fields = ['id', 'name', 'experiments', 'import_path', 'export_path']
         ref_name = 'project'
 
     experiments = ExperimentSerializer(many=True)
