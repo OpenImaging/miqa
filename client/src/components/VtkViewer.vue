@@ -105,6 +105,24 @@ export default {
     this.initializeView();
     this.initializeSlice();
     this.updateCrosshairs();
+    this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
+      this.updateCrosshairs();
+    });
+    this.resizeObserver = new window.ResizeObserver((entries) => {
+      if (entries.length === 1) {
+        const width = this.$refs.viewer.clientWidth;
+        const height = this.$refs.viewer.clientHeight;
+        this.$refs.crosshairsCanvas.width = width;
+        this.$refs.crosshairsCanvas.height = height;
+        this.$refs.crosshairsCanvas.style.width = `${width}px`;
+        this.$refs.crosshairsCanvas.style.height = `${height}px`;
+      }
+    });
+    this.resizeObserver.observe(this.$refs.viewer);
+  },
+  beforeUnmount() {
+    this.renderSubscription.unsubscribe();
+    this.resizeObserver.unobserve(this.$refs.viewer);
   },
   beforeDestroy() {
     this.cleanup();
@@ -222,10 +240,12 @@ export default {
       const renderer = this.view.getRenderer();
       const renderWindow = this.view.getOpenglRenderWindow();
       const mappedLine0 = worldLines[0].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer).slice(0, 2),
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
+          .map((c) => c / devicePixelRatio).slice(0, 2),
       );
       const mappedLine1 = worldLines[1].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer).slice(0, 2),
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
+          .map((c) => c / devicePixelRatio).slice(0, 2),
       );
       return [mappedLine0, mappedLine1];
     },
@@ -236,49 +256,48 @@ export default {
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
         const worldLines = this.convertWorldSlicesToLines();
+        const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
+        displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
+        displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
+        displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
+        displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
         if (this.name === 'x') {
-          const [displayYLine, displayZLine] = this.convertWorldLinesToDisplayLines(worldLines);
-
           ctx.strokeStyle = '#b71c1c';
           ctx.beginPath();
-          ctx.moveTo(...displayYLine[0]);
-          ctx.lineTo(...displayYLine[1]);
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
           ctx.stroke();
 
           ctx.strokeStyle = '#4caf50';
           ctx.beginPath();
-          ctx.moveTo(...displayZLine[0]);
-          ctx.lineTo(...displayZLine[1]);
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
           ctx.stroke();
         }
         if (this.name === 'y') {
-          const [displayXLine, displayZLine] = this.convertWorldLinesToDisplayLines(worldLines);
-
           ctx.strokeStyle = '#b71c1c';
           ctx.beginPath();
-          ctx.moveTo(...displayXLine[0]);
-          ctx.lineTo(...displayXLine[1]);
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
           ctx.stroke();
 
           ctx.strokeStyle = '#fdd835';
           ctx.beginPath();
-          ctx.moveTo(...displayZLine[0]);
-          ctx.lineTo(...displayZLine[1]);
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
           ctx.stroke();
         }
         if (this.name === 'z') {
-          const [displayXLine, displayYLine] = this.convertWorldLinesToDisplayLines(worldLines);
-
           ctx.strokeStyle = '#4caf50';
           ctx.beginPath();
-          ctx.moveTo(...displayXLine[0]);
-          ctx.lineTo(...displayXLine[1]);
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
           ctx.stroke();
 
           ctx.strokeStyle = '#fdd835';
           ctx.beginPath();
-          ctx.moveTo(...displayYLine[0]);
-          ctx.lineTo(...displayYLine[1]);
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
           ctx.stroke();
         }
       }
@@ -317,14 +336,18 @@ export default {
       </v-layout>
     </div>
     <div
-      ref="viewer"
-      :style="{ visibility: resized ? 'unset' : 'hidden' }"
       class="viewer"
-    />
-    <canvas
-      :id="'crosshairs-'+name"
-      class="crosshairs"
-    />
+    >
+      <div
+        ref="viewer"
+        :style="{ visibility: resized ? 'unset' : 'hidden' }"
+      />
+      <canvas
+        ref="crosshairsCanvas"
+        :id="'crosshairs-'+name"
+        class="crosshairs"
+      />
+    </div>
     <v-toolbar
       class="toolbar"
       dark
@@ -450,15 +473,24 @@ export default {
     flex: 1 1 0px;
     position: relative;
     overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .viewer > div {
+    flex: 1 1 0px;
+    position: relative;
+    overflow-y: hidden;
   }
 }
 
 .crosshairs {
   z-index: 3;
   position: absolute;
-  top: 30px;
-  width: 100%;
-  height: calc(100% - 60px);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 </style>
 
