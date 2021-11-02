@@ -419,11 +419,11 @@ const {
       state.loadingExperiment = false;
     },
     setCurrentVtkSlices(state, { axis, value }) {
-      state[axis+'Slice'] = value;
+      state[`${axis}Slice`] = value;
     },
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
-      state[indexAxis+'IndexSlice'] = value;
-    }
+      state[`${indexAxis}IndexSlice`] = value;
+    },
   },
   actions: {
     reset({ state, commit }) {
