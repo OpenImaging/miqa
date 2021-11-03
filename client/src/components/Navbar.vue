@@ -7,11 +7,13 @@ import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
 import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import EmailDialog from '@/components/EmailDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
+import UserAvatar from '@/components/UserAvatar.vue';
 
 export default defineComponent({
   name: 'Navbar',
   inject: ['user'],
   components: {
+    UserAvatar,
     UserButton,
     ScreenshotDialog,
     EmailDialog,
@@ -119,6 +121,7 @@ export default defineComponent({
       <TimeoutDialog />
     </div>
 
+    <UserAvatar :target-user="user" />
     <UserButton
       @user="logoutUser()"
       @login="djangoRest.login()"
