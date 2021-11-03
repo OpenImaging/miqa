@@ -58,7 +58,7 @@ export default {
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
-      const rating = _.last(decisions).decision.toLowerCase();
+      const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision.toLowerCase();
       switch (rating) {
         case 'good':
           return {
@@ -102,7 +102,7 @@ export default {
             <v-card flat>
               {{ experiment.name }}
               <UserAvatar
-                :target-user="experiment.lockOwner"
+                :target-user="experiment.lock_owner"
                 as-editor
               />
             </v-card>

@@ -1,6 +1,6 @@
 <script>
 import {
-  mapState, mapGetters, mapMutations,
+  mapState, mapGetters, mapMutations, mapActions,
 } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
@@ -22,13 +22,12 @@ export default {
     level: 150,
     newExperimentNote: '',
     newComment: '',
-    lockOwner: null,
     warnDecision: false,
   }),
   computed: {
     ...mapState([
       'proxyManager',
-      'projectCachedPercentage',
+      'scanCachedPercentage',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -40,12 +39,17 @@ export default {
     ...mapMutations([
       'updateExperiment',
       'addScanDecision',
+      'setExperimentAutoWindow',
+      'setExperimentAutoLevel',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
     },
     experimentIsEditable() {
       return this.lockOwner && this.lockOwner.id === this.user.id;
+    },
+    lockOwner() {
+      return this.currentViewData.lockOwner;
     },
     representation() {
       return this.currentDataset && this.proxyManager.getRepresentations()[0];
@@ -56,21 +60,33 @@ export default {
     winMax() {
       return Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max);
     },
+    autoWindow() {
+      return this.currentViewData.autoWindow
+        || Math.ceil((this.winMax * 0.3) / 10) * 10;
+    },
     levMin() {
       return this.representation.getPropertyDomainByName('windowLevel').min;
     },
     levMax() {
       return Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max);
     },
+    autoLevel() {
+      return this.currentViewData.autoLevel
+        || Math.ceil((this.levMax * 0.2) / 10) * 10;
+    },
   },
   watch: {
     window(value) {
-      if (Number.isInteger(value)) {
+      if (Number.isInteger(value) && value !== this.autoWindow) {
+        const { setExperimentAutoWindow } = store.commit;
+        setExperimentAutoWindow({ experimentId: this.experimentId, autoWindow: value });
         this.representation.setWindowWidth(value);
       }
     },
     level(value) {
-      if (Number.isInteger(value)) {
+      if (Number.isInteger(value) && value !== this.autoLevel) {
+        const { setExperimentAutoLevel } = store.commit;
+        setExperimentAutoLevel({ experimentId: this.experimentId, autoLevel: value });
         this.representation.setWindowLevel(value);
       }
     },
@@ -100,33 +116,37 @@ export default {
     });
   },
   beforeDestroy() {
-    this.setLock(this.experimentId, false);
+    this.setLock({ experimentId: this.experimentId, lock: false });
   },
   methods: {
+    ...mapActions([
+      'setLock',
+    ]),
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
-        await this.setLock(oldExp, false);
-      }
-      await this.setLock(newExp, true);
-    },
-    async setLock(experimentId, lock) {
-      try {
-        if (lock) {
-          await djangoRest.lockExperiment(experimentId);
-          this.lockOwner = this.user;
-        } else {
-          await djangoRest.unlockExperiment(experimentId);
-          this.lockOwner = null;
+        try {
+          await this.setLock({ experimentId: oldExp, lock: false });
+        } catch (err) {
+          console.log(err);
+          this.$snackbar({
+            text: 'Failed to release edit access on Experiment.',
+            timeout: 6000,
+          });
         }
-      } catch (ex) {
-        this.lockOwner = this.currentViewData.lockOwner;
+      }
+      try {
+        await this.setLock({ experimentId: newExp, lock: true });
+      } catch (err) {
+        console.log(err);
+        this.$snackbar({
+          text: 'Failed to claim edit access on Experiment.',
+          timeout: 6000,
+        });
       }
     },
     updateWinLev() {
-      this.representation.setWindowWidth(this.window);
-      this.representation.setWindowLevel(this.level);
-      this.window = Math.ceil((this.winMax * 0.3) / 10) * 10;
-      this.level = Math.ceil((this.levMax * 0.2) / 10) * 10;
+      this.window = this.autoWindow;
+      this.level = this.autoLevel;
     },
     updateImage() {
       if (this.direction === 'back') {
@@ -157,7 +177,8 @@ export default {
     async handleExperimentNoteSave() {
       if (this.newExperimentNote.length > 0) {
         try {
-          await djangoRest.setExperimentNote(
+          const { updateExperiment } = store.commit;
+          const newExpData = await djangoRest.setExperimentNote(
             this.currentViewData.experimentId, this.newExperimentNote,
           );
           this.$snackbar({
@@ -165,7 +186,7 @@ export default {
             timeout: 6000,
           });
           this.newExperimentNote = '';
-          this.updateExperiment();
+          updateExperiment(newExpData);
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
@@ -496,9 +517,9 @@ export default {
                         style="text-align: center; height: 70px"
                       >
                         <transition name="bounce">
-                          <div v-if="projectCachedPercentage < 1">
+                          <div v-if="scanCachedPercentage < 1">
                             <v-progress-circular
-                              :value="projectCachedPercentage * 100"
+                              :value="scanCachedPercentage * 100"
                               color="blue"
                             />
                             <div> Loading... </div>
