@@ -391,7 +391,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: gray;
+  background: black;
   z-index: 0;
 
   display: flex;
