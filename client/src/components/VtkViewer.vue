@@ -23,11 +23,11 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingDataset']),
+    ...mapState(['proxyManager', 'loadingDataset', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentDataset', 'currentScan']),
     representation() {
       return (
-        // force add dependancy on currentDataset
+        // force add dependency on currentDataset
         this.currentDataset
         && this.proxyManager.getRepresentation(null, this.view)
       );
@@ -65,9 +65,28 @@ export default {
   },
   watch: {
     slice(value) {
-      if (value !== this.representation.getSlice()) {
-        this.representation.setSlice(value);
+      this.representation.setSlice(value);
+      if (this.setCurrentVtkSlices) {
+        const ijkMapping = {
+          x: 'i',
+          y: 'j',
+          z: 'k',
+        };
+        this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
+        this.setCurrentVtkIndexSlices({
+          indexAxis: ijkMapping[this.name],
+          value: this.representation.getSliceIndex(),
+        });
       }
+    },
+    xSlice() {
+      this.updateCrosshairs();
+    },
+    ySlice() {
+      this.updateCrosshairs();
+    },
+    zSlice() {
+      this.updateCrosshairs();
     },
     view(view, oldView) {
       this.cleanup();
@@ -85,12 +104,31 @@ export default {
   mounted() {
     this.initializeView();
     this.initializeSlice();
+    this.updateCrosshairs();
+    this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
+      this.updateCrosshairs();
+    });
+    this.resizeObserver = new window.ResizeObserver((entries) => {
+      if (entries.length === 1) {
+        const width = this.$refs.viewer.clientWidth;
+        const height = this.$refs.viewer.clientHeight;
+        this.$refs.crosshairsCanvas.width = width;
+        this.$refs.crosshairsCanvas.height = height;
+        this.$refs.crosshairsCanvas.style.width = `${width}px`;
+        this.$refs.crosshairsCanvas.style.height = `${height}px`;
+      }
+    });
+    this.resizeObserver.observe(this.$refs.viewer);
+  },
+  beforeUnmount() {
+    this.renderSubscription.unsubscribe();
+    this.resizeObserver.unobserve(this.$refs.viewer);
   },
   beforeDestroy() {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot']),
+    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -116,18 +154,16 @@ export default {
       }
     },
     increaseSlice() {
-      const slice = Math.min(
-        (this.slice += this.sliceDomain.step),
+      this.slice = Math.min(
+        (this.slice + this.sliceDomain.step),
         this.sliceDomain.max,
       );
-      this.slice = slice;
     },
     decreaseSlice() {
-      const slice = Math.max(
-        (this.slice -= this.sliceDomain.step),
+      this.slice = Math.max(
+        (this.slice - this.sliceDomain.step),
         this.sliceDomain.min,
       );
-      this.slice = slice;
     },
     async takeScreenshot() {
       const view = getView(this.proxyManager, `ScreenshotView2D_${this.name}:${this.name}`, this.screenshotContainer);
@@ -159,6 +195,112 @@ export default {
     roundSlice(value) {
       if (!value) return '';
       return Math.round(value * 100) / 100;
+    },
+    convertWorldSlicesToLines() {
+      const imageData = this.representation.getInputDataSet();
+      const [iMax, jMax, kMax] = imageData.getDimensions();
+      if (this.name === 'x') {
+        return [
+          [
+            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
+            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
+          ],
+        ];
+      } if (this.name === 'y') {
+        return [
+          [
+            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
+            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
+            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
+          ],
+        ];
+      }
+      if (this.name === 'z') {
+        return [
+          [
+            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
+            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
+          ],
+          [
+            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
+            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
+          ],
+        ];
+      }
+      return null;
+    },
+    convertWorldLinesToDisplayLines(worldLines) {
+      const renderer = this.view.getRenderer();
+      const renderWindow = this.view.getOpenglRenderWindow();
+      const mappedLine0 = worldLines[0].map(
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
+          .map((c) => c / devicePixelRatio).slice(0, 2),
+      );
+      const mappedLine1 = worldLines[1].map(
+        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
+          .map((c) => c / devicePixelRatio).slice(0, 2),
+      );
+      return [mappedLine0, mappedLine1];
+    },
+    updateCrosshairs() {
+      const myCanvas = document.getElementById(`crosshairs-${this.name}`);
+      if (myCanvas.getContext) {
+        const ctx = myCanvas.getContext('2d');
+        ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+
+        const worldLines = this.convertWorldSlicesToLines();
+        const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
+        displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
+        displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
+        displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
+        displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
+        if (this.name === 'x') {
+          ctx.strokeStyle = '#b71c1c';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#4caf50';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
+          ctx.stroke();
+        }
+        if (this.name === 'y') {
+          ctx.strokeStyle = '#b71c1c';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#fdd835';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
+          ctx.stroke();
+        }
+        if (this.name === 'z') {
+          ctx.strokeStyle = '#4caf50';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine1[0]);
+          ctx.lineTo(...displayLine1[1]);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#fdd835';
+          ctx.beginPath();
+          ctx.moveTo(...displayLine2[0]);
+          ctx.lineTo(...displayLine2[1]);
+          ctx.stroke();
+        }
+      }
     },
   },
 };
@@ -194,10 +336,18 @@ export default {
       </v-layout>
     </div>
     <div
-      ref="viewer"
-      :style="{ visibility: resized ? 'unset' : 'hidden' }"
       class="viewer"
-    />
+    >
+      <div
+        ref="viewer"
+        :style="{ visibility: resized ? 'unset' : 'hidden' }"
+      />
+      <canvas
+        ref="crosshairsCanvas"
+        :id="'crosshairs-'+name"
+        class="crosshairs"
+      />
+    </div>
     <v-toolbar
       class="toolbar"
       dark
@@ -241,7 +391,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(#3a3a3a, #1d1d1d);
+  background: black;
   z-index: 0;
 
   display: flex;
@@ -323,7 +473,24 @@ export default {
     flex: 1 1 0px;
     position: relative;
     overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
   }
+
+  .viewer > div {
+    flex: 1 1 0px;
+    position: relative;
+    overflow-y: hidden;
+  }
+}
+
+.crosshairs {
+  z-index: 3;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 </style>
 
