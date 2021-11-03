@@ -41,7 +41,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.action == 'retrieve':
             return Project.objects.prefetch_related(
-                'experiments__scans__images', 'experiments__scans__decisions'
+                'experiments__scans__frames', 'experiments__scans__decisions'
             )
         else:
             return Project.objects.all()

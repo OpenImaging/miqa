@@ -93,8 +93,8 @@ const djangoClient = {
     const { data } = await apiClient.post('/scan-decisions', { scan: scanId, decision, note: comment });
     return data;
   },
-  async images(scanId: string) {
-    const { data } = await apiClient.get('/images', {
+  async frames(scanId: string) {
+    const { data } = await apiClient.get('/frames', {
       params: { scan: scanId },
     });
     const { results } = data;

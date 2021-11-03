@@ -83,8 +83,8 @@ def test_scan_decisions_list(authenticated_api_client, scan_decision):
 
 
 @pytest.mark.django_db
-def test_images_list(authenticated_api_client, image):
-    resp = authenticated_api_client.get('/api/v1/images')
+def test_frames_list(authenticated_api_client, frame):
+    resp = authenticated_api_client.get('/api/v1/frames')
     assert resp.status_code == 200
     assert resp.data['count'] == 1
 
