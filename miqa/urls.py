@@ -8,8 +8,8 @@ from rest_framework import permissions, routers
 from miqa.core.rest import (
     EmailView,
     ExperimentViewSet,
+    FrameViewSet,
     HomePageView,
-    ImageViewSet,
     LogoutView,
     ProjectViewSet,
     ScanDecisionViewSet,
@@ -21,7 +21,7 @@ router = routers.SimpleRouter(trailing_slash=False)
 router.register('projects', ProjectViewSet, basename='project')
 router.register('experiments', ExperimentViewSet)
 router.register('scans', ScanViewSet)
-router.register('images', ImageViewSet)
+router.register('frames', FrameViewSet)
 router.register('users', UserViewSet)
 router.register('scan-decisions', ScanDecisionViewSet)
 

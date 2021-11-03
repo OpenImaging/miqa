@@ -70,7 +70,7 @@ function getArrayName(filename) {
 function getData(id, file, webWorker = null) {
   return new BluebirdPromise((resolve, reject) => {
     if (datasetCache.has(id)) {
-      resolve({ imageData: datasetCache.get(id), webWorker });
+      resolve({ frameData: datasetCache.get(id), webWorker });
     } else {
       const fileName = file.name;
       const io = new FileReader();
@@ -78,16 +78,17 @@ function getData(id, file, webWorker = null) {
       io.onload = function onLoad() {
         readImageArrayBuffer(webWorker, io.result, fileName)
           .then(({ webWorker, image }) => { // eslint-disable-line no-shadow
-            const imageData = convertItkToVtkImage(image, {
+            const frameData = convertItkToVtkImage(image, {
               scalarArrayName: getArrayName(fileName),
             });
-            const dataRange = imageData
+            const dataRange = frameData
               .getPointData()
               .getArray(0)
               .getRange();
-            datasetCache.set(id, { imageData });
+            datasetCache.set(id, { frameData });
+            // eslint-disable-next-line no-use-before-define
             expandScanRange(id, dataRange);
-            resolve({ imageData, webWorker });
+            resolve({ frameData, webWorker });
           })
           .catch((error) => {
             console.log('Problem reading image array buffer');
@@ -103,24 +104,24 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(imageId) {
-  if (fileCache.has(imageId)) {
-    return { imageId, fileP: fileCache.get(imageId) };
+function loadFile(frameId) {
+  if (fileCache.has(frameId)) {
+    return { frameId, fileP: fileCache.get(frameId) };
   }
   const p = ReaderFactory.downloadDataset(
     apiClient,
     'nifti.nii.gz',
-    `/images/${imageId}/download`,
+    `/frames/${frameId}/download`,
   );
-  fileCache.set(imageId, p);
-  return { imageId, fileP: p };
+  fileCache.set(frameId, p);
+  return { frameId, fileP: p };
 }
 
-function loadFileAndGetData(imageId) {
-  return loadFile(imageId).fileP.then((file) => getData(imageId, file, savedWorker)
-    .then(({ webWorker, imageData }) => {
+function loadFileAndGetData(frameId) {
+  return loadFile(frameId).fileP.then((file) => getData(frameId, file, savedWorker)
+    .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
-      return BluebirdPromise.resolve({ imageData });
+      return BluebirdPromise.resolve({ frameData });
     })
     .catch((error) => {
       const msg = 'loadFileAndGetData caught error getting data';
@@ -138,24 +139,24 @@ function loadFileAndGetData(imageId) {
 
 function poolFunction(webWorker, taskInfo) {
   return new BluebirdPromise((resolve, reject) => {
-    const { imageId } = taskInfo;
+    const { frameId } = taskInfo;
 
     let filePromise = null;
 
-    if (fileCache.has(imageId)) {
-      filePromise = fileCache.get(imageId);
+    if (fileCache.has(frameId)) {
+      filePromise = fileCache.get(frameId);
     } else {
       filePromise = ReaderFactory.downloadDataset(
         apiClient,
         'nifti.nii.gz',
-        `/images/${imageId}/download`,
+        `/frames/${frameId}/download`,
       );
-      fileCache.set(imageId, filePromise);
+      fileCache.set(frameId, filePromise);
     }
 
     filePromise
       .then((file) => {
-        resolve(getData(imageId, file, webWorker));
+        resolve(getData(frameId, file, webWorker));
       })
       .catch((err) => {
         console.log('poolFunction: fileP error of some kind');
@@ -227,7 +228,7 @@ function checkLoadExperiment(oldValue, newValue) {
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        imageId: datasetId,
+        frameId: datasetId,
       });
     });
   });
@@ -248,11 +249,11 @@ function getNextDataset(experiments, i, j) {
     // get first scan in next experiment
     const nextExperiment = experiments[i + 1];
     const nextScan = nextExperiment.scans[0];
-    return nextScan.images[0];
+    return nextScan.frames[0];
   }
   // get next scan in current experiment
   const nextScan = scans[j + 1];
-  return nextScan.images[0];
+  return nextScan.frames[0];
 }
 
 function expandScanRange(datasetId, dataRange) {
@@ -387,13 +388,13 @@ const {
       state.scanDatasets = {};
       state.datasets = {};
     },
-    setCurrentImageId(state, imageId) {
-      state.currentDatasetId = imageId;
+    setCurrentFrameId(state, frameId) {
+      state.currentDatasetId = frameId;
     },
-    setImage(state, { imageId, image }) {
+    setFrame(state, { frameId, frame }) {
       // Replace with a new object to trigger a Vuex update
       state.datasets = { ...state.datasets };
-      state.datasets[imageId] = image;
+      state.datasets[frameId] = frame;
     },
     setScan(state, { scanId, scan }) {
       // Replace with a new object to trigger a Vuex update
@@ -520,10 +521,9 @@ const {
           const scan = scans[j];
           commit('addExperimentScans', { eid: experiment.id, sid: scan.id });
 
-          // Web datasets == Django images
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
           // eslint-disable-next-line no-await-in-loop
-          const { images } = scan;
+          const { frames } = scan;
 
           commit('setScan', {
             scanId: scan.id,
@@ -532,7 +532,7 @@ const {
               name: scan.name,
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-              numDatasets: images.length,
+              numDatasets: frames.length,
               // The experiment.scans.note serialization does not contain note metadata.
               // Just set notes to [] and let reloadScan set the complete values later.
               notes: [],
@@ -542,26 +542,26 @@ const {
 
           const nextScan = getNextDataset(experiments, i, j);
 
-          for (let k = 0; k < images.length; k += 1) {
-            const image = images[k];
-            commit('addScanDatasets', { sid: scan.id, id: image.id });
-            commit('setImage', {
-              imageId: image.id,
-              image: {
-                ...image,
+          for (let k = 0; k < frames.length; k += 1) {
+            const frame = frames[k];
+            commit('addScanDatasets', { sid: scan.id, id: frame.id });
+            commit('setFrame', {
+              frameId: frame.id,
+              frame: {
+                ...frame,
                 scan: scan.id,
                 experiment: experiment.id,
                 index: k,
-                previousDataset: k > 0 ? images[k - 1].id : null,
-                nextDataset: k < images.length - 1 ? images[k + 1].id : null,
+                previousDataset: k > 0 ? frames[k - 1].id : null,
+                nextDataset: k < frames.length - 1 ? frames[k + 1].id : null,
                 firstDatasetInPreviousScan: firstInPrev,
                 firstDatasetInNextScan: nextScan ? nextScan.id : null,
               },
             });
           }
 
-          if (images.length > 0) {
-            firstInPrev = images[0].id;
+          if (frames.length > 0) {
+            firstInPrev = frames[0].id;
           } else {
             console.error(
               `${experiment.name}/${scan.name} has no datasets`,
@@ -571,17 +571,17 @@ const {
       }
     },
     async reloadScan({ commit, getters }) {
-      const currentImage = getters.currentDataset;
-      // No need to reload if the image doesn't exist or doesn't exist on the server
-      if (!currentImage || currentImage.local) {
+      const currentFrame = getters.currentDataset;
+      // No need to reload if the frame doesn't exist or doesn't exist on the server
+      if (!currentFrame || currentFrame.local) {
         return;
       }
-      const scanId = currentImage.scan;
+      const scanId = currentFrame.scan;
       if (!scanId) {
         return;
       }
       const scan = await djangoRest.scan(scanId);
-      const images = await djangoRest.images(scanId);
+      const frames = await djangoRest.frames(scanId);
       commit('setScan', {
         scanId: scan.id,
         scan: {
@@ -589,15 +589,15 @@ const {
           name: scan.name,
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-          numDatasets: images.length,
+          numDatasets: frames.length,
           notes: scan.notes,
           decisions: scan.decisions,
         },
       });
     },
-    async setCurrentImage({ commit, dispatch }, imageId) {
-      commit('setCurrentImageId', imageId);
-      if (imageId) {
+    async setCurrentFrame({ commit, dispatch }, frameId) {
+      commit('setCurrentFrameId', frameId);
+      if (frameId) {
         dispatch('reloadScan');
       }
     },
@@ -634,9 +634,9 @@ const {
       let newProxyManager = false;
       if (oldScan !== newScan && state.proxyManager) {
         // If we don't "shrinkProxyManager()" and reinitialize it between
-        // scans, then we can end up with no image
+        // scans, then we can end up with no frame
         // slices displayed, even though we have the data and attempted
-        // to render it.  This may be due to image extents changing between
+        // to render it.  This may be due to frame extents changing between
         // scans, which is not the case from one timestep of a single scan
         // to tne next.
         shrinkProxyManager(state.proxyManager);
@@ -662,14 +662,14 @@ const {
 
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
-        let imageData = null;
+        let frameData = null;
         if (datasetCache.has(dataset.id)) {
-          imageData = datasetCache.get(dataset.id).imageData;
+          frameData = datasetCache.get(dataset.id).frameData;
         } else {
           const result = await loadFileAndGetData(dataset.id);
-          imageData = result.imageData;
+          frameData = result.frameData;
         }
-        sourceProxy.setInputData(imageData);
+        sourceProxy.setInputData(frameData);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
@@ -681,12 +681,12 @@ const {
           state.vtkViews = state.proxyManager.getViews();
         }
       } catch (err) {
-        console.log('Caught exception loading next image');
+        console.log('Caught exception loading next frame');
         console.log(err);
         state.vtkViews = [];
         commit('setErrorLoadingDataset', true);
       } finally {
-        dispatch('setCurrentImage', dataset.id);
+        dispatch('setCurrentFrame', dataset.id);
         commit('setLoadingDataset', false);
       }
 

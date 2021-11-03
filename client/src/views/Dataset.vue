@@ -86,7 +86,7 @@ export default {
     },
     advanceLoop() {
       if (this.scanning) {
-        this.updateImage();
+        this.updateFrame();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
     },

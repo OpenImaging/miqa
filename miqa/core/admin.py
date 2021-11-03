@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Evaluation, Experiment, Image, Project, Scan, ScanDecision
+from .models import Evaluation, Experiment, Frame, Project, Scan, ScanDecision
 
 
 @admin.register(Experiment)
@@ -11,8 +11,8 @@ class ExperimentAdmin(admin.ModelAdmin):
     search_fields = ('name', 'lock_owner')
 
 
-@admin.register(Image)
-class ImageAdmin(admin.ModelAdmin):
+@admin.register(Frame)
+class FrameAdmin(admin.ModelAdmin):
     list_display = ('id', 'created', 'modified', 'scan', 'raw_path', 'frame_number')
     list_filter = ('created', 'modified')
     raw_id_fields = ('scan',)
@@ -33,8 +33,8 @@ class ScanDecisionAdmin(admin.ModelAdmin):
 
 @admin.register(Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'image', 'evaluation_model')
-    list_filter = ('image', 'evaluation_model')
+    list_display = ('id', 'frame', 'evaluation_model')
+    list_filter = ('frame', 'evaluation_model')
 
 
 @admin.register(Project)
