@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from .factories import (
     ExperimentFactory,
-    ImageFactory,
+    FrameFactory,
     ProjectFactory,
     ScanDecisionFactory,
     ScanFactory,
@@ -55,4 +55,4 @@ register(UserFactory)
 register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
-register(ImageFactory)
+register(FrameFactory)

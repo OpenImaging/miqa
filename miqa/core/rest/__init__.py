@@ -1,7 +1,7 @@
 from .email import EmailView
 from .experiment import ExperimentViewSet
+from .frame import FrameViewSet
 from .home import HomePageView
-from .image import ImageViewSet
 from .logout import LogoutView
 from .project import ProjectViewSet
 from .scan import ScanViewSet
@@ -11,7 +11,7 @@ from .user import UserViewSet
 __all__ = [
     'ExperimentViewSet',
     'HomePageView',
-    'ImageViewSet',
+    'FrameViewSet',
     'LogoutView',
     'ProjectViewSet',
     'ScanViewSet',
