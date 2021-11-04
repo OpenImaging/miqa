@@ -149,6 +149,17 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             return y_all
 
 
+def label_results(result):
+    labeled_results = {
+        'overall_quality': result[0],
+        'signal_to_noise_ratio': result[1],
+        'contrast_to_noise_ratio': result[2],
+    }
+    for artifact_name, value in zip(artifacts, result[regression_count:]):
+        labeled_results[artifact_name] = value
+    return labeled_results
+
+
 def evaluate1(model, image_path):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -170,14 +181,7 @@ def evaluate1(model, image_path):
     logger.info(f'Network output: {result}')
     logger.info(f'Overall quality of {image_path}, on 0-10 scale: {result[0]:.1f}')
 
-    labeled_results = {
-        'overall_quality': result[0],
-        'signal_to_noise_ratio': result[1],
-        'contrast_to_noise_ratio': result[2],
-    }
-    for artifact_name, value in zip(artifacts, result[regression_count:]):
-        labeled_results[artifact_name] = value
-    return labeled_results
+    return label_results(result)
 
 
 def evaluate_many(model, image_paths):
@@ -197,15 +201,7 @@ def evaluate_many(model, image_paths):
 
     labeled_results = {}
     for index, result in enumerate(results):
-        corresponding_image_path = image_paths[index]
-        single_labeled = {
-            'overall_quality': result[0],
-            'signal_to_noise_ratio': result[1],
-            'contrast_to_noise_ratio': result[2],
-        }
-        for artifact_name, value in zip(artifacts, result[regression_count:]):
-            single_labeled[artifact_name] = value
-        labeled_results[corresponding_image_path] = single_labeled
+        labeled_results[image_paths[index]] = label_results(result)
     return labeled_results
 
 
