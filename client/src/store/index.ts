@@ -325,7 +325,7 @@ const {
         experimentId: experiment.id,
         experimentName: experiment.name,
         experimentNote: experiment.note,
-        lockOwner: experiment.lock_owner,
+        lockOwner: experiment.lock_owner || experiment.lockOwner,
         scanId: scan.id,
         scanName: scan.name,
         scanDecisions: scan.decisions,
