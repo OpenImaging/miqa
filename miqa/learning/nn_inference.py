@@ -107,6 +107,10 @@ def get_image_transforms():
     return image_transforms
 
 
+def clamp(num, min_value, max_value):
+    return max(min(num, max_value), min_value)
+
+
 def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     model.eval()
     y_pred = []
@@ -125,7 +129,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y = outputs[..., 0].cpu().tolist()
             y_pred_continuous.extend(y)
             y = [int(round(y[t])) for t in range(len(y))]
-            y = [max(0, min(y[t], 10)) for t in range(len(y))]  # clamp to 0 - 10 range
+            y = [clamp(y[t], 0, 10) for t in range(len(y))]
             y_pred.extend(y)
 
             metric_count += len(info)
@@ -151,12 +155,12 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
 
 def label_results(result):
     labeled_results = {
-        'overall_quality': result[0],
-        'signal_to_noise_ratio': result[1],
-        'contrast_to_noise_ratio': result[2],
+        'overall_quality': clamp(result[0] / 10.0, 0.0, 1.0),
+        'signal_to_noise_ratio': clamp(result[1] / 10.0, 0.0, 1.0),
+        'contrast_to_noise_ratio': clamp(result[2] / 10.0, 0.0, 1.0),
     }
     for artifact_name, value in zip(artifacts, result[regression_count:]):
-        labeled_results[artifact_name] = value
+        labeled_results[artifact_name] = clamp(value, 0.0, 1.0)
     return labeled_results
 
 
