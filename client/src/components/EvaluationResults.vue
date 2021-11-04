@@ -26,7 +26,7 @@ export default {
         'red darken-2',
         'red darken-4',
         'black'];
-      const thisColor = colors[Math.floor(value * (colors.length - 1))];
+      const thisColor = colors[Math.floor(Math.abs(value) * (colors.length - 1)) % colors.length];
       if (text) {
         return `font-weight-bold ${thisColor.replace(' ', '--text text--')}`;
       }
@@ -51,7 +51,7 @@ export default {
           v-bind="attrs"
           v-on="on"
         >
-          {{ results.overall_quality * 100 }}%
+          {{ results.overall_quality.toFixed(2) * 100 }}%
           <v-img
             class="float-right ml-3"
             src="evaluation-details.png"
@@ -91,7 +91,7 @@ export default {
               :class="convertOverallQualityToColor()"
               cols="1"
             >
-              {{ results.overall_quality }}
+              {{ results.overall_quality.toFixed(2) * 100 }}%
             </v-col>
           </v-row>
           <v-row>
@@ -134,7 +134,7 @@ export default {
               :class="convertValueToColor(value)"
               cols="1"
             >
-              {{ value }}
+              {{ value.toFixed(2) * 100 }}%
             </v-col>
           </v-row>
         </v-container>
