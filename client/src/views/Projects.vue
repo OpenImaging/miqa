@@ -3,18 +3,17 @@ import { computed, defineComponent, ref } from '@vue/composition-api';
 import store from '@/store';
 import { Project } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
-import GenericNavigationBar from '@/components/GenericNavigationBar.vue';
+import Navbar from '@/components/Navbar.vue';
 import JSONConfig from '@/components/JSONConfig.vue';
-import SiteConfig from '@/components/SiteConfig.vue';
 
 export default defineComponent({
   name: 'Projects',
   components: {
     ExperimentsView,
-    GenericNavigationBar,
+    Navbar,
     JSONConfig,
-    SiteConfig,
   },
+  inject: ['user'],
   setup() {
     store.dispatch.loadProjects();
     const currentProject = computed(() => store.state.currentProject);
@@ -39,8 +38,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="sites">
-    <GenericNavigationBar />
+  <div>
+    <Navbar />
     <div class="d-flex">
       <v-card>
         <v-navigation-drawer permanent>
@@ -61,7 +60,10 @@ export default defineComponent({
         class="flex-grow-1 ma-3"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
-        <v-layout class="pa-5">
+        <v-layout
+          v-if="user.is_superuser"
+          class="pa-5"
+        >
           <v-flex>
             <JSONConfig />
           </v-flex>
@@ -87,5 +89,3 @@ export default defineComponent({
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>
