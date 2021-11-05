@@ -14,7 +14,6 @@ from miqa.core.rest import (
     ProjectViewSet,
     ScanDecisionViewSet,
     ScanViewSet,
-    SiteViewSet,
     UserViewSet,
 )
 
@@ -23,7 +22,6 @@ router.register('projects', ProjectViewSet, basename='project')
 router.register('experiments', ExperimentViewSet)
 router.register('scans', ScanViewSet)
 router.register('images', ImageViewSet)
-router.register('sites', SiteViewSet)
 router.register('users', UserViewSet)
 router.register('scan-decisions', ScanDecisionViewSet)
 

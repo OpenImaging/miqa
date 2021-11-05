@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
 
-from .models import Evaluation, Experiment, Image, Project, Scan, ScanDecision, Site
+from .models import Evaluation, Experiment, Image, Project, Scan, ScanDecision
 
 
 @admin.register(Experiment)
@@ -48,19 +48,6 @@ class ProjectAdmin(admin.ModelAdmin):
         'import_path',
         'export_path',
         'evaluation_models',
-    )
-    list_filter = ('created', 'modified', 'creator')
-    search_fields = ('name',)
-
-
-@admin.register(Site)
-class SiteAdmin(admin.ModelAdmin):
-    list_display = (
-        'id',
-        'created',
-        'modified',
-        'name',
-        'creator',
     )
     list_filter = ('created', 'modified', 'creator')
     search_fields = ('name',)

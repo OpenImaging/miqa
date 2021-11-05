@@ -6,7 +6,6 @@ from .logout import LogoutView
 from .project import ProjectViewSet
 from .scan import ScanViewSet
 from .scan_decision import ScanDecisionViewSet
-from .site import SiteViewSet
 from .user import UserViewSet
 
 __all__ = [
@@ -16,7 +15,6 @@ __all__ = [
     'LogoutView',
     'ProjectViewSet',
     'ScanViewSet',
-    'SiteViewSet',
     'UserViewSet',
     'ScanDecisionViewSet',
     'EmailView',
