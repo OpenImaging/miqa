@@ -6,11 +6,10 @@ from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
 from .factories import (
-    AnnotationFactory,
     ExperimentFactory,
     ImageFactory,
-    NoteFactory,
     ProjectFactory,
+    ScanDecisionFactory,
     ScanFactory,
     SiteFactory,
     UserFactory,
@@ -52,11 +51,10 @@ def sample_scans(samples_dir):
     return [scan for scan in generator()]
 
 
-register(AnnotationFactory)
+register(ScanDecisionFactory)
 register(UserFactory)
 register(SiteFactory)
 register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
-register(NoteFactory)
 register(ImageFactory)

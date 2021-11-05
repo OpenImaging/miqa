@@ -12,12 +12,12 @@ interface Image {
   name: string,
 }
 
-interface ScanNote {
-  // TODO
-}
-
 interface ScanDecision {
-  // TODO
+  id: string,
+  creator: User,
+  created: string,
+  decision: string,
+  note: string
 }
 
 interface Scan {
@@ -25,9 +25,7 @@ interface Scan {
   name: string,
   scan_id: string,
   scan_type: string,
-  notes: ScanNote[],
   experiment: string,
-  site: string,
   decisions: ScanDecision[],
   images: Image[],
 }
@@ -40,6 +38,8 @@ interface Experiment {
     username: string,
   },
   scans?: Scan[],
+  project: string,
+  note: string,
 }
 
 interface Project {
@@ -55,10 +55,6 @@ interface Settings {
   exportPath: string
 }
 
-interface HTMLInputEvent extends Event {
-  target: HTMLInputElement & EventTarget;
-}
-
 export {
-  User, Project, Settings, HTMLInputEvent,
+  User, Project, Settings, ScanDecision,
 };

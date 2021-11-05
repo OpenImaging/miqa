@@ -55,11 +55,6 @@ const djangoClient = {
   async setSettings(projectId: string, settings: Settings) {
     await apiClient.put(`/projects/${projectId}/settings`, settings);
   },
-  async sites() {
-    const { data } = await apiClient.get('/sites');
-    const { results } = data;
-    return results;
-  },
   async experiments(projectId: string) {
     const { data } = await apiClient.get('/experiments', {
       params: { project: projectId },
@@ -71,11 +66,17 @@ const djangoClient = {
     const { data } = await apiClient.get(`/experiments/${experimentId}`);
     return data;
   },
+  async setExperimentNote(experimentId: string, note: string) {
+    const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
+    return data;
+  },
   async lockExperiment(experimentId: string) {
-    await apiClient.post(`/experiments/${experimentId}/lock`);
+    const { data } = await apiClient.post(`/experiments/${experimentId}/lock`);
+    return data;
   },
   async unlockExperiment(experimentId: string) {
-    await apiClient.delete(`/experiments/${experimentId}/lock`);
+    const { data } = await apiClient.delete(`/experiments/${experimentId}/lock`);
+    return data;
   },
   async scans(experimentId: string) {
     const { data } = await apiClient.get('/scans', {
@@ -88,17 +89,9 @@ const djangoClient = {
     const { data } = await apiClient.get(`/scans/${scanId}`);
     return data;
   },
-  async setDecision(scanId: string, decision: string) {
-    await apiClient.post('/annotations', { scan: scanId, decision });
-  },
-  async addScanNote(scanId: string, note: string) {
-    await apiClient.post('/scan_notes', {
-      scan: scanId,
-      note,
-    });
-  },
-  async setScanNote(scanNoteId: string, note: string) {
-    await apiClient.put(`/scan_notes/${scanNoteId}`, { note });
+  async setDecision(scanId: string, decision: string, comment: string) {
+    const { data } = await apiClient.post('/scan-decisions', { scan: scanId, decision, note: comment });
+    return data;
   },
   async images(scanId: string) {
     const { data } = await apiClient.get('/images', {

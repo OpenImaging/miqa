@@ -6,14 +6,13 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
 from miqa.core.rest import (
-    AnnotationViewSet,
     EmailView,
     ExperimentViewSet,
     HomePageView,
     ImageViewSet,
     LogoutView,
     ProjectViewSet,
-    ScanNoteViewSet,
+    ScanDecisionViewSet,
     ScanViewSet,
     SiteViewSet,
     UserViewSet,
@@ -25,9 +24,8 @@ router.register('experiments', ExperimentViewSet)
 router.register('scans', ScanViewSet)
 router.register('images', ImageViewSet)
 router.register('sites', SiteViewSet)
-router.register('scan_notes', ScanNoteViewSet)
 router.register('users', UserViewSet)
-router.register('annotations', AnnotationViewSet)
+router.register('scan-decisions', ScanDecisionViewSet)
 
 # OpenAPI generation
 schema_view = get_schema_view(
