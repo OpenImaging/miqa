@@ -11,7 +11,6 @@ from .factories import (
     ProjectFactory,
     ScanDecisionFactory,
     ScanFactory,
-    SiteFactory,
     UserFactory,
 )
 
@@ -53,7 +52,6 @@ def sample_scans(samples_dir):
 
 register(ScanDecisionFactory)
 register(UserFactory)
-register(SiteFactory)
 register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
