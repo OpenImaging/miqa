@@ -336,7 +336,7 @@ const {
         forwardTo: currentFrame.nextFrame,
         upTo: currentFrame.firstFrameInPreviousScan,
         downTo: currentFrame.firstFrameInNextScan,
-        currentAutoEvaluation: currentFrame.auto_evaluation,
+        currentAutoEvaluation: currentFrame.frame_evaluation,
         autoWindow: experiment.autoWindow,
         autoLevel: experiment.autoLevel,
       };
