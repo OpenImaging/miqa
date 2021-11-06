@@ -8,10 +8,10 @@ import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import VtkViewer from '@/components/VtkViewer.vue';
-import { cleanDatasetName } from '@/utils/helper';
+import { cleanFrameName } from '@/utils/helper';
 
 export default {
-  name: 'Dataset',
+  name: 'Frame',
   components: {
     Navbar,
     ExperimentsView,
@@ -23,16 +23,16 @@ export default {
     ...mapState([
       'vtkViews',
       'scanCachedPercentage',
-      'scanDatasets',
-      'loadingDataset',
-      'errorLoadingDataset',
+      'scanFrames',
+      'loadingFrame',
+      'errorLoadingFrame',
     ]),
     ...mapGetters([
-      'getDataset',
-      'currentDataset',
+      'getFrame',
+      'currentFrame',
     ]),
-    currentScanDatasets() {
-      return this.scanDatasets[this.currentScan.id];
+    currentScanFrames() {
+      return this.scanFrames[this.currentScan.id];
     },
   },
   watch: {
@@ -46,23 +46,23 @@ export default {
     },
   },
   async created() {
-    this.debouncedDatasetSliderChange = _.debounce(
-      this.debouncedDatasetSliderChange,
+    this.debouncedFrameSliderChange = _.debounce(
+      this.debouncedFrameSliderChange,
       30,
     );
-    const { datasetId } = this.$route.params;
-    const dataset = this.getDataset(datasetId);
-    if (dataset) {
-      await this.swapToDataset(dataset);
+    const { frameId } = this.$route.params;
+    const frame = this.getFrame(frameId);
+    if (frame) {
+      await this.swapToFrame(frame);
     } else {
       this.$router.replace('/').catch(this.handleNavigationError);
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    const toDataset = this.getDataset(to.params.datasetId);
+    const toFrame = this.getFrame(to.params.frameId);
     next(true);
-    if (toDataset) {
-      this.swapToDataset(toDataset);
+    if (toFrame) {
+      this.swapToFrame(toFrame);
     }
   },
   async beforeRouteLeave(to, from, next) {
@@ -73,16 +73,16 @@ export default {
       'loadProject',
       'reloadScan',
       'logout',
-      'swapToDataset',
+      'swapToFrame',
     ]),
-    cleanDatasetName,
+    cleanFrameName,
     async logoutUser() {
       await this.logout();
       this.$router.go('/'); // trigger re-render into oauth flow
     },
-    debouncedDatasetSliderChange(index) {
-      const datasetId = this.currentScanDatasets[index];
-      this.$router.push(datasetId).catch(this.handleNavigationError);
+    debouncedFrameSliderChange(index) {
+      const frameId = this.currentScanFrames[index];
+      this.$router.push(frameId).catch(this.handleNavigationError);
     },
     advanceLoop() {
       if (this.scanning) {
@@ -96,11 +96,11 @@ export default {
 
 <template>
   <v-layout
-    class="dataset"
+    class="frame"
     fill-height
     column
   >
-    <Navbar dataset-view />
+    <Navbar frame-view />
     <v-navigation-drawer
       expand-on-hover
       app
@@ -123,7 +123,7 @@ export default {
       </v-list>
     </v-navigation-drawer>
     <v-layout
-      v-if="loadingDataset"
+      v-if="loadingFrame"
       class="loading-indicator-container"
       align-center
       justify-center
@@ -137,7 +137,7 @@ export default {
         indeterminate
       />
     </v-layout>
-    <template v-if="currentDataset">
+    <template v-if="currentFrame">
       <v-flex class="layout-container">
         <div class="my-layout">
           <div
@@ -149,13 +149,13 @@ export default {
           </div>
         </div>
         <v-layout
-          v-if="errorLoadingDataset"
+          v-if="errorLoadingFrame"
           align-center
           justify-center
           fill-height
         >
           <div class="title">
-            Error loading this dataset
+            Error loading this frame
           </div>
         </v-layout>
       </v-flex>
@@ -191,7 +191,7 @@ export default {
   }
 }
 
-.dataset {
+.frame {
   .scans-bar {
     display: flex;
     flex-direction: column;
@@ -263,7 +263,7 @@ export default {
   text-align: right;
 }
 
-.dataset {
+.frame {
   .v-text-field.small .v-input__control {
     min-height: 36px !important;
   }
@@ -272,7 +272,7 @@ export default {
     min-height: 36px !important;
   }
 
-  .v-input--slider.dataset-slider {
+  .v-input--slider.frame-slider {
     margin-top: 0;
   }
 }

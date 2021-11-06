@@ -21,7 +21,7 @@ export default defineComponent({
     KeyboardShortcutDialog,
   },
   props: {
-    datasetView: {
+    frameView: {
       type: Boolean,
       default: false,
     },
@@ -40,7 +40,7 @@ export default defineComponent({
       'screenshots',
     ]),
     ...mapGetters([
-      'currentDataset',
+      'currentFrame',
     ]),
     notes() {
       if (this.currentScan) {
@@ -87,7 +87,7 @@ export default defineComponent({
     </v-tabs>
     <v-spacer />
 
-    <div v-if="datasetView">
+    <div v-if="frameView">
       <v-btn
         @click="keyboardShortcutDialog = true"
         icon
@@ -96,7 +96,7 @@ export default defineComponent({
         <v-icon>keyboard</v-icon>
       </v-btn>
       <v-btn
-        :disabled="!currentDataset"
+        :disabled="!currentFrame"
         @click="emailDialog = true"
         icon
         class="mr-4"

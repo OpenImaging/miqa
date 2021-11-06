@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
 
-import { cleanDatasetName } from '@/utils/helper';
+import { cleanFrameName } from '@/utils/helper';
 import fill2DView from '../utils/fill2DView';
 import { getView } from '../vtk/viewManager';
 
@@ -23,12 +23,12 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingDataset', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
-    ...mapGetters(['currentDataset', 'currentScan']),
+    ...mapState(['proxyManager', 'loadingFrame', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
-        // force add dependency on currentDataset
-        this.currentDataset
+        // force add dependency on currentFrame
+        this.currentFrame
         && this.proxyManager.getRepresentation(null, this.view)
       );
     },
@@ -94,7 +94,7 @@ export default {
       this.initializeSlice();
       this.initializeView();
     },
-    currentDataset() {
+    currentFrame() {
       this.representation.setSlice(this.slice);
     },
     currentScan() {
@@ -139,7 +139,7 @@ export default {
       fill2DView(this.view);
       if (this.name !== 'default') {
         this.modifiedSubscription = this.representation.onModified(() => {
-          if (!this.loadingDataset) {
+          if (!this.loadingFrame) {
             this.slice = this.representation.getSlice();
           }
         });
@@ -173,7 +173,7 @@ export default {
       this.setCurrentScreenshot({
         name: `${this.currentScan.experiment}/${
           this.currentScan.name
-        }/${cleanDatasetName(this.currentDataset.name)}/${this.displayName}`,
+        }/${cleanFrameName(this.currentFrame.name)}/${this.displayName}`,
         dataURL,
       });
     },
