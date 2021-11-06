@@ -25,7 +25,7 @@ const { convertItkToVtkImage } = ITKHelper;
 Vue.use(Vuex);
 
 const fileCache = new Map();
-const datasetCache = new Map();
+const frameCache = new Map();
 let readDataQueue = [];
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
@@ -69,8 +69,8 @@ function getArrayName(filename) {
 
 function getData(id, file, webWorker = null) {
   return new BluebirdPromise((resolve, reject) => {
-    if (datasetCache.has(id)) {
-      resolve({ frameData: datasetCache.get(id), webWorker });
+    if (frameCache.has(id)) {
+      resolve({ frameData: frameCache.get(id), webWorker });
     } else {
       const fileName = file.name;
       const io = new FileReader();
@@ -85,7 +85,7 @@ function getData(id, file, webWorker = null) {
               .getPointData()
               .getArray(0)
               .getRange();
-            datasetCache.set(id, { frameData });
+            frameCache.set(id, { frameData });
             // eslint-disable-next-line no-use-before-define
             expandScanRange(id, dataRange);
             resolve({ frameData, webWorker });
@@ -108,7 +108,7 @@ function loadFile(frameId) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
-  const p = ReaderFactory.downloadDataset(
+  const p = ReaderFactory.downloadFrame(
     apiClient,
     'nifti.nii.gz',
     `/frames/${frameId}/download`,
@@ -146,7 +146,7 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frameId)) {
       filePromise = fileCache.get(frameId);
     } else {
-      filePromise = ReaderFactory.downloadDataset(
+      filePromise = ReaderFactory.downloadFrame(
         apiClient,
         'nifti.nii.gz',
         `/frames/${frameId}/download`,
@@ -197,7 +197,7 @@ function startReaderWorkerPool() {
     });
 }
 
-// cache datasets associated with scans of current experiment
+// cache frames associated with scans of current experiment
 function checkLoadExperiment(oldValue, newValue) {
   if (
     !newValue
@@ -210,10 +210,10 @@ function checkLoadExperiment(oldValue, newValue) {
   if (oldValue) {
     const oldExperimentScans = store.state.experimentScans[oldValue.id];
     oldExperimentScans.forEach((scanId) => {
-      const scanDatasets = store.state.scanDatasets[scanId];
-      scanDatasets.forEach((datasetId) => {
-        fileCache.delete(datasetId);
-        datasetCache.delete(datasetId);
+      const scanFrames = store.state.scanFrames[scanId];
+      scanFrames.forEach((frameId) => {
+        fileCache.delete(frameId);
+        frameCache.delete(frameId);
       });
     });
   }
@@ -221,22 +221,22 @@ function checkLoadExperiment(oldValue, newValue) {
   readDataQueue = [];
   const newExperimentScans = store.state.experimentScans[newValue.id];
   newExperimentScans.forEach((scanId) => {
-    const scanDatasets = store.state.scanDatasets[scanId];
-    scanDatasets.forEach((datasetId) => {
+    const scanFrames = store.state.scanFrames[scanId];
+    scanFrames.forEach((frameId) => {
       readDataQueue.push({
         // TODO don't hardcode projectId
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        frameId: datasetId,
+        frameId,
       });
     });
   });
   startReaderWorkerPool();
 }
 
-// get next scan (across experiments)
-function getNextDataset(experiments, i, j) {
+// get next frame (across experiments and scans)
+function getNextFrame(experiments, i, j) {
   const experiment = experiments[i];
   const { scans } = experiment;
 
@@ -256,9 +256,9 @@ function getNextDataset(experiments, i, j) {
   return nextScan.frames[0];
 }
 
-function expandScanRange(datasetId, dataRange) {
-  if (datasetId in store.state.datasets) {
-    const scanId = store.state.datasets[datasetId].scan;
+function expandScanRange(frameId, dataRange) {
+  if (frameId in store.state.frames) {
+    const scanId = store.state.frames[frameId].scan;
     const scan = store.state.scans[scanId];
     if (dataRange[0] < scan.cumulativeRange[0]) {
       [scan.cumulativeRange[0]] = dataRange;
@@ -276,13 +276,13 @@ const initState = {
   experiments: {},
   experimentScans: {},
   scans: {},
-  scanDatasets: {},
-  datasets: {},
+  scanFrames: {},
+  frames: {},
   proxyManager: null,
   vtkViews: [],
-  currentDatasetId: null,
-  loadingDataset: false,
-  errorLoadingDataset: false,
+  currentFrameId: null,
+  loadingFrame: false,
+  errorLoadingFrame: false,
   loadingExperiment: false,
   currentScreenshot: null,
   screenshots: [],
@@ -314,13 +314,13 @@ const {
       return state;
     },
     currentViewData(state) {
-      const currentDataset = state.currentDatasetId ? state.datasets[state.currentDatasetId] : null;
-      const scan = state.scans[currentDataset.scan];
-      const experiment = currentDataset.experiment
-        ? state.experiments[currentDataset.experiment] : null;
+      const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
+      const scan = state.scans[currentFrame.scan];
+      const experiment = currentFrame.experiment
+        ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
       const experimentScansList = state.experimentScans[experiment.id];
-      const scanFramesList = state.scanDatasets[scan.id];
+      const scanFramesList = state.scanFrames[scan.id];
       return {
         projectName: project.name,
         experimentId: experiment.id,
@@ -331,39 +331,39 @@ const {
         scanName: scan.name,
         scanDecisions: scan.decisions,
         scanPositionString: `(${experimentScansList.indexOf(scan.id) + 1}/${experimentScansList.length})`,
-        framePositionString: `(${scanFramesList.indexOf(currentDataset.id) + 1}/${scanFramesList.length})`,
-        backTo: currentDataset.previousDataset,
-        forwardTo: currentDataset.nextDataset,
-        upTo: currentDataset.firstDatasetInPreviousScan,
-        downTo: currentDataset.firstDatasetInNextScan,
-        currentAutoEvaluation: currentDataset.auto_evaluation,
+        framePositionString: `(${scanFramesList.indexOf(currentFrame.id) + 1}/${scanFramesList.length})`,
+        backTo: currentFrame.previousFrame,
+        forwardTo: currentFrame.nextFrame,
+        upTo: currentFrame.firstFrameInPreviousScan,
+        downTo: currentFrame.firstFrameInNextScan,
+        currentAutoEvaluation: currentFrame.auto_evaluation,
         autoWindow: experiment.autoWindow,
         autoLevel: experiment.autoLevel,
       };
     },
-    currentDataset(state) {
-      const { datasets, currentDatasetId } = state;
-      return currentDatasetId ? datasets[currentDatasetId] : null;
+    currentFrame(state) {
+      const { frames, currentFrameId } = state;
+      return currentFrameId ? frames[currentFrameId] : null;
     },
-    previousDataset(state, getters) {
-      return getters.currentDataset
-        ? getters.currentDataset.previousDataset
+    previousFrame(state, getters) {
+      return getters.currentFrame
+        ? getters.currentFrame.previousFrame
         : null;
     },
-    nextDataset(state, getters) {
-      return getters.currentDataset ? getters.currentDataset.nextDataset : null;
+    nextFrame(state, getters) {
+      return getters.currentFrame ? getters.currentFrame.nextFrame : null;
     },
-    getDataset(state) {
-      return (datasetId) => {
-        if (!datasetId || !state.datasets[datasetId]) {
+    getFrame(state) {
+      return (frameId) => {
+        if (!frameId || !state.frames[frameId]) {
           return undefined;
         }
-        return state.datasets[datasetId];
+        return state.frames[frameId];
       };
     },
     currentScan(state, getters) {
-      if (getters.currentDataset) {
-        const curScanId = getters.currentDataset.scan;
+      if (getters.currentFrame) {
+        const curScanId = getters.currentFrame.scan;
         return state.scans[curScanId];
       }
       return null;
@@ -385,16 +385,16 @@ const {
       state.experiments = {};
       state.experimentScans = {};
       state.scans = {};
-      state.scanDatasets = {};
-      state.datasets = {};
+      state.scanFrames = {};
+      state.frames = {};
     },
     setCurrentFrameId(state, frameId) {
-      state.currentDatasetId = frameId;
+      state.currentFrameId = frameId;
     },
     setFrame(state, { frameId, frame }) {
       // Replace with a new object to trigger a Vuex update
-      state.datasets = { ...state.datasets };
-      state.datasets[frameId] = frame;
+      state.frames = { ...state.frames };
+      state.frames[frameId] = frame;
     },
     setScan(state, { scanId, scan }) {
       // Replace with a new object to trigger a Vuex update
@@ -422,17 +422,17 @@ const {
     setActionTimeout(state, value) {
       state.actionTimeout = value;
     },
-    setLoadingDataset(state, value) {
-      state.loadingDataset = value;
+    setLoadingFrame(state, value) {
+      state.loadingFrame = value;
     },
-    setErrorLoadingDataset(state, value) {
-      state.errorLoadingDataset = value;
+    setErrorLoadingFrame(state, value) {
+      state.errorLoadingFrame = value;
     },
-    addScanDatasets(state, { sid, id }) {
-      state.scanDatasets[sid].push(id);
+    addScanFrames(state, { sid, id }) {
+      state.scanFrames[sid].push(id);
     },
     addExperimentScans(state, { eid, sid }) {
-      state.scanDatasets[sid] = [];
+      state.scanFrames[sid] = [];
       state.experimentScans[eid].push(sid);
     },
     addExperiment(state, { id, value }) {
@@ -475,7 +475,7 @@ const {
       }
       commit('reset');
       fileCache.clear();
-      datasetCache.clear();
+      frameCache.clear();
     },
     async logout({ dispatch }) {
       dispatch('reset');
@@ -488,7 +488,7 @@ const {
     async loadProject({ commit }, project: Project) {
       commit('resetProject');
 
-      // Build navigation links throughout the dataset to improve performance.
+      // Build navigation links throughout the frame to improve performance.
       let firstInPrev = null;
 
       // Refresh the project from the API
@@ -532,7 +532,7 @@ const {
               name: scan.name,
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-              numDatasets: frames.length,
+              numFrames: frames.length,
               // The experiment.scans.note serialization does not contain note metadata.
               // Just set notes to [] and let reloadScan set the complete values later.
               notes: [],
@@ -540,11 +540,11 @@ const {
             },
           });
 
-          const nextScan = getNextDataset(experiments, i, j);
+          const nextScan = getNextFrame(experiments, i, j);
 
           for (let k = 0; k < frames.length; k += 1) {
             const frame = frames[k];
-            commit('addScanDatasets', { sid: scan.id, id: frame.id });
+            commit('addScanFrames', { sid: scan.id, id: frame.id });
             commit('setFrame', {
               frameId: frame.id,
               frame: {
@@ -552,10 +552,10 @@ const {
                 scan: scan.id,
                 experiment: experiment.id,
                 index: k,
-                previousDataset: k > 0 ? frames[k - 1].id : null,
-                nextDataset: k < frames.length - 1 ? frames[k + 1].id : null,
-                firstDatasetInPreviousScan: firstInPrev,
-                firstDatasetInNextScan: nextScan ? nextScan.id : null,
+                previousFrame: k > 0 ? frames[k - 1].id : null,
+                nextFrame: k < frames.length - 1 ? frames[k + 1].id : null,
+                firstFrameInPreviousScan: firstInPrev,
+                firstFrameInNextScan: nextScan ? nextScan.id : null,
               },
             });
           }
@@ -564,14 +564,14 @@ const {
             firstInPrev = frames[0].id;
           } else {
             console.error(
-              `${experiment.name}/${scan.name} has no datasets`,
+              `${experiment.name}/${scan.name} has no frames`,
             );
           }
         }
       }
     },
     async reloadScan({ commit, getters }) {
-      const currentFrame = getters.currentDataset;
+      const { currentFrame } = getters;
       // No need to reload if the frame doesn't exist or doesn't exist on the server
       if (!currentFrame || currentFrame.local) {
         return;
@@ -589,7 +589,7 @@ const {
           name: scan.name,
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-          numDatasets: frames.length,
+          numFrames: frames.length,
           notes: scan.notes,
           decisions: scan.decisions,
         },
@@ -601,23 +601,23 @@ const {
         dispatch('reloadScan');
       }
     },
-    async swapToDataset({
+    async swapToFrame({
       state, dispatch, getters, commit,
-    }, dataset) {
-      if (!dataset) {
-        throw new Error("dataset id doesn't exist");
+    }, frame) {
+      if (!frame) {
+        throw new Error("frame id doesn't exist");
       }
-      if (getters.currentDataset === dataset) {
+      if (getters.currentFrame === frame) {
         return;
       }
-      commit('setLoadingDataset', true);
-      commit('setErrorLoadingDataset', false);
+      commit('setLoadingFrame', true);
+      commit('setErrorLoadingFrame', false);
       const oldScan = getters.currentScan;
-      const newScan = state.scans[dataset.scan];
+      const newScan = state.scans[frame.scan];
       const oldExperiment = getters.currentExperiment
         ? getters.currentExperiment
         : null;
-      const newExperimentId = state.scans[dataset.scan].experiment;
+      const newExperimentId = state.scans[frame.scan].experiment;
       const newExperiment = state.experiments[newExperimentId];
 
       // Check if we should cancel the currently loading experiment
@@ -663,10 +663,10 @@ const {
       // This try catch and within logic are mainly for handling data doesn't exist issue
       try {
         let frameData = null;
-        if (datasetCache.has(dataset.id)) {
-          frameData = datasetCache.get(dataset.id).frameData;
+        if (frameCache.has(frame.id)) {
+          frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(dataset.id);
+          const result = await loadFileAndGetData(frame.id);
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
@@ -684,10 +684,10 @@ const {
         console.log('Caught exception loading next frame');
         console.log(err);
         state.vtkViews = [];
-        commit('setErrorLoadingDataset', true);
+        commit('setErrorLoadingFrame', true);
       } finally {
-        dispatch('setCurrentFrame', dataset.id);
-        commit('setLoadingDataset', false);
+        dispatch('setCurrentFrame', frame.id);
+        commit('setLoadingFrame', false);
       }
 
       // If necessary, queue loading scans of new experiment
