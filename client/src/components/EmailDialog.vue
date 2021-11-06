@@ -23,7 +23,7 @@ export default defineComponent({
   },
   setup() {
     const screenshots = computed(() => store.state.screenshots);
-    const currentDataset = computed(() => store.getters.currentDataset);
+    const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
     const { removeScreenshot } = store.commit;
 
@@ -31,7 +31,7 @@ export default defineComponent({
 
     return {
       screenshots,
-      currentDataset,
+      currentFrame,
       currentScan,
       removeScreenshot,
       user,
@@ -59,7 +59,7 @@ export default defineComponent({
         this.initialize();
       }
     },
-    currentDataset(value) {
+    currentFrame(value) {
       if (value) {
         this.initialize();
       }
