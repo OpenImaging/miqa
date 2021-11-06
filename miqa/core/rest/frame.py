@@ -22,17 +22,10 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class FrameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['id', 'frame_number', 'auto_evaluation']
+        fields = ['id', 'frame_number', 'frame_evaluation']
         ref_name = 'scan_frame'
 
-    auto_evaluation = serializers.SerializerMethodField()
-
-    def get_auto_evaluation(self, frame_object):
-        try:
-            evaluation_object = Evaluation.objects.get(frame=frame_object)
-            return EvaluationSerializer(evaluation_object).data
-        except Evaluation.DoesNotExist:
-            return None
+    frame_evaluation = EvaluationSerializer()
 
 
 class FrameViewSet(ListModelMixin, GenericViewSet):
