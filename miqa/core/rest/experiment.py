@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from guardian.shortcuts import get_objects_for_user
+
 from miqa.core.models import Experiment, ScanDecision
 from miqa.core.rest.scan import ScanSerializer
 
@@ -41,19 +43,26 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
 class ExperimentViewSet(ReadOnlyModelViewSet):
     # Our default serializer nests its experiment (not sure why though)
-    queryset = Experiment.objects.select_related('project')
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['project']
-
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
-
     serializer_class = ExperimentSerializer
+
+    def get_queryset(self):
+        projects = get_objects_for_user(
+            self.request.user,
+            'core.view_project',
+            with_superuser=False,
+        )
+        return Experiment.objects.filter(project__in=projects)
 
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
-        # TODO when Experiment model gains read_write_users field, check permission to edit.
         experiment_object = self.get_object()
+        # superusers, reviewers, and collaborators can all edit experiment notes
+        if not request.user.has_perm('view_project', experiment_object.project):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         experiment_object.note = request.data['note']
         experiment_object.save()
         return Response(
@@ -73,6 +82,10 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         """Acquire the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
+
+            # only reviewers and superusers can lock/unlock
+            if not request.user.has_perm('submit_reviews', experiment.project):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if experiment.project.archived:
                 raise ArchivedProject()
@@ -107,6 +120,10 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         """Release the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
+
+            # only reviewers and superusers can lock/unlock
+            if not request.user.has_perm('submit_reviews', experiment.project):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()

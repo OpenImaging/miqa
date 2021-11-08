@@ -81,8 +81,17 @@ export default defineComponent({
           justify-center
           fill-height
         >
-          <div class="title">
+          <div
+            v-if="projects.length > 0"
+            class="title"
+          >
             Select a project
+          </div>
+          <div
+            v-else
+            class="title"
+          >
+            You have not been added to any projects yet.
           </div>
         </v-layout>
       </v-card>

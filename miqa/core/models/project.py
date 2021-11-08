@@ -61,3 +61,6 @@ class Project(TimeStampedModel, models.Model):
             )
 
         super().clean()
+
+    class Meta:
+        permissions = (('submit_reviews', 'Submit Reviews'),)
