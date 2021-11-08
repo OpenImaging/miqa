@@ -1,11 +1,10 @@
 from drf_yasg.utils import no_body, swagger_auto_schema
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-
-from guardian.shortcuts import get_objects_for_user
 
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
