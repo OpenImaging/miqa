@@ -1,10 +1,9 @@
 from django_filters import rest_framework as filters
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-
-from guardian.shortcuts import get_objects_for_user
 
 from miqa.core.models import Scan, ScanDecision
 from miqa.core.rest.user import UserSerializer

@@ -1,9 +1,8 @@
 from django_filters import rest_framework as filters
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
-
-from guardian.shortcuts import get_objects_for_user
 
 from miqa.core.models import Scan
 from miqa.core.rest.frame import FrameSerializer
