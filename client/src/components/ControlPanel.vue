@@ -10,7 +10,7 @@ import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 
 export default {
-  name: 'Dataset',
+  name: 'Frame',
   components: {
     EvaluationResults,
     UserAvatar,
@@ -31,10 +31,10 @@ export default {
     ]),
     ...mapGetters([
       'currentViewData',
-      'nextDataset',
-      'getDataset',
-      'previousDataset',
-      'currentDataset',
+      'nextFrame',
+      'getFrame',
+      'previousFrame',
+      'currentFrame',
     ]),
     ...mapMutations([
       'updateExperiment',
@@ -52,7 +52,7 @@ export default {
       return this.currentViewData.lockOwner;
     },
     representation() {
-      return this.currentDataset && this.proxyManager.getRepresentations()[0];
+      return this.currentFrame && this.proxyManager.getRepresentations()[0];
     },
     winMin() {
       return this.representation.getPropertyDomainByName('windowWidth').min;
@@ -90,7 +90,7 @@ export default {
         this.representation.setWindowLevel(value);
       }
     },
-    currentDataset() {
+    currentFrame() {
       this.updateWinLev();
     },
     experimentId(newValue, oldValue) {
@@ -151,11 +151,11 @@ export default {
     updateImage() {
       if (this.direction === 'back') {
         this.$router
-          .push(this.previousDataset ? this.previousDataset : '')
+          .push(this.previousFrame ? this.previousFrame : '')
           .catch(this.handleNavigationError);
       } else if (this.direction === 'forward') {
         this.$router
-          .push(this.nextDataset ? this.nextDataset : '')
+          .push(this.nextFrame ? this.nextFrame : '')
           .catch(this.handleNavigationError);
       } else if (this.direction === 'previous') {
         this.$router
@@ -383,7 +383,7 @@ export default {
                         style="text-align: right"
                       >
                         <v-btn
-                          :disabled="!previousDataset"
+                          :disabled="!previousFrame"
                           @mousedown="handleKeyPress('back')"
                           small
                           depressed
@@ -392,7 +392,7 @@ export default {
                           <v-icon>fa-caret-left</v-icon>
                         </v-btn>
                         <v-btn
-                          :disabled="!nextDataset"
+                          :disabled="!nextFrame"
                           @mousedown="handleKeyPress('forward')"
                           small
                           depressed

@@ -64,8 +64,8 @@ function readRawData({ fileName, data }) {
       }
       const ds = reader[parseMethod](data);
       Promise.resolve(ds)
-        .then((dataset) => resolve({
-          dataset,
+        .then((frame) => resolve({
+          frame,
           reader,
           sourceType,
           name: fileName,
@@ -103,7 +103,7 @@ function loadFiles(files) {
   return Promise.all(promises);
 }
 
-function downloadDataset(axios, fileName, url) {
+function downloadFrame(axios, fileName, url) {
   return new Promise((resolve, reject, onCancel) => {
     const readerMapping = getReader({ name: fileName });
     if (readerMapping) {
@@ -128,7 +128,7 @@ function downloadDataset(axios, fileName, url) {
 }
 
 export default {
-  downloadDataset,
+  downloadFrame,
   loadFiles,
   registerReader,
 };

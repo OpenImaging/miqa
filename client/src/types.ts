@@ -7,7 +7,7 @@ interface User {
   is_superuser: boolean
 }
 
-interface Image {
+interface Frame {
   id: string,
   name: string,
 }
@@ -27,7 +27,7 @@ interface Scan {
   scan_type: string,
   experiment: string,
   decisions: ScanDecision[],
-  images: Image[],
+  frames: Frame[],
 }
 
 interface Experiment {

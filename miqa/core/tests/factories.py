@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory
 
-from miqa.core.models import Experiment, Image, Project, Scan, ScanDecision
+from miqa.core.models import Experiment, Frame, Project, Scan, ScanDecision
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -56,9 +56,9 @@ class ScanDecisionFactory(factory.django.DjangoModelFactory):
     creator = factory.SubFactory(UserFactory)
 
 
-class ImageFactory(factory.django.DjangoModelFactory):
+class FrameFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = Image
+        model = Frame
 
     id = factory.Faker('uuid4')
     raw_path = factory.Faker('file_path')
