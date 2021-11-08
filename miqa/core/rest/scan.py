@@ -5,7 +5,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from guardian.shortcuts import get_objects_for_user
 
-from miqa.core.models import Scan, Experiment
+from miqa.core.models import Scan
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import UserHoldsExperimentLock
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
@@ -32,5 +32,4 @@ class ScanViewSet(ReadOnlyModelViewSet):
             'core.view_project',
             with_superuser=False,
         )
-        experiments = Experiment.objects.filter(project__in=projects)
-        return Scan.objects.filter(experiment__in=experiments)
+        return Scan.objects.filter(experiment__project__in=projects)

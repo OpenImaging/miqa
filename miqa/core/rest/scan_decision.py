@@ -6,7 +6,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from guardian.shortcuts import get_objects_for_user
 
-from miqa.core.models import Experiment, Scan, ScanDecision
+from miqa.core.models import Scan, ScanDecision
 from miqa.core.rest.user import UserSerializer
 
 from .permissions import UserHoldsExperimentLock, ensure_experiment_lock
@@ -38,9 +38,7 @@ class ScanDecisionViewSet(
             'core.view_project',
             with_superuser=False,
         )
-        experiments = Experiment.objects.filter(project__in=projects)
-        scans = Scan.objects.filter(experiment__in=experiments)
-        return ScanDecision.objects.filter(scan__in=scans)
+        return ScanDecision.objects.filter(scan__experiment__project__in=projects)
 
     def create(self, request, *args, **kwargs):
         request_data = request.data

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from guardian.shortcuts import get_objects_for_user
 
-from miqa.core.models import Evaluation, Experiment, Frame, Scan
+from miqa.core.models import Evaluation, Frame
 
 from .permissions import UserHoldsExperimentLock
 
@@ -42,9 +42,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
             'core.view_project',
             with_superuser=False,
         )
-        experiments = Experiment.objects.filter(project__in=projects)
-        scans = Scan.objects.filter(experiment__in=experiments)
-        return Frame.objects.filter(scan__in=scans)
+        return Frame.objects.filter(scan__experiment__project__in=projects)
 
     @action(detail=True)
     def download(self, request, pk=None, **kwargs):
