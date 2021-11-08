@@ -13,13 +13,13 @@ if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
 
-class Image(TimeStampedModel, models.Model):
+class Frame(TimeStampedModel, models.Model):
     class Meta:
         indexes = [models.Index(fields=['scan', 'frame_number'])]
         ordering = ['scan', 'frame_number']
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    scan = models.ForeignKey('Scan', related_name='images', on_delete=models.CASCADE)
+    scan = models.ForeignKey('Scan', related_name='frames', on_delete=models.CASCADE)
     raw_path = models.CharField(max_length=500, blank=False, unique=True)
     frame_number = models.IntegerField(default=0)
 
@@ -28,7 +28,7 @@ class Image(TimeStampedModel, models.Model):
         return Path(self.raw_path)
 
     @property
-    def zarr_path(self: Image) -> Path:
+    def zarr_path(self: Frame) -> Path:
         return convert_to_store_path(self.path)
 
     @property

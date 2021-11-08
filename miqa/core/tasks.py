@@ -10,35 +10,35 @@ from miqa.core.conversion.import_export_csvs import (
     validate_import_dict,
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
-from miqa.core.models import Evaluation, Experiment, Image, Project, Scan
+from miqa.core.models import Evaluation, Experiment, Frame, Project, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
 
 @shared_task
-def evaluate_data(image_ids, project_id):
-    images = Image.objects.filter(pk__in=image_ids)
+def evaluate_data(frame_ids, project_id):
+    frames = Frame.objects.filter(pk__in=frame_ids)
     project = Project.objects.get(id=project_id)
 
-    model_to_images_map = {}
-    for image in images:
-        eval_model_name = project.evaluation_models[[image.scan.scan_type][0]]
-        if eval_model_name not in model_to_images_map:
-            model_to_images_map[eval_model_name] = []
-        model_to_images_map[eval_model_name].append(image)
+    model_to_frames_map = {}
+    for frame in frames:
+        eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
+        if eval_model_name not in model_to_frames_map:
+            model_to_frames_map[eval_model_name] = []
+        model_to_frames_map[eval_model_name].append(frame)
 
-    for model_name, image_set in model_to_images_map.items():
+    for model_name, frame_set in model_to_frames_map.items():
         current_model = available_evaluation_models[model_name].load()
-        results = evaluate_many(current_model, [str(image.raw_path) for image in image_set])
+        results = evaluate_many(current_model, [str(frame.raw_path) for frame in frame_set])
 
         Evaluation.objects.bulk_create(
             [
                 Evaluation(
-                    image=image,
+                    frame=frame,
                     evaluation_model=model_name,
-                    results=results[str(image.raw_path)],
+                    results=results[str(frame.raw_path)],
                 )
-                for image in image_set
+                for frame in frame_set
             ]
         )
 
@@ -77,7 +77,7 @@ def perform_import(import_dict, project_id):
         # delete old imports of these projects
         Experiment.objects.filter(
             project=project_object
-        ).delete()  # cascades to scans -> images, scan_notes
+        ).delete()  # cascades to scans -> frames, scan_notes
 
         for experiment_name, experiment_data in project_data['experiments'].items():
             experiment_object = Experiment(name=experiment_name, project=project_object)
@@ -90,7 +90,7 @@ def perform_import(import_dict, project_id):
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
 
-                    frame_object = Image(
+                    frame_object = Frame(
                         frame_number=frame_number,
                         raw_path=frame_data['file_location'],
                         scan=scan_object,
@@ -101,7 +101,7 @@ def perform_import(import_dict, project_id):
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
-    Image.objects.bulk_create(new_frames)
+    Frame.objects.bulk_create(new_frames)
 
     evaluate_data.delay([frame.id for frame in new_frames], project.id)
 
@@ -119,7 +119,7 @@ def perform_export(project_id):
     project_object = Project.objects.get(id=project_id)
     data = []
 
-    for frame_object in Image.objects.filter(scan__experiment__project=project_object):
+    for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
         data.append(
             [
                 project_object.name,
