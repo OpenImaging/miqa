@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from guardian.shortcuts import get_objects_for_user
+
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
 from miqa.core.tasks import export_data, import_data
@@ -39,12 +41,16 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        projects = get_objects_for_user(
+            self.request.user,
+            'core.view_project',
+        )
         if self.action == 'retrieve':
-            return Project.objects.prefetch_related(
+            return projects.prefetch_related(
                 'experiments__scans__frames', 'experiments__scans__decisions'
             )
         else:
-            return Project.objects.all()
+            return projects.all()
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -69,6 +75,9 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         project: Project = self.get_object()
         if request.method == 'GET':
             serializer = ProjectSettingsSerializer(instance=project)
@@ -87,6 +96,9 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
@@ -100,6 +112,9 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     )
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments

@@ -19,11 +19,11 @@ from miqa.core.rest import (
 
 router = routers.SimpleRouter(trailing_slash=False)
 router.register('projects', ProjectViewSet, basename='project')
-router.register('experiments', ExperimentViewSet)
-router.register('scans', ScanViewSet)
-router.register('frames', FrameViewSet)
+router.register('experiments', ExperimentViewSet, basename='experiment')
+router.register('scans', ScanViewSet, basename='scan')
+router.register('frames', FrameViewSet, basename='frame')
+router.register('scan-decisions', ScanDecisionViewSet, basename='scan_decisions')
 router.register('users', UserViewSet)
-router.register('scan-decisions', ScanDecisionViewSet)
 
 # OpenAPI generation
 schema_view = get_schema_view(
