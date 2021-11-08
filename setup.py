@@ -45,6 +45,7 @@ setup(
         'django-oauth-toolkit',
         'djangorestframework',
         'django-click',
+        'django-guardian',
         'drf-yasg',
         'uri',
         # For Neural Net
