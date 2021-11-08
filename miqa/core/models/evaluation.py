@@ -7,7 +7,6 @@ class Evaluation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     frame = models.OneToOneField(
         'Frame',
-        null=False,
         on_delete=models.CASCADE,
         related_name='frame_evaluation',
     )
