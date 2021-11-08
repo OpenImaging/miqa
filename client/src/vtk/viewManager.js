@@ -19,7 +19,7 @@ function getViewActions(proxyManager) {
 
   // To crop we need at list an image data
   proxyManager.getSources().forEach((s) => {
-    const ds = s.getDataset();
+    const ds = s.getFrame();
     if (ds && ds.isA && ds.isA('vtkImageData')) {
       possibleActions.crop = true;
     }
@@ -84,7 +84,7 @@ function getView(proxyManager, viewType, container) {
 function updateViewsAnnotation(proxyManager) {
   const hasImageData = proxyManager
     .getSources()
-    .find((s) => s.getDataset().isA && s.getDataset().isA('vtkImageData'));
+    .find((s) => s.getFrame().isA && s.getFrame().isA('vtkImageData'));
   const views = proxyManager.getViews();
 
   for (let i = 0; i < views.length; i += 1) {

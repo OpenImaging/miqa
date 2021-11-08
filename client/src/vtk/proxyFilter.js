@@ -11,9 +11,9 @@ const Contour = {
       computeNormals: { modelKey: 'algo', property: 'computeNormals' },
       mergePoints: { modelKey: 'algo', property: 'mergePoints' },
     },
-    updateDomain(self, dataset) {
-      const arrayToProcess = dataset.getPointData().getScalars();
-      dataset.getPointData().getArrayByIndex(0);
+    updateDomain(self, frame) {
+      const arrayToProcess = frame.getPointData().getScalars();
+      frame.getPointData().getArrayByIndex(0);
       if (!arrayToProcess) {
         return;
       }

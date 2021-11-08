@@ -25,8 +25,8 @@ export default {
       'experimentScans',
       'loadingExperiment',
       'scans',
-      'scanDatasets',
-      'datasets',
+      'scanFrames',
+      'frames',
     ]),
     ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
@@ -53,8 +53,8 @@ export default {
         };
       });
     },
-    getIdOfFirstDatasetInScan(scanId) {
-      return `${this.scanDatasets[scanId][0]}`;
+    getIdOfFirstFrameInScan(scanId) {
+      return `${this.scanFrames[scanId][0]}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
@@ -125,7 +125,7 @@ export default {
               class="body-1"
             >
               <v-btn
-                :to="getIdOfFirstDatasetInScan(scan.id)"
+                :to="getIdOfFirstFrameInScan(scan.id)"
                 class="ml-0 px-1 scan-name"
                 href
                 text

@@ -11,8 +11,8 @@ export default defineComponent({
   },
   data: () => ({
     shortcuts: [
-      ['Next dataset', [['→']]],
-      ['Previous dataset', [['←']]],
+      ['Next frame', [['→']]],
+      ['Previous frame', [['←']]],
       [
         'Change slices',
         [
