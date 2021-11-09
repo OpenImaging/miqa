@@ -1,16 +1,17 @@
 from pathlib import Path
 
 from django.http import FileResponse, HttpResponseServerError
+from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from guardian.shortcuts import get_objects_for_user
-from rest_framework import serializers, status
+from guardian.decorators import permission_required
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Evaluation, Frame
+from miqa.core.models import Evaluation, Frame, Project
 
 from .permissions import UserHoldsExperimentLock
 
@@ -43,13 +44,13 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
         )
         return Frame.objects.filter(scan__experiment__project__in=projects)
 
+    @method_decorator(
+        permission_required('view_project', (Project, 'experiments__scans__frames__pk', 'pk'))
+    )
     @action(detail=True)
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
         path: Path = frame.path
-
-        if not request.user.has_perm('view_project', frame.scan.experiment.project):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         if not path.is_file():
             return HttpResponseServerError('File no longer exists.')

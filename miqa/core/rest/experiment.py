@@ -1,15 +1,17 @@
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user
+from guardian.decorators import permission_required
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Experiment, ScanDecision
+from miqa.core.models import Experiment, Project, ScanDecision
 from miqa.core.rest.scan import ScanSerializer
 
 from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
@@ -55,13 +57,10 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         )
         return Experiment.objects.filter(project__in=projects)
 
+    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
         experiment_object = self.get_object()
-        # superusers, reviewers, and collaborators can all edit experiment notes
-        if not request.user.has_perm('view_project', experiment_object.project):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         experiment_object.note = request.data['note']
         experiment_object.save()
         return Response(
@@ -76,15 +75,12 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
+    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def lock(self, request, pk=None):
         """Acquire the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
-
-            # only reviewers and superusers can lock/unlock
-            if not request.user.has_perm('submit_reviews', experiment.project):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if experiment.project.archived:
                 raise ArchivedProject()
@@ -114,15 +110,12 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
+    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
     @lock.mapping.delete
     def release_lock(self, request, pk=None):
         """Release the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
-
-            # only reviewers and superusers can lock/unlock
-            if not request.user.has_perm('submit_reviews', experiment.project):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
