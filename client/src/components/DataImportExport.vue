@@ -84,7 +84,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="py-5">
+  <div class="pt-5">
     <v-tooltip
       v-if="!exportOnly"
       top
