@@ -1,5 +1,5 @@
 from drf_yasg.utils import no_body, swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -9,6 +9,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
 from miqa.core.tasks import export_data, import_data
+
+from miqa.core.rest.permissions import project_permission_required
 
 
 class ProjectRetrieveSerializer(serializers.ModelSerializer):
@@ -30,10 +32,19 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['importPath', 'exportPath']
+        fields = ['importPath', 'exportPath', 'permissions']
 
     importPath = serializers.CharField(source='import_path')  # noqa: N815
     exportPath = serializers.CharField(source='export_path')  # noqa: N815
+    permissions = serializers.SerializerMethodField('get_permissions')
+
+    def get_permissions(self, obj):
+        return {
+            perm_group: [
+                user.username for user in get_users_with_perms(obj, only_with_perms_in=[perm_group])
+            ]
+            for perm_group in Project.get_read_permission_groups()
+        }
 
 
 class ProjectViewSet(ReadOnlyModelViewSet):
@@ -42,7 +53,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            'core.view_project',
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
         )
         if self.action == 'retrieve':
             return projects.prefetch_related(
@@ -66,6 +77,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         request_body=ProjectSettingsSerializer(),
         responses={200: ProjectSettingsSerializer()},
     )
+    @project_permission_required()
     @action(
         detail=True,
         url_path='settings',
@@ -74,30 +86,35 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         project: Project = self.get_object()
         if request.method == 'GET':
             serializer = ProjectSettingsSerializer(instance=project)
         elif request.method == 'PUT':
-            serializer = ProjectSettingsSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            project.import_path = serializer.data['importPath']
-            project.export_path = serializer.data['exportPath']
+            if not request.user.is_superuser:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+            # TODO: need help changing the auto schema to expect permissions object
+
+            for key, user_list in request.data['permissions'].items():
+                try:
+                    project.update_group(key, user_list)
+                except ValueError as e:
+                    return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+            project.import_path = request.data['importPath']
+            project.export_path = request.data['exportPath']
             project.full_clean()
             project.save()
+            serializer = ProjectSettingsSerializer(project)
         return Response(serializer.data)
 
     @swagger_auto_schema(
         request_body=no_body,
         responses={204: 'Import succeeded.'},
     )
+    @project_permission_required(superuser_access=True)
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
@@ -109,11 +126,9 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         request_body=no_body,
         responses={204: 'Export succeeded.'},
     )
+    @project_permission_required(superuser_access=True)
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
