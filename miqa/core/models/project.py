@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
+from guardian.shortcuts import assign_perm, get_users_with_perms, remove_perm
 
 from miqa.core.models.scan import SCAN_TYPES
 from miqa.learning.evaluation_models import available_evaluation_models
@@ -62,5 +63,29 @@ class Project(TimeStampedModel, models.Model):
 
         super().clean()
 
+    def get_read_permission_groups():
+        return ['collaborators', 'tier_1_reviewers', 'tier_2_reviewers']
+
+    def get_review_permission_groups():
+        return ['tier_1_reviewers', 'tier_2_reviewers']
+
+    def update_group(self, group_name, user_list):
+        if group_name not in Project.get_read_permission_groups():
+            raise ValueError(f'Error: {group_name} is not a valid group on this Project.')
+
+        old_list = get_users_with_perms(self, only_with_perms_in=[group_name])
+        for previously_permitted_user in old_list:
+            if previously_permitted_user.username not in user_list:
+                remove_perm(group_name, previously_permitted_user, self)
+
+        for username in user_list:
+            new_permitted_user = User.objects.get(username=username)
+            if new_permitted_user not in old_list:
+                assign_perm(group_name, new_permitted_user, self)
+
     class Meta:
-        permissions = (('submit_reviews', 'Submit Reviews'),)
+        permissions = (
+            ('collaborators', 'Collaborators'),
+            ('tier_1_reviewers', 'Tier 1 Reviewers'),
+            ('tier_2_reviewers', 'Tier 2 Reviewers'),
+        )

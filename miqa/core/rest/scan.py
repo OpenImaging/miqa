@@ -4,7 +4,7 @@ from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Scan
+from miqa.core.models import Project, Scan
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import UserHoldsExperimentLock
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
@@ -28,7 +28,6 @@ class ScanViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            'core.view_project',
-            with_superuser=False,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
         )
         return Scan.objects.filter(experiment__project__in=projects)
