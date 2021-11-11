@@ -1,12 +1,58 @@
 from django.contrib.auth.models import User
 from django.db.models import Model
+from django.shortcuts import get_object_or_404
+from django.utils.functional import wraps
+from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import View
 
-from miqa.core.models import Experiment
+from miqa.core.models import Experiment, Project
+
+
+def project_permission_required(
+    read_access=True, review_access=False, superuser_access=False, **kwargs
+):
+    def decorator(view_func):
+        def _wrapped_view(viewset, *args, **kwargs):
+            lookup_mapping = {
+                'ProjectViewSet': 'pk',
+                'ExperimentViewSet': 'experiments__pk',
+                'ScanViewSet': 'experiments__scans__pk',
+                'ScanDecisionViewSet': 'experiments__scans__decisions__pk',
+                'FrameViewSet': 'experiments__scans__frames__pk',
+            }
+            lookup_dict = {lookup_mapping[viewset.__class__.__name__]: kwargs['pk']}
+            project = get_object_or_404(Project, **lookup_dict)
+
+            user = viewset.request.user
+            user_perms_on_project = get_perms(user, project)
+            has_review_perm = all(
+                [
+                    perm not in user_perms_on_project
+                    for perm in Project.get_review_permission_groups()
+                ]
+            )
+            has_read_perm = all(
+                [perm not in user_perms_on_project for perm in Project.get_read_permission_groups()]
+            )
+            error_response = Response(status=status.HTTP_401_UNAUTHORIZED)
+
+            if (
+                (superuser_access and not user.is_superuser)
+                or (review_access and has_review_perm)
+                or (read_access and has_read_perm)
+            ):
+                return error_response
+
+            return view_func(viewset, *args, **kwargs)
+
+        return wraps(view_func)(_wrapped_view)
+
+    return decorator
 
 
 class ArchivedProject(APIException):

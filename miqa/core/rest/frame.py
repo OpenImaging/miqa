@@ -1,10 +1,8 @@
 from pathlib import Path
 
 from django.http import FileResponse, HttpResponseServerError
-from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from guardian.shortcuts import get_objects_for_user
-from guardian.decorators import permission_required
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
@@ -12,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Evaluation, Frame, Project
+from miqa.core.rest.permissions import project_permission_required
 
 from .permissions import UserHoldsExperimentLock
 
@@ -39,15 +38,12 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            'core.view_project',
-            with_superuser=False,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
         )
         return Frame.objects.filter(scan__experiment__project__in=projects)
 
-    @method_decorator(
-        permission_required('view_project', (Project, 'experiments__scans__frames__pk', 'pk'))
-    )
     @action(detail=True)
+    @project_permission_required()
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
         path: Path = frame.path

@@ -12,6 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='project',
-            options={'permissions': (('submit_reviews', 'Submit Reviews'),)},
+            options={
+                'permissions': (
+                    ('collaborators', 'Collaborators'),
+                    ('tier_1_reviewers', 'Tier 1 Reviewers'),
+                    ('tier_2_reviewers', 'Tier 2 Reviewers'),
+                )
+            },
         ),
     ]

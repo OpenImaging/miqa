@@ -1,10 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.utils.decorators import method_decorator
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user
-from guardian.decorators import permission_required
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +11,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment, Project, ScanDecision
 from miqa.core.rest.scan import ScanSerializer
+from miqa.core.rest.permissions import project_permission_required
 
 from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
 
@@ -52,12 +51,11 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            'core.view_project',
-            with_superuser=False,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
         )
         return Experiment.objects.filter(project__in=projects)
 
-    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
+    @project_permission_required()
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
         experiment_object = self.get_object()
@@ -75,7 +73,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
-    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
+    @project_permission_required(review_access=True)
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def lock(self, request, pk=None):
         """Acquire the exclusive write lock on this experiment."""
@@ -110,7 +108,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
-    @method_decorator(permission_required('view_project', (Project, 'experiments__pk', 'pk')))
+    @project_permission_required(review_access=True)
     @lock.mapping.delete
     def release_lock(self, request, pk=None):
         """Release the exclusive write lock on this experiment."""
