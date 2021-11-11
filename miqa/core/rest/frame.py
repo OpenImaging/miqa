@@ -43,7 +43,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
         return Frame.objects.filter(scan__experiment__project__in=projects)
 
     @action(detail=True)
-    @project_permission_required()
+    @project_permission_required(experiments__scans__frames__pk='pk')
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
         path: Path = frame.path

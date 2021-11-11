@@ -64,10 +64,10 @@ class Project(TimeStampedModel, models.Model):
         super().clean()
 
     def get_read_permission_groups():
-        return ['collaborators', 'tier_1_reviewers', 'tier_2_reviewers']
+        return ['collaborator', 'tier_1_reviewer', 'tier_2_reviewer']
 
     def get_review_permission_groups():
-        return ['tier_1_reviewers', 'tier_2_reviewers']
+        return ['tier_1_reviewer', 'tier_2_reviewer']
 
     def update_group(self, group_name, user_list):
         if group_name not in Project.get_read_permission_groups():
@@ -85,7 +85,7 @@ class Project(TimeStampedModel, models.Model):
 
     class Meta:
         permissions = (
-            ('collaborators', 'Collaborators'),
-            ('tier_1_reviewers', 'Tier 1 Reviewers'),
-            ('tier_2_reviewers', 'Tier 2 Reviewers'),
+            ('collaborator', 'Collaborator'),
+            ('tier_1_reviewer', 'Tier 1 Reviewer'),
+            ('tier_2_reviewer', 'Tier 2 Reviewer'),
         )
