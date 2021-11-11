@@ -39,7 +39,7 @@ class ScanDecisionViewSet(
         )
         return ScanDecision.objects.filter(scan__experiment__project__in=projects)
 
-    @project_permission_required(reviewer_access=True)
+    @project_permission_required(review_access=True, experiments__scans__decisions__pk='pk')
     def create(self, request, *args, **kwargs):
         request_data = request.data
         scan = Scan.objects.get(id=request.data['scan'])

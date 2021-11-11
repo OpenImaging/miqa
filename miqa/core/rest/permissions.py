@@ -13,42 +13,33 @@ from rest_framework.views import View
 from miqa.core.models import Experiment, Project
 
 
-def project_permission_required(
-    read_access=True, review_access=False, superuser_access=False, **kwargs
-):
+def project_permission_required(review_access=False, superuser_access=False, **decorator_kwargs):
     def decorator(view_func):
-        def _wrapped_view(viewset, *args, **kwargs):
-            lookup_mapping = {
-                'ProjectViewSet': 'pk',
-                'ExperimentViewSet': 'experiments__pk',
-                'ScanViewSet': 'experiments__scans__pk',
-                'ScanDecisionViewSet': 'experiments__scans__decisions__pk',
-                'FrameViewSet': 'experiments__scans__frames__pk',
-            }
-            lookup_dict = {lookup_mapping[viewset.__class__.__name__]: kwargs['pk']}
+        def _wrapped_view(viewset, *args, **wrapped_view_kwargs):
+            if decorator_kwargs:
+                lookup_dict = {key: wrapped_view_kwargs[value] for key, value in decorator_kwargs}
+            else:
+                lookup_dict = {'pk': 'pk'}
             project = get_object_or_404(Project, **lookup_dict)
 
             user = viewset.request.user
             user_perms_on_project = get_perms(user, project)
-            has_review_perm = all(
-                [
-                    perm not in user_perms_on_project
-                    for perm in Project.get_review_permission_groups()
-                ]
+            has_review_perm = any(
+                perm in user_perms_on_project for perm in Project.get_review_permission_groups()
             )
-            has_read_perm = all(
-                [perm not in user_perms_on_project for perm in Project.get_read_permission_groups()]
+            has_read_perm = any(
+                perm in user_perms_on_project for perm in Project.get_read_permission_groups()
             )
             error_response = Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if (
                 (superuser_access and not user.is_superuser)
-                or (review_access and has_review_perm)
-                or (read_access and has_read_perm)
+                or (review_access and not has_review_perm)
+                or not has_read_perm
             ):
                 return error_response
 
-            return view_func(viewset, *args, **kwargs)
+            return view_func(viewset, *args, **wrapped_view_kwargs)
 
         return wraps(view_func)(_wrapped_view)
 

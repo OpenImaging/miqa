@@ -55,7 +55,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         )
         return Experiment.objects.filter(project__in=projects)
 
-    @project_permission_required()
+    @project_permission_required(experiments__pk='pk')
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
         experiment_object = self.get_object()
@@ -73,7 +73,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
-    @project_permission_required(review_access=True)
+    @project_permission_required(review_access=True, experiments__pk='pk')
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def lock(self, request, pk=None):
         """Acquire the exclusive write lock on this experiment."""
@@ -108,7 +108,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
-    @project_permission_required(review_access=True)
+    @project_permission_required(review_access=True, experiments__pk='pk')
     @lock.mapping.delete
     def release_lock(self, request, pk=None):
         """Release the exclusive write lock on this experiment."""
