@@ -299,7 +299,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
     loss_function = CombinedLoss(class_weights)
     wandb.config.learning_rate = 9e-5
-    optimizer = torch.optim.Adam(model.parameters(), wandb.config.learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), wandb.config.learning_rate)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.90)
     wandb.watch(model)
 

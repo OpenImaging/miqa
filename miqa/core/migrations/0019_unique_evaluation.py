@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             model_name='evaluation',
             name='frame',
             field=models.OneToOneField(
-                on_delete=django.db.models.deletion.PROTECT,
+                on_delete=django.db.models.deletion.CASCADE,
                 related_name='frame_evaluation',
                 to='core.frame',
             ),
