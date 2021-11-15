@@ -10,7 +10,8 @@ import wandb
 
 logger = logging.getLogger(__name__)
 
-regression_count = 3  # first 3 values are overall QA, SNR and CNR
+regression_count = 1  # use QA, ignore SNR and CNR
+regression_count_training = 2  # use QA, combine SNR and CNR into proxy QA
 artifacts = [
     'normal_variants',
     'lesions',
@@ -154,11 +155,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
 
 
 def label_results(result):
-    labeled_results = {
-        'overall_quality': clamp(result[0] / 10.0, 0.0, 1.0),
-        'signal_to_noise_ratio': clamp(result[1] / 10.0, 0.0, 1.0),
-        'contrast_to_noise_ratio': clamp(result[2] / 10.0, 0.0, 1.0),
-    }
+    labeled_results = {'overall_quality': clamp(result[0] / 10.0, 0.0, 1.0)}
     for artifact_name, value in zip(artifacts, result[regression_count:]):
         labeled_results[artifact_name] = clamp(value, 0.0, 1.0)
     return labeled_results
