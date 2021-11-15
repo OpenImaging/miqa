@@ -15,6 +15,7 @@ from nn_inference import (
     get_image_transforms,
     get_model,
     regression_count,
+    regression_count_training,
 )
 import numpy as np
 import pandas as pd
@@ -156,26 +157,19 @@ class CombinedLoss(torch.nn.Module):
         self.presence_count = binary_class_weights.shape[-1]  # indicators of presence of artifacts
 
     def forward(self, output, target):
-        assert output.shape == target.shape, "output & target size don't match"
+        assert output.shape[0] == target.shape[0], "output & target size don't match"
         assert output.shape[-1] == regression_count + self.presence_count
+        assert target.shape[-1] == regression_count_training + self.presence_count
 
         qa_out = output[..., 0]
         qa_target = target[..., 0]
         qa_loss = torch.mean((qa_out - qa_target) ** 2)
 
-        snr_out = output[..., 1]
-        snr_target = target[..., 1]
-        snr_loss = torch.mean((snr_out - snr_target) ** 2)
-
-        cnr_out = output[..., 2]
-        cnr_target = target[..., 2]
-        cnr_loss = torch.mean((cnr_out - cnr_target) ** 2)
-
-        # overall QA is more important than SNR and CNR
-        loss = 10 * qa_loss + snr_loss + cnr_loss
+        # overall QA is more important than individual artifacts
+        loss = 10 * qa_loss
 
         for i in range(self.presence_count):
-            i_target = target[..., i + regression_count]
+            i_target = target[..., i + regression_count_training]
             if i_target != -1:
                 i_output = output[..., i + regression_count]
                 # make them required dimension (1D -> 2D)
@@ -213,7 +207,7 @@ def create_train_and_test_data_loaders(df, count_train):
         if exists:
             images.append(row.file_path)
 
-            row_targets = [row.overall_qa_assessment, row.snr, row.cnr]
+            row_targets = [row.overall_qa_assessment, (row.snr + row.cnr) / 2.0]  # QA, proxyQA
             for i in range(len(artifacts)):
                 artifact_value = row[artifact_column_indices[i]]
                 converted_result = convert_bool_to_int(artifact_value)
@@ -248,9 +242,9 @@ def create_train_and_test_data_loaders(df, count_train):
     count1 = [0] * class_count
     for s in range(count_train):
         for i in range(class_count):
-            if regression_targets[s][i + regression_count] == 0:
+            if regression_targets[s][i + regression_count_training] == 0:
                 count0[i] += 1
-            elif regression_targets[s][i + regression_count] == 1:
+            elif regression_targets[s][i + regression_count_training] == 1:
                 count1[i] += 1
             # else ignore the missing data
 
