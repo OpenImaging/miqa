@@ -17,9 +17,11 @@ def project_permission_required(review_access=False, superuser_access=False, **d
     def decorator(view_func):
         def _wrapped_view(viewset, *args, **wrapped_view_kwargs):
             if decorator_kwargs:
-                lookup_dict = {key: wrapped_view_kwargs[value] for key, value in decorator_kwargs}
+                lookup_dict = {
+                    key: wrapped_view_kwargs[value] for key, value in decorator_kwargs.items()
+                }
             else:
-                lookup_dict = {'pk': 'pk'}
+                lookup_dict = {'pk': wrapped_view_kwargs['pk']}
             project = get_object_or_404(Project, **lookup_dict)
 
             user = viewset.request.user

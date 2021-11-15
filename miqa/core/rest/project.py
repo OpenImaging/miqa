@@ -2,15 +2,14 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
-from miqa.core.tasks import export_data, import_data
-
 from miqa.core.rest.permissions import project_permission_required
+from miqa.core.tasks import export_data, import_data
 
 
 class ProjectRetrieveSerializer(serializers.ModelSerializer):
@@ -54,6 +53,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         projects = get_objects_for_user(
             self.request.user,
             [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
         )
         if self.action == 'retrieve':
             return projects.prefetch_related(
@@ -83,13 +83,10 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         url_path='settings',
         url_name='settings',
         methods=['GET', 'PUT'],
-        permission_classes=[IsAdminUser],
     )
     def settings_(self, request, **kwargs):
         project: Project = self.get_object()
-        if request.method == 'GET':
-            serializer = ProjectSettingsSerializer(instance=project)
-        elif request.method == 'PUT':
+        if request.method == 'PUT':
             if not request.user.is_superuser:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -105,7 +102,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
             project.export_path = request.data['exportPath']
             project.full_clean()
             project.save()
-            serializer = ProjectSettingsSerializer(project)
+        serializer = ProjectSettingsSerializer(project)
         return Response(serializer.data)
 
     @swagger_auto_schema(

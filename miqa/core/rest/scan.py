@@ -29,5 +29,6 @@ class ScanViewSet(ReadOnlyModelViewSet):
         projects = get_objects_for_user(
             self.request.user,
             [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
         )
         return Scan.objects.filter(experiment__project__in=projects)

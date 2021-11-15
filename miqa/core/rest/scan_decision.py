@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,7 +7,6 @@ from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Project, Scan, ScanDecision
 from miqa.core.rest.user import UserSerializer
-from miqa.core.rest.permissions import project_permission_required
 
 from .permissions import UserHoldsExperimentLock, ensure_experiment_lock
 
@@ -36,13 +35,16 @@ class ScanDecisionViewSet(
         projects = get_objects_for_user(
             self.request.user,
             [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
         )
         return ScanDecision.objects.filter(scan__experiment__project__in=projects)
 
-    @project_permission_required(review_access=True, experiments__scans__decisions__pk='pk')
-    def create(self, request, *args, **kwargs):
+    # cannot use project_permission_required decorator because no pk is provided
+    def create(self, request, **kwargs):
         request_data = request.data
         scan = Scan.objects.get(id=request.data['scan'])
+        if get_perms(request.user, scan.experiment.project) == []:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         request_data['scan'] = scan
         request_data['creator'] = request.user
 

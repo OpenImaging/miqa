@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment, Project, ScanDecision
-from miqa.core.rest.scan import ScanSerializer
 from miqa.core.rest.permissions import project_permission_required
+from miqa.core.rest.scan import ScanSerializer
 
 from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
 
@@ -52,6 +52,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         projects = get_objects_for_user(
             self.request.user,
             [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
         )
         return Experiment.objects.filter(project__in=projects)
 
