@@ -39,6 +39,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
         projects = get_objects_for_user(
             self.request.user,
             [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
         )
         return Frame.objects.filter(scan__experiment__project__in=projects)
 
