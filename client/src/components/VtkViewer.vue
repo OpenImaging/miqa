@@ -23,7 +23,7 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -99,6 +99,9 @@ export default {
     },
     currentScan() {
       this.initializeSlice();
+    },
+    showCrosshairs() {
+      this.updateCrosshairs();
     },
   },
   mounted() {
@@ -255,50 +258,52 @@ export default {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
-        const worldLines = this.convertWorldSlicesToLines();
-        const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
-        displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
-        displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
-        displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
-        displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
-        if (this.name === 'x') {
-          ctx.strokeStyle = '#b71c1c';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
+        if (this.showCrosshairs) {
+          const worldLines = this.convertWorldSlicesToLines();
+          const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
+          displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
+          displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
+          displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
+          displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
+          if (this.name === 'x') {
+            ctx.strokeStyle = '#b71c1c';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine1[0]);
+            ctx.lineTo(...displayLine1[1]);
+            ctx.stroke();
 
-          ctx.strokeStyle = '#4caf50';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
-        }
-        if (this.name === 'y') {
-          ctx.strokeStyle = '#b71c1c';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
+            ctx.strokeStyle = '#4caf50';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine2[0]);
+            ctx.lineTo(...displayLine2[1]);
+            ctx.stroke();
+          }
+          if (this.name === 'y') {
+            ctx.strokeStyle = '#b71c1c';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine1[0]);
+            ctx.lineTo(...displayLine1[1]);
+            ctx.stroke();
 
-          ctx.strokeStyle = '#fdd835';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
-        }
-        if (this.name === 'z') {
-          ctx.strokeStyle = '#4caf50';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
+            ctx.strokeStyle = '#fdd835';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine2[0]);
+            ctx.lineTo(...displayLine2[1]);
+            ctx.stroke();
+          }
+          if (this.name === 'z') {
+            ctx.strokeStyle = '#4caf50';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine1[0]);
+            ctx.lineTo(...displayLine1[1]);
+            ctx.stroke();
 
-          ctx.strokeStyle = '#fdd835';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
+            ctx.strokeStyle = '#fdd835';
+            ctx.beginPath();
+            ctx.moveTo(...displayLine2[0]);
+            ctx.lineTo(...displayLine2[1]);
+            ctx.stroke();
+          }
         }
       }
     },
