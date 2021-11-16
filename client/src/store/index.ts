@@ -288,6 +288,7 @@ const initState = {
   screenshots: [],
   scanCachedPercentage: 0,
   currentAutoEvaluation: {},
+  showCrosshairs: true,
   xSlice: 0,
   ySlice: 0,
   zSlice: 0,
@@ -466,6 +467,9 @@ const {
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
     },
+    setShowCrosshairs(state, show){
+      state.showCrosshairs = show;
+    }
   },
   actions: {
     reset({ state, commit }) {

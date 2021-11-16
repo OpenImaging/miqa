@@ -28,6 +28,7 @@ export default {
     ...mapState([
       'proxyManager',
       'scanCachedPercentage',
+      'showCrosshairs',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -121,6 +122,9 @@ export default {
   methods: {
     ...mapActions([
       'setLock',
+    ]),
+    ...mapMutations([
+      'setShowCrosshairs',
     ]),
     async switchLock(newExp, oldExp = null) {
       if (oldExp) {
@@ -509,6 +513,19 @@ export default {
                             />
                           </template>
                         </v-slider>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="4">
+                        Display crosshairs
+                      </v-col>
+                      <v-col cols="8">
+                        <v-checkbox
+                          :input-value="showCrosshairs"
+                          @change="setShowCrosshairs"
+                          hide-details
+                          class="shrink ma-0 pa-0 ml-n2"
+                        />
                       </v-col>
                     </v-row>
                     <v-row class="py-3">
