@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from miqa.core.models import Project, Scan, ScanDecision
 from miqa.core.rest.user import UserSerializer
 
-from .permissions import UserHoldsExperimentLock, ensure_experiment_lock
+from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_review_perm
 
 
 class ScanDecisionSerializer(serializers.ModelSerializer):
@@ -19,6 +19,7 @@ class ScanDecisionSerializer(serializers.ModelSerializer):
         ref_name = 'scan_decision'
 
     creator = UserSerializer()
+    created = serializers.DateTimeField(format='%d-%m-%Y')
 
 
 class ScanDecisionViewSet(
@@ -43,8 +44,10 @@ class ScanDecisionViewSet(
     def create(self, request, **kwargs):
         request_data = request.data
         scan = Scan.objects.get(id=request.data['scan'])
-        if get_perms(request.user, scan.experiment.project) == []:
+
+        if not has_review_perm(get_perms(request.user, scan.experiment.project)):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         request_data['scan'] = scan
         request_data['creator'] = request.user
 

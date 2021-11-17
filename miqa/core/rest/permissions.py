@@ -13,6 +13,14 @@ from rest_framework.views import View
 from miqa.core.models import Experiment, Project
 
 
+def has_review_perm(user_perms_on_project):
+    return any(perm in user_perms_on_project for perm in Project.get_review_permission_groups())
+
+
+def has_read_perm(user_perms_on_project):
+    return any(perm in user_perms_on_project for perm in Project.get_read_permission_groups())
+
+
 def project_permission_required(review_access=False, superuser_access=False, **decorator_kwargs):
     def decorator(view_func):
         def _wrapped_view(viewset, *args, **wrapped_view_kwargs):
@@ -26,18 +34,14 @@ def project_permission_required(review_access=False, superuser_access=False, **d
 
             user = viewset.request.user
             user_perms_on_project = get_perms(user, project)
-            has_review_perm = any(
-                perm in user_perms_on_project for perm in Project.get_review_permission_groups()
-            )
-            has_read_perm = any(
-                perm in user_perms_on_project for perm in Project.get_read_permission_groups()
-            )
+            review_perm = has_review_perm(user_perms_on_project)
+            read_perm = has_read_perm(user_perms_on_project)
             error_response = Response(status=status.HTTP_401_UNAUTHORIZED)
 
             if (
                 (superuser_access and not user.is_superuser)
-                or (review_access and not has_review_perm)
-                or not has_read_perm
+                or (review_access and not review_perm)
+                or not read_perm
             ):
                 return error_response
 
