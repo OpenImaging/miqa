@@ -6,7 +6,8 @@ from miqa.core.rest.permissions import has_read_perm, has_review_perm
 
 @pytest.mark.django_db
 def test_projects_list(user_api_client, project, user):
-    resp = user_api_client().get('/api/v1/projects')
+    user_api_client = user_api_client()
+    resp = user_api_client.get('/api/v1/projects')
     assert resp.status_code == 200
     if not has_read_perm(get_perms(user, project)):
         assert resp.data == {
@@ -37,16 +38,18 @@ def test_project_settings_get(user_api_client, project, user):
 @pytest.mark.django_db
 def test_project_settings_put(user_api_client, project, user):
     user_api_client = user_api_client()
+    my_perms = get_perms(user, project)
+    expected_perms = {
+        'collaborator': [user.username] if 'collaborator' in my_perms else [],
+        'tier_1_reviewer': [user.username] if 'tier_1_reviewer' in my_perms else [],
+        'tier_2_reviewer': [user.username] if 'tier_2_reviewer' in my_perms else [],
+    }
     resp = user_api_client.put(
         f'/api/v1/projects/{project.id}/settings',
         data={
             'importPath': '/new/fake/path',
             'exportPath': '/new/fake/path',
-            'permissions': {
-                'collaborator': [],
-                'tier_1_reviewer': [user.username],
-                'tier_2_reviewer': [],
-            },
+            'permissions': expected_perms,
         },
     )
     if not user.is_superuser:
@@ -56,13 +59,13 @@ def test_project_settings_put(user_api_client, project, user):
         assert user_api_client.get(f'/api/v1/projects/{project.id}/settings').data == {
             'importPath': '/new/fake/path',
             'exportPath': '/new/fake/path',
-            'permissions': {
-                'collaborator': [],
-                'tier_1_reviewer': [user.username],
-                'tier_2_reviewer': [],
-            },
+            'permissions': expected_perms,
         }
-        assert has_read_perm(get_perms(user, project))
+        my_new_perms = get_perms(user, project)
+        if 'collaborator' in my_perms:
+            assert has_read_perm(my_new_perms)
+        elif 'tier_1_reviewer' in my_perms or 'tier_2_reviewer' in my_perms:
+            assert has_review_perm(my_new_perms)
 
 
 @pytest.mark.django_db
