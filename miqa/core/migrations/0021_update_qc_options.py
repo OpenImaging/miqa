@@ -13,6 +13,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='scandecision',
             name='decision',
-            field=models.CharField(choices=[('U', 'Usable'), ('UE', 'Usable-Extra'), ('Q?', 'Questionable'), ('UN', 'Unusable')], max_length=2),
+            field=models.CharField(
+                choices=[
+                    ('U', 'Usable'),
+                    ('UE', 'Usable-Extra'),
+                    ('Q?', 'Questionable'),
+                    ('UN', 'Unusable'),
+                ],
+                max_length=2,
+            ),
         ),
     ]
