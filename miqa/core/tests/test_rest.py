@@ -324,7 +324,7 @@ def test_create_scan_decision_without_lock_fails(user_api_client, scan, user):
         '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
-            'decision': 'Good',
+            'decision': 'U',
         },
     )
     if not has_review_perm(get_perms(user, scan.experiment.project)):
@@ -343,7 +343,7 @@ def test_create_scan_decision_with_lock(user_api_client, scan, user):
         '/api/v1/scan-decisions',
         data={
             'scan': scan.id,
-            'decision': 'Good',
+            'decision': 'U',
             'note': '',
         },
     )
@@ -353,4 +353,4 @@ def test_create_scan_decision_with_lock(user_api_client, scan, user):
         assert resp.status_code == 201
         decisions = scan.decisions.all()
         assert len(decisions) == 1
-        assert decisions[0].decision == 'Good'
+        assert decisions[0].decision == 'U'
