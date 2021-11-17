@@ -19,6 +19,7 @@
     "axios": "^0.21.4",
     "bluebird": "^3.5.5",
     "direct-vuex": "^0.12.1",
+    "gl-matrix": "^3.4.3",
     "idle-vue": "^2.0.5",
     "itk": "14.0.0",
     "lodash": "^4.17.21",

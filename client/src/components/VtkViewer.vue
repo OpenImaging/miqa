@@ -1,10 +1,12 @@
 <script>
 import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
+import { vec3 } from 'gl-matrix';
 
 import { cleanFrameName } from '@/utils/helper';
 import fill2DView from '../utils/fill2DView';
 import { getView } from '../vtk/viewManager';
+import { VIEW_ORIENTATIONS } from '../vtk/constants';
 
 export default {
   name: 'VtkViewer',
@@ -107,6 +109,7 @@ export default {
   mounted() {
     this.initializeView();
     this.initializeSlice();
+    this.initializeCamera();
     this.updateCrosshairs();
     this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
       this.updateCrosshairs();
@@ -150,6 +153,30 @@ export default {
       setTimeout(() => {
         this.resized = true;
       });
+    },
+    initializeCamera() {
+      const orientation = this.representation.getInputDataSet().getDirection();
+      const camera = this.view.getCamera();
+
+      let newOrientation = [];
+      if (this.name === 'x') {
+        newOrientation = orientation.slice(0, 3);
+      } else if (this.name === 'y') {
+        newOrientation = orientation.slice(3, 6);
+      } else if (this.name === 'z') {
+        newOrientation = orientation.slice(6, 9);
+      }
+      newOrientation = newOrientation.map(
+        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
+      );
+      camera.setDirectionOfProjection(...newOrientation);
+
+      const newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
+      vec3.transformMat3(newViewUp, newViewUp, orientation);
+      camera.setViewUp(newViewUp);
+
+      this.view.resetCamera();
+      fill2DView(this.view);
     },
     cleanup() {
       if (this.modifiedSubscription) {
