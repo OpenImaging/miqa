@@ -57,29 +57,18 @@ export default {
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
-      const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision.toLowerCase();
-      switch (rating) {
-        case 'good':
-          return {
-            decision: 'G',
-            css: 'green--text',
-          };
-        case 'other':
-          return {
-            decision: 'O',
-            css: 'blue--text',
-          };
-        case 'bad':
-          return {
-            decision: 'B',
-            css: 'red--text',
-          };
-        default: // caught be malformed decisions
-          return {
-            decision: '?',
-            css: 'black--text',
-          };
+      const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision;
+      let color = 'black--text';
+      if (rating === 'U') {
+        color = 'green--text';
       }
+      if (rating === 'UN') {
+        color = 'red--text';
+      }
+      return {
+        decision: rating,
+        color,
+      };
     },
   },
 };
@@ -134,9 +123,9 @@ export default {
                 {{ scan.name }}
                 <span
                   v-if="scan.decisions.length !== 0"
-                  :class="scan.css"
+                  :class="scan.color"
                   small
-                >&nbsp;&nbsp;({{ scan.decision }})</span>
+                >&nbsp;&nbsp;<b>({{ scan.decision }})</b></span>
               </v-btn>
             </li>
           </ul>
