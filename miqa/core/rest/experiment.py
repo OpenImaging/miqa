@@ -5,6 +5,7 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.fields import UUIDField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -39,6 +40,7 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
     scans = ScanSerializer(many=True)
     lock_owner = LockOwnerSerializer()
+    project = serializers.PrimaryKeyRelatedField(read_only=True, pk_field=UUIDField())
 
 
 class ExperimentViewSet(ReadOnlyModelViewSet):
