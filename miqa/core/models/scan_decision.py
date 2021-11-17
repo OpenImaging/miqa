@@ -12,9 +12,10 @@ if TYPE_CHECKING:
 
 
 DECISION_CHOICES = [
-    ('Good', 'G'),
-    ('Bad', 'B'),
-    ('Other', 'O'),
+    ('U', 'Usable'),
+    ('UE', 'Usable-Extra'),
+    ('Q?', 'Questionable'),
+    ('UN', 'Unusable'),
 ]
 
 
@@ -29,7 +30,7 @@ class ScanDecision(models.Model):
     created = models.DateTimeField(default=timezone.now)
     scan = models.ForeignKey('Scan', related_name='decisions', on_delete=models.CASCADE)
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
-    decision = models.CharField(max_length=20, choices=DECISION_CHOICES, blank=False)
+    decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
 
     @property
