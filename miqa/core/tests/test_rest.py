@@ -1,14 +1,14 @@
 from guardian.shortcuts import get_perms
 import pytest
 
-from miqa.core.models import Project
+from miqa.core.rest.permissions import has_read_perm, has_review_perm
 
 
 @pytest.mark.django_db
 def test_projects_list(user_api_client, project, user):
     resp = user_api_client().get('/api/v1/projects')
     assert resp.status_code == 200
-    if get_perms(user, project) == []:
+    if not has_read_perm(get_perms(user, project)):
         assert resp.data == {
             'count': 0,
             'next': None,
@@ -27,7 +27,7 @@ def test_projects_list(user_api_client, project, user):
 @pytest.mark.django_db
 def test_project_settings_get(user_api_client, project, user):
     resp = user_api_client().get(f'/api/v1/projects/{project.id}/settings')
-    if get_perms(user, project) == []:
+    if not has_read_perm(get_perms(user, project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 200
@@ -62,6 +62,7 @@ def test_project_settings_put(user_api_client, project, user):
                 'tier_2_reviewer': [],
             },
         }
+        assert has_read_perm(get_perms(user, project))
 
 
 @pytest.mark.django_db
@@ -84,16 +85,39 @@ def test_settings_endpoint_requires_superuser(user_api_client, project, user):
 def test_experiments_list(user_api_client, experiment, user):
     resp = user_api_client(project=experiment.project).get('/api/v1/experiments')
     assert resp.status_code == 200
-    if get_perms(user, experiment.project) == []:
-        assert resp.data['count'] == 0
+    if not has_read_perm(get_perms(user, experiment.project)):
+        assert resp.data == {
+            'count': 0,
+            'next': None,
+            'previous': None,
+            'results': [],
+        }
     else:
-        assert resp.data['count'] == 1
+        expected_result = [
+            {
+                'id': experiment.id,
+                'name': experiment.name,
+                'lock_owner': None,
+                'scans': [],
+                'project': experiment.project.id,
+                'note': experiment.note,
+            }
+        ]
+        print(resp.data['results'])
+        print()
+        print(expected_result)
+        assert resp.data == {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': expected_result,
+        }
 
 
 @pytest.mark.django_db
 def test_experiment_retrieve(user_api_client, experiment, user):
     resp = user_api_client(project=experiment.project).get(f'/api/v1/experiments/{experiment.id}')
-    if get_perms(user, experiment.project) == []:
+    if not has_read_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 404
     else:
         assert resp.status_code == 200
@@ -112,10 +136,29 @@ def test_experiment_retrieve(user_api_client, experiment, user):
 def test_scans_list(user_api_client, scan, user):
     resp = user_api_client(project=scan.experiment.project).get('/api/v1/scans')
     assert resp.status_code == 200
-    if get_perms(user, scan.experiment.project) == []:
-        assert resp.data['count'] == 0
+    if not has_read_perm(get_perms(user, scan.experiment.project)):
+        assert resp.data == {
+            'count': 0,
+            'next': None,
+            'previous': None,
+            'results': [],
+        }
     else:
-        assert resp.data['count'] == 1
+        expected_result = [
+            {
+                'id': str(scan.id),
+                'name': scan.name,
+                'decisions': [],
+                'frames': [],
+                'scan_type': scan.scan_type,
+            }
+        ]
+        assert resp.data == {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': expected_result,
+        }
 
 
 @pytest.mark.django_db
@@ -124,20 +167,62 @@ def test_scan_decisions_list(user_api_client, scan_decision, user):
         '/api/v1/scan-decisions'
     )
     assert resp.status_code == 200
-    if get_perms(user, scan_decision.scan.experiment.project) == []:
-        assert resp.data['count'] == 0
+    if not has_read_perm(get_perms(user, scan_decision.scan.experiment.project)):
+        assert resp.data == {
+            'count': 0,
+            'next': None,
+            'previous': None,
+            'results': [],
+        }
     else:
-        assert resp.data['count'] == 1
+        expected_result = [
+            {
+                'id': str(scan_decision.id),
+                'decision': scan_decision.decision,
+                'creator': {
+                    'id': scan_decision.creator.id,
+                    'username': scan_decision.creator.username,
+                    'email': scan_decision.creator.email,
+                    'is_superuser': scan_decision.creator.is_superuser,
+                    'first_name': scan_decision.creator.first_name,
+                    'last_name': scan_decision.creator.last_name,
+                },
+                'created': scan_decision.created.strftime('%d-%m-%Y'),
+                'note': scan_decision.note,
+            }
+        ]
+        assert resp.data == {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': expected_result,
+        }
 
 
 @pytest.mark.django_db
 def test_frames_list(user_api_client, frame, user):
     resp = user_api_client(project=frame.scan.experiment.project).get('/api/v1/frames')
     assert resp.status_code == 200
-    if get_perms(user, frame.scan.experiment.project) == []:
-        assert resp.data['count'] == 0
+    if not has_read_perm(get_perms(user, frame.scan.experiment.project)):
+        assert resp.data == {
+            'count': 0,
+            'next': None,
+            'previous': None,
+            'results': [],
+        }
     else:
-        assert resp.data['count'] == 1
+        assert resp.data == {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': [
+                {
+                    'id': frame.id,
+                    'frame_number': frame.frame_number,
+                    'frame_evaluation': None,
+                }
+            ],
+        }
 
 
 @pytest.mark.django_db
@@ -151,10 +236,7 @@ def test_experiment_lock_acquire(user_api_client, experiment, user):
     resp = user_api_client(project=experiment.project).post(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
-    if not any(
-        perm in Project.get_review_permission_groups()
-        for perm in get_perms(user, experiment.project)
-    ):
+    if not has_review_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 200
@@ -169,10 +251,7 @@ def test_experiment_lock_reacquire_ok(user_api_client, experiment_factory, user)
     resp = user_api_client(project=experiment.project).post(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
-    if not any(
-        perm in Project.get_review_permission_groups()
-        for perm in get_perms(user, experiment.project)
-    ):
+    if not has_review_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 200
@@ -185,10 +264,7 @@ def test_experiment_lock_denied(user_api_client, experiment_factory, user_factor
     resp = user_api_client(project=experiment.project).post(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
-    if not any(
-        perm in Project.get_review_permission_groups()
-        for perm in get_perms(user, experiment.project)
-    ):
+    if not has_review_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 409
@@ -203,10 +279,7 @@ def test_experiment_lock_release(user_api_client, experiment_factory, user):
     resp = user_api_client(project=experiment.project).delete(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
-    if not any(
-        perm in Project.get_review_permission_groups()
-        for perm in get_perms(user, experiment.project)
-    ):
+    if not has_review_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 200
@@ -224,10 +297,7 @@ def test_experiment_lock_only_owner_can_release(
     resp = user_api_client(project=experiment.project).delete(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
-    if not any(
-        perm in Project.get_review_permission_groups()
-        for perm in get_perms(user, experiment.project)
-    ):
+    if not has_review_perm(get_perms(user, experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 409
@@ -239,27 +309,10 @@ def test_experiment_lock_only_owner_can_release(
 @pytest.mark.django_db
 def test_read_without_lock_ok(user_api_client, scan_decision, user):
     resp = user_api_client().get(f'/api/v1/scan-decisions/{scan_decision.id}')
-    if get_perms(user, scan_decision.scan.experiment.project) == []:
+    if not has_read_perm(get_perms(user, scan_decision.scan.experiment.project)):
         assert resp.status_code == 404
     else:
         assert resp.status_code == 200
-
-
-@pytest.mark.django_db
-def test_create_note_without_lock_fails(user_api_client, scan, user):
-    resp = user_api_client().post(
-        '/api/v1/scan-decisions',
-        data={
-            'scan': scan.id,
-            'decision': 'Good',
-            'note': 'hello',
-        },
-    )
-    if get_perms(user, scan.experiment.project) == []:
-        assert resp.status_code == 401
-    else:
-        assert resp.status_code == 403
-        assert resp.data['detail'] == 'You must lock the experiment before performing this action.'
 
 
 @pytest.mark.django_db
@@ -271,7 +324,7 @@ def test_create_scan_decision_without_lock_fails(user_api_client, scan, user):
             'decision': 'Good',
         },
     )
-    if get_perms(user, scan.experiment.project) == []:
+    if not has_review_perm(get_perms(user, scan.experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 403
@@ -291,7 +344,7 @@ def test_create_scan_decision_with_lock(user_api_client, scan, user):
             'note': '',
         },
     )
-    if get_perms(user, scan.experiment.project) == []:
+    if not has_review_perm(get_perms(user, scan.experiment.project)):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 201
