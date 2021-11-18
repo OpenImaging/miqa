@@ -148,28 +148,6 @@ export default {
           {{ option.label }} ({{ option.code }})
         </v-btn>
       </v-col>
-      <!-- <v-col
-        cols="4"
-        style="text-align: center"
-      >
-        <v-btn
-          @click="handleCommentSave('Bad')"
-          color="red darken-3 white--text"
-        >
-          BAD (B)
-        </v-btn>
-      </v-col>
-      <v-col
-        cols="4"
-        style="text-align: center"
-      >
-        <v-btn
-          @click="handleCommentSave('Other')"
-          color="grey darken-3 white--text"
-        >
-          OTHER (O)
-        </v-btn>
-      </v-col> -->
     </v-row>
   </div>
 </template>

@@ -279,6 +279,13 @@ export default {
       );
       return [mappedLine0, mappedLine1];
     },
+    drawLine(ctx, point1, point2, color) {
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(...point1);
+      ctx.lineTo(...point2);
+      ctx.stroke();
+    },
     updateCrosshairs() {
       const myCanvas = document.getElementById(`crosshairs-${this.name}`);
       if (myCanvas.getContext) {
@@ -293,43 +300,16 @@ export default {
           displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
           displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
           if (this.name === 'x') {
-            ctx.strokeStyle = '#b71c1c';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine1[0]);
-            ctx.lineTo(...displayLine1[1]);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#4caf50';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine2[0]);
-            ctx.lineTo(...displayLine2[1]);
-            ctx.stroke();
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#4caf50');
           }
           if (this.name === 'y') {
-            ctx.strokeStyle = '#b71c1c';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine1[0]);
-            ctx.lineTo(...displayLine1[1]);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#fdd835';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine2[0]);
-            ctx.lineTo(...displayLine2[1]);
-            ctx.stroke();
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
           }
           if (this.name === 'z') {
-            ctx.strokeStyle = '#4caf50';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine1[0]);
-            ctx.lineTo(...displayLine1[1]);
-            ctx.stroke();
-
-            ctx.strokeStyle = '#fdd835';
-            ctx.beginPath();
-            ctx.moveTo(...displayLine2[0]);
-            ctx.lineTo(...displayLine2[1]);
-            ctx.stroke();
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#4caf50');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
           }
         }
       }
