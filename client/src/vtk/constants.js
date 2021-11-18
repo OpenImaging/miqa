@@ -35,7 +35,7 @@ export const VIEW_ORIENTATIONS = {
   },
   x: {
     axis: 0,
-    orientation: 1,
+    orientation: -1,
     viewUp: [0, 0, 1],
   },
   y: {
@@ -46,6 +46,6 @@ export const VIEW_ORIENTATIONS = {
   z: {
     axis: 2,
     orientation: -1,
-    viewUp: [0, -1, 0],
+    viewUp: [0, 1, 0],
   },
 };

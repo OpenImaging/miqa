@@ -56,7 +56,7 @@ export default {
           v-bind="attrs"
           v-on="on"
         >
-          {{ results.overall_quality.toFixed(2) * 100 }}%
+          {{ Math.round(results.overall_quality * 100) }}%
           <v-img
             class="float-right ml-3"
             src="evaluation-details.png"
@@ -96,7 +96,7 @@ export default {
               :class="convertOverallQualityToColor()"
               cols="1"
             >
-              {{ results.overall_quality.toFixed(2) * 100 }}%
+              {{ Math.round(results.overall_quality * 100) }}%
             </v-col>
           </v-row>
           <v-row>
@@ -139,7 +139,7 @@ export default {
               :class="convertValueToColor(value)"
               cols="1"
             >
-              {{ value.toFixed(2) * 100 }}%
+              {{ Math.round(value * 100) }}%
             </v-col>
           </v-row>
         </v-container>
