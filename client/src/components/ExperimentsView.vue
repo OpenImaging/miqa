@@ -123,9 +123,9 @@ export default {
                 {{ scan.name }}
                 <span
                   v-if="scan.decisions.length !== 0"
-                  :class="scan.color"
+                  :class="scan.color + ' pl-3'"
                   small
-                >&nbsp;&nbsp;<b>({{ scan.decision }})</b></span>
+                >({{ scan.decision }})</span>
               </v-btn>
             </li>
           </ul>
