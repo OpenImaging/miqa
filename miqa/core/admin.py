@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib import admin
+from guardian.admin import GuardedModelAdmin
 
 from .models import Evaluation, Experiment, Frame, Project, Scan, ScanDecision
 
@@ -38,7 +39,7 @@ class EvaluationAdmin(admin.ModelAdmin):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(GuardedModelAdmin):
     list_display = (
         'id',
         'created',

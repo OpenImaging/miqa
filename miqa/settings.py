@@ -40,7 +40,16 @@ class MiqaMixin(ConfigMixin):
         # Install additional apps
         configuration.INSTALLED_APPS += [
             's3_file_field',
+            'guardian',
         ]
+
+        # guardian's authentication backend
+        configuration.AUTHENTICATION_BACKENDS += [
+            'guardian.backends.ObjectPermissionBackend',
+        ]
+
+        # disable guardian anonymous user
+        configuration.ANONYMOUS_USER_NAME = None
 
         # oauth session
         configuration.OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'] = 1800  # 30 minutes

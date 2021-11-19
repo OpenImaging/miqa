@@ -1,13 +1,14 @@
 from django_filters import rest_framework as filters
+from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Scan, ScanDecision
+from miqa.core.models import Project, Scan, ScanDecision
 from miqa.core.rest.user import UserSerializer
 
-from .permissions import UserHoldsExperimentLock, ensure_experiment_lock
+from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_review_perm
 
 
 class ScanDecisionSerializer(serializers.ModelSerializer):
@@ -18,28 +19,38 @@ class ScanDecisionSerializer(serializers.ModelSerializer):
         ref_name = 'scan_decision'
 
     creator = UserSerializer()
+    created = serializers.DateTimeField(format='%d-%m-%Y')
 
 
 class ScanDecisionViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
     mixins.ListModelMixin,
     GenericViewSet,
 ):
-    queryset = ScanDecision.objects.select_related('scan__experiment__project')
-
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['scan', 'creator']
-
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
-
     serializer_class = ScanDecisionSerializer
 
-    def create(self, request, *args, **kwargs):
+    def get_queryset(self):
+        projects = get_objects_for_user(
+            self.request.user,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
+        )
+        return ScanDecision.objects.filter(scan__experiment__project__in=projects)
+
+    # cannot use project_permission_required decorator because no pk is provided
+    def create(self, request, **kwargs):
         request_data = request.data
-        request_data['scan'] = Scan.objects.get(id=request.data['scan'])
+        scan = Scan.objects.get(id=request.data['scan'])
+
+        if not has_review_perm(get_perms(request.user, scan.experiment.project)):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        request_data['scan'] = scan
         request_data['creator'] = request.user
+
         ensure_experiment_lock(request_data['scan'], request_data['creator'])
         new_obj = ScanDecision(**request_data)
         new_obj.save()

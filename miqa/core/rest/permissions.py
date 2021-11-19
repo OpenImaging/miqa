@@ -1,12 +1,55 @@
 from django.contrib.auth.models import User
 from django.db.models import Model
+from django.shortcuts import get_object_or_404
+from django.utils.functional import wraps
+from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import View
 
-from miqa.core.models import Experiment
+from miqa.core.models import Experiment, Project
+
+
+def has_review_perm(user_perms_on_project):
+    return any(perm in user_perms_on_project for perm in Project.get_review_permission_groups())
+
+
+def has_read_perm(user_perms_on_project):
+    return any(perm in user_perms_on_project for perm in Project.get_read_permission_groups())
+
+
+def project_permission_required(review_access=False, superuser_access=False, **decorator_kwargs):
+    def decorator(view_func):
+        def _wrapped_view(viewset, *args, **wrapped_view_kwargs):
+            if decorator_kwargs:
+                lookup_dict = {
+                    key: wrapped_view_kwargs[value] for key, value in decorator_kwargs.items()
+                }
+            else:
+                lookup_dict = {'pk': wrapped_view_kwargs['pk']}
+            project = get_object_or_404(Project, **lookup_dict)
+
+            user = viewset.request.user
+            user_perms_on_project = get_perms(user, project)
+            review_perm = has_review_perm(user_perms_on_project)
+            read_perm = has_read_perm(user_perms_on_project)
+            error_response = Response(status=status.HTTP_401_UNAUTHORIZED)
+
+            if (
+                (superuser_access and not user.is_superuser)
+                or (review_access and not review_perm)
+                or not read_perm
+            ):
+                return error_response
+
+            return view_func(viewset, *args, **wrapped_view_kwargs)
+
+        return wraps(view_func)(_wrapped_view)
+
+    return decorator
 
 
 class ArchivedProject(APIException):
