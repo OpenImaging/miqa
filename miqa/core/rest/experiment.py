@@ -2,13 +2,16 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.fields import UUIDField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Experiment, ScanDecision
+from miqa.core.models import Experiment, Project, ScanDecision
+from miqa.core.rest.permissions import project_permission_required
 from miqa.core.rest.scan import ScanSerializer
 
 from .permissions import ArchivedProject, LockContention, UserHoldsExperimentLock
@@ -37,22 +40,27 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
     scans = ScanSerializer(many=True)
     lock_owner = LockOwnerSerializer()
+    project = serializers.PrimaryKeyRelatedField(read_only=True, pk_field=UUIDField())
 
 
 class ExperimentViewSet(ReadOnlyModelViewSet):
     # Our default serializer nests its experiment (not sure why though)
-    queryset = Experiment.objects.select_related('project')
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['project']
-
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
-
     serializer_class = ExperimentSerializer
 
+    def get_queryset(self):
+        projects = get_objects_for_user(
+            self.request.user,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
+        )
+        return Experiment.objects.filter(project__in=projects)
+
+    @project_permission_required(experiments__pk='pk')
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
-        # TODO when Experiment model gains read_write_users field, check permission to edit.
         experiment_object = self.get_object()
         experiment_object.note = request.data['note']
         experiment_object.save()
@@ -68,6 +76,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
+    @project_permission_required(review_access=True, experiments__pk='pk')
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def lock(self, request, pk=None):
         """Acquire the exclusive write lock on this experiment."""
@@ -102,6 +111,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             409: 'The lock is held by a different user.',
         },
     )
+    @project_permission_required(review_access=True, experiments__pk='pk')
     @lock.mapping.delete
     def release_lock(self, request, pk=None):
         """Release the exclusive write lock on this experiment."""

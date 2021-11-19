@@ -2,12 +2,11 @@
 import _ from 'lodash';
 import { mapState, mapGetters } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
-import DataImportExport from '@/components/DataImportExport.vue';
 import { API_URL } from '../constants';
 
 export default {
   name: 'ExperimentsView',
-  components: { UserAvatar, DataImportExport },
+  components: { UserAvatar },
   props: {
     minimal: {
       type: Boolean,
@@ -143,14 +142,12 @@ export default {
           </ul>
         </li>
       </ul>
-      <DataImportExport />
     </div>
     <div
       v-else
       class="pa-5"
     >
       <span class="px-5">No imported data.</span>
-      <DataImportExport import-only />
     </div>
   </div>
 </template>

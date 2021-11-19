@@ -2,13 +2,15 @@ from pathlib import Path
 
 from django.http import FileResponse, HttpResponseServerError
 from django_filters import rest_framework as filters
+from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Evaluation, Frame
+from miqa.core.models import Evaluation, Frame, Project
+from miqa.core.rest.permissions import project_permission_required
 
 from .permissions import UserHoldsExperimentLock
 
@@ -29,21 +31,24 @@ class FrameSerializer(serializers.ModelSerializer):
 
 
 class FrameViewSet(ListModelMixin, GenericViewSet):
-    # This ViewSet read-only right now, so we don't need to select_related back to
-    # the Project for permission checking.
-    queryset = Frame.objects.all()
-
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['scan']
-
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
-
     serializer_class = FrameSerializer
 
+    def get_queryset(self):
+        projects = get_objects_for_user(
+            self.request.user,
+            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            any_perm=True,
+        )
+        return Frame.objects.filter(scan__experiment__project__in=projects)
+
     @action(detail=True)
+    @project_permission_required(experiments__scans__frames__pk='pk')
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
         path: Path = frame.path
+
         if not path.is_file():
             return HttpResponseServerError('File no longer exists.')
 

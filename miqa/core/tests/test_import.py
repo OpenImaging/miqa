@@ -67,18 +67,20 @@ def generate_import_json(samples_dir: Path, sample_scans):
 
 
 @pytest.mark.django_db
-def test_import_csv(tmp_path, user, project_factory, sample_scans, authenticated_api_client):
+def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
         output, _writer = generate_import_csv(sample_scans)
         fd.write(output.getvalue())
 
     project = project_factory(import_path=csv_file)
+    user_api_client = user_api_client(project=project)
 
-    import_data(user.id, project.id)
-    # Test that the API import succeeds
-    resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
-    assert resp.status_code == 204
+    resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
+    if user.is_superuser:
+        assert resp.status_code == 204
+    else:
+        assert resp.status_code == 401
 
 
 @pytest.mark.django_db
@@ -88,7 +90,7 @@ def test_import_json(
     project_factory,
     samples_dir: Path,
     sample_scans,
-    authenticated_api_client,
+    user_api_client,
 ):
     json_file = str(tmp_path / 'import.json')
     with open(json_file, 'w') as fd:
@@ -96,9 +98,11 @@ def test_import_json(
 
     project = project_factory(import_path=json_file)
 
-    # Test that the API import succeeds
-    resp = authenticated_api_client.post(f'/api/v1/projects/{project.id}/import')
-    assert resp.status_code == 204
+    resp = user_api_client(project=project).post(f'/api/v1/projects/{project.id}/import')
+    if user.is_superuser:
+        assert resp.status_code == 204
+    else:
+        assert resp.status_code == 401
 
 
 @pytest.mark.django_db

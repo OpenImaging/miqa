@@ -5,6 +5,7 @@ import { Project } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
 import JSONConfig from '@/components/JSONConfig.vue';
+import DataImportExport from '@/components/DataImportExport.vue';
 
 export default defineComponent({
   name: 'Projects',
@@ -12,6 +13,7 @@ export default defineComponent({
     ExperimentsView,
     Navbar,
     JSONConfig,
+    DataImportExport,
   },
   inject: ['user'],
   setup() {
@@ -57,7 +59,7 @@ export default defineComponent({
       </v-card>
       <v-card
         v-if="currentProject"
-        class="flex-grow-1 ma-3"
+        class="flex-grow-1 ma-3 pb-5"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
         <v-layout
@@ -66,6 +68,7 @@ export default defineComponent({
         >
           <v-flex>
             <JSONConfig />
+            <DataImportExport />
           </v-flex>
         </v-layout>
         <v-divider />
@@ -81,8 +84,17 @@ export default defineComponent({
           justify-center
           fill-height
         >
-          <div class="title">
+          <div
+            v-if="projects.length > 0"
+            class="title"
+          >
             Select a project
+          </div>
+          <div
+            v-else
+            class="title"
+          >
+            You have not been added to any projects yet.
           </div>
         </v-layout>
       </v-card>
