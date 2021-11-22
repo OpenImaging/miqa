@@ -1,10 +1,12 @@
 <script>
 import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
+import { vec3 } from 'gl-matrix';
 
 import { cleanFrameName } from '@/utils/helper';
 import fill2DView from '../utils/fill2DView';
 import { getView } from '../vtk/viewManager';
+import { VIEW_ORIENTATIONS } from '../vtk/constants';
 
 export default {
   name: 'VtkViewer',
@@ -23,7 +25,7 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -100,10 +102,14 @@ export default {
     currentScan() {
       this.initializeSlice();
     },
+    showCrosshairs() {
+      this.updateCrosshairs();
+    },
   },
   mounted() {
     this.initializeView();
     this.initializeSlice();
+    this.initializeCamera();
     this.updateCrosshairs();
     this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
       this.updateCrosshairs();
@@ -147,6 +153,30 @@ export default {
       setTimeout(() => {
         this.resized = true;
       });
+    },
+    initializeCamera() {
+      const orientation = this.representation.getInputDataSet().getDirection();
+      const camera = this.view.getCamera();
+
+      let newOrientation = [];
+      if (this.name === 'x') {
+        newOrientation = orientation.slice(0, 3);
+      } else if (this.name === 'y') {
+        newOrientation = orientation.slice(3, 6);
+      } else if (this.name === 'z') {
+        newOrientation = orientation.slice(6, 9);
+      }
+      newOrientation = newOrientation.map(
+        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
+      );
+      camera.setDirectionOfProjection(...newOrientation);
+
+      const newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
+      vec3.transformMat3(newViewUp, newViewUp, orientation);
+      camera.setViewUp(newViewUp);
+
+      this.view.resetCamera();
+      fill2DView(this.view);
     },
     cleanup() {
       if (this.modifiedSubscription) {
@@ -249,56 +279,38 @@ export default {
       );
       return [mappedLine0, mappedLine1];
     },
+    drawLine(ctx, point1, point2, color) {
+      ctx.strokeStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(...point1);
+      ctx.lineTo(...point2);
+      ctx.stroke();
+    },
     updateCrosshairs() {
       const myCanvas = document.getElementById(`crosshairs-${this.name}`);
       if (myCanvas.getContext) {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
-        const worldLines = this.convertWorldSlicesToLines();
-        const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
-        displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
-        displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
-        displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
-        displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
-        if (this.name === 'x') {
-          ctx.strokeStyle = '#b71c1c';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
-
-          ctx.strokeStyle = '#4caf50';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
-        }
-        if (this.name === 'y') {
-          ctx.strokeStyle = '#b71c1c';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
-
-          ctx.strokeStyle = '#fdd835';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
-        }
-        if (this.name === 'z') {
-          ctx.strokeStyle = '#4caf50';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine1[0]);
-          ctx.lineTo(...displayLine1[1]);
-          ctx.stroke();
-
-          ctx.strokeStyle = '#fdd835';
-          ctx.beginPath();
-          ctx.moveTo(...displayLine2[0]);
-          ctx.lineTo(...displayLine2[1]);
-          ctx.stroke();
+        if (this.showCrosshairs) {
+          const worldLines = this.convertWorldSlicesToLines();
+          const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
+          displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
+          displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
+          displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
+          displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
+          if (this.name === 'x') {
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#4caf50');
+          }
+          if (this.name === 'y') {
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
+          }
+          if (this.name === 'z') {
+            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#4caf50');
+            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
+          }
         }
       }
     },
