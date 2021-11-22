@@ -58,20 +58,20 @@ export default {
       return this.currentFrame && this.proxyManager.getRepresentations()[0];
     },
     winMin() {
-      return this.representation.getPropertyDomainByName('windowWidth').min;
+      return (this.representation && this.representation.getPropertyDomainByName('windowWidth').min) || 0;
     },
     winMax() {
-      return Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max);
+      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max)) || 0;
     },
     autoWindow() {
       return this.currentViewData.autoWindow
         || Math.ceil((this.winMax * 0.3) / 10) * 10;
     },
     levMin() {
-      return this.representation.getPropertyDomainByName('windowLevel').min;
+      return (this.representation && this.representation.getPropertyDomainByName('windowLevel').min) || 0;
     },
     levMax() {
-      return Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max);
+      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max)) || 0;
     },
     autoLevel() {
       return this.currentViewData.autoLevel
