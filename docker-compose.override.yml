@@ -8,6 +8,7 @@ services:
     # Log printing via Rich is enhanced by a TTY
     tty: true
     env_file: ./dev/.env.docker-compose
+    # Include the below configuration when NN active learning is enabled
     # deploy:
     #   resources:
     #     reservations:
