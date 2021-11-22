@@ -39,6 +39,7 @@ but allows developers to run Python code on their native system.
 6. Run `source ./dev/export-env.sh`
 7. Run `./manage.py migrate`
 8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
+9. Run `./manage.py makeclient --username your.email@email.com --uri http://localhost:8081/`
 
 ### Run Application
 1.  Ensure `docker-compose -f ./docker-compose.yml up -d` is still active
