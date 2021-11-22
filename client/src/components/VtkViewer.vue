@@ -115,7 +115,7 @@ export default {
       this.updateCrosshairs();
     });
     this.resizeObserver = new window.ResizeObserver((entries) => {
-      if (entries.length === 1) {
+      if (entries.length === 1 && this.$refs.viewer && this.$refs.crosshairsCanvas) {
         const width = this.$refs.viewer.clientWidth;
         const height = this.$refs.viewer.clientHeight;
         this.$refs.crosshairsCanvas.width = width;
@@ -288,7 +288,7 @@ export default {
     },
     updateCrosshairs() {
       const myCanvas = document.getElementById(`crosshairs-${this.name}`);
-      if (myCanvas.getContext) {
+      if (myCanvas && myCanvas.getContext) {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
