@@ -131,23 +131,31 @@ export default {
         Decisions other than "usable" must have a comment.
       </v-col>
     </v-row>
-    <v-row
+    <div
       v-if="experimentIsEditable"
       no-gutters
+      class="button-container"
     >
-      <v-col
+      <div
         v-for="option in options"
         :key="option.code"
-        :cols="12 / options.length"
         style="text-align: center"
       >
         <v-btn
           @click="handleCommentSave(option.code)"
           :color="option.color"
         >
-          {{ option.label }} ({{ option.code }})
+          {{ option.label }}
         </v-btn>
-      </v-col>
-    </v-row>
+      </div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+</style>

@@ -489,7 +489,7 @@ export default {
                         Display crosshairs
                       </v-col>
                       <v-col cols="8">
-                        <v-checkbox
+                        <v-switch
                           :input-value="showCrosshairs"
                           @change="setShowCrosshairs"
                           hide-details
