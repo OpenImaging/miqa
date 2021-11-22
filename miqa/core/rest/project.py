@@ -96,11 +96,12 @@ class ProjectViewSet(ReadOnlyModelViewSet):
 
             # TODO: need help changing the auto schema to expect permissions object
 
-            for key, user_list in request.data['permissions'].items():
-                try:
-                    project.update_group(key, user_list)
-                except ValueError as e:
-                    return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            if 'permissions' in request.data:
+                for key, user_list in request.data['permissions'].items():
+                    try:
+                        project.update_group(key, user_list)
+                    except ValueError as e:
+                        return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
             project.import_path = request.data['importPath']
             project.export_path = request.data['exportPath']
