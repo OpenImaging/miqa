@@ -12,22 +12,6 @@ from miqa.core.rest.permissions import project_permission_required
 from miqa.core.tasks import export_data, import_data
 
 
-class ProjectRetrieveSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ['id', 'name', 'experiments', 'import_path', 'export_path']
-        ref_name = 'project'
-
-    experiments = ExperimentSerializer(many=True)
-
-
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ['id', 'name']
-        ref_name = 'projects'
-
-
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
@@ -44,6 +28,26 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
             ]
             for perm_group in Project.get_read_permission_groups()
         }
+
+
+class ProjectRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['id', 'name', 'experiments', 'settings']
+        ref_name = 'project'
+
+    experiments = ExperimentSerializer(many=True)
+    settings = serializers.SerializerMethodField('get_settings')
+
+    def get_settings(self, obj):
+        return ProjectSettingsSerializer(obj).data
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ['id', 'name']
+        ref_name = 'projects'
 
 
 class ProjectViewSet(ReadOnlyModelViewSet):

@@ -270,7 +270,9 @@ function expandScanRange(frameId, dataRange) {
 }
 
 const initState = {
+  me: null,
   currentProject: null as Project | null,
+  currentProjectPermissions: {},
   projects: [] as Project[],
   experimentIds: [],
   experiments: {},
@@ -288,6 +290,7 @@ const initState = {
   screenshots: [],
   scanCachedPercentage: 0,
   currentAutoEvaluation: {},
+  showCrosshairs: true,
   xSlice: 0,
   ySlice: 0,
   zSlice: 0,
@@ -375,10 +378,22 @@ const {
       }
       return null;
     },
+    myCurrentProjectRoles(state) {
+      const projectPerms = Object.entries(state.currentProjectPermissions)
+        .filter((entry: [string, Array<string>]): Boolean => entry[1].includes(state.me.username))
+        .map((entry) => entry[0]);
+      if (state.me.is_superuser) {
+        projectPerms.push('superuser');
+      }
+      return projectPerms;
+    },
   },
   mutations: {
     reset(state) {
       Object.assign(state, { ...state, ...initState });
+    },
+    setMe(state, me) {
+      state.me = me;
     },
     resetProject(state) {
       state.experimentIds = [];
@@ -403,6 +418,7 @@ const {
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
+      state.currentProjectPermissions = project.settings.permissions;
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -466,6 +482,9 @@ const {
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
     },
+    setShowCrosshairs(state, show) {
+      state.showCrosshairs = show;
+    },
   },
   actions: {
     reset({ state, commit }) {
@@ -476,6 +495,10 @@ const {
       commit('reset');
       fileCache.clear();
       frameCache.clear();
+    },
+    async loadMe({ commit }) {
+      const me = await djangoRest.me();
+      commit('setMe', me);
     },
     async logout({ dispatch }) {
       dispatch('reset');
