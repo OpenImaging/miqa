@@ -8,6 +8,7 @@ import store from '@/store';
 import EvaluationResults from './EvaluationResults.vue';
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
+import DecisionButtons from './DecisionButtons.vue';
 
 export default {
   name: 'Frame',
@@ -15,19 +16,20 @@ export default {
     EvaluationResults,
     UserAvatar,
     ScanDecision,
+    DecisionButtons,
   },
   inject: ['user'],
   data: () => ({
     window: 256,
     level: 150,
     newExperimentNote: '',
-    newComment: '',
-    warnDecision: false,
   }),
   computed: {
     ...mapState([
       'proxyManager',
       'scanCachedPercentage',
+      'showCrosshairs',
+      'myCurrentProjectRoles',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -35,6 +37,7 @@ export default {
       'getFrame',
       'previousFrame',
       'currentFrame',
+      'myCurrentProjectRoles',
     ]),
     ...mapMutations([
       'updateExperiment',
@@ -96,9 +99,6 @@ export default {
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
     },
-    newComment() {
-      this.warnDecision = false;
-    },
   },
   mounted() {
     this.switchLock(this.experimentId);
@@ -122,26 +122,33 @@ export default {
     ...mapActions([
       'setLock',
     ]),
+    ...mapMutations([
+      'setShowCrosshairs',
+    ]),
     async switchLock(newExp, oldExp = null) {
-      if (oldExp) {
+      if (this.myCurrentProjectRoles.includes('tier_1_reviewer')
+      || this.myCurrentProjectRoles.includes('tier_2_reviewer')
+      || this.myCurrentProjectRoles.includes('superuser')) {
+        if (oldExp) {
+          try {
+            await this.setLock({ experimentId: oldExp, lock: false });
+          } catch (err) {
+            console.log(err);
+            this.$snackbar({
+              text: 'Failed to release edit access on Experiment.',
+              timeout: 6000,
+            });
+          }
+        }
         try {
-          await this.setLock({ experimentId: oldExp, lock: false });
+          await this.setLock({ experimentId: newExp, lock: true });
         } catch (err) {
           console.log(err);
           this.$snackbar({
-            text: 'Failed to release edit access on Experiment.',
+            text: 'Failed to claim edit access on Experiment.',
             timeout: 6000,
           });
         }
-      }
-      try {
-        await this.setLock({ experimentId: newExp, lock: true });
-      } catch (err) {
-        console.log(err);
-        this.$snackbar({
-          text: 'Failed to claim edit access on Experiment.',
-          timeout: 6000,
-        });
       }
     },
     updateWinLev() {
@@ -193,40 +200,6 @@ export default {
             timeout: 6000,
           });
         }
-      }
-    },
-    handleCommentChange(value) {
-      this.newComment = value;
-    },
-    async handleCommentSave(decision) {
-      if (this.newComment.trim().length > 0 || decision === 'Good') {
-        try {
-          const { addScanDecision } = store.commit;
-          const savedObj = await djangoRest.setDecision(
-            this.currentViewData.scanId,
-            decision,
-            this.newComment,
-          );
-          addScanDecision({
-            currentScan: this.currentViewData.scanId,
-            newDecision: savedObj,
-          });
-          this.handleKeyPress('next');
-          this.$snackbar({
-            text: 'Saved decision successfully.',
-            timeout: 6000,
-          });
-          this.warnDecision = false;
-          this.newComment = '';
-        } catch (err) {
-          console.log(err);
-          this.$snackbar({
-            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
-            timeout: 6000,
-          });
-        }
-      } else {
-        this.warnDecision = true;
       }
     },
   },
@@ -511,6 +484,19 @@ export default {
                         </v-slider>
                       </v-col>
                     </v-row>
+                    <v-row>
+                      <v-col cols="4">
+                        Display crosshairs
+                      </v-col>
+                      <v-col cols="8">
+                        <v-switch
+                          :input-value="showCrosshairs"
+                          @change="setShowCrosshairs"
+                          hide-details
+                          class="shrink ma-0 pa-0 ml-n2"
+                        />
+                      </v-col>
+                    </v-row>
                     <v-row class="py-3">
                       <v-col
                         cols="12"
@@ -576,77 +562,10 @@ export default {
                         :results="currentViewData.currentAutoEvaluation.results"
                       />
                     </v-row>
-                    <v-row
-                      v-if="experimentIsEditable"
-                    >
-                      <v-col
-                        cols="12"
-                        class="pb-0 mb-0"
-                      >
-                        <v-textarea
-                          @input="handleCommentChange"
-                          :counter="!warnDecision"
-                          :hide-details="warnDecision"
-                          v-model="newComment"
-                          filled
-                          no-resize
-                          height="60px"
-                          name="input-comment"
-                          label="Evaluation Comment"
-                          placeholder="Write a comment about the scan and submit a decision"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row
-                      v-if="warnDecision"
-                      no-gutters
-                    >
-                      <v-col
-                        cols="12"
-                        class="red--text"
-                        style="text-align: center"
-                      >
-                        "Bad" and "Other" decisions must have a comment.
-                      </v-col>
-                    </v-row>
-                    <v-row
-                      v-if="experimentIsEditable"
-                      no-gutters
-                    >
-                      <v-col
-                        cols="4"
-                        style="text-align: center"
-                      >
-                        <v-btn
-                          @click="handleCommentSave('Good')"
-                          color="green darken-3 white--text"
-                        >
-                          GOOD (G)
-                        </v-btn>
-                      </v-col>
-                      <v-col
-                        cols="4"
-                        style="text-align: center"
-                      >
-                        <v-btn
-                          @click="handleCommentSave('Bad')"
-                          color="red darken-3 white--text"
-                        >
-                          BAD (B)
-                        </v-btn>
-                      </v-col>
-                      <v-col
-                        cols="4"
-                        style="text-align: center"
-                      >
-                        <v-btn
-                          @click="handleCommentSave('Other')"
-                          color="grey darken-3 white--text"
-                        >
-                          OTHER (O)
-                        </v-btn>
-                      </v-col>
-                    </v-row>
+                    <DecisionButtons
+                      :experimentIsEditable="experimentIsEditable"
+                      @handleKeyPress="handleKeyPress"
+                    />
                   </v-container>
                 </v-col>
               </v-row>

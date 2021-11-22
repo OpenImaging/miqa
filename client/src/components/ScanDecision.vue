@@ -19,10 +19,6 @@ export default {
       if (decision.toLowerCase() === 'good') return 'green--text text--darken-2';
       return 'grey--text text--darken-2';
     },
-    convertCreatedDatetimeText(created) {
-      const date = new Date(created);
-      return date.toLocaleDateString();
-    },
   },
 };
 </script>
@@ -52,7 +48,7 @@ export default {
       class="grey--text"
       style="text-align: right"
     >
-      {{ convertCreatedDatetimeText(decision.created) }}
+      {{ decision.created }}
     </v-col>
   </v-row>
 </template>

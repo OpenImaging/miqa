@@ -8,6 +8,11 @@ export default {
       type: Object,
     },
   },
+  computed: {
+    orderedResults() {
+      return Object.entries(this.results).sort((first, second) => first[1] < second[1]);
+    },
+  },
   methods: {
     convertOverallQualityToColor(text = true) {
       return this.convertValueToColor(1 - this.results.overall_quality, text);
@@ -19,7 +24,7 @@ export default {
         'green lighten-1',
         'light-green lighten-1',
         'lime lighten-1',
-        'amber lighten-3',
+        'amber darken-1',
         'orange lighten-1',
         'orange darken-2',
         'orange darken-4',
@@ -51,7 +56,7 @@ export default {
           v-bind="attrs"
           v-on="on"
         >
-          {{ results.overall_quality.toFixed(2) * 100 }}%
+          {{ Math.round(results.overall_quality * 100) }}%
           <v-img
             class="float-right ml-3"
             src="evaluation-details.png"
@@ -91,7 +96,7 @@ export default {
               :class="convertOverallQualityToColor()"
               cols="1"
             >
-              {{ results.overall_quality.toFixed(2) * 100 }}%
+              {{ Math.round(results.overall_quality * 100) }}%
             </v-col>
           </v-row>
           <v-row>
@@ -99,7 +104,7 @@ export default {
           </v-row>
         </v-container>
         <v-container
-          v-for="(value, name) of results"
+          v-for="[name, value] in orderedResults"
           :key="name"
           style="width: 450px"
           class="pa-0"
@@ -134,7 +139,7 @@ export default {
               :class="convertValueToColor(value)"
               cols="1"
             >
-              {{ value.toFixed(2) * 100 }}%
+              {{ Math.round(value * 100) }}%
             </v-col>
           </v-row>
         </v-container>
