@@ -122,16 +122,20 @@ export default {
         this.$refs.crosshairsCanvas.height = height;
         this.$refs.crosshairsCanvas.style.width = `${width}px`;
         this.$refs.crosshairsCanvas.style.height = `${height}px`;
+        this.initializeCamera();
+        this.updateCrosshairs();
       }
     });
     this.resizeObserver.observe(this.$refs.viewer);
   },
   beforeUnmount() {
-    this.renderSubscription.unsubscribe();
-    this.resizeObserver.unobserve(this.$refs.viewer);
-  },
-  beforeDestroy() {
-    this.cleanup();
+    if (this.renderSubscription) {
+      this.renderSubscription.unsubscribe();
+      this.resizeObserver.unobserve(this.$refs.viewer);
+    }
+    if (this.modifiedSubscription) {
+      this.modifiedSubscription.unsubscribe();
+    }
   },
   methods: {
     ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
@@ -158,6 +162,10 @@ export default {
       const orientation = this.representation.getInputDataSet().getDirection();
       const camera = this.view.getCamera();
 
+      // reset orientation before initializing camera;
+      // this fixes any images with non-standard orientation
+      this.representation.getInputDataSet().setDirection([1, 0, 0, 0, -1, 0, 0, 0, 1]);
+
       let newOrientation = [];
       if (this.name === 'x') {
         newOrientation = orientation.slice(0, 3);
@@ -177,11 +185,6 @@ export default {
 
       this.view.resetCamera();
       fill2DView(this.view);
-    },
-    cleanup() {
-      if (this.modifiedSubscription) {
-        this.modifiedSubscription.unsubscribe();
-      }
     },
     increaseSlice() {
       this.slice = Math.min(
