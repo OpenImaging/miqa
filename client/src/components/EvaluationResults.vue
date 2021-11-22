@@ -27,7 +27,7 @@ export default {
         'green lighten-1',
         'green darken-2',
         'green darken-4',
-      ];
+        'black '];
       const thisColor = colors[Math.floor(Math.abs(value) * (colors.length - 1)) % colors.length];
       if (text) {
         return `font-weight-bold ${thisColor.replace(' ', '--text text--')}`;
