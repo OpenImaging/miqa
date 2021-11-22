@@ -103,6 +103,7 @@ export default {
     <Navbar frame-view />
     <v-navigation-drawer
       expand-on-hover
+      permanent
       app
       width="350"
     >
