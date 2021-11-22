@@ -1,9 +1,11 @@
 <script>
-import Vue from 'vue';
-import { mapState, mapGetters, mapMutations } from 'vuex';
 import { vec3 } from 'gl-matrix';
 
+import Vue from 'vue';
+import { mapState, mapGetters, mapMutations } from 'vuex';
+
 import { cleanFrameName } from '@/utils/helper';
+import CrosshairSet from '../utils/crosshairs';
 import fill2DView from '../utils/fill2DView';
 import { getView } from '../vtk/viewManager';
 import { VIEW_ORIENTATIONS } from '../vtk/constants';
@@ -25,7 +27,7 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -68,26 +70,25 @@ export default {
   watch: {
     slice(value) {
       this.representation.setSlice(value);
-      if (this.setCurrentVtkSlices) {
+      if (this.setCurrentVtkIndexSlices) {
         const ijkMapping = {
           x: 'i',
           y: 'j',
           z: 'k',
         };
-        this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
         this.setCurrentVtkIndexSlices({
-          indexAxis: ijkMapping[this.name],
+          indexAxis: ijkMapping[this.trueAxis(this.name)],
           value: this.representation.getSliceIndex(),
         });
       }
     },
-    xSlice() {
+    iIndexSlice() {
       this.updateCrosshairs();
     },
-    ySlice() {
+    jIndexSlice() {
       this.updateCrosshairs();
     },
-    zSlice() {
+    kIndexSlice() {
       this.updateCrosshairs();
     },
     view(view, oldView) {
@@ -101,6 +102,7 @@ export default {
     },
     currentScan() {
       this.initializeSlice();
+      this.initializeCamera();
     },
     showCrosshairs() {
       this.updateCrosshairs();
@@ -122,19 +124,17 @@ export default {
         this.$refs.crosshairsCanvas.height = height;
         this.$refs.crosshairsCanvas.style.width = `${width}px`;
         this.$refs.crosshairsCanvas.style.height = `${height}px`;
+        this.initializeCamera();
+        this.updateCrosshairs();
       }
     });
     this.resizeObserver.observe(this.$refs.viewer);
   },
   beforeUnmount() {
-    this.renderSubscription.unsubscribe();
-    this.resizeObserver.unobserve(this.$refs.viewer);
-  },
-  beforeDestroy() {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
+    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkIndexSlices']),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -155,33 +155,62 @@ export default {
       });
     },
     initializeCamera() {
-      const orientation = this.representation.getInputDataSet().getDirection();
       const camera = this.view.getCamera();
+      const orientation = this.representation.getInputDataSet().getDirection();
 
-      let newOrientation = [];
-      if (this.name === 'x') {
-        newOrientation = orientation.slice(0, 3);
-      } else if (this.name === 'y') {
-        newOrientation = orientation.slice(3, 6);
-      } else if (this.name === 'z') {
-        newOrientation = orientation.slice(6, 9);
-      }
-      newOrientation = newOrientation.map(
-        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
+      let newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
+      let newDirectionOfProjection = VIEW_ORIENTATIONS[this.name].directionOfProjection;
+      newViewUp = this.findClosestColumnToVector(
+        newViewUp,
+        orientation,
       );
-      camera.setDirectionOfProjection(...newOrientation);
+      newDirectionOfProjection = this.findClosestColumnToVector(
+        newDirectionOfProjection,
+        orientation,
+      );
 
-      const newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
-      vec3.transformMat3(newViewUp, newViewUp, orientation);
-      camera.setViewUp(newViewUp);
+      camera.setDirectionOfProjection(...newDirectionOfProjection);
+      camera.setViewUp(...newViewUp);
 
       this.view.resetCamera();
       fill2DView(this.view);
     },
-    cleanup() {
-      if (this.modifiedSubscription) {
-        this.modifiedSubscription.unsubscribe();
+    findClosestColumnToVector(inputVector, matrix) {
+      let currClosest = null;
+      let currMax = 0;
+      const inputVectorAxis = inputVector.findIndex((value) => value !== 0);
+      for (let i = 0; i < 3; i += 1) {
+        const currColumn = matrix.slice(i * 3, i * 3 + 3);
+        const currValue = Math.abs(currColumn[inputVectorAxis]);
+        if (currValue > currMax) {
+          currClosest = currColumn;
+          currMax = currValue;
+        }
       }
+      const flipCurrClosest = vec3.dot(
+        inputVector,
+        currClosest,
+      );
+      if (flipCurrClosest < 0) {
+        currClosest = currClosest.map((value) => value * -1);
+      }
+      return currClosest;
+    },
+    trueAxis(axisName) {
+      const orientation = this.representation.getInputDataSet().getDirection();
+      const axisNumber = VIEW_ORIENTATIONS[axisName].axis;
+      const axisOrientation = [
+        orientation[axisNumber],
+        orientation[3 + axisNumber],
+        orientation[6 + axisNumber],
+      ].map(
+        (val) => Math.abs(val),
+      );
+      const axisOrdering = ['x', 'y', 'z'];
+      const trueAxis = axisOrdering[
+        axisOrientation.indexOf(Math.max(...axisOrientation))
+      ];
+      return trueAxis;
     },
     increaseSlice() {
       this.slice = Math.min(
@@ -226,64 +255,11 @@ export default {
       if (!value) return '';
       return Math.round(value * 100) / 100;
     },
-    convertWorldSlicesToLines() {
-      const imageData = this.representation.getInputDataSet();
-      const [iMax, jMax, kMax] = imageData.getDimensions();
-      if (this.name === 'x') {
-        return [
-          [
-            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
-            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
-          ],
-        ];
-      } if (this.name === 'y') {
-        return [
-          [
-            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
-            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
-          ],
-        ];
-      }
-      if (this.name === 'z') {
-        return [
-          [
-            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
-            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
-            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
-          ],
-        ];
-      }
-      return null;
-    },
-    convertWorldLinesToDisplayLines(worldLines) {
-      const renderer = this.view.getRenderer();
-      const renderWindow = this.view.getOpenglRenderWindow();
-      const mappedLine0 = worldLines[0].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
-          .map((c) => c / devicePixelRatio).slice(0, 2),
-      );
-      const mappedLine1 = worldLines[1].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
-          .map((c) => c / devicePixelRatio).slice(0, 2),
-      );
-      return [mappedLine0, mappedLine1];
-    },
-    drawLine(ctx, point1, point2, color) {
-      ctx.strokeStyle = color;
+    drawLine(ctx, displayLine) {
+      ctx.strokeStyle = displayLine.color;
       ctx.beginPath();
-      ctx.moveTo(...point1);
-      ctx.lineTo(...point2);
+      ctx.moveTo(...displayLine.start);
+      ctx.lineTo(...displayLine.end);
       ctx.stroke();
     },
     updateCrosshairs() {
@@ -293,25 +269,33 @@ export default {
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
         if (this.showCrosshairs) {
-          const worldLines = this.convertWorldSlicesToLines();
-          const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
-          displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
-          displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
-          displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
-          displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
-          if (this.name === 'x') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#4caf50');
-          }
-          if (this.name === 'y') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
-          }
-          if (this.name === 'z') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#4caf50');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
-          }
+          const crosshairSet = new CrosshairSet(
+            this.representation, this.view, myCanvas,
+            this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+          );
+          const originalColors = {
+            x: '#fdd835',
+            y: '#4caf50',
+            z: '#b71c1c',
+          };
+          const trueColors = Object.fromEntries(
+            Object.entries(originalColors).map(([axisName, hex]) => [this.trueAxis(axisName), hex]),
+          );
+          const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(
+            this.trueAxis(this.name), trueColors,
+          );
+          this.drawLine(ctx, displayLine1);
+          this.drawLine(ctx, displayLine2);
         }
+      }
+    },
+    cleanup() {
+      if (this.renderSubscription) {
+        this.renderSubscription.unsubscribe();
+        this.resizeObserver.unobserve(this.$refs.viewer);
+      }
+      if (this.modifiedSubscription) {
+        this.modifiedSubscription.unsubscribe();
       }
     },
   },
