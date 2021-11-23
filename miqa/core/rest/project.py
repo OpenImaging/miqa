@@ -8,6 +8,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
+from miqa.core.rest.user import UserSerializer
 from miqa.core.rest.permissions import project_permission_required
 from miqa.core.tasks import export_data, import_data
 
@@ -22,12 +23,23 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField('get_permissions')
 
     def get_permissions(self, obj):
-        return {
+        permissions = {
             perm_group: [
-                user.username for user in get_users_with_perms(obj, only_with_perms_in=[perm_group])
+                UserSerializer(user).data
+                for user in get_users_with_perms(obj, only_with_perms_in=[perm_group])
             ]
             for perm_group in Project.get_read_permission_groups()
         }
+        permissions['collaborator'] = [
+            x
+            for x in permissions['collaborator']
+            if x not in permissions['tier_1_reviewer'] and x not in permissions['tier_2_reviewer']
+        ]
+        permissions['tier_1_reviewer'] = [
+            x for x in permissions['tier_1_reviewer'] if x not in permissions['tier_2_reviewer']
+        ]
+
+        return permissions
 
 
 class ProjectRetrieveSerializer(serializers.ModelSerializer):

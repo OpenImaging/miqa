@@ -4,9 +4,13 @@ import {
 } from '@vue/composition-api';
 import store from '@/store';
 import djangoRest from '@/django';
+import DataImportExport from '@/components/DataImportExport.vue';
 
 export default defineComponent({
-  name: 'JSONConfig',
+  name: 'ProjectSettings',
+  components: {
+    DataImportExport,
+  },
   setup() {
     const currentProject = computed(() => store.state.currentProject);
 
@@ -113,19 +117,14 @@ export default defineComponent({
         />
       </v-flex>
     </v-layout>
-    <v-layout>
-      <v-flex>
-        <v-btn
-          :disabled="!changed"
-          type="submit"
-          color="primary"
-          class="mx-0"
-        >
-          Save
-        </v-btn>
-      </v-flex>
-    </v-layout>
+    <v-btn
+      :disabled="!changed"
+      type="submit"
+      color="primary"
+      style="display: inline-block"
+    >
+      Save
+    </v-btn>
+    <DataImportExport />
   </v-form>
 </template>
-
-<style lang="scss" scoped></style>
