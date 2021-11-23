@@ -38,7 +38,7 @@ export default {
       return this.representation.getPropertyDomainByName('slice');
     },
     name() {
-      return this.view.getName();
+      return this.normalizedAxis(this.view.getName());
     },
     displayName() {
       switch (this.name) {
@@ -129,13 +129,7 @@ export default {
     this.resizeObserver.observe(this.$refs.viewer);
   },
   beforeUnmount() {
-    if (this.renderSubscription) {
-      this.renderSubscription.unsubscribe();
-      this.resizeObserver.unobserve(this.$refs.viewer);
-    }
-    if (this.modifiedSubscription) {
-      this.modifiedSubscription.unsubscribe();
-    }
+    this.cleanup();
   },
   methods: {
     ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
@@ -162,11 +156,11 @@ export default {
       const orientation = this.representation.getInputDataSet().getDirection();
       const camera = this.view.getCamera();
 
-      // reset orientation before initializing camera;
-      // this fixes any images with non-standard orientation
-      this.representation.getInputDataSet().setDirection([1, 0, 0, 0, -1, 0, 0, 0, 1]);
+      let newOrientation = orientation.slice();
+      newOrientation = newOrientation.map(
+        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
+      );
 
-      let newOrientation = [];
       if (this.name === 'x') {
         newOrientation = orientation.slice(0, 3);
       } else if (this.name === 'y') {
@@ -174,9 +168,6 @@ export default {
       } else if (this.name === 'z') {
         newOrientation = orientation.slice(6, 9);
       }
-      newOrientation = newOrientation.map(
-        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
-      );
       camera.setDirectionOfProjection(...newOrientation);
 
       const newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
@@ -185,6 +176,25 @@ export default {
 
       this.view.resetCamera();
       fill2DView(this.view);
+    },
+    normalizedAxis(oldAxis) {
+      const orientation = this.representation.getInputDataSet().getDirection();
+      const normalizedOrientation = orientation.map((value) => Math.abs(Math.round(value)));
+      const axisMapping = {
+        x: normalizedOrientation.slice(0, 3),
+        y: normalizedOrientation.slice(3, 6),
+        z: normalizedOrientation.slice(6, 9),
+      };
+      const newAxis = Object.entries(axisMapping).filter(([, slice]) => {
+        if (oldAxis === 'x') {
+          return slice[0] === 1;
+        } if (oldAxis === 'y') {
+          return slice[1] === 1;
+        }
+        return slice[2] === 1;
+      }).map((entry) => entry[0])[0];
+
+      return newAxis;
     },
     increaseSlice() {
       this.slice = Math.min(
@@ -315,6 +325,15 @@ export default {
             this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
           }
         }
+      }
+    },
+    cleanup() {
+      if (this.renderSubscription) {
+        this.renderSubscription.unsubscribe();
+        this.resizeObserver.unobserve(this.$refs.viewer);
+      }
+      if (this.modifiedSubscription) {
+        this.modifiedSubscription.unsubscribe();
       }
     },
   },
