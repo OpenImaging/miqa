@@ -2,10 +2,10 @@ import logging
 import math
 
 import monai
-from monai.transforms import Compose, EnsureChannelFirstd, LoadImaged, ScaleIntensityd, ToTensord
 from sklearn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
 import torch
 from torch.utils.data import DataLoader
+import torchio
 import wandb
 
 logger = logging.getLogger(__name__)
@@ -93,20 +93,6 @@ def get_model(file_path=None):
     return model
 
 
-def get_image_transforms():
-    itk_reader = monai.data.ITKReader()
-    # Define transforms for image
-    image_transforms = Compose(
-        [
-            LoadImaged(keys=['img'], reader=itk_reader),
-            EnsureChannelFirstd(keys=['img']),
-            ScaleIntensityd(keys=['img']),
-            ToTensord(keys=['img']),
-        ]
-    )
-    return image_transforms
-
-
 def clamp(num, min_value, max_value):
     return max(min(num, max_value), min_value)
 
@@ -120,7 +106,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     with torch.no_grad():
         metric_count = 0
         for val_data in data_loader:
-            inputs = val_data['img'].to(device)
+            inputs = val_data['img'][torchio.DATA].to(device)
             info = val_data['info'].to(device)
             outputs = model(inputs)
 
@@ -162,15 +148,18 @@ def label_results(result):
 
 def evaluate1(model, image_path):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
 
     evaluation_ds = monai.data.Dataset(
         data=[
-            {
-                'img': image_path,
-                'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
-            }
+            torchio.Subject(
+                {
+                    'img': torchio.ScalarImage(image_path),
+                    'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+                }
+            )
         ],
-        transform=get_image_transforms(),
+        transform=rescale,
     )
     evaluation_loader = DataLoader(
         evaluation_ds, batch_size=1, pin_memory=torch.cuda.is_available()
@@ -188,14 +177,17 @@ def evaluate_many(model, image_paths):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     evaluation_files = [
-        {
-            'img': image_path,
-            'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
-        }
+        torchio.Subject(
+            {
+                'img': torchio.ScalarImage(image_path),
+                'info': torch.FloatTensor([0] * (regression_count + len(artifacts))),
+            }
+        )
         for image_path in image_paths
     ]
 
-    evaluation_ds = monai.data.Dataset(evaluation_files, transform=get_image_transforms())
+    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    evaluation_ds = monai.data.Dataset(evaluation_files, transform=rescale)
     evaluation_loader = DataLoader(evaluation_ds, pin_memory=torch.cuda.is_available())
     results = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate_many')
 

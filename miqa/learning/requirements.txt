@@ -1,6 +1,7 @@
 numpy>=1.21.1
 itk>=5.2.0.post2
 torch
+torchio
 tensorboard
 monai>=0.6.0
 pandas
