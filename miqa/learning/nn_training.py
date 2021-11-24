@@ -12,7 +12,6 @@ from nn_inference import (
     artifacts,
     evaluate1,
     evaluate_model,
-    get_image_transforms,
     get_model,
     regression_count,
 )
@@ -22,6 +21,7 @@ from sklearn.metrics import confusion_matrix
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+import torchio
 import wandb
 
 logger = logging.getLogger(__name__)
@@ -224,11 +224,11 @@ def create_train_and_test_data_loaders(df, count_train):
     ground_truth = np.asarray(regression_targets)
     count_val = df.shape[0] - count_train
     train_files = [
-        {'img': img, 'info': info}
+        torchio.Subject({'img': torchio.ScalarImage(img), 'info': info})
         for img, info in zip(images[:count_train], ground_truth[:count_train])
     ]
     val_files = [
-        {'img': img, 'info': info}
+        torchio.Subject({'img': torchio.ScalarImage(img), 'info': info})
         for img, info in zip(images[-count_val:], ground_truth[-count_val:])
     ]
 
@@ -261,14 +261,16 @@ def create_train_and_test_data_loaders(df, count_train):
     samples_weight = torch.from_numpy(np.array(samples_weights)).double()
     sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_train)
 
+    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+
     # create a training data loader
-    train_ds = monai.data.Dataset(data=train_files, transform=get_image_transforms())
+    train_ds = torchio.SubjectsDataset(train_files, transform=rescale)
     train_loader = DataLoader(
         train_ds, batch_size=1, sampler=sampler, num_workers=4, pin_memory=torch.cuda.is_available()
     )
 
     # create a validation data loader
-    val_ds = monai.data.Dataset(data=val_files, transform=get_image_transforms())
+    val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
     val_loader = DataLoader(
         val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
     )
@@ -324,7 +326,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
         for batch_data in train_loader:
             step += 1
-            inputs = batch_data['img'].to(device)
+            inputs = batch_data['img'][torchio.DATA].to(device)
             info = batch_data['info'].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
