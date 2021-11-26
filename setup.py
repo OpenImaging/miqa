@@ -51,6 +51,8 @@ setup(
         # For Neural Net
         'monai',
         'sklearn',
+        'torch',
+        'torchio',
         'tensorboard',
         'wandb',
         # Production-only
