@@ -8,14 +8,7 @@ import sys
 
 import itk
 import monai
-from nn_inference import (
-    artifacts,
-    clamp,
-    evaluate1,
-    evaluate_model,
-    get_model,
-    regression_count,
-)
+from nn_inference import artifacts, clamp, evaluate1, evaluate_model, get_model, regression_count
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
