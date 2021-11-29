@@ -62,13 +62,10 @@ export default defineComponent({
         class="flex-grow-1 ma-3 pa-5"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
-        <v-card>
+        <v-card v-if="user.is_superuser">
           <v-subheader>Settings</v-subheader>
 
-          <v-layout
-            v-if="user.is_superuser"
-            class="pa-5"
-          >
+          <v-layout class="pa-5">
             <v-flex>
               <ProjectSettings />
             </v-flex>

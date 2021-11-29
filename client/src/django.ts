@@ -53,7 +53,8 @@ const djangoClient = {
     return data;
   },
   async setSettings(projectId: string, settings: Settings) {
-    await apiClient.put(`/projects/${projectId}/settings`, settings);
+    const resp = await apiClient.put(`/projects/${projectId}/settings`, settings);
+    return resp.status === 200 ? resp.data : null;
   },
   async experiments(projectId: string) {
     const { data } = await apiClient.get('/experiments', {
@@ -102,6 +103,10 @@ const djangoClient = {
   },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');
+    return resp.status === 200 ? resp.data : null;
+  },
+  async allUsers(): Promise<Array<User>> {
+    const resp = await apiClient.get('/users');
     return resp.status === 200 ? resp.data : null;
   },
   async sendEmail(email: string) {

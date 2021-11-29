@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 
-import BluebirdPromise from 'bluebird';
+import BluebirdPromise, { all } from 'bluebird';
 import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
@@ -271,6 +271,7 @@ function expandScanRange(frameId, dataRange) {
 
 const initState = {
   me: null,
+  allUsers: [],
   currentProject: null as Project | null,
   currentProjectPermissions: {},
   projects: [] as Project[],
@@ -395,6 +396,9 @@ const {
     setMe(state, me) {
       state.me = me;
     },
+    setAllUsers(state, allUsers){
+      state.allUsers = allUsers
+    },
     resetProject(state) {
       state.experimentIds = [];
       state.experiments = {};
@@ -499,6 +503,10 @@ const {
     async loadMe({ commit }) {
       const me = await djangoRest.me();
       commit('setMe', me);
+    },
+    async loadAllUsers({ commit }) {
+      const allUsers = await djangoRest.allUsers();
+      commit('setAllUsers', allUsers['results']);
     },
     async logout({ dispatch }) {
       dispatch('reset');
