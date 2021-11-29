@@ -15,7 +15,6 @@ from nn_inference import (
     get_image_transforms,
     get_model,
     regression_count,
-    regression_count_training,
 )
 import numpy as np
 import pandas as pd
@@ -157,9 +156,8 @@ class CombinedLoss(torch.nn.Module):
         self.presence_count = binary_class_weights.shape[-1]  # indicators of presence of artifacts
 
     def forward(self, output, target):
-        assert output.shape[0] == target.shape[0], "output & target size don't match"
+        assert output.shape == target.shape, "output & target size don't match"
         assert output.shape[-1] == regression_count + self.presence_count
-        assert target.shape[-1] == regression_count_training + self.presence_count
 
         qa_out = output[..., 0]
         qa_target = target[..., 0]
@@ -169,7 +167,7 @@ class CombinedLoss(torch.nn.Module):
         loss = 10 * qa_loss
 
         for i in range(self.presence_count):
-            i_target = target[..., i + regression_count_training]
+            i_target = target[..., i + regression_count]
             if i_target != -1:
                 i_output = output[..., i + regression_count]
                 # make them required dimension (1D -> 2D)
@@ -207,7 +205,7 @@ def create_train_and_test_data_loaders(df, count_train):
         if exists:
             images.append(row.file_path)
 
-            row_targets = [row.overall_qa_assessment, (row.snr + row.cnr) / 2.0]  # QA, proxyQA
+            row_targets = [row.overall_qa_assessment]
             for i in range(len(artifacts)):
                 artifact_value = row[artifact_column_indices[i]]
                 converted_result = convert_bool_to_int(artifact_value)
@@ -242,9 +240,9 @@ def create_train_and_test_data_loaders(df, count_train):
     count1 = [0] * class_count
     for s in range(count_train):
         for i in range(class_count):
-            if regression_targets[s][i + regression_count_training] == 0:
+            if regression_targets[s][i + regression_count] == 0:
                 count0[i] += 1
-            elif regression_targets[s][i + regression_count_training] == 1:
+            elif regression_targets[s][i + regression_count] == 1:
                 count1[i] += 1
             # else ignore the missing data
 
