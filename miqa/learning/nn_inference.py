@@ -11,7 +11,6 @@ import wandb
 logger = logging.getLogger(__name__)
 
 regression_count = 1  # use QA, ignore SNR and CNR
-regression_count_training = 2  # use QA, combine SNR and CNR into proxy QA
 artifacts = [
     'normal_variants',
     'lesions',
