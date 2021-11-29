@@ -163,16 +163,8 @@ class CombinedLoss(torch.nn.Module):
         qa_target = target[..., 0]
         qa_loss = torch.mean((qa_out - qa_target) ** 2)
 
-        snr_out = output[..., 1]
-        snr_target = target[..., 1]
-        snr_loss = torch.mean((snr_out - snr_target) ** 2)
-
-        cnr_out = output[..., 2]
-        cnr_target = target[..., 2]
-        cnr_loss = torch.mean((cnr_out - cnr_target) ** 2)
-
-        # overall QA is more important than SNR and CNR
-        loss = 10 * qa_loss + snr_loss + cnr_loss
+        # overall QA is more important than individual artifacts
+        loss = 10 * qa_loss
 
         for i in range(self.presence_count):
             i_target = target[..., i + regression_count]
@@ -213,7 +205,7 @@ def create_train_and_test_data_loaders(df, count_train):
         if exists:
             images.append(row.file_path)
 
-            row_targets = [row.overall_qa_assessment, row.snr, row.cnr]
+            row_targets = [row.overall_qa_assessment]
             for i in range(len(artifacts)):
                 artifact_value = row[artifact_column_indices[i]]
                 converted_result = convert_bool_to_int(artifact_value)
