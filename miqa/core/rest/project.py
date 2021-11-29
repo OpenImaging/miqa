@@ -140,7 +140,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
         request_body=no_body,
         responses={204: 'Export succeeded.'},
     )
-    @project_permission_required(superuser_access=True)
+    @project_permission_required()
     @action(detail=True, methods=['POST'])
     def export(self, request, **kwargs):
         project: Project = self.get_object()

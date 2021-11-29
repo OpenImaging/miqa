@@ -11,6 +11,7 @@ export default defineComponent({
   components: {
     DataImportExport,
   },
+  inject: ['user'],
   setup() {
     const currentProject = computed(() => store.state.currentProject);
 
@@ -86,6 +87,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
+          :disabled="!user.is_superuser"
           :error-messages="importPathError"
           @input="changed = true"
           label="Import path"
@@ -108,6 +110,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
+          :disabled="!user.is_superuser"
           :error-messages="exportPathError"
           @input="changed = true"
           label="Export path"
@@ -119,12 +122,13 @@ export default defineComponent({
     </v-layout>
     <v-btn
       :disabled="!changed"
+      v-if="user.is_superuser"
       type="submit"
       color="primary"
       style="display: inline-block"
     >
       Save
     </v-btn>
-    <DataImportExport />
+    <DataImportExport v-if="user.is_superuser" />
   </v-form>
 </template>
