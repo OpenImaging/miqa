@@ -35,6 +35,11 @@ export default {
         !== JSON.stringify(this.selectedPermissionSet);
     },
   },
+  watch: {
+    currentProject(newProj) {
+      this.selectedPermissionSet = { ...newProj.settings.permissions };
+    },
+  },
   mounted() {
     this.$store.dispatch('loadAllUsers');
     this.selectedPermissionSet = { ...this.permissions };
