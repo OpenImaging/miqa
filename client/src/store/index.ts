@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 
-import BluebirdPromise, { all } from 'bluebird';
+import BluebirdPromise from 'bluebird';
 import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
@@ -396,8 +396,8 @@ const {
     setMe(state, me) {
       state.me = me;
     },
-    setAllUsers(state, allUsers){
-      state.allUsers = allUsers
+    setAllUsers(state, allUsers) {
+      state.allUsers = allUsers;
     },
     resetProject(state) {
       state.experimentIds = [];
@@ -506,7 +506,7 @@ const {
     },
     async loadAllUsers({ commit }) {
       const allUsers = await djangoRest.allUsers();
-      commit('setAllUsers', allUsers['results']);
+      commit('setAllUsers', allUsers.results);
     },
     async logout({ dispatch }) {
       dispatch('reset');

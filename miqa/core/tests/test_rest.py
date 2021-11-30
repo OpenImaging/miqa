@@ -2,6 +2,7 @@ from guardian.shortcuts import get_perms
 import pytest
 
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
+from miqa.core.rest.user import UserSerializer
 
 
 @pytest.mark.django_db
@@ -39,7 +40,7 @@ def test_project_settings_get(user_api_client, project, user):
 def test_project_settings_put(user_api_client, project, user):
     user_api_client = user_api_client()
     my_perms = get_perms(user, project)
-    expected_perms = {
+    new_perms = {
         'collaborator': [user.username] if 'collaborator' in my_perms else [],
         'tier_1_reviewer': [user.username] if 'tier_1_reviewer' in my_perms else [],
         'tier_2_reviewer': [user.username] if 'tier_2_reviewer' in my_perms else [],
@@ -49,12 +50,23 @@ def test_project_settings_put(user_api_client, project, user):
         data={
             'importPath': '/new/fake/path',
             'exportPath': '/new/fake/path',
-            'permissions': expected_perms,
+            'permissions': new_perms,
         },
     )
     if not user.is_superuser:
         assert resp.status_code == 401
     else:
+        expected_perms = {
+            'collaborator': [UserSerializer(user).data]
+            if 'collaborator' in my_perms
+            and 'tier_1_reviewer' not in my_perms
+            and 'tier_2_reviewer' not in my_perms
+            else [],
+            'tier_1_reviewer': [UserSerializer(user).data]
+            if 'tier_1_reviewer' not in my_perms and 'tier_2_reviewer' not in my_perms
+            else [],
+            'tier_2_reviewer': [UserSerializer(user).data] if 'tier_2_reviewer' in my_perms else [],
+        }
         assert resp.status_code == 200
         assert user_api_client.get(f'/api/v1/projects/{project.id}/settings').data == {
             'importPath': '/new/fake/path',
