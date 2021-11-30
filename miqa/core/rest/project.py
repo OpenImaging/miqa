@@ -8,8 +8,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Project
 from miqa.core.rest.experiment import ExperimentSerializer
-from miqa.core.rest.user import UserSerializer
 from miqa.core.rest.permissions import project_permission_required
+from miqa.core.rest.user import UserSerializer
 from miqa.core.tasks import export_data, import_data
 
 
