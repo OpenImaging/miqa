@@ -19,12 +19,11 @@ export default {
     permissions() {
       return this.currentProject.settings.permissions;
     },
-    writePermission() {
-      return this.user.is_superuser;
-    },
     members() {
-      const members = [...this.currentProject.settings.permissions.tier_1_reviewer];
-      members.push(...this.currentProject.settings.permissions.tier_2_reviewer);
+      const members = [
+        ...this.currentProject.settings.permissions.tier_1_reviewer,
+        ...this.currentProject.settings.permissions.tier_2_reviewer,
+      ];
       return members;
     },
     collaborators() {
@@ -64,7 +63,7 @@ export default {
         this.showAddMemberOverlay = false;
         this.showAddCollaboratorOverlay = false;
         const changedProject = { ...this.currentProject };
-        changedProject.settings = resp;
+        changedProject.settings.permissions = resp.permissions;
         this.setCurrentProject(changedProject);
       } catch (e) {
         this.$snackbar({
@@ -85,6 +84,23 @@ export default {
     >
       <v-col cols="12">
         Members
+        <v-tooltip
+          v-if="user.is_superuser"
+          bottom
+          style="display: inline; padding-left: 5px"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              @click="showAddMemberOverlay = true"
+              color="blue darken-2"
+            >
+              mdi-cog
+            </v-icon>
+          </template>
+          <span>Grant/revoke review access</span>
+        </v-tooltip>
       </v-col>
     </v-row>
     <v-row
@@ -103,29 +119,29 @@ export default {
         </span>
       </v-col>
     </v-row>
-    <v-row v-if="writePermission">
-      <v-col cols="12">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon
-              v-bind="attrs"
-              v-on="on"
-              @click="showAddMemberOverlay = true"
-              color="blue darken-2"
-            >
-              mdi-dots-horizontal
-            </v-icon>
-          </template>
-          <span>Grant/revoke review access</span>
-        </v-tooltip>
-      </v-col>
-    </v-row>
     <v-row
       no-gutters
       class="pt-5 pb-3"
     >
       <v-col cols="12">
         Collaborators <span class="gray-info">(Read only)</span>
+        <v-tooltip
+          v-if="user.is_superuser"
+          bottom
+          style="display: inline; padding-left: 5px"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              @click="showAddCollaboratorOverlay = true"
+              color="blue darken-2"
+            >
+              mdi-cog
+            </v-icon>
+          </template>
+          <span>Grant/revoke read access</span>
+        </v-tooltip>
       </v-col>
     </v-row>
     <v-row
@@ -139,23 +155,6 @@ export default {
       </v-col>
       <v-col cols="11">
         {{ user.username }}
-      </v-col>
-    </v-row>
-    <v-row v-if="writePermission">
-      <v-col cols="12">
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon
-              v-bind="attrs"
-              v-on="on"
-              @click="showAddCollaboratorOverlay = true"
-              color="blue darken-2"
-            >
-              mdi-dots-horizontal
-            </v-icon>
-          </template>
-          <span>Grant/revoke read access</span>
-        </v-tooltip>
       </v-col>
     </v-row>
     <v-overlay
