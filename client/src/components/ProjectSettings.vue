@@ -4,9 +4,14 @@ import {
 } from '@vue/composition-api';
 import store from '@/store';
 import djangoRest from '@/django';
+import DataImportExport from '@/components/DataImportExport.vue';
 
 export default defineComponent({
-  name: 'JSONConfig',
+  name: 'ProjectSettings',
+  components: {
+    DataImportExport,
+  },
+  inject: ['user'],
   setup() {
     const currentProject = computed(() => store.state.currentProject);
 
@@ -82,6 +87,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
+          :disabled="!user.is_superuser"
           :error-messages="importPathError"
           @input="changed = true"
           label="Import path"
@@ -104,6 +110,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
+          :disabled="!user.is_superuser"
           :error-messages="exportPathError"
           @input="changed = true"
           label="Export path"
@@ -113,19 +120,15 @@ export default defineComponent({
         />
       </v-flex>
     </v-layout>
-    <v-layout>
-      <v-flex>
-        <v-btn
-          :disabled="!changed"
-          type="submit"
-          color="primary"
-          class="mx-0"
-        >
-          Save
-        </v-btn>
-      </v-flex>
-    </v-layout>
+    <v-btn
+      :disabled="!changed"
+      v-if="user.is_superuser"
+      type="submit"
+      color="primary"
+      style="display: inline-block"
+    >
+      Save
+    </v-btn>
+    <DataImportExport v-if="user.is_superuser" />
   </v-form>
 </template>
-
-<style lang="scss" scoped></style>

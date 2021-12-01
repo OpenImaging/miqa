@@ -4,16 +4,16 @@ import store from '@/store';
 import { Project } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
-import JSONConfig from '@/components/JSONConfig.vue';
-import DataImportExport from '@/components/DataImportExport.vue';
+import ProjectSettings from '@/components/ProjectSettings.vue';
+import ProjectUsers from '@/components/ProjectUsers.vue';
 
 export default defineComponent({
   name: 'Projects',
   components: {
     ExperimentsView,
     Navbar,
-    JSONConfig,
-    DataImportExport,
+    ProjectSettings,
+    ProjectUsers,
   },
   inject: ['user'],
   setup() {
@@ -57,24 +57,31 @@ export default defineComponent({
           </v-list-item-group>
         </v-navigation-drawer>
       </v-card>
-      <v-card
+      <div
         v-if="currentProject"
-        class="flex-grow-1 ma-3 pb-5"
+        class="flex-grow-1 ma-3 pa-5"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
-        <v-layout
-          v-if="user.is_superuser"
-          class="pa-5"
-        >
-          <v-flex>
-            <JSONConfig />
-            <DataImportExport />
-          </v-flex>
-        </v-layout>
-        <v-divider />
-        <v-card-subtitle>Experiments</v-card-subtitle>
-        <ExperimentsView />
-      </v-card>
+        <v-card v-if="user.is_superuser">
+          <v-subheader>Settings</v-subheader>
+
+          <v-layout class="pa-5">
+            <v-flex>
+              <ProjectSettings />
+            </v-flex>
+          </v-layout>
+        </v-card>
+        <div class="flex-container">
+          <v-card class="flex-card">
+            <v-subheader>Experiments</v-subheader>
+            <ExperimentsView />
+          </v-card>
+          <v-card class="flex-card">
+            <v-subheader>Users</v-subheader>
+            <ProjectUsers />
+          </v-card>
+        </div>
+      </div>
       <v-card
         v-else
         class="flex-grow-1 ma-3"
@@ -101,3 +108,15 @@ export default defineComponent({
     </div>
   </div>
 </template>
+
+<style scoped>
+.flex-container {
+  display: flex;
+  column-gap: 10px;
+}
+.flex-card {
+  flex-grow: 1;
+  margin-top: 10px;
+  padding-bottom: 20px;
+}
+</style>

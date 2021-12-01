@@ -42,12 +42,17 @@ interface Experiment {
   note: string,
 }
 
+interface ProjectSettings {
+  importPath: string,
+  exportPath: string,
+  permissions: Object,
+}
+
 interface Project {
   id: string,
   name: string,
   experiments?: Experiment[],
-  import_path: string,
-  export_path: string
+  settings: ProjectSettings,
 }
 
 interface Settings {
