@@ -57,7 +57,8 @@ interface Project {
 
 interface Settings {
   importPath: string,
-  exportPath: string
+  exportPath: string,
+  globalImportExport: boolean
 }
 
 export {
