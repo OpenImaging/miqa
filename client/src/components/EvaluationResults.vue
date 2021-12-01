@@ -10,27 +10,25 @@ export default {
   },
   computed: {
     orderedResults() {
+      console.log(this.results);
       return Object.entries(this.results).sort((first, second) => first[1] < second[1]);
     },
   },
   methods: {
-    convertOverallQualityToColor(text = true) {
-      return this.convertValueToColor(1 - this.results.overall_quality, text);
-    },
     convertValueToColor(value, text = true) {
       const colors = [
-        'green darken-4',
-        'green darken-2',
-        'green lighten-1',
-        'light-green lighten-1',
-        'lime lighten-1',
-        'amber darken-1',
-        'orange lighten-1',
-        'orange darken-2',
-        'orange darken-4',
-        'red darken-2',
         'red darken-4',
-        'black'];
+        'red darken-2',
+        'orange darken-4',
+        'orange darken-2',
+        'orange lighten-1',
+        'amber darken-1',
+        'lime lighten-1',
+        'light-green lighten-1',
+        'green lighten-1',
+        'green darken-2',
+        'green darken-4',
+      ];
       const thisColor = colors[Math.floor(Math.abs(value) * (colors.length - 1)) % colors.length];
       if (text) {
         return `font-weight-bold ${thisColor.replace(' ', '--text text--')}`;
@@ -43,7 +41,7 @@ export default {
 
 <template>
   <v-col
-    :class="convertValueToColor(1 - results.overall_quality)"
+    :class="convertValueToColor(results.overall_quality)"
     cols="6"
     style="text-align: right"
   >
@@ -74,7 +72,7 @@ export default {
             no-gutters
           >
             <v-col
-              cols="4"
+              cols="5"
               align="right"
               class="pr-3 font-weight-bold"
               style="text-transform: capitalize"
@@ -82,18 +80,18 @@ export default {
               Overall Quality
             </v-col>
             <v-col
-              cols="7"
+              cols="6"
               class="pr-3"
             >
               <v-sheet
-                :color="convertOverallQualityToColor(text=false)"
+                :color="convertValueToColor(results.overall_quality, text=false)"
                 :width="(results.overall_quality *100)+'%'"
                 height="5"
                 class="mt-2"
               />
             </v-col>
             <v-col
-              :class="convertOverallQualityToColor()"
+              :class="convertValueToColor(results.overall_quality)"
               cols="1"
             >
               {{ Math.round(results.overall_quality * 100) }}%
@@ -117,7 +115,7 @@ export default {
             no-gutters
           >
             <v-col
-              cols="4"
+              cols="5"
               align="right"
               class="pr-3"
               style="text-transform: capitalize"
@@ -125,18 +123,20 @@ export default {
               {{ name.replace(/_/g, " ") }}
             </v-col>
             <v-col
-              cols="7"
+              cols="6"
               class="pr-3"
             >
               <v-sheet
-                :color="convertValueToColor(value, text=false)"
+                :color="name=='normal_variants' ? 'black' :convertValueToColor(value, text=false)"
                 :width="(value * 100)+'%'"
                 height="5"
                 class="mt-2"
               />
             </v-col>
             <v-col
-              :class="convertValueToColor(value)"
+              :class="name=='normal_variants'
+                ? 'font-weight-bold black--text'
+                :convertValueToColor(value)"
               cols="1"
             >
               {{ Math.round(value * 100) }}%
