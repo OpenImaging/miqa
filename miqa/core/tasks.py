@@ -68,11 +68,13 @@ def perform_import(import_dict, project_id):
     # when multi-project imports are supported
     project = Project.objects.get(id=project_id)
 
-    for _project_name, project_data in import_dict['projects'].items():
-        # Switch these lines to support multi-project imports
-        # project_object = Project(name=_project_name)
-        # new_projects.append(project_object)
-        project_object = project
+    for project_name, project_data in import_dict['projects'].items():
+        if project.global_import_export:
+            # A global import uses the project name column to determine which project to import to
+            project_object = Project.objects.get(name=project_name)
+        else:
+            # A normal import ignores the project name column
+            project_object = project
 
         # delete old imports of these projects
         Experiment.objects.filter(
@@ -107,28 +109,49 @@ def perform_import(import_dict, project_id):
 
 
 def export_data(project_id):
-    project_object = Project.objects.get(id=project_id)
-    parent_location = Path(project_object.export_path).parent
+    project = Project.objects.get(id=project_id)
+    parent_location = Path(project.export_path).parent
     if not parent_location.exists():
         raise ValueError(f'No such location {parent_location} to create export file.')
-    perform_export.delay(project_id)
+
+    # In the event of a global export, we only want to export the projects listed in the import
+    # file. Read the import file now and extract the project names.
+    if project.import_path.endswith('.csv'):
+        import_dict = import_dataframe_to_dict(pandas.read_csv(project.import_path))
+    elif project.import_path.endswith('.json'):
+        import_dict = json.load(open(project.import_path))
+    else:
+        raise ValueError(f'Invalid import file {project.import_path}.')
+
+    import_dict = validate_import_dict(import_dict, project)
+    project_names = import_dict['projects'].keys()
+
+    perform_export.delay(project_id, project_names)
 
 
 @shared_task
-def perform_export(project_id):
-    project_object = Project.objects.get(id=project_id)
+def perform_export(project_id, project_names):
+    project = Project.objects.get(id=project_id)
     data = []
 
-    for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
-        data.append(
-            [
-                project_object.name,
-                frame_object.scan.experiment.name,
-                frame_object.scan.name,
-                frame_object.scan.scan_type,
-                frame_object.frame_number,
-                frame_object.raw_path,
-            ]
-        )
+    if project.global_import_export:
+        # A global export should export all projects listed in the import file
+        projects = [Project.objects.get(name=project_name) for project_name in project_names]
+    else:
+        # A normal export should only export the current project
+        projects = [project]
+
+    for project_object in projects:
+        for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
+            data.append(
+                [
+                    project_object.name,
+                    frame_object.scan.experiment.name,
+                    frame_object.scan.name,
+                    frame_object.scan.scan_type,
+                    frame_object.frame_number,
+                    frame_object.raw_path,
+                ]
+            )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(project_object.export_path, index=False)
