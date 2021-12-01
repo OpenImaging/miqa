@@ -17,10 +17,12 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
+    const globalImportExport = ref(false);
     watchEffect(() => {
       djangoRest.settings(currentProject.value.id).then((settings) => {
         importPath.value = settings.importPath;
         exportPath.value = settings.exportPath;
+        globalImportExport.value = settings.globalImportExport;
       });
     });
 
@@ -37,6 +39,7 @@ export default defineComponent({
         await djangoRest.setSettings(currentProject.value.id, {
           importPath: importPath.value,
           exportPath: exportPath.value,
+          globalImportExport: globalImportExport.value,
         });
         changed.value = false;
       } catch (e) {
@@ -57,6 +60,7 @@ export default defineComponent({
       currentProject,
       importPath,
       exportPath,
+      globalImportExport,
       changed,
       importPathError,
       exportPathError,
@@ -119,6 +123,25 @@ export default defineComponent({
           name="miqa-json-export-path"
         />
       </v-flex>
+    </v-layout>
+    <v-layout>
+      <v-tooltip top>
+        <template v-slot:activator="{ on, attrs }">
+          <div
+            v-bind="attrs"
+            v-on="on"
+          >
+            <v-switch
+              v-model="globalImportExport"
+              @click="changed = true"
+              color="primary"
+              label="Global import/export"
+            />
+          </div>
+        </template>
+        Global imports/exports will use the project name from the import file, which will
+        potentially modify other projects.
+      </v-tooltip>
     </v-layout>
     <v-btn
       :disabled="!changed"
