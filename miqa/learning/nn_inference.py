@@ -19,7 +19,7 @@ artifacts = [
     'swap_wraparound',
     'ghosting_motion',
     'inhomogeneity',
-    'susceptibility_metal',
+    'metal_susceptibility',
     'flow_artifact',
     'truncation_artifact',
 ]
@@ -156,7 +156,12 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
 def label_results(result):
     labeled_results = {'overall_quality': clamp(result[0] / 10.0, 0.0, 1.0)}
     for artifact_name, value in zip(artifacts, result[regression_count:]):
-        labeled_results[artifact_name] = clamp(value, 0.0, 1.0)
+        result_name = artifact_name
+        result_value = clamp(value, 0.0, 1.0)
+        if artifact_name not in ['normal_variants', 'full_brain_coverage']:
+            result_name = 'no_' + result_name
+            result_value = 1 - result_value
+        labeled_results[result_name] = result_value
     return labeled_results
 
 
