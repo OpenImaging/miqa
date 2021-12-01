@@ -19,10 +19,14 @@ artifacts = [
     'swap_wraparound',
     'ghosting_motion',
     'inhomogeneity',
-    'metal_susceptibility',
+    'susceptibility_metal',
     'flow_artifact',
     'truncation_artifact',
 ]
+artifact_names = {
+    artifact: (artifact if artifact != 'susceptibility_metal' else 'metal_susceptibility')
+    for artifact in artifacts
+}
 
 
 class TiledClassifier(monai.networks.nets.Classifier):
@@ -156,7 +160,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
 def label_results(result):
     labeled_results = {'overall_quality': clamp(result[0] / 10.0, 0.0, 1.0)}
     for artifact_name, value in zip(artifacts, result[regression_count:]):
-        result_name = artifact_name
+        result_name = artifact_names[artifact_name]
         result_value = clamp(value, 0.0, 1.0)
         if artifact_name not in ['normal_variants', 'full_brain_coverage']:
             result_name = 'no_' + result_name
