@@ -3,7 +3,7 @@ from django.contrib.auth.signals import user_logged_out
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from miqa.core.models import Experiment
 
@@ -25,7 +25,7 @@ class UserSerializer(serializers.ModelSerializer):
         ref_name = 'user'
 
 
-class UserViewSet(GenericViewSet):
+class UserViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
