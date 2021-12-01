@@ -22,10 +22,14 @@ def generate_import_csv(sample_scans):
     writer = csv.DictWriter(output, fieldnames=fieldnames, dialect='unix')
     writer.writeheader()
     for scan_folder, scan_id, scan_type in sample_scans:
+        # The project name is encoded somewhere in the path
+        for potential_name in ['ohsu', 'ucsd']:
+            if potential_name in scan_folder:
+                project_name = potential_name
         writer.writerow(
             {
-                'project_name': 'testProject',
-                'experiment_name': 'testExperiment',
+                'project_name': project_name,
+                'experiment_name': f'{scan_id}_experiment',
                 'scan_name': scan_id,
                 'scan_type': scan_type,
                 'frame_number': 0,
@@ -37,33 +41,36 @@ def generate_import_csv(sample_scans):
 
 
 def generate_import_json(samples_dir: Path, sample_scans):
-    return {
-        'projects': {
-            'testProject': {
-                'experiments': {
-                    'testExperiment': {
-                        'scans': {
-                            scan_id: {
-                                'type': scan_type,
-                                'frames': {
-                                    0: {
-                                        'file_location': str(
-                                            Path(
-                                                scan_folder,
-                                                f'{scan_id}_{scan_type}',
-                                                'image.nii.gz',
-                                            )
+    projects = {}
+    for scan_folder, scan_id, scan_type in sample_scans:
+        # The project name is encoded somewhere in the path
+        for potential_name in ['ohsu', 'ucsd']:
+            if potential_name in scan_folder:
+                project_name = potential_name
+        experiment_name = f'{scan_id}_experiment'
+        projects[project_name] = {
+            'experiments': {
+                experiment_name: {
+                    'scans': {
+                        scan_id: {
+                            'type': scan_type,
+                            'frames': {
+                                0: {
+                                    'file_location': str(
+                                        Path(
+                                            scan_folder,
+                                            f'{scan_id}_{scan_type}',
+                                            'image.nii.gz',
                                         )
-                                    }
-                                },
-                            }
-                            for scan_folder, scan_id, scan_type in sample_scans
+                                    )
+                                }
+                            },
                         }
                     }
                 }
             }
         }
-    }
+    return {'projects': projects}
 
 
 @pytest.mark.django_db
