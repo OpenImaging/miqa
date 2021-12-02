@@ -2,6 +2,8 @@ from pathlib import Path
 
 from schema import And, Schema, SchemaError, Use
 
+from miqa.core.models import Project
+
 IMPORT_CSV_COLUMNS = [
     'project_name',
     'experiment_name',
@@ -30,7 +32,7 @@ def validate_file_locations(input_dict, project):
     return input_dict
 
 
-def validate_import_dict(import_dict, project):
+def validate_import_dict(import_dict, project: Project):
     import_schema = Schema(
         {
             'projects': {
@@ -52,9 +54,13 @@ def validate_import_dict(import_dict, project):
     try:
         import_schema.validate(import_dict)
         import_dict = validate_file_locations(import_dict, project)
-        return import_dict
     except SchemaError:
         raise ValueError(f'Invalid format of import file {project.import_path}')
+    if project.global_import_export:
+        for project_name in import_dict['projects']:
+            if not Project.objects.filter(name=project_name).exists():
+                raise ValueError(f'Project {project_name} does not exist')
+    return import_dict
 
 
 def import_dataframe_to_dict(df):
