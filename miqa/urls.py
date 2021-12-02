@@ -10,6 +10,7 @@ from miqa.core.rest import (
     ExperimentViewSet,
     FrameViewSet,
     HomePageView,
+    AccountInactiveView,
     LogoutView,
     ProjectViewSet,
     ScanDecisionViewSet,
@@ -34,6 +35,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('', HomePageView, name='home'),
+    path('accounts/inactive/', AccountInactiveView.as_view()),
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
