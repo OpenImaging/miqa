@@ -1,11 +1,4 @@
 import { CancelToken } from 'axios';
-import Promise from 'bluebird';
-
-Promise.config({
-  longStackTraces: false,
-  warnings: false, // note, run node with --trace-warnings to see full stack traces for warnings,
-  cancellation: true,
-});
 
 const READER_MAPPING = {};
 
@@ -104,7 +97,7 @@ function loadFiles(files) {
 }
 
 function downloadFrame(axios, fileName, url) {
-  return new Promise((resolve, reject, onCancel) => {
+  return new Promise((resolve, reject) => {
     const readerMapping = getReader({ name: fileName });
     if (readerMapping) {
       const { readMethod } = readerMapping;
@@ -118,9 +111,6 @@ function downloadFrame(axios, fileName, url) {
           }
         })
         .catch(reject);
-      onCancel(() => {
-        source.cancel('navigated away');
-      });
     } else {
       throw new Error(`No reader found for ${fileName}`);
     }
