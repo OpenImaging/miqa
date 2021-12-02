@@ -125,19 +125,23 @@ export default defineComponent({
       </v-flex>
     </v-layout>
     <v-layout>
+      <v-switch
+        v-model="globalImportExport"
+        @click="changed = true"
+        color="primary"
+        label="Global import/export"
+      />
       <v-tooltip top>
         <template v-slot:activator="{ on, attrs }">
-          <div
+          <v-icon
             v-bind="attrs"
             v-on="on"
+            color="primary"
+            small
+            class="mx-1"
           >
-            <v-switch
-              v-model="globalImportExport"
-              @click="changed = true"
-              color="primary"
-              label="Global import/export"
-            />
-          </div>
+            mdi-information-outline
+          </v-icon>
         </template>
         Global imports/exports will use the project name from the import file, which will
         potentially modify other projects.
