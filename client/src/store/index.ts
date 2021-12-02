@@ -1,6 +1,5 @@
 /* eslint-disable no-use-before-define */
 
-import BluebirdPromise from 'bluebird';
 import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
@@ -68,7 +67,7 @@ function getArrayName(filename) {
 }
 
 function getData(id, file, webWorker = null) {
-  return new BluebirdPromise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (frameCache.has(id)) {
       resolve({ frameData: frameCache.get(id), webWorker });
     } else {
@@ -121,13 +120,13 @@ function loadFileAndGetData(frameId) {
   return loadFile(frameId).fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
-      return BluebirdPromise.resolve({ frameData });
+      return Promise.resolve({ frameData });
     })
     .catch((error) => {
       const msg = 'loadFileAndGetData caught error getting data';
       console.log(msg);
       console.log(error);
-      return BluebirdPromise.reject(msg);
+      return Promise.reject(msg);
     })
     .finally(() => {
       if (savedWorker) {
@@ -138,7 +137,7 @@ function loadFileAndGetData(frameId) {
 }
 
 function poolFunction(webWorker, taskInfo) {
-  return new BluebirdPromise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const { frameId } = taskInfo;
 
     let filePromise = null;
