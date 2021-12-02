@@ -65,7 +65,8 @@ class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
 
 
 class TestingConfiguration(MiqaMixin, TestingBaseConfiguration):
-    pass
+    # We would like to test that the celery tasks work correctly when triggered from the API
+    CELERY_TASK_ALWAYS_EAGER = True
 
 
 class ProductionConfiguration(MiqaMixin, ProductionBaseConfiguration):
