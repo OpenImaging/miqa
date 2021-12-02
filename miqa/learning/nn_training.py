@@ -4,6 +4,7 @@ import logging
 import math
 import os
 from pathlib import Path
+import random
 import sys
 
 import itk
@@ -23,6 +24,11 @@ logger = logging.getLogger(__name__)
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = 'P:/PREDICTHD_BIDS_DEFACE/'
+
+random.seed(30101983)
+np.random.seed(30101983)
+torch.manual_seed(30101983)
+torch.use_deterministic_algorithms(True)
 
 # counts of different QA results is used to calculate class weights
 qa_sample_counts = [
