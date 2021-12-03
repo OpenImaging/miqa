@@ -25,6 +25,7 @@ def default_identified_artifacts():
     return {
         (artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'): -1
         for artifact_name in artifacts
+        if artifact_name != 'normal_variants'
     }
 
 
