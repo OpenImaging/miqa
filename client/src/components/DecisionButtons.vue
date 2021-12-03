@@ -3,10 +3,14 @@ import _ from 'lodash';
 import { mapGetters, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
+import EvaluationResults from '@/components/EvaluationResults.vue';
 
 export default {
   name: 'DecisionButtons',
   inject: ['user', 'MIQAConfig'],
+  components: {
+    EvaluationResults,
+  },
   props: {
     experimentIsEditable: {
       type: Boolean,
@@ -17,7 +21,8 @@ export default {
     return {
       warnDecision: false,
       newComment: '',
-      selectedArtifacts: [],
+      confirmedPresent: [],
+      confirmedAbsent: [],
     };
   },
   computed: {
@@ -28,14 +33,32 @@ export default {
       'currentViewData',
       'myCurrentProjectRoles',
     ]),
-    artifactOptions() {
+    artifacts() {
       return this.MIQAConfig.artifact_options.map((name) => ({
         value: name,
-        text: name.replace(/_/g, ' ').replace(
-          /\w\S*/g,
-          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-        ),
+        labelText: this.convertValueToLabel(name),
       }));
+    },
+    chips() {
+      return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
+    },
+    suggestedArtifacts() {
+      if (this.currentViewData.scanDecisions.length > 0) {
+        const lastDecisionArtifacts = _.last(_.sortBy(
+          this.currentViewData.scanDecisions, (dec) => dec.created,
+        )).user_identified_artifacts;
+        return Object.entries(lastDecisionArtifacts).filter(
+          ([, present]) => present === 1,
+        ).map(([artifactName]) => artifactName);
+      } if (this.currentViewData.currentAutoEvaluation) {
+        const predictedArtifacts = this.currentViewData.currentAutoEvaluation.results;
+        return Object.entries(predictedArtifacts).filter(
+          ([artifactName, percentCertainty]) => artifactName !== 'overall_quality'
+            && artifactName !== 'normal_variants'
+            && percentCertainty < this.MIQAConfig.auto_artifact_threshold,
+        ).map(([artifactName]) => artifactName.replace('no_', '').replace('full', 'partial'));
+      }
+      return [];
     },
     options() {
       const myOptions = [
@@ -68,39 +91,70 @@ export default {
   },
   watch: {
     currentViewData() {
-      this.selectedArtifacts = [];
-      this.initializeSelectedArtifacts();
+      this.confirmedPresent = [];
+      this.confirmedAbsent = [];
     },
     newComment() {
       this.warnDecision = false;
     },
   },
-  mounted() {
-    this.initializeSelectedArtifacts();
-  },
   methods: {
-    initializeSelectedArtifacts() {
-      if (this.currentViewData.scanDecisions.length > 0) {
-        const lastDecisionArtifacts = _.last(_.sortBy(
-          this.currentViewData.scanDecisions, (dec) => dec.created,
-        )).user_identified_artifacts;
-        this.selectedArtifacts = Object.entries(lastDecisionArtifacts).filter(
-          ([, selected]) => selected === 1,
-        ).map(([artifactName]) => artifactName);
-      } else if (this.currentViewData.currentAutoEvaluation) {
-        this.selectedArtifacts = Object.entries(
-          this.currentViewData.currentAutoEvaluation.results,
-        ).map(
-          ([artifactName, percentCertainty]) => {
-            if (artifactName === 'full_brain_coverage') {
-              return ['partial_brain_coverage', 1 - percentCertainty];
-            } if (artifactName.includes('no_')) {
-              return [artifactName.replace('no_', ''), 1 - percentCertainty];
-            } return [artifactName, percentCertainty];
-          },
-        ).filter(
-          ([artifactName, percentCertainty]) => percentCertainty > this.MIQAConfig.auto_artifact_threshold && artifactName !== 'overall_quality',
-        ).map(([artifactName]) => artifactName);
+    convertValueToLabel(artifactName) {
+      return artifactName.replace('susceptibility_metal', 'metal_susceptibility').replace(/_/g, ' ').replace(
+        /\w\S*/g,
+        (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+      );
+    },
+    getCurrentChipState(artifact) {
+      // this function determines the styling of the four chip states.
+      // four states of a chip are:
+      //  confirmed present, confirmed absent, suggested unconfirmed, unsuggested unconfirmed
+
+      // default is unsuggested unconfirmed
+      let state = 0;
+      let label = artifact.labelText;
+      let outlined = true;
+      let color = 'default';
+      let textDecoration = 'none';
+      let textColor = 'default';
+      if (this.confirmedPresent.includes(artifact.value)) {
+        // confirmed present
+        state = 1;
+        outlined = false;
+        color = 'green';
+        textColor = 'white';
+      } else if (this.confirmedAbsent.includes(artifact.value)) {
+        // confirmed absent
+        state = 2;
+        textDecoration = 'line-through';
+      } else if (this.suggestedArtifacts.includes(artifact.value)) {
+        state = 3;
+        // suggested unconfirmed
+        label += '?';
+        color = 'green';
+        textColor = 'green';
+      }
+      return [state, label, outlined, color, textColor, textDecoration];
+    },
+    clickChip(artifact, chipState) {
+      // this function determines state cycle of chips
+      switch (chipState) {
+        case 1:
+          // currently confirmed present
+          this.confirmedPresent = this.confirmedPresent.filter(
+            (artifactName) => artifactName !== artifact.value,
+          );
+          this.confirmedAbsent.push(artifact.value);
+          break;
+        case 2:
+          // currently confirmed absent
+          this.confirmedAbsent = this.confirmedAbsent.filter(
+            (artifactName) => artifactName !== artifact.value,
+          );
+          break;
+        default:
+          // currently unconfirmed
+          this.confirmedPresent.push(artifact.value);
       }
     },
     handleCommentChange(value) {
@@ -109,12 +163,16 @@ export default {
     async handleCommentSave(decision) {
       if (this.newComment.trim().length > 0 || decision === 'U') {
         try {
+          const userIdentifiedArtifacts = {
+            present: this.confirmedPresent,
+            absent: this.confirmedAbsent,
+          };
           const { addScanDecision } = store.commit;
           const savedObj = await djangoRest.setDecision(
             this.currentViewData.scanId,
             decision,
             this.newComment,
-            this.selectedArtifacts,
+            userIdentifiedArtifacts,
           );
           addScanDecision({
             currentScan: this.currentViewData.scanId,
@@ -144,19 +202,72 @@ export default {
 
 <template>
   <div style="pa-0 ma-0">
-    <v-row>
-      <v-col cols="12">
-        <v-select
-          v-model="selectedArtifacts"
-          :items="artifactOptions"
-          label="Select present artifacts"
-          multiple
-          clearable
-          chips
-          deletable-chips
-          hint="Select artifacts present in this scan"
-          persistent-hint
+    <v-row no-gutters>
+      <v-col cols="7">
+        <v-subheader class="pl-0">
+          Indicate presence/absence of artifacts in this scan
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                v-bind="attrs"
+                v-on="on"
+                small
+                class="pl-2"
+              >
+                info
+              </v-icon>
+            </template>
+            <span>
+              Toggle each tag below.
+              Fill green to confirm an artifact is present.
+              Crossthrough to confirm an artifact is absent.
+            </span>
+          </v-tooltip>
+        </v-subheader>
+      </v-col>
+      <v-col
+        v-if="currentViewData.currentAutoEvaluation"
+        cols="5"
+        class="d-flex justify-end align-center"
+      >
+        Auto Evaluation
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              style="height: 25px; padding: 5px"
+            >
+              info
+            </v-icon>
+          </template>
+          <span>
+            An evaluation performed by the MIQA server using artificial intelligence
+          </span>
+        </v-tooltip>
+        <EvaluationResults
+          :results="currentViewData.currentAutoEvaluation.results"
         />
+      </v-col>
+    </v-row>
+    <v-row no-gutters>
+      <v-col
+        cols="12"
+        class="d-flex justify-space-around flex-wrap"
+      >
+        <v-chip
+          v-for="([artifact, chipState]) in chips"
+          v-bind="artifact"
+          :key="artifact.value"
+          @click="clickChip(artifact, chipState[0])"
+          :outlined="chipState[2]"
+          :color="chipState[3]"
+          :text-color="chipState[4]"
+          :style="'text-decoration: '+chipState[5] +'; margin-bottom: 3px;'"
+        >
+          {{ chipState[1] }}
+        </v-chip>
       </v-col>
     </v-row>
     <v-row
@@ -164,7 +275,7 @@ export default {
     >
       <v-col
         cols="12"
-        class="pb-0 mb-0"
+        class="pb-0 mb-0 pt-5"
       >
         <v-textarea
           @input="handleCommentChange"
@@ -218,8 +329,5 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
-}
-.v-list-item * {
-  text-transform: capitalize!important;
 }
 </style>
