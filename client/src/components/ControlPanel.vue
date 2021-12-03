@@ -294,7 +294,7 @@ export default {
               class="pa-0"
             >
               <v-row no-gutters>
-                <v-col cols="6">
+                <v-col cols="5">
                   <v-container
                     fill-height
                     fluid
@@ -515,7 +515,7 @@ export default {
                     </v-row>
                   </v-container>
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="7">
                   <v-container
                     fluid
                     class="px-5"
@@ -524,7 +524,7 @@ export default {
                       <v-col cols="12">
                         <v-container
                           class="grey lighten-4"
-                          style="height: 90px; overflow:auto"
+                          style="height: 100px; overflow:auto;"
                         >
                           <ScanDecision
                             v-for="decision in currentViewData.scanDecisions"
