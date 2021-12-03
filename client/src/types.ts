@@ -17,7 +17,8 @@ interface ScanDecision {
   creator: User,
   created: string,
   decision: string,
-  note: string
+  note: string,
+  user_identified_artifacts: Object,
 }
 
 interface Scan {

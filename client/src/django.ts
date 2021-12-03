@@ -33,6 +33,10 @@ const djangoClient = {
     await apiClient.post('/logout/', undefined, { withCredentials: true });
     await oauthClient.logout();
   },
+  async MIQAConfig(){
+    const { data } = await apiClient.get(`/configuration/`);
+    return data;
+  },
   async import(projectId: string) {
     await apiClient.post(`/projects/${projectId}/import`);
   },
@@ -90,8 +94,8 @@ const djangoClient = {
     const { data } = await apiClient.get(`/scans/${scanId}`);
     return data;
   },
-  async setDecision(scanId: string, decision: string, comment: string) {
-    const { data } = await apiClient.post('/scan-decisions', { scan: scanId, decision, note: comment });
+  async setDecision(scanId: string, decision: string, comment: string, userIdentifiedArtifacts: Array<string>) {
+    const { data } = await apiClient.post('/scan-decisions', { scan: scanId, decision, note: comment, 'artifacts': userIdentifiedArtifacts });
     return data;
   },
   async frames(scanId: string) {
