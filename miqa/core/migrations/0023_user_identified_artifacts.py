@@ -8,7 +8,7 @@ import miqa.core.models.scan_decision
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0021_update_qc_options'),
+        ('core', '0022_project_global_import_export'),
     ]
 
     operations = [
