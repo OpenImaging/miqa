@@ -16,10 +16,11 @@ from miqa.core.tasks import export_data, import_data
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['importPath', 'exportPath', 'permissions']
+        fields = ['importPath', 'exportPath', 'globalImportExport', 'permissions']
 
     importPath = serializers.CharField(source='import_path')  # noqa: N815
     exportPath = serializers.CharField(source='export_path')  # noqa: N815
+    globalImportExport = serializers.BooleanField(source='global_import_export')  # noqa: N815
     permissions = serializers.SerializerMethodField('get_permissions')
 
     def get_permissions(self, obj):
@@ -117,6 +118,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
 
             project.import_path = request.data['importPath']
             project.export_path = request.data['exportPath']
+            project.global_import_export = request.data['globalImportExport']
             project.full_clean()
             project.save()
         serializer = ProjectSettingsSerializer(project)

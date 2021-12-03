@@ -3,6 +3,13 @@ import OAuthClient from '@girder/oauth-client';
 import { Project, Settings, User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
+interface Paginated<T> {
+  count: number,
+  next: string,
+  previous: string,
+  results: T[],
+}
+
 const apiClient = axios.create({ baseURL: API_URL });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
@@ -116,7 +123,7 @@ const djangoClient = {
     const resp = await apiClient.get('/users/me');
     return resp.status === 200 ? resp.data : null;
   },
-  async allUsers(): Promise<Array<User>> {
+  async allUsers(): Promise<Paginated<User>> {
     const resp = await apiClient.get('/users');
     return resp.status === 200 ? resp.data : null;
   },
