@@ -3,6 +3,7 @@ from .experiment import ExperimentViewSet
 from .frame import FrameViewSet
 from .home import HomePageView
 from .logout import LogoutView
+from .other_endpoints import MIQAConfigView
 from .project import ProjectViewSet
 from .scan import ScanViewSet
 from .scan_decision import ScanDecisionViewSet
@@ -18,4 +19,5 @@ __all__ = [
     'UserViewSet',
     'ScanDecisionViewSet',
     'EmailView',
+    'MIQAConfigView',
 ]
