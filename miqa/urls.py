@@ -11,6 +11,7 @@ from miqa.core.rest import (
     FrameViewSet,
     HomePageView,
     LogoutView,
+    MIQAConfigView,
     ProjectViewSet,
     ScanDecisionViewSet,
     ScanViewSet,
@@ -40,6 +41,7 @@ urlpatterns = [
     path('api/v1/', include(router.urls)),
     path('api/v1/email', EmailView.as_view()),
     path('api/v1/logout/', LogoutView.as_view()),
+    path('api/v1/configuration/', MIQAConfigView.as_view()),
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
 ]
