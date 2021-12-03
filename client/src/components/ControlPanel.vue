@@ -5,7 +5,6 @@ import {
 import djangoRest from '@/django';
 import store from '@/store';
 
-import EvaluationResults from './EvaluationResults.vue';
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
@@ -13,7 +12,6 @@ import DecisionButtons from './DecisionButtons.vue';
 export default {
   name: 'Frame',
   components: {
-    EvaluationResults,
     UserAvatar,
     ScanDecision,
     DecisionButtons,
@@ -539,28 +537,6 @@ export default {
                           </div>
                         </v-container>
                       </v-col>
-                    </v-row>
-                    <v-row v-if="currentViewData.currentAutoEvaluation">
-                      <v-col cols="6">
-                        Automatic Evaluation
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              v-on="on"
-                              small
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            An evaluation performed by the MIQA server using artificial intelligence
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <EvaluationResults
-                        :results="currentViewData.currentAutoEvaluation.results"
-                      />
                     </v-row>
                     <DecisionButtons
                       :experimentIsEditable="experimentIsEditable"

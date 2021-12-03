@@ -51,9 +51,19 @@ class ScanDecisionViewSet(
 
         request_data['scan'] = scan
         request_data['creator'] = request.user
-        if 'artifacts' in request_data:
+        if (
+            'artifacts' in request_data
+            and 'present' in request_data['artifacts']
+            and 'absent' in request_data['artifacts']
+        ):
             request_data['user_identified_artifacts'] = {
-                artifact_name: (1 if artifact_name in request_data['artifacts'] else 0)
+                artifact_name: (
+                    1
+                    if artifact_name in request_data['artifacts']['present']
+                    else 0
+                    if artifact_name in request_data['artifacts']['absent']
+                    else -1
+                )
                 for artifact_name in default_identified_artifacts().keys()
             }
             del request_data['artifacts']

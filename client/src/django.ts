@@ -105,7 +105,7 @@ const djangoClient = {
     scanId: string,
     decision: string,
     comment: string,
-    userIdentifiedArtifacts: Array<string>,
+    userIdentifiedArtifacts: Object,
   ) {
     const { data } = await apiClient.post('/scan-decisions', {
       scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts,
