@@ -269,6 +269,7 @@ function expandScanRange(frameId, dataRange) {
 }
 
 const initState = {
+  MIQAConfig: {},
   me: null,
   allUsers: [],
   currentProject: null as Project | null,
@@ -289,7 +290,6 @@ const initState = {
   currentScreenshot: null,
   screenshots: [],
   scanCachedPercentage: 0,
-  currentAutoEvaluation: {},
   showCrosshairs: true,
   xSlice: 0,
   ySlice: 0,
@@ -391,6 +391,9 @@ const {
   mutations: {
     reset(state) {
       Object.assign(state, { ...state, ...initState });
+    },
+    setMIQAConfig(state, configuration){
+      state.MIQAConfig = configuration;
     },
     setMe(state, me) {
       state.me = me;
@@ -498,6 +501,10 @@ const {
       commit('reset');
       fileCache.clear();
       frameCache.clear();
+    },
+    async loadConfiguration({ commit }) {
+      const configuration = await djangoRest.MIQAConfig();
+      commit('setMIQAConfig', configuration)
     },
     async loadMe({ commit }) {
       const me = await djangoRest.me();
