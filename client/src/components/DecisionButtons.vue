@@ -1,11 +1,12 @@
 <script>
-import { mapGetters } from 'vuex';
+import _ from 'lodash';
+import { mapGetters, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 
 export default {
   name: 'DecisionButtons',
-  inject: ['user'],
+  inject: ['user', 'MIQAConfig'],
   props: {
     experimentIsEditable: {
       type: Boolean,
@@ -16,13 +17,26 @@ export default {
     return {
       warnDecision: false,
       newComment: '',
+      selectedArtifacts: [],
     };
   },
   computed: {
+    ...mapState([
+      'currentViewData',
+    ]),
     ...mapGetters([
       'currentViewData',
       'myCurrentProjectRoles',
     ]),
+    artifactOptions() {
+      return this.MIQAConfig.artifact_options.map((name) => ({
+        value: name,
+        text: name.replace(/_/g, ' ').replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        ),
+      }));
+    },
     options() {
       const myOptions = [
         {
@@ -53,11 +67,42 @@ export default {
     },
   },
   watch: {
+    currentViewData() {
+      this.selectedArtifacts = [];
+      this.initializeSelectedArtifacts();
+    },
     newComment() {
       this.warnDecision = false;
     },
   },
+  mounted() {
+    this.initializeSelectedArtifacts();
+  },
   methods: {
+    initializeSelectedArtifacts() {
+      if (this.currentViewData.scanDecisions.length > 0) {
+        const lastDecisionArtifacts = _.last(_.sortBy(
+          this.currentViewData.scanDecisions, (dec) => dec.created,
+        )).user_identified_artifacts;
+        this.selectedArtifacts = Object.entries(lastDecisionArtifacts).filter(
+          ([, selected]) => selected === 1,
+        ).map(([artifactName]) => artifactName);
+      } else if (this.currentViewData.currentAutoEvaluation) {
+        this.selectedArtifacts = Object.entries(
+          this.currentViewData.currentAutoEvaluation.results,
+        ).map(
+          ([artifactName, percentCertainty]) => {
+            if (artifactName === 'full_brain_coverage') {
+              return ['partial_brain_coverage', 1 - percentCertainty];
+            } if (artifactName.includes('no_')) {
+              return [artifactName.replace('no_', ''), 1 - percentCertainty];
+            } return [artifactName, percentCertainty];
+          },
+        ).filter(
+          ([artifactName, percentCertainty]) => percentCertainty > this.MIQAConfig.auto_artifact_threshold && artifactName !== 'overall_quality',
+        ).map(([artifactName]) => artifactName);
+      }
+    },
     handleCommentChange(value) {
       this.newComment = value;
     },
@@ -69,6 +114,7 @@ export default {
             this.currentViewData.scanId,
             decision,
             this.newComment,
+            this.selectedArtifacts,
           );
           addScanDecision({
             currentScan: this.currentViewData.scanId,
@@ -98,6 +144,21 @@ export default {
 
 <template>
   <div style="pa-0 ma-0">
+    <v-row>
+      <v-col cols="12">
+        <v-select
+          v-model="selectedArtifacts"
+          :items="artifactOptions"
+          label="Select present artifacts"
+          multiple
+          clearable
+          chips
+          deletable-chips
+          hint="Select artifacts present in this scan"
+          persistent-hint
+        />
+      </v-col>
+    </v-row>
     <v-row
       v-if="experimentIsEditable"
     >
@@ -157,5 +218,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+}
+.v-list-item * {
+  text-transform: capitalize!important;
 }
 </style>

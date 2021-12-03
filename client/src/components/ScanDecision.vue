@@ -13,6 +13,18 @@ export default {
       required: true,
     },
   },
+  computed: {
+    artifactChips() {
+      return Object.entries(this.decision.user_identified_artifacts).filter(
+        ([, selected]) => selected === 1,
+      ).map(
+        ([artifactName]) => ({
+          code: artifactName.toUpperCase().slice(0, 3),
+          value: artifactName.replace(/_/g, ' '),
+        }),
+      );
+    },
+  },
   methods: {
     convertDecisionToColor(decision) {
       if (decision.toLowerCase() === 'bad') return 'red--text text--darken-2';
@@ -39,12 +51,36 @@ export default {
     </v-col>
     <v-col
       :class="decision.note ? 'black--text' : 'grey--text'"
-      cols="7"
+      class="d-flex justify-space-between"
+      cols="8"
     >
-      {{ decision.note ? decision.note : "No comment" }}
+      <v-flex grow>
+        {{ decision.note ? decision.note : "No comment" }}
+      </v-flex>
+      <v-flex
+        shrink
+        class="d-flex flex-wrap justify-end flex-shrink-1"
+      >
+        <v-tooltip
+          v-for="chip in artifactChips"
+          :v-bind="chip.code"
+          :key="'chip_'+ chip.value"
+          bottom
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-chip
+              v-bind="attrs"
+              v-on="on"
+            >
+              {{ chip.code }}
+            </v-chip>
+          </template>
+          <span>{{ chip.value }}</span>
+        </v-tooltip>
+      </v-flex>
     </v-col>
     <v-col
-      cols="3"
+      cols="2"
       class="grey--text"
       style="text-align: right"
     >
@@ -54,5 +90,8 @@ export default {
 </template>
 
 <style scoped>
-
+.col{
+  padding: 0px;
+  margin: 0px;
+}
 </style>

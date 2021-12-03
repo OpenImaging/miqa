@@ -10,7 +10,6 @@ export default {
   },
   computed: {
     orderedResults() {
-      console.log(this.results);
       return Object.entries(this.results).sort((first, second) => first[1] < second[1]);
     },
   },
