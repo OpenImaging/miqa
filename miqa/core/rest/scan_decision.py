@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Project, Scan, ScanDecision
-from miqa.core.rest.user import UserSerializer
 from miqa.core.models.scan_decision import default_identified_artifacts
+from miqa.core.rest.user import UserSerializer
 
 from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_review_perm
 
@@ -51,14 +51,12 @@ class ScanDecisionViewSet(
 
         request_data['scan'] = scan
         request_data['creator'] = request.user
-        print(request_data['artifacts'])
         if 'artifacts' in request_data:
             request_data['user_identified_artifacts'] = {
                 artifact_name: (1 if artifact_name in request_data['artifacts'] else 0)
                 for artifact_name in default_identified_artifacts().keys()
             }
             del request_data['artifacts']
-        print(request_data['user_identified_artifacts'])
 
         ensure_experiment_lock(request_data['scan'], request_data['creator'])
         new_obj = ScanDecision(**request_data)

@@ -392,7 +392,7 @@ const {
     reset(state) {
       Object.assign(state, { ...state, ...initState });
     },
-    setMIQAConfig(state, configuration){
+    setMIQAConfig(state, configuration) {
       state.MIQAConfig = configuration;
     },
     setMe(state, me) {
@@ -504,7 +504,7 @@ const {
     },
     async loadConfiguration({ commit }) {
       const configuration = await djangoRest.MIQAConfig();
-      commit('setMIQAConfig', configuration)
+      commit('setMIQAConfig', configuration);
     },
     async loadMe({ commit }) {
       const me = await djangoRest.me();
