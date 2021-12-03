@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+from miqa.learning.nn_inference import artifacts
+
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
@@ -17,6 +19,13 @@ DECISION_CHOICES = [
     ('Q?', 'Questionable'),
     ('UN', 'Unusable'),
 ]
+
+
+def default_identified_artifacts():
+    return {
+        (artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'): -1
+        for artifact_name in artifacts
+    }
 
 
 class ScanDecision(models.Model):
@@ -32,6 +41,7 @@ class ScanDecision(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
+    user_identified_artifacts = models.JSONField(default=default_identified_artifacts)
 
     @property
     def experiment(self) -> Experiment:
