@@ -1,0 +1,67 @@
+{% extends "account/base.html" %}
+
+{% block title %} User Approval {% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <div>
+    <ul class="collection">
+      <li class="collection-item">
+        <h5 class="title">Email:</h5>
+        <p>{{ user.username }}</p>
+      </li>
+    </ul>
+
+    <div style="margin-bottom: 4em;">
+      <h5 style="display: inline-block">Currently active:
+          {{ user.is_active }}
+        </span>
+      </h5>
+      <h5>Account request date: {{ user.date_joined }}</h5>
+    </div>
+
+    <div class="row" style="text-align: center;">
+      <div class="col s1"></div>
+      <div class="col s4">
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="active_status" value="APPROVED">
+          <button style="border: 1px solid green" type="submit">
+            <span>APPROVE</span>
+          </button>
+        </form>
+      </div>
+      <br/>
+      <div class="col s2"></div>
+      <div class="col s4">
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="active_status" value="REJECTED">
+          <button style="border: 1px solid red" type="submit">
+            <span>REJECT</span>
+          </button>
+          <br /><br /><br />
+          <label for="rejection_reason">Rejection reason (optional)</label>
+          <input
+            type="text"
+            name="rejection_reason"
+            value="{% if user.metadata.rejection_reason != None %}{{ user.metadata.rejection_reason }}{% endif %}"
+          >
+        </form>
+      </div>
+      <div class="col s1"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
