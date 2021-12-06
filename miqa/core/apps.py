@@ -6,4 +6,4 @@ class CoreConfig(AppConfig):
     verbose_name = 'MIQA: Core'
 
     def ready(self):
-        from miqa.core import signals
+        from miqa.core import signals  # noqa pylint: disable=unused-import
