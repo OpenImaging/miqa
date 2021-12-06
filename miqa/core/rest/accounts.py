@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
 from django.core.mail import EmailMultiAlternatives
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic.base import TemplateView
 from rest_framework import status
 from rest_framework.response import Response
@@ -15,11 +14,13 @@ class AccountInactiveView(TemplateView):
 
 
 class AccountActivateView(TemplateView):
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
-        email = kwargs['email']
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated and request.user.is_superuser:
+            return redirect('home')
+        return super(AccountActivateView, self).dispatch(request, *args, **kwargs)
 
+    def get(self, request, *args, **kwargs):
+        email = kwargs['email']
         user = User.objects.get(email=email)
 
         return render(
@@ -29,10 +30,7 @@ class AccountActivateView(TemplateView):
         )
 
     def post(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied()
         email = kwargs['email']
-
         user = User.objects.get(email=email)
 
         req_body = request.POST.dict()
