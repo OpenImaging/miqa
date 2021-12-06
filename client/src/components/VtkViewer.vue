@@ -38,6 +38,9 @@ export default {
       return this.representation.getPropertyDomainByName('slice');
     },
     name() {
+      return this.view.getName();
+    },
+    cameraDirectionName() {
       return this.normalizedAxis(this.view.getName());
     },
     displayName() {
@@ -76,7 +79,7 @@ export default {
         };
         this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
         this.setCurrentVtkIndexSlices({
-          indexAxis: ijkMapping[this.name],
+          indexAxis: ijkMapping[this.cameraDirectionName],
           value: this.representation.getSliceIndex(),
         });
       }
@@ -158,43 +161,69 @@ export default {
 
       let newOrientation = orientation.slice();
       newOrientation = newOrientation.map(
-        (value) => value * VIEW_ORIENTATIONS[this.name].orientation,
+        (value) => value * VIEW_ORIENTATIONS[this.cameraDirectionName].orientation,
       );
 
-      if (this.name === 'x') {
+      if (this.cameraDirectionName === 'x') {
         newOrientation = orientation.slice(0, 3);
-      } else if (this.name === 'y') {
+      } else if (this.cameraDirectionName === 'y') {
         newOrientation = orientation.slice(3, 6);
-      } else if (this.name === 'z') {
+      } else if (this.cameraDirectionName === 'z') {
         newOrientation = orientation.slice(6, 9);
       }
       camera.setDirectionOfProjection(...newOrientation);
 
-      const newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
+      const newViewUp = VIEW_ORIENTATIONS[this.cameraDirectionName].viewUp.slice();
       vec3.transformMat3(newViewUp, newViewUp, orientation);
       camera.setViewUp(newViewUp);
 
       this.view.resetCamera();
       fill2DView(this.view);
     },
-    normalizedAxis(oldAxis) {
-      const orientation = this.representation.getInputDataSet().getDirection();
-      const normalizedOrientation = orientation.map((value) => Math.abs(Math.round(value)));
-      const axisMapping = {
-        x: normalizedOrientation.slice(0, 3),
-        y: normalizedOrientation.slice(3, 6),
-        z: normalizedOrientation.slice(6, 9),
-      };
-      const newAxis = Object.entries(axisMapping).filter(([, slice]) => {
-        if (oldAxis === 'x') {
-          return slice[0] === 1;
-        } if (oldAxis === 'y') {
-          return slice[1] === 1;
+    findMaxLocation(matrix) {
+      matrix = matrix.map((value) => Math.abs(value));
+      let maximum = -1;
+      let location = [-1, -1];
+      for (let r = 0; r < 3; r += 1) {
+        for (let c = 0; c < 3; c += 1) {
+          const index = r * 3 + c;
+          if (matrix[index] > maximum) {
+            maximum = matrix[index];
+            location = [r, c];
+          }
         }
-        return slice[2] === 1;
-      }).map((entry) => entry[0])[0];
-
-      return newAxis;
+      }
+      return location;
+    },
+    zeroRowColumn(matrix, r, c) {
+      for (let i = 0; i < 3; i += 1) {
+        const index = i * 3 + c;
+        matrix[index] = 0;
+      }
+      for (let i = 0; i < 3; i += 1) {
+        const index = r * 3 + i;
+        matrix[index] = 0;
+      }
+      return matrix;
+    },
+    normalizedAxis(oldAxis) {
+      let orientation = this.representation.getInputDataSet().getDirection().slice();
+      const newMatrix = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      for (let i = 0; i < 3; i += 1) {
+        const currentMaxLocation = this.findMaxLocation(orientation);
+        const index = currentMaxLocation[0] * 3 + currentMaxLocation[1];
+        newMatrix[index] = orientation[index];
+        orientation = this.zeroRowColumn(currentMaxLocation);
+      }
+      const axisMapping = {
+        x: newMatrix.slice(0, 3),
+        y: newMatrix.slice(3, 6),
+        z: newMatrix.slice(6, 9),
+      };
+      const absoluteTargetColumn = axisMapping[oldAxis].map((value) => Math.abs(value));
+      const maxLocation = absoluteTargetColumn.indexOf(Math.max(...absoluteTargetColumn));
+      const axes = ['x', 'y', 'z'];
+      return axes[maxLocation];
     },
     increaseSlice() {
       this.slice = Math.min(
