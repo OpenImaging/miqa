@@ -4,24 +4,19 @@ import logging
 import math
 import os
 from pathlib import Path
+import random
 import sys
 
 import itk
 import monai
-from nn_inference import (
-    artifacts,
-    evaluate1,
-    evaluate_model,
-    get_image_transforms,
-    get_model,
-    regression_count,
-)
+from nn_inference import artifacts, clamp, evaluate1, evaluate_model, get_model, regression_count
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+import torchio
 import wandb
 
 logger = logging.getLogger(__name__)
@@ -29,6 +24,11 @@ logger = logging.getLogger(__name__)
 existing_count = 0
 missing_count = 0
 predict_hd_data_root = 'P:/PREDICTHD_BIDS_DEFACE/'
+
+random.seed(30101983)
+np.random.seed(30101983)
+torch.manual_seed(30101983)
+torch.use_deterministic_algorithms(True)
 
 # counts of different QA results is used to calculate class weights
 qa_sample_counts = [
@@ -44,6 +44,8 @@ qa_sample_counts = [
     1908,
     1290,  # number of samples with qa==10
 ]
+
+ghosting_motion_index = regression_count + artifacts.index('ghosting_motion')
 
 
 def get_image_dimension(path):
@@ -192,6 +194,54 @@ def convert_bool_to_int(value: bool):
         return -1
 
 
+class CustomGhosting(torchio.transforms.RandomGhosting):
+    def apply_transform(self, subject: torchio.Subject) -> torchio.Subject:
+        original_quality = subject['info'][0]
+        if original_quality < 6 and len(subject.applied_transforms) == 1:  # low quality image
+            return subject
+        else:  # high-quality image, corrupt it
+            transformed_subject = super().apply_transform(subject)
+
+            # now determine how much quality was reduced
+            applied_params = transformed_subject.applied_transforms[-1][1]
+            intensity = applied_params['intensity']['img']
+            num_ghosts = applied_params['num_ghosts']['img']
+            quality_reduction = 10 * intensity * math.log10(num_ghosts)
+
+            # update the ground truth information
+            new_quality = original_quality - quality_reduction
+            transformed_subject['info'][0] = clamp(new_quality, 0, 10)
+            # it definitely has ghosting now
+            transformed_subject['info'][ghosting_motion_index] = 1
+
+            return transformed_subject
+
+
+class CustomMotion(torchio.transforms.RandomMotion):
+    def apply_transform(self, subject: torchio.Subject) -> torchio.Subject:
+        original_quality = subject['info'][0]
+        if original_quality < 6 and len(subject.applied_transforms) == 1:  # low quality image
+            return subject
+        else:  # high-quality image, corrupt it
+            transformed_subject = super().apply_transform(subject)
+
+            # now determine how much quality was reduced
+            applied_params = transformed_subject.applied_transforms[-1][1]
+            times = applied_params['times']['img']
+            degrees = np.sum(np.absolute(applied_params['degrees']['img']))
+            translation = np.sum(np.absolute(applied_params['translation']['img']))
+            # motion earlier in the acquisition process produces more noticeable artifacts
+            quality_reduction = clamp(degrees + translation, 0, 10) * (1.0 - times)
+
+            # update the ground truth information
+            new_quality = original_quality - quality_reduction
+            transformed_subject['info'][0] = clamp(new_quality, 0, 10)
+            if degrees + translation > 1:  # it definitely has motion now
+                transformed_subject['info'][ghosting_motion_index] = 1
+
+            return transformed_subject
+
+
 def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
@@ -224,11 +274,11 @@ def create_train_and_test_data_loaders(df, count_train):
     ground_truth = np.asarray(regression_targets)
     count_val = df.shape[0] - count_train
     train_files = [
-        {'img': img, 'info': info}
+        torchio.Subject({'img': torchio.ScalarImage(img), 'info': info})
         for img, info in zip(images[:count_train], ground_truth[:count_train])
     ]
     val_files = [
-        {'img': img, 'info': info}
+        torchio.Subject({'img': torchio.ScalarImage(img), 'info': info})
         for img, info in zip(images[-count_val:], ground_truth[-count_val:])
     ]
 
@@ -252,23 +302,19 @@ def create_train_and_test_data_loaders(df, count_train):
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
-    qa_weights = [1000.0 / qa_sample_counts[t] for t in range(11)]
-    samples_weights = []
-    for s in range(count_train):
-        weight = qa_weights[int(regression_targets[s][0])]
-        samples_weights.append(weight)
-
-    samples_weight = torch.from_numpy(np.array(samples_weights)).double()
-    sampler = torch.utils.data.WeightedRandomSampler(samples_weight, count_train)
+    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    ghosting = CustomGhosting(p=0.3, intensity=(0.2, 0.8))
+    motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
+    transforms = torchio.Compose([rescale, ghosting, motion])
 
     # create a training data loader
-    train_ds = monai.data.Dataset(data=train_files, transform=get_image_transforms())
+    train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
     train_loader = DataLoader(
-        train_ds, batch_size=1, sampler=sampler, num_workers=4, pin_memory=torch.cuda.is_available()
+        train_ds, batch_size=1, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available()
     )
 
     # create a validation data loader
-    val_ds = monai.data.Dataset(data=val_files, transform=get_image_transforms())
+    val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
     val_loader = DataLoader(
         val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
     )
@@ -324,7 +370,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
         for batch_data in train_loader:
             step += 1
-            inputs = batch_data['img'].to(device)
+            inputs = batch_data['img'][torchio.DATA].to(device)
             info = batch_data['info'].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
