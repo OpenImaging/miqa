@@ -43,6 +43,10 @@ class MiqaMixin(ConfigMixin):
             'guardian',
         ]
 
+        configuration.TEMPLATES[0]['DIRS'] += [
+            Path(configuration.BASE_DIR, 'miqa/templates/'),
+        ]
+
         # guardian's authentication backend
         configuration.AUTHENTICATION_BACKENDS += [
             'guardian.backends.ObjectPermissionBackend',
