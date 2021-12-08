@@ -26,7 +26,7 @@ def require_admin_approval(sender, **kwargs):
         'If you believe this account should not be activated, reach out to this user'
         f'{" and other administrators." if len(admins) > 1 else "."} '
         '\n\n '
-        f'To activate this account, visit {activation_link}. '
+        f'To activate this account, visit {activation_link} '
         '\n\n '
         'Thank you for using MIQA! ',
         settings.DEFAULT_FROM_EMAIL,
