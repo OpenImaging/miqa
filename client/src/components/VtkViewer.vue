@@ -40,8 +40,14 @@ export default {
     name() {
       return this.view.getName();
     },
+    closestIJKAxis() {
+      return this.representation.getMapper().getClosestIJKAxis().ijkMode;
+    },
+    closestIJKFlip() {
+      return this.representation.getMapper().getClosestIJKAxis().flip;
+    },
     cameraDirectionName() {
-      return this.normalizedAxis(this.view.getName());
+      return this.normalizedAxis(this.view.getName()).axis;
     },
     displayName() {
       switch (this.name) {
@@ -104,6 +110,7 @@ export default {
     },
     currentScan() {
       this.initializeSlice();
+      this.initializeCamera();
     },
     showCrosshairs() {
       this.updateCrosshairs();
@@ -156,29 +163,43 @@ export default {
       });
     },
     initializeCamera() {
-      const orientation = this.representation.getInputDataSet().getDirection();
       const camera = this.view.getCamera();
+      const orientation = this.representation.getInputDataSet().getDirection();
 
-      let newOrientation = orientation.slice();
-      newOrientation = newOrientation.map(
-        (value) => value * VIEW_ORIENTATIONS[this.cameraDirectionName].orientation,
+      let newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
+      let newDirectionOfProjection = VIEW_ORIENTATIONS[this.name].directionOfProjection;
+      newViewUp = this.findClosestColumnToVector(newViewUp, orientation);
+      newDirectionOfProjection = this.findClosestColumnToVector(
+        newDirectionOfProjection,
+        orientation,
       );
 
-      if (this.cameraDirectionName === 'x') {
-        newOrientation = orientation.slice(0, 3);
-      } else if (this.cameraDirectionName === 'y') {
-        newOrientation = orientation.slice(3, 6);
-      } else if (this.cameraDirectionName === 'z') {
-        newOrientation = orientation.slice(6, 9);
-      }
-      camera.setDirectionOfProjection(...newOrientation);
-
-      const newViewUp = VIEW_ORIENTATIONS[this.cameraDirectionName].viewUp.slice();
-      vec3.transformMat3(newViewUp, newViewUp, orientation);
-      camera.setViewUp(newViewUp);
+      camera.setDirectionOfProjection(...newDirectionOfProjection);
+      camera.setViewUp(...newViewUp);
 
       this.view.resetCamera();
       fill2DView(this.view);
+    },
+    findClosestColumnToVector(inputVector, matrix) {
+      let currClosest = null;
+      let currMax = 0;
+      const inputVectorAxis = inputVector.findIndex((value) => value !== 0);
+      for (let i = 0; i < 3; i += 1) {
+        const currColumn = matrix.slice(i * 3, i * 3 + 3);
+        const currValue = Math.abs(currColumn[inputVectorAxis]);
+        if (currValue > currMax) {
+          currClosest = currColumn;
+          currMax = currValue;
+        }
+      }
+      const flipCurrClosest = vec3.dot(
+        inputVector,
+        currClosest,
+      );
+      if (flipCurrClosest < 0) {
+        currClosest = currClosest.map((value) => value * -1);
+      }
+      return currClosest;
     },
     findMaxLocation(matrix) {
       matrix = matrix.map((value) => Math.abs(value));
@@ -213,7 +234,7 @@ export default {
         const currentMaxLocation = this.findMaxLocation(orientation);
         const index = currentMaxLocation[0] * 3 + currentMaxLocation[1];
         newMatrix[index] = orientation[index];
-        orientation = this.zeroRowColumn(currentMaxLocation);
+        orientation = this.zeroRowColumn(orientation, currentMaxLocation[0], currentMaxLocation[1]);
       }
       const axisMapping = {
         x: newMatrix.slice(0, 3),
@@ -222,8 +243,12 @@ export default {
       };
       const absoluteTargetColumn = axisMapping[oldAxis].map((value) => Math.abs(value));
       const maxLocation = absoluteTargetColumn.indexOf(Math.max(...absoluteTargetColumn));
+      const flip = Math.sign(axisMapping[oldAxis][maxLocation]);
       const axes = ['x', 'y', 'z'];
-      return axes[maxLocation];
+      return {
+        axis: axes[maxLocation],
+        flip: flip < 0,
+      };
     },
     increaseSlice() {
       this.slice = Math.min(
