@@ -451,9 +451,9 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     folds.append(vf)
     df = pd.concat(folds, ignore_index=True)
 
-    # we should have at least 10k optimization steps and at least 20 epochs
+    # establish minimum number of optimization steps and epochs
     val_count = max(1, int(600 / df.shape[0]))
-    epoch_count = max(15, int(30000 / df.shape[0]))
+    epoch_count = max(25, int(30000 / df.shape[0]))
     epoch_count = math.ceil(epoch_count / val_count) * val_count
 
     count_train = df.shape[0] - vf.shape[0]
