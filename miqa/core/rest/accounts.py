@@ -15,7 +15,7 @@ class AccountInactiveView(TemplateView):
 
 class AccountActivateView(TemplateView):
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated and request.user.is_superuser:
+        if not (request.user.is_authenticated and request.user.is_superuser):
             return redirect('home')
         return super(AccountActivateView, self).dispatch(request, *args, **kwargs)
 
