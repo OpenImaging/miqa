@@ -47,11 +47,17 @@ export default {
         const lastDecisionArtifacts = _.last(_.sortBy(
           this.currentViewData.scanDecisions, (dec) => dec.created,
         )).user_identified_artifacts;
+        // Of the artifacts chosen in the last scandecision,
+        // include only those marked as present.
         return Object.entries(lastDecisionArtifacts).filter(
-          ([, present]) => present === 1,
+          ([, present]) => present === this.MIQAConfig.artifact_states.PRESENT,
         ).map(([artifactName]) => artifactName);
       } if (this.currentViewData.currentAutoEvaluation) {
         const predictedArtifacts = this.currentViewData.currentAutoEvaluation.results;
+        // Of the results from the NN, filter these to
+        // exclude overall_quality and normal_variants (not real artifacts)
+        // and exclude anything under the suggestion threshold set by the server.
+        // Then map these to display the negative connotation version of the artifact.
         return Object.entries(predictedArtifacts).filter(
           ([artifactName, percentCertainty]) => artifactName !== 'overall_quality'
             && artifactName !== 'normal_variants'
@@ -111,30 +117,32 @@ export default {
       //  confirmed present, confirmed absent, suggested unconfirmed, unsuggested unconfirmed
 
       // default is unsuggested unconfirmed
-      let state = 0;
-      let label = artifact.labelText;
-      let outlined = true;
-      let color = 'default';
-      let textDecoration = 'none';
-      let textColor = 'default';
+      const chipState = {
+        state: 0,
+        label: artifact.labelText,
+        outlined: true,
+        color: 'default',
+        textDecoration: 'none',
+        textColor: 'default',
+      };
       if (this.confirmedPresent.includes(artifact.value)) {
         // confirmed present
-        state = 1;
-        outlined = false;
-        color = 'green';
-        textColor = 'white';
+        chipState.state = 1;
+        chipState.outlined = false;
+        chipState.color = 'green';
+        chipState.textColor = 'white';
       } else if (this.confirmedAbsent.includes(artifact.value)) {
         // confirmed absent
-        state = 2;
-        textDecoration = 'line-through';
+        chipState.state = 2;
+        chipState.textDecoration = 'line-through';
       } else if (this.suggestedArtifacts.includes(artifact.value)) {
-        state = 3;
         // suggested unconfirmed
-        label += '?';
-        color = 'green';
-        textColor = 'green';
+        chipState.state = 3;
+        chipState.label += '?';
+        chipState.color = 'green';
+        chipState.textColor = 'green';
       }
-      return [state, label, outlined, color, textColor, textDecoration];
+      return chipState;
     },
     clickChip(artifact, chipState) {
       // this function determines state cycle of chips
@@ -260,13 +268,13 @@ export default {
           v-for="([artifact, chipState]) in chips"
           v-bind="artifact"
           :key="artifact.value"
-          @click="clickChip(artifact, chipState[0])"
-          :outlined="chipState[2]"
-          :color="chipState[3]"
-          :text-color="chipState[4]"
-          :style="'text-decoration: '+chipState[5] +'; margin-bottom: 3px;'"
+          @click="clickChip(artifact, chipState.state)"
+          :outlined="chipState.outlined"
+          :color="chipState.color"
+          :text-color="chipState.textColor"
+          :style="'text-decoration: '+chipState.textDecoration +'; margin-bottom: 3px;'"
         >
-          {{ chipState[1] }}
+          {{ chipState.label }}
         </v-chip>
       </v-col>
     </v-row>

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -21,9 +22,17 @@ DECISION_CHOICES = [
 ]
 
 
+class ArtifactState(Enum):
+    PRESENT = 1
+    ABSENT = 0
+    UNDEFINED = -1
+
+
 def default_identified_artifacts():
     return {
-        (artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'): -1
+        (
+            artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'
+        ): ArtifactState.UNDEFINED.value
         for artifact_name in artifacts
         if artifact_name != 'normal_variants'
     }

@@ -18,7 +18,10 @@ interface ScanDecision {
   created: string,
   decision: string,
   note: string,
-  user_identified_artifacts: Object,
+  user_identified_artifacts: {
+    present: String[],
+    absent: String[],
+  },
 }
 
 interface Scan {
