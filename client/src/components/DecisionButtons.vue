@@ -129,7 +129,7 @@ export default {
         // confirmed present
         chipState.state = 1;
         chipState.outlined = false;
-        chipState.color = 'green';
+        chipState.color = 'red';
         chipState.textColor = 'white';
       } else if (this.confirmedAbsent.includes(artifact.value)) {
         // confirmed absent
@@ -139,8 +139,8 @@ export default {
         // suggested unconfirmed
         chipState.state = 3;
         chipState.label += '?';
-        chipState.color = 'green';
-        chipState.textColor = 'green';
+        chipState.color = 'red';
+        chipState.textColor = 'red';
       }
       return chipState;
     },
@@ -238,7 +238,9 @@ export default {
         cols="5"
         class="d-flex justify-end align-center"
       >
-        Auto Evaluation
+        <v-subheader class="pr-0">
+          Auto evaluation
+        </v-subheader>
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
             <v-icon
