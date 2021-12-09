@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Project, Scan, ScanDecision
+from miqa.core.models.scan_decision import ArtifactState, default_identified_artifacts
 from miqa.core.rest.user import UserSerializer
 
 from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_review_perm
@@ -14,7 +15,7 @@ from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_re
 class ScanDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScanDecision
-        fields = ['id', 'decision', 'creator', 'created', 'note']
+        fields = ['id', 'decision', 'creator', 'created', 'note', 'user_identified_artifacts']
         read_only_fields = ['created', 'creator']
         ref_name = 'scan_decision'
 
@@ -50,6 +51,22 @@ class ScanDecisionViewSet(
 
         request_data['scan'] = scan
         request_data['creator'] = request.user
+        if (
+            'artifacts' in request_data
+            and 'present' in request_data['artifacts']
+            and 'absent' in request_data['artifacts']
+        ):
+            request_data['user_identified_artifacts'] = {
+                artifact_name: (
+                    ArtifactState.PRESENT.value
+                    if artifact_name in request_data['artifacts']['present']
+                    else ArtifactState.ABSENT.value
+                    if artifact_name in request_data['artifacts']['absent']
+                    else ArtifactState.UNDEFINED.value
+                )
+                for artifact_name in default_identified_artifacts().keys()
+            }
+            del request_data['artifacts']
 
         ensure_experiment_lock(request_data['scan'], request_data['creator'])
         new_obj = ScanDecision(**request_data)

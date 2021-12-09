@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+from miqa.learning.nn_inference import artifacts
 
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
@@ -17,6 +20,22 @@ DECISION_CHOICES = [
     ('Q?', 'Questionable'),
     ('UN', 'Unusable'),
 ]
+
+
+class ArtifactState(Enum):
+    PRESENT = 1
+    ABSENT = 0
+    UNDEFINED = -1
+
+
+def default_identified_artifacts():
+    return {
+        (
+            artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'
+        ): ArtifactState.UNDEFINED.value
+        for artifact_name in artifacts
+        if artifact_name != 'normal_variants'
+    }
 
 
 class ScanDecision(models.Model):
@@ -32,6 +51,7 @@ class ScanDecision(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
+    user_identified_artifacts = models.JSONField(default=default_identified_artifacts)
 
     @property
     def experiment(self) -> Experiment:

@@ -45,14 +45,16 @@ Vue.config.productionTip = true;
 
 djangoRest.restoreLogin(store).then(async () => {
   await store.dispatch.loadMe();
+  await store.dispatch.loadConfiguration();
   const user = store.state.me;
+  const { MIQAConfig } = store.state;
   new Vue({
     vuetify,
     router,
     store: store.original,
     render: (h) => h(App),
     provide: {
-      user,
+      user, MIQAConfig,
     },
   })
     .$mount('#app')
