@@ -6,6 +6,8 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 
 from miqa.core.rest import (
+    AccountActivateView,
+    AccountInactiveView,
     EmailView,
     ExperimentViewSet,
     FrameViewSet,
@@ -35,6 +37,8 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('', HomePageView, name='home'),
+    path('accounts/activate/<email>', AccountActivateView.as_view(), name='account-activate'),
+    path('accounts/inactive/', AccountInactiveView.as_view()),
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
