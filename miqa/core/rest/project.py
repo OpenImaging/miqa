@@ -133,8 +133,11 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def import_(self, request, **kwargs):
         project: Project = self.get_object()
 
-        # tasks sent to celery must use serializable arguments
-        import_data(request.user.id, project.id)
+        try:
+            # tasks sent to celery must use serializable arguments
+            import_data(request.user.id, project.id)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -147,7 +150,10 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def export(self, request, **kwargs):
         project: Project = self.get_object()
 
-        # tasks sent to celery must use serializable arguments
-        export_data(project.id)
+        try:
+            # tasks sent to celery must use serializable arguments
+            export_data(project.id)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
