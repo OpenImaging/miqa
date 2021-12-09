@@ -2,6 +2,7 @@ from guardian.shortcuts import get_perms
 import pytest
 
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
+from miqa.core.rest.scan_decision import ScanDecisionSerializer
 from miqa.core.rest.user import UserSerializer
 
 
@@ -194,22 +195,7 @@ def test_scan_decisions_list(user_api_client, scan_decision, user):
             'results': [],
         }
     else:
-        expected_result = [
-            {
-                'id': str(scan_decision.id),
-                'decision': scan_decision.decision,
-                'creator': {
-                    'id': scan_decision.creator.id,
-                    'username': scan_decision.creator.username,
-                    'email': scan_decision.creator.email,
-                    'is_superuser': scan_decision.creator.is_superuser,
-                    'first_name': scan_decision.creator.first_name,
-                    'last_name': scan_decision.creator.last_name,
-                },
-                'created': scan_decision.created.strftime('%d-%m-%Y'),
-                'note': scan_decision.note,
-            }
-        ]
+        expected_result = [ScanDecisionSerializer(scan_decision).data]
         assert resp.data == {
             'count': 1,
             'next': None,
