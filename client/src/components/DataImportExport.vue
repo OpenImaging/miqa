@@ -44,7 +44,7 @@ export default defineComponent({
       } catch (ex) {
         importing.value = false;
         this.$snackbar({
-          text: 'Import failed. Refer to server logs for details.',
+          text: ex || 'Import failed. Refer to server logs for details.',
         });
         console.error(ex);
       }
@@ -60,7 +60,7 @@ export default defineComponent({
         });
       } catch (err) {
         this.$snackbar({
-          text: `Export failed: ${err.response.data.detail || 'Server error'}`,
+          text: err || `Export failed: ${err.response.data.detail || 'Server error'}`,
           timeout: 6000,
 
         });
@@ -103,7 +103,7 @@ export default defineComponent({
           Import
         </v-btn>
       </template>
-      <span>Import from {{ currentProject.import_path }}</span>
+      <span>Import from {{ currentProject.settings.importPath }}</span>
     </v-tooltip>
 
     <v-tooltip
@@ -131,7 +131,7 @@ export default defineComponent({
           </span>
         </v-btn>
       </template>
-      <span>Export to {{ currentProject.export_path }}</span>
+      <span>Export to {{ currentProject.settings.exportPath }}</span>
     </v-tooltip>
 
     <v-dialog
