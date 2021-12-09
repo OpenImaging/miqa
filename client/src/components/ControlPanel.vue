@@ -5,7 +5,6 @@ import {
 import djangoRest from '@/django';
 import store from '@/store';
 
-import EvaluationResults from './EvaluationResults.vue';
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
@@ -13,7 +12,6 @@ import DecisionButtons from './DecisionButtons.vue';
 export default {
   name: 'Frame',
   components: {
-    EvaluationResults,
     UserAvatar,
     ScanDecision,
     DecisionButtons,
@@ -294,7 +292,7 @@ export default {
               class="pa-0"
             >
               <v-row no-gutters>
-                <v-col cols="6">
+                <v-col cols="5">
                   <v-container
                     fill-height
                     fluid
@@ -515,7 +513,7 @@ export default {
                     </v-row>
                   </v-container>
                 </v-col>
-                <v-col cols="6">
+                <v-col cols="7">
                   <v-container
                     fluid
                     class="px-5"
@@ -524,7 +522,7 @@ export default {
                       <v-col cols="12">
                         <v-container
                           class="grey lighten-4"
-                          style="height: 90px; overflow:auto"
+                          style="height: 100px; overflow:auto;"
                         >
                           <ScanDecision
                             v-for="decision in currentViewData.scanDecisions"
@@ -539,28 +537,6 @@ export default {
                           </div>
                         </v-container>
                       </v-col>
-                    </v-row>
-                    <v-row v-if="currentViewData.currentAutoEvaluation">
-                      <v-col cols="6">
-                        Automatic Evaluation
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              v-on="on"
-                              small
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            An evaluation performed by the MIQA server using artificial intelligence
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <EvaluationResults
-                        :results="currentViewData.currentAutoEvaluation.results"
-                      />
                     </v-row>
                     <DecisionButtons
                       :experimentIsEditable="experimentIsEditable"
