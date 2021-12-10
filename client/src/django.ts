@@ -53,6 +53,14 @@ const djangoClient = {
   async export(projectId: string) {
     return apiClient.post(`/projects/${projectId}/export`);
   },
+  async createProject(projectName: string): Promise<Project>{
+    const { data } = await apiClient.post('/projects', {name: projectName});
+    return data;
+  },
+  async deleteProject(projectId: string){
+    const { data } = await apiClient.delete(`/projects/${projectId}`);
+    return data;
+  },
   async projects(): Promise<Project[]> {
     const { data } = await apiClient.get('/projects');
     const { results } = data;

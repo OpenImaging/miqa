@@ -424,7 +424,9 @@ const {
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
-      state.currentProjectPermissions = project.settings.permissions;
+      if(project){
+        state.currentProjectPermissions = project.settings.permissions;
+      }
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
