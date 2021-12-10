@@ -1,6 +1,8 @@
 <script lang="ts">
 import { computed, defineComponent, ref } from '@vue/composition-api';
+import { mapMutations } from 'vuex';
 import store from '@/store';
+import djangoRest from '@/django';
 import { Project } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
@@ -16,6 +18,10 @@ export default defineComponent({
     ProjectUsers,
   },
   inject: ['user'],
+  data: () => ({
+    creating: false,
+    newName: '',
+  }),
   setup() {
     store.dispatch.loadProjects();
     const currentProject = computed(() => store.state.currentProject);
@@ -29,12 +35,43 @@ export default defineComponent({
     const selectProject = (project: Project) => {
       store.dispatch.loadProject(project);
     };
+
     return {
       currentProject,
       selectedProjectIndex,
       projects,
       selectProject,
     };
+  },
+  methods: {
+    ...mapMutations(['setProjects', 'setCurrentProject']),
+    async createProject() {
+      if (this.creating && this.newName.length > 0) {
+        try {
+          const newProject = await djangoRest.createProject(this.newName);
+          this.setProjects(this.projects.concat([newProject]));
+          this.setCurrentProject(newProject);
+          this.creating = false;
+          this.newName = '';
+
+          this.$snackbar({
+            text: 'New project created.',
+            timeout: 6000,
+          });
+        } catch (ex) {
+          this.$snackbar({
+            text: ex || 'Project creation failed.',
+          });
+        }
+      }
+    },
+  },
+  mounted() {
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        this.createProject();
+      }
+    });
   },
 });
 </script>
@@ -53,6 +90,25 @@ export default defineComponent({
               @click="selectProject(project)"
             >
               {{ project.name }}
+            </v-list-item>
+            <v-list-item style="text-align: center">
+              <v-text-field
+                v-if="creating"
+                v-model="newName"
+                @click:append="createProject"
+                autofocus
+                append-icon="mdi-arrow-right"
+                label="New Project Name"
+                filled
+                dense
+              />
+              <v-btn
+                @click="creating = true"
+                v-else
+                class="green white--text"
+              >
+                + Create new Project
+              </v-btn>
             </v-list-item>
           </v-list-item-group>
         </v-navigation-drawer>
