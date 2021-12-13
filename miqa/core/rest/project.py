@@ -2,6 +2,7 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -137,7 +138,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
             # tasks sent to celery must use serializable arguments
             import_data(request.user.id, project.id)
         except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(str(e))
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -154,6 +155,6 @@ class ProjectViewSet(ReadOnlyModelViewSet):
             # tasks sent to celery must use serializable arguments
             export_data(project.id)
         except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise APIException(str(e))
 
         return Response(status=status.HTTP_204_NO_CONTENT)
