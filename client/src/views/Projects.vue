@@ -1,5 +1,10 @@
 <script lang="ts">
-import { computed, defineComponent, ref } from '@vue/composition-api';
+import Vue from 'vue';
+import {
+  computed, defineComponent, ref, watch,
+} from '@vue/composition-api';
+import Donut from 'vue-css-donut-chart';
+import 'vue-css-donut-chart/dist/vcdonut.css';
 import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
@@ -8,6 +13,8 @@ import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
 import ProjectSettings from '@/components/ProjectSettings.vue';
 import ProjectUsers from '@/components/ProjectUsers.vue';
+
+Vue.use(Donut);
 
 export default defineComponent({
   name: 'Projects',
@@ -25,6 +32,7 @@ export default defineComponent({
   setup() {
     store.dispatch.loadProjects();
     const currentProject = computed(() => store.state.currentProject);
+    const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
     // We don't actually use selectedProjectIndex for anything
     // It is determined here so that the projects list selects the current project when navigating
@@ -36,11 +44,50 @@ export default defineComponent({
       store.dispatch.loadProject(project);
     };
 
+    // this array represents the strings returned by the API
+    const scanStates = ['complete', 'unreviewed', 'needs tier 2 review'];
+    let scanStateCounts = computed(() => Object.fromEntries(scanStates.map(
+      (stateString) => [stateString, 0],
+    )));
+    const getScanStateCounts = () => {
+      if (currentProject.value) {
+        scanStateCounts = computed(() => Object.fromEntries(scanStates.map(
+          (stateString) => {
+            const stateCount = Object.entries(currentTaskOverview.value.scan_states).filter(
+              ([, scanState]) => scanState === stateString,
+            ).length;
+            return [stateString, stateCount];
+          },
+        )));
+      }
+    };
+    watch(currentTaskOverview, getScanStateCounts);
+
+    const overviewSections = computed(() => [
+      {
+        value: scanStateCounts.value.complete,
+        label: `Complete (${scanStateCounts.value.complete})`,
+        color: '#00C853',
+      },
+      {
+        value: scanStateCounts.value.unreviewed,
+        label: `Needs First Review (${scanStateCounts.value.unreviewed})`,
+        color: '#1A84E1',
+      },
+      {
+        value: scanStateCounts.value['needs tier 2 review'],
+        label: `Needs Second Review (${scanStateCounts.value['needs tier 2 review']})`,
+        color: '#45A8F8',
+      },
+    ]);
+
     return {
       currentProject,
+      currentTaskOverview,
       selectedProjectIndex,
       projects,
       selectProject,
+      overviewSections,
     };
   },
   methods: {
@@ -118,15 +165,39 @@ export default defineComponent({
         class="flex-grow-1 ma-3 pa-5"
       >
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
-        <v-card v-if="user.is_superuser">
-          <v-subheader>Settings</v-subheader>
+        <div class="flex-container">
+          <v-card
+            v-if="user.is_superuser"
+            class="flex-card"
+            style="flex-grow: 4;"
+          >
+            <v-subheader>Settings</v-subheader>
 
-          <v-layout class="pa-5">
-            <v-flex>
-              <ProjectSettings />
-            </v-flex>
-          </v-layout>
-        </v-card>
+            <v-layout class="pa-5">
+              <v-flex>
+                <ProjectSettings />
+              </v-flex>
+            </v-layout>
+          </v-card>
+          <v-card
+            v-if="currentTaskOverview && currentTaskOverview.total_scans > 0"
+            class="flex-card"
+          >
+            <v-subheader>Overview</v-subheader>
+            <vc-donut
+              :sections="overviewSections"
+              :size="200"
+              :thickness="30"
+              :total="currentTaskOverview.total_scans"
+              has-legend
+              legend-placement="right"
+            >
+              <h2>{{ currentTaskOverview.total_experiments }}</h2>
+              <h4>experiments</h4>
+              <p>({{ currentTaskOverview.total_scans }} scans)</p>
+            </vc-donut>
+          </v-card>
+        </div>
         <div class="flex-container">
           <v-card class="flex-card">
             <v-subheader>Experiments</v-subheader>

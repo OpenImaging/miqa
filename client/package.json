@@ -28,6 +28,7 @@
     "vtk.js": "14.16.5",
     "vue": "^2.6.14",
     "vue-async-computed": "^3.5.1",
+    "vue-css-donut-chart": "^1.3.2",
     "vue-router": "3.4.3",
     "vuetify": "2.3.22",
     "vuex": "^3.0.1"
