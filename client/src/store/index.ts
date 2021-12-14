@@ -425,7 +425,7 @@ const {
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
-      if(project){
+      if (project) {
         state.currentProjectPermissions = project.settings.permissions;
       }
     },
@@ -613,7 +613,7 @@ const {
         }
       }
       // get the task overview for this project
-      const taskOverview = await djangoRest.projectTaskOverview(project.id)
+      const taskOverview = await djangoRest.projectTaskOverview(project.id);
       commit('setTaskOverview', taskOverview);
     },
     async reloadScan({ commit, getters }) {
