@@ -1,6 +1,6 @@
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
-import { Project, Settings, User } from './types';
+import { Project, ProjectTaskOverview, Settings, User } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 interface Paginated<T> {
@@ -68,6 +68,10 @@ const djangoClient = {
   },
   async project(projectId: string): Promise<Project> {
     const { data } = await apiClient.get(`/projects/${projectId}`);
+    return data;
+  },
+  async projectTaskOverview(projectId: string): Promise<ProjectTaskOverview> {
+    const { data } = await apiClient.get(`/projects/${projectId}/task_overview`);
     return data;
   },
   async settings(projectId: string): Promise<Settings> {
