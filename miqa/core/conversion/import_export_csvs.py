@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from rest_framework.exceptions import APIException
 from schema import And, Schema, SchemaError, Use
 
 from miqa.core.models import Project
@@ -25,7 +26,7 @@ def validate_file_locations(input_dict, project):
                 raw_path = Path(project.import_path).parent.parent / raw_path
                 # TODO: add support for interpreting URIs not on host machine
             if not raw_path.exists():
-                raise ValueError(f'Could not locate file "{raw_path}".')
+                raise APIException(f'Could not locate file "{raw_path}".')
             input_dict[key] = str(raw_path)
         else:
             input_dict[key] = validate_file_locations(value, project)
@@ -55,17 +56,17 @@ def validate_import_dict(import_dict, project: Project):
         import_schema.validate(import_dict)
         import_dict = validate_file_locations(import_dict, project)
     except SchemaError:
-        raise ValueError(f'Invalid format of import file {project.import_path}')
+        raise APIException(f'Invalid format of import file {project.import_path}')
     if project.global_import_export:
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
-                raise ValueError(f'Project {project_name} does not exist')
+                raise APIException(f'Project {project_name} does not exist')
     return import_dict
 
 
 def import_dataframe_to_dict(df):
     if list(df.columns) != IMPORT_CSV_COLUMNS:
-        raise ValueError(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
+        raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
     return {
         'projects': {
             project_name: {
