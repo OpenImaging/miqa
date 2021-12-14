@@ -17,7 +17,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project } from '@/types';
+import { Project, ProjectTaskOverview } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -273,6 +273,7 @@ const initState = {
   me: null,
   allUsers: [],
   currentProject: null as Project | null,
+  currentTaskOverview: null as ProjectTaskOverview | null,
   currentProjectPermissions: {},
   projects: [] as Project[],
   experimentIds: [],
@@ -427,6 +428,9 @@ const {
       if(project){
         state.currentProjectPermissions = project.settings.permissions;
       }
+    },
+    setTaskOverview(state, taskOverview: ProjectTaskOverview) {
+      state.currentTaskOverview = taskOverview;
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -608,6 +612,9 @@ const {
           }
         }
       }
+      // get the task overview for this project
+      const taskOverview = await djangoRest.projectTaskOverview(project.id)
+      commit('setTaskOverview', taskOverview);
     },
     async reloadScan({ commit, getters }) {
       const { currentFrame } = getters;

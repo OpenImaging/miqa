@@ -52,6 +52,13 @@ interface ProjectSettings {
   permissions: Object,
 }
 
+interface ProjectTaskOverview {
+  total_experiments: number,
+  total_scans: number,
+  my_project_role: string,
+  scan_states: Object,
+}
+
 interface Project {
   id: string,
   name: string,
@@ -66,5 +73,5 @@ interface Settings {
 }
 
 export {
-  User, Project, Settings, ScanDecision,
+  User, Project, ProjectTaskOverview, Settings, ScanDecision,
 };
