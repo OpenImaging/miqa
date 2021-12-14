@@ -2,7 +2,6 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -134,11 +133,8 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def import_(self, request, **kwargs):
         project: Project = self.get_object()
 
-        try:
-            # tasks sent to celery must use serializable arguments
-            import_data(request.user.id, project.id)
-        except Exception as e:
-            raise APIException(str(e))
+        # tasks sent to celery must use serializable arguments
+        import_data(request.user.id, project.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -151,10 +147,7 @@ class ProjectViewSet(ReadOnlyModelViewSet):
     def export(self, request, **kwargs):
         project: Project = self.get_object()
 
-        try:
-            # tasks sent to celery must use serializable arguments
-            export_data(project.id)
-        except Exception as e:
-            raise APIException(str(e))
+        # tasks sent to celery must use serializable arguments
+        export_data(project.id)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
