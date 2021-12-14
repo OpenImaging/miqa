@@ -85,8 +85,7 @@ export default defineComponent({
 
 <template>
   <div
-    class="pt-5"
-    style="display: inline-block"
+    class="pl-3"
   >
     <v-tooltip
       v-if="!exportOnly"
