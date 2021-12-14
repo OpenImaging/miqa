@@ -1,6 +1,6 @@
 from drf_yasg.utils import no_body, swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user, get_users_with_perms, get_perms
-from rest_framework import serializers, status, mixins
+from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms
+from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
