@@ -173,24 +173,36 @@ export default defineComponent({
         potentially modify other projects.
       </v-tooltip>
     </v-layout>
-    <v-btn
-      :disabled="!changed"
-      v-if="user.is_superuser"
-      type="submit"
-      color="primary"
-      style="display: inline-block"
-    >
-      Save
-    </v-btn>
-    <DataImportExport v-if="user.is_superuser" />
-    <v-btn
-      v-if="user.is_superuser"
-      @click="showDeleteWarningOverlay = true"
-      class="red white--text"
-      style="float: right"
-    >
-      DELETE PROJECT
-    </v-btn>
+    <v-layout>
+      <v-row>
+        <v-col cols="1">
+          <v-btn
+            :disabled="!changed"
+            v-if="user.is_superuser"
+            type="submit"
+            color="primary"
+          >
+            Save
+          </v-btn>
+        </v-col>
+        <v-col cols="9">
+          <DataImportExport v-if="user.is_superuser" />
+        </v-col>
+        <v-col
+          cols="2"
+          class="text-right"
+        >
+          <v-btn
+            v-if="user.is_superuser"
+            @click="showDeleteWarningOverlay = true"
+            class="red white--text"
+            style="float: right"
+          >
+            DELETE PROJECT
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-layout>
     <v-overlay
       :value="showDeleteWarningOverlay"
       :dark="false"
