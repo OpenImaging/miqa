@@ -272,10 +272,12 @@ const initState = {
   MIQAConfig: {},
   me: null,
   allUsers: [],
+  reviewMode: false,
   currentProject: null as Project | null,
   currentTaskOverview: null as ProjectTaskOverview | null,
   currentProjectPermissions: {},
   projects: [] as Project[],
+  allScans: {},
   experimentIds: [],
   experiments: {},
   experimentScans: {},
@@ -320,6 +322,9 @@ const {
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = state.scans[currentFrame.scan];
+      if(!scan) {
+        console.log('Scan removed from list! Reconcile here.')
+      }
       const experiment = currentFrame.experiment
         ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
@@ -424,6 +429,7 @@ const {
       // Replace with a new object to trigger a Vuex update
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
+      state.allScans = { ...state.scans };
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
@@ -499,6 +505,30 @@ const {
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
     },
+    switchReviewMode(state, mode){
+      state.reviewMode = mode || false;
+      if(mode){
+        const myRole = state.currentTaskOverview.my_project_role;
+        let scanStatesForMyReview = []
+        if(myRole == 'tier_2_reviewer'){
+          scanStatesForMyReview = ['needs tier 2 review']
+        } else if(myRole == 'tier_1_reviewer'){
+          scanStatesForMyReview = ['unreviewed']
+        }
+        const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
+          ([, scanState]) => scanStatesForMyReview.includes(scanState)
+        ).map(
+          ([scanId]) => scanId
+        );
+        state.scans = Object.fromEntries(
+          Object.entries(state.scans).filter(
+            ([scanId,]) => scanIdsForMyReview.includes(scanId)
+          )
+        );
+      } else {
+        state.scans = state.allScans;
+      }
+    }
   },
   actions: {
     reset({ state, commit }) {
