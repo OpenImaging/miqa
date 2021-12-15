@@ -44,9 +44,7 @@ export default defineComponent({
       store.dispatch.loadProject(project);
     };
 
-    // this array represents the strings returned by the API
     const scanStates = ['complete', 'unreviewed', 'needs tier 2 review'];
-
     const overviewSections = ref([]);
     const setOverviewSections = () => {
       if (projects.value && currentTaskOverview.value) {
