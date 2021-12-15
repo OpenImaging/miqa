@@ -17,7 +17,7 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project, ProjectTaskOverview } from '@/types';
+import { Project, ProjectTaskOverview, User } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -381,7 +381,9 @@ const {
     },
     myCurrentProjectRoles(state) {
       const projectPerms = Object.entries(state.currentProjectPermissions)
-        .filter((entry: [string, Array<string>]): Boolean => entry[1].includes(state.me.username))
+        .filter((entry: [string, Array<User>]): Boolean => entry[1].map(
+          user => user.username
+        ).includes(state.me.username))
         .map((entry) => entry[0]);
       if (state.me.is_superuser) {
         projectPerms.push('superuser');
