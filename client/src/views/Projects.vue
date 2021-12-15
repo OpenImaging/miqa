@@ -1,7 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import {
-  computed, defineComponent, ref, watch,
+  computed, defineComponent, ref, reactive, watch,
 } from '@vue/composition-api';
 import Donut from 'vue-css-donut-chart';
 import 'vue-css-donut-chart/dist/vcdonut.css';
@@ -46,40 +46,40 @@ export default defineComponent({
 
     // this array represents the strings returned by the API
     const scanStates = ['complete', 'unreviewed', 'needs tier 2 review'];
-    let scanStateCounts = computed(() => Object.fromEntries(scanStates.map(
-      (stateString) => [stateString, 0],
-    )));
-    const getScanStateCounts = () => {
-      if (currentProject.value) {
-        scanStateCounts = computed(() => Object.fromEntries(scanStates.map(
-          (stateString) => {
-            const stateCount = Object.entries(currentTaskOverview.value.scan_states).filter(
-              ([, scanState]) => scanState === stateString,
-            ).length;
-            return [stateString, stateCount];
+
+    const overviewSections = ref([]);
+    const setOverviewSections = () => {
+      if (projects.value && currentTaskOverview.value) {
+        const scanStateCounts = ref(reactive(
+          Object.fromEntries(scanStates.map(
+            (stateString) => {
+              const stateCount = Object.entries(currentTaskOverview.value.scan_states).filter(
+                ([, scanState]) => scanState === stateString,
+              ).length;
+              return [stateString, stateCount];
+            },
+          )),
+        ));
+        overviewSections.value = [
+          {
+            value: scanStateCounts.value.complete,
+            label: `Complete (${scanStateCounts.value.complete})`,
+            color: '#00C853',
           },
-        )));
+          {
+            value: scanStateCounts.value.unreviewed,
+            label: `Needs First Review (${scanStateCounts.value.unreviewed})`,
+            color: '#1A84E1',
+          },
+          {
+            value: scanStateCounts.value['needs tier 2 review'],
+            label: `Needs Second Review (${scanStateCounts.value['needs tier 2 review']})`,
+            color: '#45A8F8',
+          },
+        ];
       }
     };
-    watch(currentTaskOverview, getScanStateCounts);
-
-    const overviewSections = computed(() => [
-      {
-        value: scanStateCounts.value.complete,
-        label: `Complete (${scanStateCounts.value.complete})`,
-        color: '#00C853',
-      },
-      {
-        value: scanStateCounts.value.unreviewed,
-        label: `Needs First Review (${scanStateCounts.value.unreviewed})`,
-        color: '#1A84E1',
-      },
-      {
-        value: scanStateCounts.value['needs tier 2 review'],
-        label: `Needs Second Review (${scanStateCounts.value['needs tier 2 review']})`,
-        color: '#45A8F8',
-      },
-    ]);
+    watch(currentTaskOverview, setOverviewSections);
 
     return {
       currentProject,
@@ -88,6 +88,7 @@ export default defineComponent({
       projects,
       selectProject,
       overviewSections,
+      setOverviewSections,
     };
   },
   methods: {
@@ -114,6 +115,7 @@ export default defineComponent({
     },
   },
   mounted() {
+    this.setOverviewSections();
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
         this.createProject();
