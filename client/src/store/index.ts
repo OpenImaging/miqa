@@ -259,10 +259,10 @@ function expandScanRange(frameId, dataRange) {
   if (frameId in store.state.frames) {
     const scanId = store.state.frames[frameId].scan;
     const scan = store.state.scans[scanId];
-    if (dataRange[0] < scan.cumulativeRange[0]) {
+    if (scan && dataRange[0] < scan.cumulativeRange[0]) {
       [scan.cumulativeRange[0]] = dataRange;
     }
-    if (dataRange[1] > scan.cumulativeRange[1]) {
+    if (scan && dataRange[1] > scan.cumulativeRange[1]) {
       [, scan.cumulativeRange[1]] = dataRange;
     }
   }
@@ -323,13 +323,30 @@ const {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = state.scans[currentFrame.scan];
       if(!scan) {
-        console.log('Scan removed from list! Reconcile here.')
+        const nextFrame =
+        Object.entries(state.frames).filter(
+          ([, frameInfo]) => frameInfo['scan'] == Object.keys(state.scans)[0]
+          )[0][0]
+          // Scan removed from list by review mode, return sparse object
+          // and let the component navigate away
+          // since navigation should not happen in the store
+          return {
+            downTo: nextFrame
+          };
       }
       const experiment = currentFrame.experiment
-        ? state.experiments[currentFrame.experiment] : null;
+      ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
       const experimentScansList = state.experimentScans[experiment.id];
       const scanFramesList = state.scanFrames[scan.id];
+      let upTo = currentFrame.firstFrameInPreviousScan;
+      let downTo = currentFrame.firstFrameInNextScan;
+      if(upTo && !Object.keys(state.scans).includes(state.frames[upTo].scan)){
+        upTo = null;
+      }
+      if(downTo && !Object.keys(state.scans).includes(state.frames[downTo].scan)){
+        downTo = null;
+      }
       return {
         projectName: project.name,
         experimentId: experiment.id,
@@ -343,8 +360,8 @@ const {
         framePositionString: `(${scanFramesList.indexOf(currentFrame.id) + 1}/${scanFramesList.length})`,
         backTo: currentFrame.previousFrame,
         forwardTo: currentFrame.nextFrame,
-        upTo: currentFrame.firstFrameInPreviousScan,
-        downTo: currentFrame.firstFrameInNextScan,
+        upTo,
+        downTo,
         currentAutoEvaluation: currentFrame.frame_evaluation,
         autoWindow: experiment.autoWindow,
         autoLevel: experiment.autoLevel,
@@ -429,7 +446,7 @@ const {
       // Replace with a new object to trigger a Vuex update
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
-      state.allScans = { ...state.scans };
+      state.allScans = Object.assign(state.allScans, state.scans);
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
