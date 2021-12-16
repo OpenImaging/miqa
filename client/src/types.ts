@@ -10,6 +10,7 @@ interface User {
 interface Frame {
   id: string,
   name: string,
+  scan: string,
 }
 
 interface ScanDecision {
@@ -73,5 +74,5 @@ interface Settings {
 }
 
 export {
-  User, Project, ProjectTaskOverview, Settings, ScanDecision,
+  User, Project, ProjectTaskOverview, Settings, ScanDecision, Frame,
 };

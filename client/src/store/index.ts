@@ -17,7 +17,9 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project, ProjectTaskOverview, User } from '@/types';
+import {
+  Project, ProjectTaskOverview, User, Frame,
+} from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -322,29 +324,30 @@ const {
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = state.scans[currentFrame.scan];
-      if(!scan) {
-        const nextFrame =
-        Object.entries(state.frames).filter(
-          ([, frameInfo]) => frameInfo['scan'] == Object.keys(state.scans)[0]
-          )[0][0]
-          // Scan removed from list by review mode, return sparse object
-          // and let the component navigate away
-          // since navigation should not happen in the store
-          return {
-            downTo: nextFrame
-          };
+      if (!scan) {
+        const nextFrame = Object.entries(state.frames).map(
+          ([, frameInfo]) => frameInfo,
+        ).filter(
+          (frameInfo: Frame) => frameInfo.scan === Object.keys(state.scans)[0],
+        )[0][0];
+        // Scan removed from list by review mode, return sparse object
+        // and let the component navigate away
+        // since navigation should not happen in the store
+        return {
+          downTo: nextFrame,
+        };
       }
       const experiment = currentFrame.experiment
-      ? state.experiments[currentFrame.experiment] : null;
+        ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
       const experimentScansList = state.experimentScans[experiment.id];
       const scanFramesList = state.scanFrames[scan.id];
       let upTo = currentFrame.firstFrameInPreviousScan;
       let downTo = currentFrame.firstFrameInNextScan;
-      if(upTo && !Object.keys(state.scans).includes(state.frames[upTo].scan)){
+      if (upTo && !Object.keys(state.scans).includes(state.frames[upTo].scan)) {
         upTo = null;
       }
-      if(downTo && !Object.keys(state.scans).includes(state.frames[downTo].scan)){
+      if (downTo && !Object.keys(state.scans).includes(state.frames[downTo].scan)) {
         downTo = null;
       }
       return {
@@ -404,7 +407,7 @@ const {
     myCurrentProjectRoles(state) {
       const projectPerms = Object.entries(state.currentProjectPermissions)
         .filter((entry: [string, Array<User>]): Boolean => entry[1].map(
-          user => user.username
+          (user) => user.username,
         ).includes(state.me.username))
         .map((entry) => entry[0]);
       if (state.me.is_superuser) {
@@ -522,30 +525,30 @@ const {
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
     },
-    switchReviewMode(state, mode){
+    switchReviewMode(state, mode) {
       state.reviewMode = mode || false;
-      if(mode){
+      if (mode) {
         const myRole = state.currentTaskOverview.my_project_role;
-        let scanStatesForMyReview = []
-        if(myRole == 'tier_2_reviewer'){
-          scanStatesForMyReview = ['needs tier 2 review']
-        } else if(myRole == 'tier_1_reviewer'){
-          scanStatesForMyReview = ['unreviewed']
+        let scanStatesForMyReview = [];
+        if (myRole === 'tier_2_reviewer') {
+          scanStatesForMyReview = ['needs tier 2 review'];
+        } else if (myRole === 'tier_1_reviewer') {
+          scanStatesForMyReview = ['unreviewed'];
         }
         const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
-          ([, scanState]) => scanStatesForMyReview.includes(scanState)
+          ([, scanState]) => scanStatesForMyReview.includes(scanState),
         ).map(
-          ([scanId]) => scanId
+          ([scanId]) => scanId,
         );
         state.scans = Object.fromEntries(
           Object.entries(state.scans).filter(
-            ([scanId,]) => scanIdsForMyReview.includes(scanId)
-          )
+            ([scanId]) => scanIdsForMyReview.includes(scanId),
+          ),
         );
       } else {
         state.scans = state.allScans;
       }
-    }
+    },
   },
   actions: {
     reset({ state, commit }) {
