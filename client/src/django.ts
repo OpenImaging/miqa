@@ -11,6 +11,9 @@ interface Paginated<T> {
 }
 
 const apiClient = axios.create({ baseURL: API_URL });
+apiClient.interceptors.response.use(null, (error) => {
+  throw new Error(error.response.data.detail);
+});
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
   // TODO importing the actual AppStore type results in a dependency cycle
