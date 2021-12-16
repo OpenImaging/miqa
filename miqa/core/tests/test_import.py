@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 
 import pytest
+from rest_framework.exceptions import APIException
 
 from miqa.core.tasks import import_data
 
@@ -199,7 +200,7 @@ def test_import_global_json(
 def test_import_invalid_extension(user, project_factory):
     invalid_file = '/foo/bar.txt'
     project = project_factory(import_path=invalid_file)
-    with pytest.raises(ValueError, match=f'Invalid import file {invalid_file}'):
+    with pytest.raises(APIException, match=f'Invalid import file {invalid_file}'):
         import_data(user.id, project.id)
 
 
@@ -225,7 +226,7 @@ def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans)
 
     project = project_factory(import_path=csv_file)
 
-    with pytest.raises(ValueError, match='Could not locate file'):
+    with pytest.raises(APIException, match='Could not locate file'):
         import_data(user.id, project.id)
 
 
@@ -249,7 +250,7 @@ def test_import_invalid_json(
     project = project_factory(import_path=json_file)
 
     with pytest.raises(
-        ValueError,
+        APIException,
         match=re.escape('Invalid format of import file'),
     ):
         import_data(user.id, project.id)

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from celery import shared_task
 import pandas
+from rest_framework.exceptions import APIException
 
 from miqa.core.conversion.import_export_csvs import (
     IMPORT_CSV_COLUMNS,
@@ -51,7 +52,7 @@ def import_data(user_id, project_id):
     elif project.import_path.endswith('.json'):
         import_dict = json.load(open(project.import_path))
     else:
-        raise ValueError(f'Invalid import file {project.import_path}.')
+        raise APIException(f'Invalid import file {project.import_path}.')
 
     import_dict = validate_import_dict(import_dict, project)
     perform_import.delay(import_dict, project_id)
@@ -112,7 +113,7 @@ def export_data(project_id):
     project = Project.objects.get(id=project_id)
     parent_location = Path(project.export_path).parent
     if not parent_location.exists():
-        raise ValueError(f'No such location {parent_location} to create export file.')
+        raise APIException(f'No such location {parent_location} to create export file.')
 
     # In the event of a global export, we only want to export the projects listed in the import
     # file. Read the import file now and extract the project names.
@@ -121,7 +122,7 @@ def export_data(project_id):
     elif project.import_path.endswith('.json'):
         import_dict = json.load(open(project.import_path))
     else:
-        raise ValueError(f'Invalid import file {project.import_path}.')
+        raise APIException(f'Invalid import file {project.import_path}.')
 
     import_dict = validate_import_dict(import_dict, project)
     project_names = import_dict['projects'].keys()
