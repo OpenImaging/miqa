@@ -142,6 +142,7 @@ export default {
     <div
       v-else
       class="pa-5"
+      style="width: max-content"
     >
       <span class="px-5">No imported data.</span>
     </div>
