@@ -40,12 +40,6 @@ export default {
     name() {
       return this.view.getName();
     },
-    closestIJKAxis() {
-      return this.representation.getMapper().getClosestIJKAxis().ijkMode;
-    },
-    closestIJKFlip() {
-      return this.representation.getMapper().getClosestIJKAxis().flip;
-    },
     cameraDirectionName() {
       return this.normalizedAxis(this.view.getName()).axis;
     },
