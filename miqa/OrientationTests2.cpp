@@ -2,6 +2,40 @@
 #include "itkImageFileWriter.h"
 #include "itkOrientImageFilter.h"
 
+char invert1(char code1)
+{
+  switch (code1)
+  {
+  case 'R':
+    return 'L';
+  case 'L':
+    return 'R';
+  case 'A':
+    return 'P';
+  case 'P':
+    return 'A';
+  case 'I':
+    return 'S';
+  case 'S':
+    return 'I';
+  default:
+    itkGenericExceptionMacro("Unknown axis code");
+  }
+}
+
+std::string invertCode(const std::string code)
+{
+  std::string result;
+  result.resize(code.length());
+
+  for (unsigned i = 0; i < code.length(); ++i)
+  {
+    result[i] = invert1(code[i]);
+  }
+
+  return result;
+}
+
 int
 main(int, char* [])
 {
@@ -88,7 +122,7 @@ main(int, char* [])
     try
     {
       reorientFilter->Update();
-      std::string outputFileName = path + it.first + ".nrrd";
+      std::string outputFileName = path + invertCode(it.first) + ".nii.gz";
       itk::WriteImage(reorientFilter->GetOutput(), outputFileName, true);
     }
     catch (itk::ExceptionObject& error)
