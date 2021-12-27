@@ -230,7 +230,7 @@ class CustomMotion(torchio.transforms.RandomMotion):
             time = applied_params['times']['img']
             degrees = np.sum(np.absolute(applied_params['degrees']['img']))
             translation = np.sum(np.absolute(applied_params['translation']['img']))
-            # motion earlier in the acquisition process produces more noticeable artifacts
+            # motion in the middle of the acquisition process produces the most noticeable artifact
             quality_reduction = clamp(degrees + translation, 0, 10) * min(time, 1.0 - time)
 
             # update the ground truth information
