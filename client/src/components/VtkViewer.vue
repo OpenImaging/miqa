@@ -198,9 +198,11 @@ export default {
     trueAxis(axisName) {
       const orientation = this.representation.getInputDataSet().getDirection();
       const axisNumber = VIEW_ORIENTATIONS[axisName].axis;
-      const axisOrientation = orientation.slice(
-        axisNumber * 3, axisNumber * 3 + 3,
-      ).map(
+      const axisOrientation = [
+        orientation[axisNumber],
+        orientation[3 + axisNumber],
+        orientation[6 + axisNumber],
+      ].map(
         (val) => Math.abs(val),
       );
       const axisOrdering = ['x', 'y', 'z'];
@@ -270,7 +272,17 @@ export default {
             this.representation, this.view, myCanvas,
             this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
           );
-          const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(this.name);
+          const originalColors = {
+            x: '#fdd835',
+            y: '#4caf50',
+            z: '#b71c1c',
+          };
+          const trueColors = Object.fromEntries(
+            Object.entries(originalColors).map(([axisName, hex]) => [this.trueAxis(axisName), hex]),
+          );
+          const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(
+            this.trueAxis(this.name), trueColors,
+          );
           this.drawLine(ctx, displayLine1);
           this.drawLine(ctx, displayLine2);
         }

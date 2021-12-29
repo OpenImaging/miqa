@@ -6,11 +6,6 @@ class CrosshairSet {
     this.iSlice = iSlice;
     this.jSlice = jSlice;
     this.kSlice = kSlice;
-    this.colors = {
-      i: '#fdd835',
-      j: '#4caf50',
-      k: '#b71c1c',
-    };
   }
 
   getOrientation() {
@@ -60,20 +55,19 @@ class CrosshairSet {
     };
   }
 
-  getCrosshairsForAxis(axis) {
+  getCrosshairsForAxis(axis, colors) {
     const sliceLines = this.getSliceLines();
     let horizontalLine = null;
     let verticalLine = null;
-
     if (axis === 'x') {
-      horizontalLine = Object.assign(sliceLines.k, { color: this.colors.j });
-      verticalLine = Object.assign(sliceLines.j, { color: this.colors.k });
+      horizontalLine = Object.assign(sliceLines.k, { color: colors.y });
+      verticalLine = Object.assign(sliceLines.j, { color: colors.z });
     } else if (axis === 'y') {
-      horizontalLine = Object.assign(sliceLines.k, { color: this.colors.i });
-      verticalLine = Object.assign(sliceLines.i, { color: this.colors.k });
+      horizontalLine = Object.assign(sliceLines.k, { color: colors.x });
+      verticalLine = Object.assign(sliceLines.i, { color: colors.z });
     } else if (axis === 'z') {
-      horizontalLine = Object.assign(sliceLines.j, { color: this.colors.i });
-      verticalLine = Object.assign(sliceLines.i, { color: this.colors.j });
+      horizontalLine = Object.assign(sliceLines.j, { color: colors.x });
+      verticalLine = Object.assign(sliceLines.i, { color: colors.y });
     }
 
     return [horizontalLine, verticalLine];
