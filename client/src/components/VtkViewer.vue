@@ -4,6 +4,7 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 import { vec3 } from 'gl-matrix';
 
 import { cleanFrameName } from '@/utils/helper';
+import CrosshairSet from '../utils/crosshairs';
 import fill2DView from '../utils/fill2DView';
 import { getView } from '../vtk/viewManager';
 import { VIEW_ORIENTATIONS } from '../vtk/constants';
@@ -25,7 +26,7 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'xSlice', 'ySlice', 'zSlice', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -39,9 +40,6 @@ export default {
     },
     name() {
       return this.view.getName();
-    },
-    cameraDirectionName() {
-      return this.normalizedAxis(this.view.getName()).axis;
     },
     displayName() {
       switch (this.name) {
@@ -71,26 +69,25 @@ export default {
   watch: {
     slice(value) {
       this.representation.setSlice(value);
-      if (this.setCurrentVtkSlices) {
+      if (this.setCurrentVtkIndexSlices) {
         const ijkMapping = {
           x: 'i',
           y: 'j',
           z: 'k',
         };
-        this.setCurrentVtkSlices({ axis: this.name, value: this.roundSlice(value) });
         this.setCurrentVtkIndexSlices({
-          indexAxis: ijkMapping[this.cameraDirectionName],
+          indexAxis: ijkMapping[this.trueAxis(this.name)],
           value: this.representation.getSliceIndex(),
         });
       }
     },
-    xSlice() {
+    iIndexSlice() {
       this.updateCrosshairs();
     },
-    ySlice() {
+    jIndexSlice() {
       this.updateCrosshairs();
     },
-    zSlice() {
+    kIndexSlice() {
       this.updateCrosshairs();
     },
     view(view, oldView) {
@@ -136,7 +133,7 @@ export default {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkSlices', 'setCurrentVtkIndexSlices']),
+    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkIndexSlices']),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -162,7 +159,10 @@ export default {
 
       let newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
       let newDirectionOfProjection = VIEW_ORIENTATIONS[this.name].directionOfProjection;
-      newViewUp = this.findClosestColumnToVector(newViewUp, orientation);
+      newViewUp = this.findClosestColumnToVector(
+        newViewUp,
+        orientation,
+      );
       newDirectionOfProjection = this.findClosestColumnToVector(
         newDirectionOfProjection,
         orientation,
@@ -195,54 +195,19 @@ export default {
       }
       return currClosest;
     },
-    findMaxLocation(matrix) {
-      matrix = matrix.map((value) => Math.abs(value));
-      let maximum = -1;
-      let location = [-1, -1];
-      for (let r = 0; r < 3; r += 1) {
-        for (let c = 0; c < 3; c += 1) {
-          const index = r * 3 + c;
-          if (matrix[index] > maximum) {
-            maximum = matrix[index];
-            location = [r, c];
-          }
-        }
-      }
-      return location;
-    },
-    zeroRowColumn(matrix, r, c) {
-      for (let i = 0; i < 3; i += 1) {
-        const index = i * 3 + c;
-        matrix[index] = 0;
-      }
-      for (let i = 0; i < 3; i += 1) {
-        const index = r * 3 + i;
-        matrix[index] = 0;
-      }
-      return matrix;
-    },
-    normalizedAxis(oldAxis) {
-      let orientation = this.representation.getInputDataSet().getDirection().slice();
-      const newMatrix = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-      for (let i = 0; i < 3; i += 1) {
-        const currentMaxLocation = this.findMaxLocation(orientation);
-        const index = currentMaxLocation[0] * 3 + currentMaxLocation[1];
-        newMatrix[index] = orientation[index];
-        orientation = this.zeroRowColumn(orientation, currentMaxLocation[0], currentMaxLocation[1]);
-      }
-      const axisMapping = {
-        x: newMatrix.slice(0, 3),
-        y: newMatrix.slice(3, 6),
-        z: newMatrix.slice(6, 9),
-      };
-      const absoluteTargetColumn = axisMapping[oldAxis].map((value) => Math.abs(value));
-      const maxLocation = absoluteTargetColumn.indexOf(Math.max(...absoluteTargetColumn));
-      const flip = Math.sign(axisMapping[oldAxis][maxLocation]);
-      const axes = ['x', 'y', 'z'];
-      return {
-        axis: axes[maxLocation],
-        flip: flip < 0,
-      };
+    trueAxis(axisName) {
+      const orientation = this.representation.getInputDataSet().getDirection();
+      const axisNumber = VIEW_ORIENTATIONS[axisName].axis;
+      const axisOrientation = orientation.slice(
+        axisNumber * 3, axisNumber * 3 + 3,
+      ).map(
+        (val) => Math.abs(val),
+      );
+      const axisOrdering = ['x', 'y', 'z'];
+      const trueAxis = axisOrdering[
+        axisOrientation.indexOf(Math.max(...axisOrientation))
+      ];
+      return trueAxis;
     },
     increaseSlice() {
       this.slice = Math.min(
@@ -287,64 +252,11 @@ export default {
       if (!value) return '';
       return Math.round(value * 100) / 100;
     },
-    convertWorldSlicesToLines() {
-      const imageData = this.representation.getInputDataSet();
-      const [iMax, jMax, kMax] = imageData.getDimensions();
-      if (this.name === 'x') {
-        return [
-          [
-            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
-            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
-          ],
-        ];
-      } if (this.name === 'y') {
-        return [
-          [
-            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
-            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, 0]),
-            imageData.indexToWorld([this.iIndexSlice, this.jIndexSlice, kMax - 1]),
-          ],
-        ];
-      }
-      if (this.name === 'z') {
-        return [
-          [
-            imageData.indexToWorld([0, this.jIndexSlice, this.kIndexSlice]),
-            imageData.indexToWorld([iMax - 1, this.jIndexSlice, this.kIndexSlice]),
-          ],
-          [
-            imageData.indexToWorld([this.iIndexSlice, 0, this.kIndexSlice]),
-            imageData.indexToWorld([this.iIndexSlice, jMax - 1, this.kIndexSlice]),
-          ],
-        ];
-      }
-      return null;
-    },
-    convertWorldLinesToDisplayLines(worldLines) {
-      const renderer = this.view.getRenderer();
-      const renderWindow = this.view.getOpenglRenderWindow();
-      const mappedLine0 = worldLines[0].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
-          .map((c) => c / devicePixelRatio).slice(0, 2),
-      );
-      const mappedLine1 = worldLines[1].map(
-        (line) => renderWindow.worldToDisplay(line[0], line[1], line[2], renderer)
-          .map((c) => c / devicePixelRatio).slice(0, 2),
-      );
-      return [mappedLine0, mappedLine1];
-    },
-    drawLine(ctx, point1, point2, color) {
-      ctx.strokeStyle = color;
+    drawLine(ctx, displayLine) {
+      ctx.strokeStyle = displayLine.color;
       ctx.beginPath();
-      ctx.moveTo(...point1);
-      ctx.lineTo(...point2);
+      ctx.moveTo(...displayLine.start);
+      ctx.lineTo(...displayLine.end);
       ctx.stroke();
     },
     updateCrosshairs() {
@@ -354,24 +266,13 @@ export default {
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
         if (this.showCrosshairs) {
-          const worldLines = this.convertWorldSlicesToLines();
-          const [displayLine1, displayLine2] = this.convertWorldLinesToDisplayLines(worldLines);
-          displayLine1[0][1] = myCanvas.height - displayLine1[0][1];
-          displayLine1[1][1] = myCanvas.height - displayLine1[1][1];
-          displayLine2[0][1] = myCanvas.height - displayLine2[0][1];
-          displayLine2[1][1] = myCanvas.height - displayLine2[1][1];
-          if (this.name === 'x') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#4caf50');
-          }
-          if (this.name === 'y') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#b71c1c');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
-          }
-          if (this.name === 'z') {
-            this.drawLine(ctx, displayLine1[0], displayLine1[1], '#4caf50');
-            this.drawLine(ctx, displayLine2[0], displayLine2[1], '#fdd835');
-          }
+          const crosshairSet = new CrosshairSet(
+            this.representation, this.view, myCanvas,
+            this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+          );
+          const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(this.name);
+          this.drawLine(ctx, displayLine1);
+          this.drawLine(ctx, displayLine2);
         }
       }
     },
