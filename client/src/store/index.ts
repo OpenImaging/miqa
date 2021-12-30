@@ -541,7 +541,7 @@ const {
           ([scanId]) => scanId,
         );
         state.scans = Object.fromEntries(
-          Object.entries(state.scans).filter(
+          Object.entries(state.allScans).filter(
             ([scanId]) => scanIdsForMyReview.includes(scanId),
           ),
         );
