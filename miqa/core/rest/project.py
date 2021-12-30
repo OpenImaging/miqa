@@ -1,5 +1,5 @@
 from drf_yasg.utils import no_body, swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user, get_perms, get_users_with_perms
+from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -59,15 +59,8 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
     def get_total_scans(self, obj):
         return sum([exp.scans.count() for exp in obj.experiments.all()])
 
-    def get_highest_perm(self, user, project):
-        perm_order = Project.get_read_permission_groups()
-        return sorted(
-            get_perms(user, project),
-            key=lambda perm: perm_order.index(perm) if perm in perm_order else -1,
-        )[-1]
-
     def get_my_project_role(self, obj):
-        return self.get_highest_perm(self.context['user'], obj)
+        return obj.get_user_role(self.context['user'])
 
     def get_scan_states(self, obj):
         def convert_state_string(last_reviewer_role):
