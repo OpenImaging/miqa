@@ -531,9 +531,9 @@ const {
         const myRole = state.currentTaskOverview.my_project_role;
         let scanStateForMyReview: string = null;
         if (myRole === 'tier_2_reviewer') {
-          scanStateForMyReview = Object.keys(ScanState)[1];
+          [, scanStateForMyReview] = Object.keys(ScanState);
         } else if (myRole === 'tier_1_reviewer') {
-          scanStateForMyReview = Object.keys(ScanState)[0];
+          [scanStateForMyReview] = Object.keys(ScanState);
         }
         const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
           ([, scanState]) => scanStateForMyReview.replace(/_/g, ' ') === scanState,

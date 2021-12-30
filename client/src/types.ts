@@ -1,4 +1,6 @@
 /* eslint camelcase: "off" */
+/* eslint no-unused-vars: "off" */
+/* eslint no-shadow: "off" */
 
 interface User {
   id: number,
@@ -55,7 +57,7 @@ interface ProjectSettings {
 
 enum ScanState {
   unreviewed = '#1460A3',
-  needs_tier_2_review= '#6DB1ED',
+  needs_tier_2_review = '#6DB1ED',
   complete = '#00C853',
 }
 
