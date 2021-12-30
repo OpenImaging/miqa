@@ -18,7 +18,7 @@ import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, Frame,
+  Project, ProjectTaskOverview, User, Frame, ScanState,
 } from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
@@ -529,14 +529,14 @@ const {
       state.reviewMode = mode || false;
       if (mode) {
         const myRole = state.currentTaskOverview.my_project_role;
-        let scanStatesForMyReview = [];
+        let scanStateForMyReview: string = null;
         if (myRole === 'tier_2_reviewer') {
-          scanStatesForMyReview = ['needs tier 2 review'];
+          scanStateForMyReview = Object.keys(ScanState)[1];
         } else if (myRole === 'tier_1_reviewer') {
-          scanStatesForMyReview = ['unreviewed'];
+          scanStateForMyReview = Object.keys(ScanState)[0];
         }
         const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
-          ([, scanState]) => scanStatesForMyReview.includes(scanState),
+          ([, scanState]) => scanStateForMyReview.replace(/_/g, ' ') === scanState,
         ).map(
           ([scanId]) => scanId,
         );
