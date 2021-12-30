@@ -73,7 +73,7 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
 
         return {
             str(scan.id): convert_state_string(
-                self.get_highest_perm(scan.decisions.latest('created').creator, obj)
+                obj.get_user_role(scan.decisions.latest('created').creator)
                 if scan.decisions.count() > 0
                 else 'unreviewed'
             )

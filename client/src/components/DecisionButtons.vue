@@ -227,7 +227,7 @@ export default {
             </template>
             <span>
               Toggle each tag below.
-              Fill green to confirm an artifact is present.
+              Fill red to confirm an artifact is present.
               Crossthrough to confirm an artifact is absent.
             </span>
           </v-tooltip>
