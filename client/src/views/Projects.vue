@@ -8,7 +8,7 @@ import 'vue-css-donut-chart/dist/vcdonut.css';
 import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
-import { Project } from '@/types';
+import { Project, ScanState } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
 import ProjectSettings from '@/components/ProjectSettings.vue';
@@ -44,37 +44,27 @@ export default defineComponent({
       store.dispatch.loadProject(project);
     };
 
-    const scanStates = ['complete', 'unreviewed', 'needs tier 2 review'];
     const overviewSections = ref([]);
+    const scanStates = Object.keys(ScanState);
     const setOverviewSections = () => {
       if (projects.value && currentTaskOverview.value) {
         const scanStateCounts = ref(reactive(
-          Object.fromEntries(scanStates.map(
+          scanStates.map(
             (stateString) => {
               const stateCount = Object.entries(currentTaskOverview.value.scan_states).filter(
-                ([, scanState]) => scanState === stateString,
+                ([, scanState]) => scanState === stateString.replace(/_/g, ' '),
               ).length;
               return [stateString, stateCount];
             },
-          )),
+          ),
         ));
-        overviewSections.value = [
-          {
-            value: scanStateCounts.value.complete,
-            label: `Complete (${scanStateCounts.value.complete})`,
-            color: '#00C853',
-          },
-          {
-            value: scanStateCounts.value.unreviewed,
-            label: `Needs First Review (${scanStateCounts.value.unreviewed})`,
-            color: '#1A84E1',
-          },
-          {
-            value: scanStateCounts.value['needs tier 2 review'],
-            label: `Needs Second Review (${scanStateCounts.value['needs tier 2 review']})`,
-            color: '#45A8F8',
-          },
-        ];
+        overviewSections.value = scanStateCounts.value.map(
+          ([stateString, scanCount]: [string, number]) => ({
+            value: scanCount,
+            label: `${stateString.replace(/_/g, ' ')} (${scanCount})`,
+            color: ScanState[stateString],
+          }),
+        );
       }
     };
     watch(currentTaskOverview, setOverviewSections);
