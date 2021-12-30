@@ -98,11 +98,11 @@ export default {
       this.switchLock(newValue, oldValue);
     },
     currentViewData() {
-      this.checkForNullScan();
+      this.navigateToNextIfCurrentScanNull();
     },
   },
   mounted() {
-    if (!this.checkForNullScan()) {
+    if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
       this.updateWinLev();
       window.addEventListener('keydown', (event) => {
@@ -129,7 +129,7 @@ export default {
       'setShowCrosshairs',
     ]),
     async switchLock(newExp, oldExp = null) {
-      if (!this.checkForNullScan()) {
+      if (!this.navigateToNextIfCurrentScanNull()) {
         if (this.myCurrentProjectRoles.includes('tier_1_reviewer')
       || this.myCurrentProjectRoles.includes('tier_2_reviewer')
       || this.myCurrentProjectRoles.includes('superuser')) {
@@ -206,7 +206,7 @@ export default {
         }
       }
     },
-    checkForNullScan() {
+    navigateToNextIfCurrentScanNull() {
       if (Object.keys(this.currentViewData).length < 2) {
         this.handleKeyPress('next');
         return true;
