@@ -206,7 +206,7 @@ class CustomGhosting(torchio.transforms.RandomGhosting):
             applied_params = transformed_subject.applied_transforms[-1][1]
             intensity = applied_params['intensity']['img']
             num_ghosts = applied_params['num_ghosts']['img']
-            quality_reduction = 7 * intensity * math.log10(num_ghosts)
+            quality_reduction = 8 * intensity * math.log10(num_ghosts)
 
             # update the ground truth information
             new_quality = original_quality - quality_reduction
