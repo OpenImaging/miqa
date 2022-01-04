@@ -11,15 +11,14 @@ import '../utils/registerReaders';
 import readImageArrayBuffer from 'itk/readImageArrayBuffer';
 import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
-import ReaderFactory from '../utils/ReaderFactory';
-
-import { proxy } from '../vtk';
-import { getView } from '../vtk/viewManager';
-
 import djangoRest, { apiClient } from '@/django';
 import {
   Project, ProjectTaskOverview, User, Frame, ScanState,
 } from '@/types';
+import ReaderFactory from '../utils/ReaderFactory';
+
+import { proxy } from '../vtk';
+import { getView } from '../vtk/viewManager';
 
 const { convertItkToVtkImage } = ITKHelper;
 
