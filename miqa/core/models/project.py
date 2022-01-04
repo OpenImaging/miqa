@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
-from guardian.shortcuts import assign_perm, get_users_with_perms, remove_perm
+from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
 from miqa.core.models.scan import SCAN_TYPES
 from miqa.learning.evaluation_models import available_evaluation_models
@@ -69,6 +69,13 @@ class Project(TimeStampedModel, models.Model):
 
     def get_review_permission_groups():
         return ['tier_1_reviewer', 'tier_2_reviewer']
+
+    def get_user_role(self, user):
+        perm_order = Project.get_read_permission_groups()
+        return sorted(
+            get_perms(user, self),
+            key=lambda perm: perm_order.index(perm) if perm in perm_order else -1,
+        )[-1]
 
     def update_group(self, group_name, user_list):
         if group_name not in Project.get_read_permission_groups():

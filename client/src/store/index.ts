@@ -17,7 +17,9 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
 import djangoRest, { apiClient } from '@/django';
-import { Project } from '@/types';
+import {
+  Project, ProjectTaskOverview, User, Frame, ScanState,
+} from '@/types';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -259,10 +261,10 @@ function expandScanRange(frameId, dataRange) {
   if (frameId in store.state.frames) {
     const scanId = store.state.frames[frameId].scan;
     const scan = store.state.scans[scanId];
-    if (dataRange[0] < scan.cumulativeRange[0]) {
+    if (scan && dataRange[0] < scan.cumulativeRange[0]) {
       [scan.cumulativeRange[0]] = dataRange;
     }
-    if (dataRange[1] > scan.cumulativeRange[1]) {
+    if (scan && dataRange[1] > scan.cumulativeRange[1]) {
       [, scan.cumulativeRange[1]] = dataRange;
     }
   }
@@ -272,9 +274,12 @@ const initState = {
   MIQAConfig: {},
   me: null,
   allUsers: [],
+  reviewMode: false,
   currentProject: null as Project | null,
+  currentTaskOverview: null as ProjectTaskOverview | null,
   currentProjectPermissions: {},
   projects: [] as Project[],
+  allScans: {},
   experimentIds: [],
   experiments: {},
   experimentScans: {},
@@ -319,11 +324,32 @@ const {
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = state.scans[currentFrame.scan];
+      if (!scan) {
+        const nextFrame = Object.entries(state.frames).map(
+          ([, frameInfo]) => frameInfo,
+        ).filter(
+          (frameInfo: Frame) => frameInfo.scan === Object.keys(state.scans)[0],
+        )[0][0];
+        // Scan removed from list by review mode, return sparse object
+        // and let the component navigate away
+        // since navigation should not happen in the store
+        return {
+          downTo: nextFrame,
+        };
+      }
       const experiment = currentFrame.experiment
         ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
       const experimentScansList = state.experimentScans[experiment.id];
       const scanFramesList = state.scanFrames[scan.id];
+      let upTo = currentFrame.firstFrameInPreviousScan;
+      let downTo = currentFrame.firstFrameInNextScan;
+      if (upTo && !Object.keys(state.scans).includes(state.frames[upTo].scan)) {
+        upTo = null;
+      }
+      if (downTo && !Object.keys(state.scans).includes(state.frames[downTo].scan)) {
+        downTo = null;
+      }
       return {
         projectName: project.name,
         experimentId: experiment.id,
@@ -337,8 +363,8 @@ const {
         framePositionString: `(${scanFramesList.indexOf(currentFrame.id) + 1}/${scanFramesList.length})`,
         backTo: currentFrame.previousFrame,
         forwardTo: currentFrame.nextFrame,
-        upTo: currentFrame.firstFrameInPreviousScan,
-        downTo: currentFrame.firstFrameInNextScan,
+        upTo,
+        downTo,
         currentAutoEvaluation: currentFrame.frame_evaluation,
         autoWindow: experiment.autoWindow,
         autoLevel: experiment.autoLevel,
@@ -380,7 +406,9 @@ const {
     },
     myCurrentProjectRoles(state) {
       const projectPerms = Object.entries(state.currentProjectPermissions)
-        .filter((entry: [string, Array<string>]): Boolean => entry[1].includes(state.me.username))
+        .filter((entry: [string, Array<User>]): Boolean => entry[1].map(
+          (user) => user.username,
+        ).includes(state.me.username))
         .map((entry) => entry[0]);
       if (state.me.is_superuser) {
         projectPerms.push('superuser');
@@ -421,10 +449,16 @@ const {
       // Replace with a new object to trigger a Vuex update
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
+      state.allScans = Object.assign(state.allScans, state.scans);
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
-      state.currentProjectPermissions = project.settings.permissions;
+      if (project) {
+        state.currentProjectPermissions = project.settings.permissions;
+      }
+    },
+    setTaskOverview(state, taskOverview: ProjectTaskOverview) {
+      state.currentTaskOverview = taskOverview;
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -490,6 +524,30 @@ const {
     },
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
+    },
+    switchReviewMode(state, mode) {
+      state.reviewMode = mode || false;
+      if (mode) {
+        const myRole = state.currentTaskOverview.my_project_role;
+        let scanStateForMyReview: string = null;
+        if (myRole === 'tier_2_reviewer') {
+          [, scanStateForMyReview] = Object.keys(ScanState);
+        } else if (myRole === 'tier_1_reviewer') {
+          [scanStateForMyReview] = Object.keys(ScanState);
+        }
+        const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
+          ([, scanState]) => scanStateForMyReview.replace(/_/g, ' ') === scanState,
+        ).map(
+          ([scanId]) => scanId,
+        );
+        state.scans = Object.fromEntries(
+          Object.entries(state.allScans).filter(
+            ([scanId]) => scanIdsForMyReview.includes(scanId),
+          ),
+        );
+      } else {
+        state.scans = state.allScans;
+      }
     },
   },
   actions: {
@@ -606,6 +664,9 @@ const {
           }
         }
       }
+      // get the task overview for this project
+      const taskOverview = await djangoRest.projectTaskOverview(project.id);
+      commit('setTaskOverview', taskOverview);
     },
     async reloadScan({ commit, getters }) {
       const { currentFrame } = getters;
