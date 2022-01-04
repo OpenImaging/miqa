@@ -1,4 +1,6 @@
 /* eslint camelcase: "off" */
+/* eslint no-unused-vars: "off" */
+/* eslint no-shadow: "off" */
 
 interface User {
   id: number,
@@ -10,6 +12,7 @@ interface User {
 interface Frame {
   id: string,
   name: string,
+  scan: string,
 }
 
 interface ScanDecision {
@@ -52,6 +55,21 @@ interface ProjectSettings {
   permissions: Object,
 }
 
+enum ScanState {
+  unreviewed = '#1460A3',
+  needs_tier_2_review = '#6DB1ED',
+  complete = '#00C853',
+}
+
+interface ProjectTaskOverview {
+  total_experiments: number,
+  total_scans: number,
+  my_project_role: string,
+  scan_states: {
+    string: ScanState,
+  },
+}
+
 interface Project {
   id: string,
   name: string,
@@ -66,5 +84,6 @@ interface Settings {
 }
 
 export {
-  User, Project, Settings, ScanDecision,
+  User, Project, ProjectTaskOverview,
+  Settings, ScanDecision, Frame, ScanState,
 };

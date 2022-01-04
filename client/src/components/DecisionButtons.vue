@@ -227,7 +227,7 @@ export default {
             </template>
             <span>
               Toggle each tag below.
-              Fill green to confirm an artifact is present.
+              Fill red to confirm an artifact is present.
               Crossthrough to confirm an artifact is absent.
             </span>
           </v-tooltip>
@@ -259,6 +259,30 @@ export default {
         <EvaluationResults
           :results="currentViewData.currentAutoEvaluation.results"
         />
+      </v-col>
+      <v-col
+        v-else
+        cols="5"
+        class="d-flex justify-end align-center"
+      >
+        <v-subheader class="pr-0">
+          No Auto evaluation available
+        </v-subheader>
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              style="height: 25px; padding: 5px"
+            >
+              info
+            </v-icon>
+          </template>
+          <span>
+            An evaluation performed by the MIQA server using artificial intelligence
+          </span>
+        </v-tooltip>
       </v-col>
     </v-row>
     <v-row no-gutters>
