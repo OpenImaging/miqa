@@ -364,8 +364,9 @@ export default {
       class="toolbar"
       dark
       flat
-      color="black"
-      max-height="42"
+      color="#ffffff00"
+      height="46"
+      max-height="46"
     >
       <div
         :class="name"
