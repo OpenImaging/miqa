@@ -1,6 +1,6 @@
 <script>
 import _ from 'lodash';
-import { mapState, mapGetters } from 'vuex';
+import { mapState, mapGetters, mapMutations } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
 import { API_URL } from '../constants';
 
@@ -19,6 +19,7 @@ export default {
   }),
   computed: {
     ...mapState([
+      'reviewMode',
       'experiments',
       'experimentIds',
       'experimentScans',
@@ -42,9 +43,14 @@ export default {
     },
   },
   methods: {
+    ...mapMutations([
+      'switchReviewMode',
+    ]),
     scansForExperiment(expId) {
       const expScanIds = this.experimentScans[expId];
-      return expScanIds.map((scanId) => {
+      return expScanIds.filter(
+        (scanId) => Object.keys(this.scans).includes(scanId),
+      ).map((scanId) => {
         const scan = this.scans[scanId];
         return {
           ...scan,
@@ -58,7 +64,7 @@ export default {
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
       const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision;
-      let color = 'black--text';
+      let color = 'grey--text';
       if (rating === 'U') {
         color = 'green--text';
       }
@@ -85,7 +91,7 @@ export default {
         >
           <v-card
             flat
-            class="d-flex justify-space-between pr-2"
+            class="d-flex pr-2"
           >
             <v-card flat>
               {{ experiment.name }}
@@ -98,6 +104,7 @@ export default {
               <v-icon
                 v-show="experiment === currentExperiment"
                 :color="loadingIconColor"
+                class="pl-5"
               >
                 {{ loadingIcon }}
               </v-icon>
@@ -135,8 +142,23 @@ export default {
     <div
       v-else
       class="pa-5"
+      style="width: max-content"
     >
       <span class="px-5">No imported data.</span>
+    </div>
+    <div
+      class="mode-toggle"
+    >
+      All scans
+      <v-switch
+        @change="switchReviewMode"
+        :value="reviewMode"
+        inset
+        dense
+        style="display: inline-block; max-height: 40px; max-width: 60px"
+        class="px-3 ma-0"
+      />
+      Scans for my review
     </div>
   </div>
 </template>
@@ -160,7 +182,23 @@ ul.scans {
 </style>
 
 <style lang="scss">
-.scans-view .scan-name .v-btn__content {
+.scans-view {
   text-transform: none;
+  display: flex;
+  flex-flow: row wrap-reverse;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.scans-view > div {
+  width: min-content;
+}
+.scan-name .v-btn__content {
+  text-transform: none;
+}
+.mode-toggle {
+  padding: 0px 20px;
+  display: block;
+  min-width: 350px;
+  height: min-content;
 }
 </style>

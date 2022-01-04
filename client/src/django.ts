@@ -1,6 +1,8 @@
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
-import { Project, Settings, User } from './types';
+import {
+  Project, ProjectTaskOverview, Settings, User,
+} from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
 interface Paginated<T> {
@@ -53,6 +55,14 @@ const djangoClient = {
   async export(projectId: string) {
     return apiClient.post(`/projects/${projectId}/export`);
   },
+  async createProject(projectName: string): Promise<Project> {
+    const { data } = await apiClient.post('/projects', { name: projectName });
+    return data;
+  },
+  async deleteProject(projectId: string) {
+    const { data } = await apiClient.delete(`/projects/${projectId}`);
+    return data;
+  },
   async projects(): Promise<Project[]> {
     const { data } = await apiClient.get('/projects');
     const { results } = data;
@@ -60,6 +70,10 @@ const djangoClient = {
   },
   async project(projectId: string): Promise<Project> {
     const { data } = await apiClient.get(`/projects/${projectId}`);
+    return data;
+  },
+  async projectTaskOverview(projectId: string): Promise<ProjectTaskOverview> {
+    const { data } = await apiClient.get(`/projects/${projectId}/task_overview`);
     return data;
   },
   async settings(projectId: string): Promise<Settings> {

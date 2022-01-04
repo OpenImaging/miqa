@@ -97,21 +97,26 @@ export default {
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
     },
+    currentViewData() {
+      this.navigateToNextIfCurrentScanNull();
+    },
   },
   mounted() {
-    this.switchLock(this.experimentId);
-    this.updateWinLev();
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowUp') {
-        this.handleKeyPress('previous');
-      } else if (event.key === 'ArrowDown') {
-        this.handleKeyPress('next');
-      } else if (event.key === 'ArrowLeft') {
-        this.handleKeyPress('back');
-      } else if (event.key === 'ArrowRight') {
-        this.handleKeyPress('forward');
-      }
-    });
+    if (!this.navigateToNextIfCurrentScanNull()) {
+      this.switchLock(this.experimentId);
+      this.updateWinLev();
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowUp') {
+          this.handleKeyPress('previous');
+        } else if (event.key === 'ArrowDown') {
+          this.handleKeyPress('next');
+        } else if (event.key === 'ArrowLeft') {
+          this.handleKeyPress('back');
+        } else if (event.key === 'ArrowRight') {
+          this.handleKeyPress('forward');
+        }
+      });
+    }
   },
   beforeDestroy() {
     this.setLock({ experimentId: this.experimentId, lock: false });
@@ -124,28 +129,30 @@ export default {
       'setShowCrosshairs',
     ]),
     async switchLock(newExp, oldExp = null) {
-      if (this.myCurrentProjectRoles.includes('tier_1_reviewer')
+      if (!this.navigateToNextIfCurrentScanNull()) {
+        if (this.myCurrentProjectRoles.includes('tier_1_reviewer')
       || this.myCurrentProjectRoles.includes('tier_2_reviewer')
       || this.myCurrentProjectRoles.includes('superuser')) {
-        if (oldExp) {
+          if (oldExp) {
+            try {
+              await this.setLock({ experimentId: oldExp, lock: false });
+            } catch (err) {
+              console.log(err);
+              this.$snackbar({
+                text: 'Failed to release edit access on Experiment.',
+                timeout: 6000,
+              });
+            }
+          }
           try {
-            await this.setLock({ experimentId: oldExp, lock: false });
+            await this.setLock({ experimentId: newExp, lock: true });
           } catch (err) {
             console.log(err);
             this.$snackbar({
-              text: 'Failed to release edit access on Experiment.',
+              text: 'Failed to claim edit access on Experiment.',
               timeout: 6000,
             });
           }
-        }
-        try {
-          await this.setLock({ experimentId: newExp, lock: true });
-        } catch (err) {
-          console.log(err);
-          this.$snackbar({
-            text: 'Failed to claim edit access on Experiment.',
-            timeout: 6000,
-          });
         }
       }
     },
@@ -153,23 +160,22 @@ export default {
       this.window = this.autoWindow;
       this.level = this.autoLevel;
     },
+    navigateToFrame(frameId) {
+      if (frameId && frameId !== this.$route.params.frameId) {
+        this.$router
+          .push(frameId || '')
+          .catch(this.handleNavigationError);
+      }
+    },
     updateImage() {
       if (this.direction === 'back') {
-        this.$router
-          .push(this.previousFrame ? this.previousFrame : '')
-          .catch(this.handleNavigationError);
+        this.navigateToFrame(this.previousFrame);
       } else if (this.direction === 'forward') {
-        this.$router
-          .push(this.nextFrame ? this.nextFrame : '')
-          .catch(this.handleNavigationError);
+        this.navigateToFrame(this.nextFrame);
       } else if (this.direction === 'previous') {
-        this.$router
-          .push(this.currentViewData.upTo ? this.currentViewData.upTo : '')
-          .catch(this.handleNavigationError);
+        this.navigateToFrame(this.currentViewData.upTo);
       } else if (this.direction === 'next') {
-        this.$router
-          .push(this.currentViewData.downTo ? this.currentViewData.downTo : '')
-          .catch(this.handleNavigationError);
+        this.navigateToFrame(this.currentViewData.downTo);
       }
     },
     handleKeyPress(direction) {
@@ -199,6 +205,13 @@ export default {
           });
         }
       }
+    },
+    navigateToNextIfCurrentScanNull() {
+      if (Object.keys(this.currentViewData).length < 2) {
+        this.handleKeyPress('next');
+        return true;
+      }
+      return false;
     },
   },
 };
