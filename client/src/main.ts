@@ -3,7 +3,6 @@ import VueCompositionAPI from '@vue/composition-api';
 import Vuetify from 'vuetify';
 
 import AsyncComputed from 'vue-async-computed';
-import Girder, { vuetifyConfig } from '@girder/components/src';
 import config from 'itk/itkConfig';
 import IdleVue from 'idle-vue';
 import App from './App.vue';
@@ -13,6 +12,7 @@ import store from './store';
 import { STATIC_PATH } from './constants';
 
 import 'vuetify/dist/vuetify.min.css';
+import '@mdi/font/css/materialdesignicons.min.css';
 
 import './vtk/ColorMaps';
 import vMousetrap from './vue-utilities/v-mousetrap';
@@ -27,14 +27,10 @@ Vue.use(Vuetify);
 
 Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
-Vue.use(Girder);
 Vue.use(vMousetrap);
 Vue.use(IdleVue, { store: store.original, idleTime: 900000 }); // 15 minutes inactive timeout
 
-// Merge our own (currently empty) configuration with the one provided by
-// Girder web components (needed for the login dialog to render properly)
-const vuetifyOptions = { ...vuetifyConfig };
-const vuetify = new Vuetify(vuetifyOptions);
+const vuetify = new Vuetify();
 
 Vue.use(snackbarService(vuetify));
 Vue.use(promptService(vuetify));
