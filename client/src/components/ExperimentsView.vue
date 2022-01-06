@@ -27,6 +27,7 @@ export default {
       'scans',
       'scanFrames',
       'frames',
+      'currentTaskOverview',
     ]),
     ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
@@ -76,6 +77,18 @@ export default {
         color,
       };
     },
+    scanIsCurrent(scan) {
+      if (scan === this.currentScan) {
+        return ' current';
+      }
+      return '';
+    },
+    scanState(scan) {
+      if (!this.currentTaskOverview) {
+        return 'unreviewed';
+      }
+      return this.currentTaskOverview.scan_states[scan.id];
+    },
   },
 };
 </script>
@@ -114,26 +127,32 @@ export default {
             <li
               v-for="scan of scansForExperiment(experiment.id)"
               :key="`s.${scan.id}`"
-              :class="{
-                current: scan === currentScan
-              }"
-              class="body-1"
+              :class="'body-1 state-'+scanState(scan).replace(/ /g, '-')+scanIsCurrent(scan)"
             >
-              <v-btn
-                :to="getIdOfFirstFrameInScan(scan.id)"
-                class="ml-0 px-1 scan-name"
-                href
-                text
-                small
-                active-class=""
-              >
-                {{ scan.name }}
-                <span
-                  v-if="scan.decisions.length !== 0"
-                  :class="scan.color + ' pl-3'"
-                  small
-                >({{ scan.decision }})</span>
-              </v-btn>
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    v-bind="attrs"
+                    v-on="on"
+                    :to="getIdOfFirstFrameInScan(scan.id)"
+                    class="ml-0 px-1 scan-name"
+                    href
+                    text
+                    small
+                    active-class=""
+                  >
+                    {{ scan.name }}
+                    <span
+                      v-if="scan.decisions.length !== 0"
+                      :class="scan.color + ' pl-3'"
+                      small
+                    >({{ scan.decision }})</span>
+                  </v-btn>
+                </template>
+                <span>
+                  {{ scanState(scan) }}
+                </span>
+              </v-tooltip>
             </li>
           </ul>
         </li>
@@ -166,6 +185,21 @@ export default {
 <style lang="scss" scoped>
 .current {
   background: rgb(206, 206, 206);
+}
+
+.state-unreviewed::marker {
+  color: #1460A3;
+  content: '\25C8';
+}
+
+.state-needs-tier-2-review::marker {
+  color: #6DB1ED;
+  content: '\25C8'
+}
+
+.state-complete::marker {
+  color: #00C853;
+  content: '\25C8'
 }
 
 li.cached {
