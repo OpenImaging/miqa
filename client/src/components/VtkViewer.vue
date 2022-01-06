@@ -212,18 +212,6 @@ export default {
       ];
       return trueAxis;
     },
-    increaseSlice() {
-      this.slice = Math.min(
-        (this.slice + this.sliceDomain.step),
-        this.sliceDomain.max,
-      );
-    },
-    decreaseSlice() {
-      this.slice = Math.max(
-        (this.slice - this.sliceDomain.step),
-        this.sliceDomain.min,
-      );
-    },
     async takeScreenshot() {
       const view = getView(this.proxyManager, `ScreenshotView2D_${this.name}:${this.name}`, this.screenshotContainer);
       view.getOpenglRenderWindow().setSize(512, 512);
@@ -250,6 +238,9 @@ export default {
       if (this.resized) {
         fill2DView(this.view);
       }
+    },
+    changeSlice(newValue) {
+      this.slice = newValue;
     },
     roundSlice(value) {
       if (!value) return '';
@@ -315,10 +306,11 @@ export default {
     >
       <v-layout align-center>
         <v-slider
-          v-model="slice"
+          :value="slice"
+          @change="changeSlice"
           v-mousetrap="[
-            { bind: keyboardBindings[1], handler: increaseSlice },
-            { bind: keyboardBindings[0], handler: decreaseSlice }
+            { bind: keyboardBindings[1] },
+            { bind: keyboardBindings[0] }
           ]"
           :min="sliceDomain.min"
           :max="sliceDomain.max"
