@@ -107,7 +107,7 @@ class Project(TimeStampedModel, models.Model):
                 remove_perm(group_name, previously_permitted_user, self)
 
         for username in user_list:
-            new_permitted_user = User.selfects.get(username=username)
+            new_permitted_user = User.objects.get(username=username)
             if new_permitted_user not in old_list:
                 assign_perm(group_name, new_permitted_user, self)
 
