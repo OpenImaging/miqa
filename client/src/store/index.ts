@@ -27,6 +27,7 @@ Vue.use(Vuex);
 const fileCache = new Map();
 const frameCache = new Map();
 let readDataQueue = [];
+const pendingFrameDownloads = new Set();
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
@@ -108,13 +109,13 @@ function loadFile(frameId) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
-  const p = ReaderFactory.downloadFrame(
+  const { promise } = ReaderFactory.downloadFrame(
     apiClient,
     'nifti.nii.gz',
     `/frames/${frameId}/download`,
   );
-  fileCache.set(frameId, p);
-  return { frameId, fileP: p };
+  fileCache.set(frameId, promise);
+  return { frameId, fileP: promise };
 }
 
 function loadFileAndGetData(frameId) {
@@ -146,12 +147,19 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frameId)) {
       filePromise = fileCache.get(frameId);
     } else {
-      filePromise = ReaderFactory.downloadFrame(
+      const download = ReaderFactory.downloadFrame(
         apiClient,
         'nifti.nii.gz',
         `/frames/${frameId}/download`,
       );
+      filePromise = download.promise;
       fileCache.set(frameId, filePromise);
+      pendingFrameDownloads.add(download);
+      filePromise.then(() => {
+        pendingFrameDownloads.delete(download);
+      }).catch(() => {
+        pendingFrameDownloads.delete(download);
+      });
     }
 
     filePromise
@@ -186,7 +194,7 @@ function startReaderWorkerPool() {
       taskRunId = -1;
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
     })
     .finally(() => {
       store.state.workerPool.terminateWorkers();
@@ -717,10 +725,14 @@ const {
       if (
         newExperiment
         && oldExperiment
-        && newExperiment.folderId !== oldExperiment.folderId
+        && newExperiment.id !== oldExperiment.id
         && taskRunId >= 0
       ) {
         state.workerPool.cancel(taskRunId);
+        pendingFrameDownloads.forEach(({ abortController }) => {
+          abortController.abort();
+        });
+        pendingFrameDownloads.clear();
         taskRunId = -1;
       }
 
