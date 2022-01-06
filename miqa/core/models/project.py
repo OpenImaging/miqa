@@ -77,6 +77,26 @@ class Project(TimeStampedModel, models.Model):
             key=lambda perm: perm_order.index(perm) if perm in perm_order else -1,
         )[-1]
 
+    def get_status(self):
+        tier_2_reviewers = [
+            user.id for user in get_users_with_perms(self, only_with_perms_in=['tier_2_reviewer'])
+        ]
+        complete_scans_per_exp = [
+            len(
+                [
+                    scan
+                    for scan in exp.scans.all()
+                    if scan.decisions.count() > 0
+                    and scan.decisions.latest('created').creator.id in tier_2_reviewers
+                ]
+            )
+            for exp in self.experiments.all()
+        ]
+        return {
+            'total_scans': sum([exp.scans.count() for exp in self.experiments.all()]),
+            'total_complete': sum(complete_scans_per_exp),
+        }
+
     def update_group(self, group_name, user_list):
         if group_name not in Project.get_read_permission_groups():
             raise ValueError(f'Error: {group_name} is not a valid group on this Project.')
@@ -87,7 +107,7 @@ class Project(TimeStampedModel, models.Model):
                 remove_perm(group_name, previously_permitted_user, self)
 
         for username in user_list:
-            new_permitted_user = User.objects.get(username=username)
+            new_permitted_user = User.selfects.get(username=username)
             if new_permitted_user not in old_list:
                 assign_perm(group_name, new_permitted_user, self)
 
