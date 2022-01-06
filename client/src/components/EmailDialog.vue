@@ -3,8 +3,8 @@ import {
   defineComponent, inject, computed,
 } from '@vue/composition-api';
 import store from '@/store';
-import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 import { User } from '@/types';
+import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 
 export default defineComponent({
   name: 'EmailDialog',
