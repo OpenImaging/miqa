@@ -41,61 +41,6 @@ function getReader({ name }) {
   return READER_MAPPING[extToUse];
 }
 
-function readRawData({ fileName, data }) {
-  return new Promise((resolve, reject) => {
-    const readerMapping = getReader({ name: fileName });
-    if (readerMapping) {
-      const {
-        vtkReader,
-        parseMethod,
-        fileNameMethod,
-        sourceType,
-      } = readerMapping;
-      const reader = vtkReader.newInstance();
-      if (fileNameMethod) {
-        reader[fileNameMethod](fileName);
-      }
-      const ds = reader[parseMethod](data);
-      Promise.resolve(ds)
-        .then((frame) => resolve({
-          frame,
-          reader,
-          sourceType,
-          name: fileName,
-        }))
-        .catch(reject);
-    } else {
-      reject();
-    }
-  });
-}
-
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const readerMapping = getReader(file);
-    if (readerMapping) {
-      const { readMethod } = readerMapping;
-      const io = new FileReader();
-      io.onload = function onLoad() {
-        readRawData({ fileName: file.name, data: io.result })
-          .then((result) => resolve(result))
-          .catch((error) => reject(error));
-      };
-      io[readMethod](file);
-    } else {
-      reject(new Error('No reader mapping'));
-    }
-  });
-}
-
-function loadFiles(files) {
-  const promises = [];
-  for (let i = 0; i < files.length; i += 1) {
-    promises.push(readFile(files[i]));
-  }
-  return Promise.all(promises);
-}
-
 function downloadFrame(axios, fileName, url) {
   return new Promise((resolve, reject) => {
     const readerMapping = getReader({ name: fileName });
@@ -119,6 +64,5 @@ function downloadFrame(axios, fileName, url) {
 
 export default {
   downloadFrame,
-  loadFiles,
   registerReader,
 };

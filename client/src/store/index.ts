@@ -172,11 +172,7 @@ function progressHandler(completed, total) {
 }
 
 function startReaderWorkerPool() {
-  const taskArgsArray = [];
-  readDataQueue.forEach((taskInfo) => {
-    taskArgsArray.push([taskInfo]);
-  });
-
+  const taskArgsArray = readDataQueue.map((taskInfo) => [taskInfo]);
   readDataQueue = [];
 
   const { runId, promise } = store.state.workerPool.runTasks(
