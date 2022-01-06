@@ -23,7 +23,7 @@ def test_projects_list(user_api_client, project, user):
             'count': 1,
             'next': None,
             'previous': None,
-            'results': [{'id': project.id, 'name': project.name}],
+            'results': [{'id': project.id, 'name': project.name, 'status': project.get_status()}],
         }
 
 
