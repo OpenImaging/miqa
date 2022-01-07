@@ -75,6 +75,10 @@ interface Project {
   name: string,
   experiments?: Experiment[],
   settings: ProjectSettings,
+  status: {
+    total_scans: number,
+    total_complete: number,
+  }
 }
 
 interface Settings {
