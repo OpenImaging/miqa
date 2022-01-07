@@ -6,7 +6,7 @@ from django.db import models
 from django_extensions.db.models import TimeStampedModel
 from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
-from miqa.core.models.scan import SCAN_TYPES
+from miqa.core.models.scan import SCAN_TYPES, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 
 
@@ -81,20 +81,18 @@ class Project(TimeStampedModel, models.Model):
         tier_2_reviewers = [
             user.id for user in get_users_with_perms(self, only_with_perms_in=['tier_2_reviewer'])
         ]
-        complete_scans_per_exp = [
-            len(
-                [
-                    scan
-                    for scan in exp.scans.all()
-                    if scan.decisions.count() > 0
-                    and scan.decisions.latest('created').creator.id in tier_2_reviewers
-                ]
-            )
-            for exp in self.experiments.all()
+        scans_in_project = Scan.objects.filter(
+            experiment__in=self.experiments.all()
+        ).prefetch_related('decisions')
+        complete_scans_in_project = [
+            scan
+            for scan in scans_in_project
+            if scan.decisions.count() > 0
+            and scan.decisions.latest('created').creator.id in tier_2_reviewers
         ]
         return {
-            'total_scans': sum([exp.scans.count() for exp in self.experiments.all()]),
-            'total_complete': sum(complete_scans_per_exp),
+            'total_scans': scans_in_project.count(),
+            'total_complete': len(complete_scans_in_project),
         }
 
     def update_group(self, group_name, user_list):
