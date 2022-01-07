@@ -89,6 +89,13 @@ export default {
       }
       return this.currentTaskOverview.scan_states[scan.id];
     },
+    scanStateClass(scan) {
+      let classes = `body-1 state-${this.scanState(scan).replace(/ /g, '-')}`;
+      if (scan === this.currentScan) {
+        classes = '{classes} current';
+      }
+      return classes;
+    },
   },
 };
 </script>
@@ -127,7 +134,7 @@ export default {
             <li
               v-for="scan of scansForExperiment(experiment.id)"
               :key="`s.${scan.id}`"
-              :class="'body-1 state-'+scanState(scan).replace(/ /g, '-')+scanIsCurrent(scan)"
+              :class="scanStateClass(scan)"
             >
               <v-tooltip right>
                 <template v-slot:activator="{ on, attrs }">
