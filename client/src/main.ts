@@ -40,8 +40,7 @@ config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 Vue.config.productionTip = true;
 
 djangoRest.restoreLogin(store).then(async () => {
-  await store.dispatch.loadMe();
-  await store.dispatch.loadConfiguration();
+  await Promise.all([store.dispatch.loadMe(), store.dispatch.loadConfiguration()]);
   const user = store.state.me;
   const { MIQAConfig } = store.state;
   new Vue({
