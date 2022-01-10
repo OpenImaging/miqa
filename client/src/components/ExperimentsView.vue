@@ -84,10 +84,11 @@ export default {
       return '';
     },
     scanState(scan) {
-      if (!this.currentTaskOverview) {
-        return 'unreviewed';
+      let state;
+      if (this.currentTaskOverview) {
+        state = this.currentTaskOverview.scan_states[scan.id];
       }
-      return this.currentTaskOverview.scan_states[scan.id];
+      return state || 'unreviewed';
     },
     scanStateClass(scan) {
       let classes = `body-1 state-${this.scanState(scan).replace(/ /g, '-')}`;
