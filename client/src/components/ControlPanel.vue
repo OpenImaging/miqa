@@ -162,7 +162,7 @@ export default {
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
         this.$router
-          .push(`${this.currentViewData.projectId}/${frameId}` || '')
+          .push(`/${this.currentViewData.projectId}/${frameId}` || '')
           .catch(this.handleNavigationError);
       }
     },
