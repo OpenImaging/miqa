@@ -92,7 +92,7 @@ export default {
     scanStateClass(scan) {
       let classes = `body-1 state-${this.scanState(scan).replace(/ /g, '-')}`;
       if (scan === this.currentScan) {
-        classes = '{classes} current';
+        classes = `${classes} current`;
       }
       return classes;
     },
