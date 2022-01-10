@@ -347,6 +347,7 @@ const {
         downTo = null;
       }
       return {
+        projectId: project.id,
         projectName: project.name,
         experimentId: experiment.id,
         experimentName: experiment.name,
@@ -377,14 +378,6 @@ const {
     },
     nextFrame(state, getters) {
       return getters.currentFrame ? getters.currentFrame.nextFrame : null;
-    },
-    getFrame(state) {
-      return (frameId) => {
-        if (!frameId || !state.frames[frameId]) {
-          return undefined;
-        }
-        return state.frames[frameId];
-      };
     },
     currentScan(state, getters) {
       if (getters.currentFrame) {
@@ -685,6 +678,16 @@ const {
           decisions: scan.decisions,
         },
       });
+    },
+    async getFrame({ state, dispatch }, { frameId, projectId }) {
+      if (!frameId) {
+        return undefined;
+      } else if (!state.frames[frameId]){
+        await dispatch('loadProjects')
+        const targetProject = state.projects.filter((proj) => proj.id === projectId)[0]
+        await dispatch('loadProject', targetProject)
+      }
+      return state.frames[frameId];
     },
     async setCurrentFrame({ commit, dispatch }, frameId) {
       commit('setCurrentFrameId', frameId);
