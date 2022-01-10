@@ -28,7 +28,6 @@ export default {
       'errorLoadingFrame',
     ]),
     ...mapGetters([
-      'getFrame',
       'currentFrame',
     ]),
     currentScanFrames() {
@@ -50,8 +49,8 @@ export default {
       this.debouncedFrameSliderChange,
       30,
     );
-    const { frameId } = this.$route.params;
-    const frame = this.getFrame(frameId);
+    const { projectId, frameId } = this.$route.params;
+    const frame = await this.getFrame({ frameId, projectId });
     if (frame) {
       await this.swapToFrame(frame);
     } else {
@@ -59,7 +58,7 @@ export default {
     }
   },
   async beforeRouteUpdate(to, from, next) {
-    const toFrame = this.getFrame(to.params.frameId);
+    const toFrame = await this.getFrame({ frameId: to.params.frameId, projectId: undefined });
     next(true);
     if (toFrame) {
       this.swapToFrame(toFrame);
@@ -74,6 +73,7 @@ export default {
       'reloadScan',
       'logout',
       'swapToFrame',
+      'getFrame',
     ]),
     cleanFrameName,
     async logoutUser() {
