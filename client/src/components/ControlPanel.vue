@@ -32,7 +32,6 @@ export default {
     ...mapGetters([
       'currentViewData',
       'nextFrame',
-      'getFrame',
       'previousFrame',
       'currentFrame',
       'myCurrentProjectRoles',
@@ -163,7 +162,7 @@ export default {
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
         this.$router
-          .push(frameId || '')
+          .push(`/${this.currentViewData.projectId}/${frameId}` || '')
           .catch(this.handleNavigationError);
       }
     },
