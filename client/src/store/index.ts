@@ -11,15 +11,14 @@ import '../utils/registerReaders';
 import readImageArrayBuffer from 'itk/readImageArrayBuffer';
 import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
-import ReaderFactory from '../utils/ReaderFactory';
-
-import { proxy } from '../vtk';
-import { getView } from '../vtk/viewManager';
-
 import djangoRest, { apiClient } from '@/django';
 import {
   Project, ProjectTaskOverview, User, Frame, ScanState,
 } from '@/types';
+import ReaderFactory from '../utils/ReaderFactory';
+
+import { proxy } from '../vtk';
+import { getView } from '../vtk/viewManager';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -348,6 +347,7 @@ const {
         downTo = null;
       }
       return {
+        projectId: project.id,
         projectName: project.name,
         experimentId: experiment.id,
         experimentName: experiment.name,
@@ -378,14 +378,6 @@ const {
     },
     nextFrame(state, getters) {
       return getters.currentFrame ? getters.currentFrame.nextFrame : null;
-    },
-    getFrame(state) {
-      return (frameId) => {
-        if (!frameId || !state.frames[frameId]) {
-          return undefined;
-        }
-        return state.frames[frameId];
-      };
     },
     currentScan(state, getters) {
       if (getters.currentFrame) {
@@ -686,6 +678,17 @@ const {
           decisions: scan.decisions,
         },
       });
+    },
+    async getFrame({ state, dispatch }, { frameId, projectId }) {
+      if (!frameId) {
+        return undefined;
+      }
+      if (!state.frames[frameId]) {
+        await dispatch('loadProjects');
+        const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
+        await dispatch('loadProject', targetProject);
+      }
+      return state.frames[frameId];
     },
     async setCurrentFrame({ commit, dispatch }, frameId) {
       commit('setCurrentFrameId', frameId);
