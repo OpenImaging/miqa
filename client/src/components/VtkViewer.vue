@@ -54,6 +54,14 @@ export default {
           return '';
       }
     },
+    ijkName() {
+      const ijkMapping = {
+        x: 'i',
+        y: 'j',
+        z: 'k',
+      };
+      return ijkMapping[this.name];
+    },
     keyboardBindings() {
       switch (this.name) {
         case 'z':
@@ -275,6 +283,24 @@ export default {
         }
       }
     },
+    placeCrosshairs(clickEvent) {
+      const inputDataset = this.representation.getInputDataSet();
+      console.log(inputDataset.getDimensions());
+
+      const { layerX, layerY } = clickEvent;
+      const { clientWidth, clientHeight } = this.$refs.viewer;
+      const horizontalFromCenter = layerX - (clientWidth / 2);
+      const verticalFromCenter = (clientHeight / 2) - layerY;
+      console.log(horizontalFromCenter, verticalFromCenter);
+
+      const ijkLocation = {
+        i: undefined,
+        j: undefined,
+        k: undefined,
+      };
+      ijkLocation[this.ijkName] = this.slice;
+      console.log(ijkLocation);
+    },
     cleanup() {
       if (this.renderSubscription) {
         this.renderSubscription.unsubscribe();
@@ -323,6 +349,7 @@ export default {
     >
       <div
         ref="viewer"
+        @click="placeCrosshairs"
         :style="{ visibility: resized ? 'unset' : 'hidden' }"
       />
       <canvas
@@ -375,7 +402,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: black;
+  background: gray;
   z-index: 0;
 
   display: flex;
@@ -465,6 +492,7 @@ export default {
     flex: 1 1 0px;
     position: relative;
     overflow-y: hidden;
+    cursor: crosshair;
   }
 }
 
