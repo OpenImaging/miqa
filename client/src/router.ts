@@ -15,7 +15,7 @@ export default new Router({
     },
     // Order matters
     {
-      path: '/:frameId?',
+      path: '/:projectId?/:frameId?',
       name: 'frame',
       component: Frame,
     },
