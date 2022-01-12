@@ -682,7 +682,8 @@ const {
     async getFrame({ state, dispatch }, { frameId, projectId }) {
       if (!frameId) {
         return undefined;
-      } if (!state.frames[frameId]) {
+      }
+      if (!state.frames[frameId]) {
         await dispatch('loadProjects');
         const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
         await dispatch('loadProject', targetProject);
