@@ -98,8 +98,13 @@ class ProjectRetrieveSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'status']
         ref_name = 'projects'
+
+    status = serializers.SerializerMethodField('get_status')
+
+    def get_status(self, obj):
+        return obj.get_status()
 
 
 class ProjectViewSet(
