@@ -126,7 +126,30 @@ export default defineComponent({
               :key="project.id"
               @click="selectProject(project)"
             >
-              {{ project.name }}
+              <v-tooltip right>
+                <template v-slot:activator="{ on, attrs }">
+                  <v-container
+                    v-bind="attrs"
+                    v-on="on"
+                  >
+                    <v-row dense>
+                      <v-col cols="8">
+                        {{ project.name }}
+                      </v-col>
+                      <v-col
+                        cols="4"
+                        align="right"
+                      >
+                        ({{ project.status.total_complete }}/{{ project.status.total_scans }})
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </template>
+                <span>
+                  {{ project.status.total_complete }} of {{ project.status.total_scans }}
+                  scans complete
+                </span>
+              </v-tooltip>
             </v-list-item>
             <v-list-item style="text-align: center">
               <v-text-field
