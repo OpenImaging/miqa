@@ -28,6 +28,7 @@ export default {
       'scanFrames',
       'frames',
       'currentTaskOverview',
+      'currentProject',
     ]),
     ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
@@ -59,8 +60,8 @@ export default {
         };
       });
     },
-    getIdOfFirstFrameInScan(scanId) {
-      return `${this.scanFrames[scanId][0]}`;
+    getURLForFirstFrameInScan(scanId) {
+      return `${this.currentProject.id}/${this.scanFrames[scanId][0]}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
@@ -142,7 +143,7 @@ export default {
                   <v-btn
                     v-bind="attrs"
                     v-on="on"
-                    :to="getIdOfFirstFrameInScan(scan.id)"
+                    :to="getURLForFirstFrameInScan(scan.id)"
                     class="ml-0 px-1 scan-name"
                     href
                     text
