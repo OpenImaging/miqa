@@ -25,6 +25,11 @@ interface ScanDecision {
     present: String[],
     absent: String[],
   },
+  location: {
+    i: number,
+    j: number,
+    k: number,
+  }
 }
 
 interface Scan {
