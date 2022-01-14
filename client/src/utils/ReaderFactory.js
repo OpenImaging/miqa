@@ -1,11 +1,12 @@
 const READER_MAPPING = {};
 
 const FETCH_DATA = {
-  readAsArrayBuffer(axios, url, signal) {
+  readAsArrayBuffer(axios, url, signal, { onDownloadProgress } = {}) {
     return axios
       .get(url, {
         responseType: 'arraybuffer',
         signal,
+        onDownloadProgress,
       })
       .then(({ data }) => data);
   },
@@ -39,7 +40,7 @@ function getReader({ name }) {
   return READER_MAPPING[extToUse];
 }
 
-function downloadFrame(axios, fileName, url) {
+function downloadFrame(axios, fileName, url, { onDownloadProgress } = {}) {
   const abortController = new AbortController();
 
   return {
@@ -47,7 +48,7 @@ function downloadFrame(axios, fileName, url) {
       const readerMapping = getReader({ name: fileName });
       if (readerMapping) {
         const { readMethod } = readerMapping;
-        FETCH_DATA[readMethod](axios, url, abortController.signal)
+        FETCH_DATA[readMethod](axios, url, abortController.signal, { onDownloadProgress })
           .then((rawData) => {
             if (rawData) {
               resolve(new File([rawData], fileName));

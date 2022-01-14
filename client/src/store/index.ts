@@ -105,7 +105,7 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId) {
+function loadFile(frameId, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
@@ -113,13 +113,15 @@ function loadFile(frameId) {
     apiClient,
     'nifti.nii.gz',
     `/frames/${frameId}/download`,
+    { onDownloadProgress },
   );
   fileCache.set(frameId, promise);
   return { frameId, fileP: promise };
 }
 
-function loadFileAndGetData(frameId) {
-  return loadFile(frameId).fileP.then((file) => getData(frameId, file, savedWorker)
+function loadFileAndGetData(frameId, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frameId, { onDownloadProgress });
+  return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
@@ -698,7 +700,7 @@ const {
     },
     async swapToFrame({
       state, dispatch, getters, commit,
-    }, frame) {
+    }, { frame, onDownloadProgress = null }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
       }
@@ -765,7 +767,7 @@ const {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(frame.id);
+          const result = await loadFileAndGetData(frame.id, { onDownloadProgress });
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
