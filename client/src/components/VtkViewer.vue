@@ -27,7 +27,14 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager',
+      'loadingFrame',
+      'showCrosshairs',
+      'sliceLocation',
+      'iIndexSlice',
+      'jIndexSlice',
+      'kIndexSlice',
+    ]),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -90,6 +97,14 @@ export default {
         });
       }
     },
+    sliceLocation(value) {
+      // console.log(this.ijkName, value[this.ijkName]);
+      if (value[this.ijkName]
+      && this.sliceDomain.min < value[this.ijkName]
+      && this.sliceDomain.max > value[this.ijkName]) {
+        this.representation.setSlice(value[this.ijkName]);
+      }
+    },
     iIndexSlice() {
       this.updateCrosshairs();
     },
@@ -142,7 +157,11 @@ export default {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkIndexSlices']),
+    ...mapMutations(['saveSlice',
+      'setCurrentScreenshot',
+      'setCurrentVtkIndexSlices',
+      'setSliceLocation',
+    ]),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -264,6 +283,7 @@ export default {
 
         if (this.showCrosshairs) {
           const crosshairSet = new CrosshairSet(
+            this.name, this.ijkName,
             this.representation, this.view, myCanvas,
             this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
           );
@@ -284,22 +304,13 @@ export default {
       }
     },
     placeCrosshairs(clickEvent) {
-      const inputDataset = this.representation.getInputDataSet();
-      console.log(inputDataset.getDimensions());
-
-      const { layerX, layerY } = clickEvent;
-      const { clientWidth, clientHeight } = this.$refs.viewer;
-      const horizontalFromCenter = layerX - (clientWidth / 2);
-      const verticalFromCenter = (clientHeight / 2) - layerY;
-      console.log(horizontalFromCenter, verticalFromCenter);
-
-      const ijkLocation = {
-        i: undefined,
-        j: undefined,
-        k: undefined,
-      };
-      ijkLocation[this.ijkName] = this.slice;
-      console.log(ijkLocation);
+      const crosshairSet = new CrosshairSet(
+        this.name, this.ijkName,
+        this.representation, this.view, null,
+        this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+      );
+      const ijkLocation = crosshairSet.ijkLocationOfClick(clickEvent);
+      this.setSliceLocation(ijkLocation);
     },
     cleanup() {
       if (this.renderSubscription) {
@@ -402,7 +413,7 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: gray;
+  background: black;
   z-index: 0;
 
   display: flex;

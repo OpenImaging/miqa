@@ -301,6 +301,7 @@ const initState = {
   screenshots: [],
   scanCachedPercentage: 0,
   showCrosshairs: true,
+  sliceLocation: {},
   iIndexSlice: 0,
   jIndexSlice: 0,
   kIndexSlice: 0,
@@ -510,6 +511,11 @@ const {
     },
     stopLoadingExperiment(state) {
       state.loadingExperiment = false;
+    },
+    setSliceLocation(state, ijkLocation){
+      if(!Object.keys(ijkLocation).some((value) => value === undefined)){
+        state.sliceLocation = ijkLocation;
+      }
     },
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
