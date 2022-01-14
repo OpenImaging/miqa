@@ -512,8 +512,8 @@ const {
     stopLoadingExperiment(state) {
       state.loadingExperiment = false;
     },
-    setSliceLocation(state, ijkLocation){
-      if(!Object.keys(ijkLocation).some((value) => value === undefined)){
+    setSliceLocation(state, ijkLocation) {
+      if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
         state.sliceLocation = ijkLocation;
       }
     },
