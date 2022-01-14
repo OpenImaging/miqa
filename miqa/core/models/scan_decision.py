@@ -52,6 +52,7 @@ class ScanDecision(models.Model):
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
     user_identified_artifacts = models.JSONField(default=default_identified_artifacts)
+    location = models.JSONField(default=dict)
 
     @property
     def experiment(self) -> Experiment:
