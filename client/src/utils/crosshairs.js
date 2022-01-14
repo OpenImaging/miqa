@@ -93,7 +93,6 @@ class CrosshairSet {
     const leftVector = vec3.cross(
       [], orientations.viewUp, orientations.directionOfProjection,
     ).map((val) => val * signFlipVertical);
-    const signFlipHorizontal = -1 * Math.sign(leftVector.filter((v) => v !== 0)[0]);
     const [verticalVectorIndex, horizontalVectorIndex] = [upVector, leftVector].map(
       (vector) => vector.findIndex((val) => val !== 0),
     );
@@ -105,43 +104,8 @@ class CrosshairSet {
       horizontalAxisName,
       verticalVectorIndex,
       horizontalVectorIndex,
-      signFlipVertical,
-      signFlipHorizontal,
     ];
   }
-
-  // findRenderWindowSize() {
-  //   const { clientWidth, clientHeight } = this.imageView.getContainer();
-  //   const sliceBounds = [[0, 0, 0], this.imageData.getDimensions()];
-  //   const displayBounds = sliceBounds.map(
-  //     ((sliceLocation) => this.imageData.indexToWorld(sliceLocation)),
-  //   ).map((worldLocation) => this.renderWindow.worldToDisplay(
-  //     ...worldLocation, this.renderer,
-  //   ).map((c) => c / devicePixelRatio).slice(0, 2));
-  //   const displayBoundsTranspose = displayBounds[0].map(
-  //     (_, colIndex) => displayBounds.map((row) => row[colIndex]),
-  //   );
-  //   displayBoundsTranspose.forEach((row) => row.sort());
-
-  //   const renderWindowWidth = Math.abs(
-  //     Math.min(clientWidth, displayBoundsTranspose[0][1])
-  //     - Math.max(0, displayBoundsTranspose[0][0]),
-  //   );
-  //   const renderWindowHeight = Math.abs(
-  //     Math.min(clientHeight, displayBoundsTranspose[1][1])
-  //     - Math.max(0, displayBoundsTranspose[1][0]),
-  //   );
-  //   return [renderWindowWidth, renderWindowHeight];
-  //   // const horizontalRange = [
-  //   //   Math.max(0, displayBounds[0][0]),
-  //   //   Math.min(clientWidth, displayBounds[1][0]),
-  //   // ];
-  //   // const verticalRange = [
-  //   //   Math.max(0, displayBounds[0][1]),
-  //   //   Math.min(clientHeight, displayBounds[1][1]),
-  //   // ];
-  //   // console.log(horizontalRange, verticalRange);
-  // }
 
   ijkLocationOfClick(clickEvent) {
     const ijkLocation = {
@@ -156,80 +120,18 @@ class CrosshairSet {
       horizontalAxisName,
       verticalVectorIndex,
       horizontalVectorIndex,
-      signFlipVertical,
-      signFlipHorizontal,
     ] = this.findAxes();
     const horizontalFromCenter = layerX - (clientWidth / 2);
-    const verticalFromCenter = (clientHeight / 2) - layerY + 5;
-    // const [renderWindowWidth, renderWindowHeight] = this.findRenderWindowSize();
+    const verticalFromCenter = (clientHeight / 2) - layerY;
 
-    // const displayLocation = [0, 0, 0];
-    // displayLocation[horizontalVectorIndex] = clientWidth / 2 + horizontalFromCenter;
-    // displayLocation[verticalVectorIndex] = clientHeight / 2 + verticalFromCenter;
-    // console.log(displayLocation);
     const worldCoordsClickLocation = this.renderWindow.displayToWorld(
       clientWidth / 2 + horizontalFromCenter,
       clientHeight / 2 + verticalFromCenter,
       0, this.renderer,
     );
-    console.log(worldCoordsClickLocation);
     ijkLocation[horizontalAxisName] = worldCoordsClickLocation[horizontalVectorIndex];
     ijkLocation[verticalAxisName] = worldCoordsClickLocation[verticalVectorIndex];
 
-    // const sliceClickLocation = this.imageData.worldToIndex(
-    //   worldCoordsClickLocation, [],
-    // );
-    // console.log([this.iSlice, this.jSlice, this.kSlice], '=>', sliceClickLocation);
-    // const worldCoordsCenterFromSlice = this.imageData.indexToWorld(
-    //   [this.iSlice, this.jSlice, this.kSlice], [],
-    // );
-    // const displayCenter = [0, 0, 0];
-    // displayCenter[horizontalVectorIndex] = clientWidth / 2;
-    // displayCenter[verticalVectorIndex] = clientHeight / 2;
-    // const worldCoordsCenterFromDisplay = this.renderWindow.displayToWorld(
-    //   clientWidth / 2, clientHeight / 2, 0, this.renderer,
-    // );
-    // console.log(worldCoordsCenterFromSlice, '=>', worldCoordsCenterFromDisplay);
-    // const displayLocation = [0, 0, 0];
-    // displayLocation[horizontalVectorIndex] = layerX;
-    // displayLocation[verticalVectorIndex] = layerY;
-
-    // console.log(displayLocation);
-    // console.log(this.imageData.worldToIndex(
-    //   this.renderWindow.displayToWorld(...displayLocation, this.renderer), [],
-    // ));
-
-    // console.log(horizontalFromCenter, verticalFromCenter);
-
-    // const proportionFromLeft = (layerX - horizontalRange[0])
-    // / (horizontalRange[1] - horizontalRange[0]);
-    // let proportionFromTop = (layerY - verticalRange[0])
-    // / (verticalRange[1] - verticalRange[0]);
-    // if (signFlipVertical) {
-    //   proportionFromTop = 1 - proportionFromTop;
-    // }
-
-    // const imageBounds = this.imageRepresentation.getBounds();
-    // const [horMinSlice, horMaxSlice, vertMinSlice, vertMaxSlice] = [
-    //   imageBounds[2 * horizontalVectorIndex],
-    //   imageBounds[2 * horizontalVectorIndex + 1],
-    //   imageBounds[2 * verticalVectorIndex],
-    //   imageBounds[2 * verticalVectorIndex + 1],
-    // ];
-
-    // console.log(horMinSlice, horMaxSlice, vertMinSlice, vertMaxSlice);
-
-    // const newHorSlice = horMinSlice + proportionFromLeft * (horMaxSlice - horMinSlice);
-    // const newVertSlice = vertMinSlice + proportionFromTop * (vertMaxSlice - vertMinSlice);
-
-    // console.log(proportionFromLeft, proportionFromTop);
-    // console.log(newHorSlice, newVertSlice);
-
-    // console.log('horizontal', proportionFromLeft * 100, '% between', horMinSlice, horMaxSlice, '=', newHorSlice);
-    // console.log('vertical', proportionFromTop * 100, '% between', vertMinSlice, vertMaxSlice, '=', newVertSlice);
-
-    // ijkLocation[horizontalAxisName] = newHorSlice;
-    // ijkLocation[verticalAxisName] = newVertSlice;
     return ijkLocation;
   }
 }
