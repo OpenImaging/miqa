@@ -98,7 +98,6 @@ export default {
       }
     },
     sliceLocation(value) {
-      // console.log(this.ijkName, value[this.ijkName]);
       if (value[this.ijkName]
       && this.sliceDomain.min < value[this.ijkName]
       && this.sliceDomain.max > value[this.ijkName]) {
@@ -415,7 +414,6 @@ export default {
   right: 0;
   background: black;
   z-index: 0;
-
   display: flex;
   flex-direction: column;
 
@@ -503,7 +501,7 @@ export default {
     flex: 1 1 0px;
     position: relative;
     overflow-y: hidden;
-    cursor: crosshair;
+    cursor: crosshair!important;
   }
 }
 
