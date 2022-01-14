@@ -1,4 +1,6 @@
 <script>
+import { mapMutations } from 'vuex';
+
 import { ScanDecision } from '@/types';
 import UserAvatar from './UserAvatar.vue';
 
@@ -26,10 +28,14 @@ export default {
     },
   },
   methods: {
+    ...mapMutations(['setSliceLocation']),
     convertDecisionToColor(decision) {
       if (decision.toLowerCase() === 'bad') return 'red--text text--darken-2';
       if (decision.toLowerCase() === 'good') return 'green--text text--darken-2';
       return 'grey--text text--darken-2';
+    },
+    goToLocation() {
+      this.setSliceLocation(this.decision.location);
     },
   },
 };
@@ -37,17 +43,20 @@ export default {
 
 <template>
   <v-row dense>
-    <v-col cols="1">
+    <v-col
+      :class="convertDecisionToColor(decision.decision)"
+      cols="2"
+    >
       <UserAvatar
         :target-user="decision.creator"
       />
-    </v-col>
-    <v-col
-      :class="convertDecisionToColor(decision.decision)"
-      cols="1"
-      style="text-align: center"
-    >
       ({{ decision.decision[0] }})
+      <v-icon
+        v-if="Object.values(decision.location).length > 0"
+        @click="goToLocation"
+      >
+        mdi-crosshairs-gps
+      </v-icon>
     </v-col>
     <v-col
       :class="decision.note ? 'black--text' : 'grey--text'"
