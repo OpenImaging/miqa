@@ -14,7 +14,8 @@ interface Paginated<T> {
 
 const apiClient = axios.create({ baseURL: API_URL });
 apiClient.interceptors.response.use(null, (error) => {
-  throw new Error(error.response.data.detail);
+  const msg = error?.response?.data?.detail || 'No response from server';
+  throw new Error(msg);
 });
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
