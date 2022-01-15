@@ -1,13 +1,12 @@
-import { CancelToken } from 'axios';
-
 const READER_MAPPING = {};
 
 const FETCH_DATA = {
-  readAsArrayBuffer(axios, url, source) {
+  readAsArrayBuffer(axios, url, signal, { onDownloadProgress } = {}) {
     return axios
       .get(url, {
-        cancelToken: source.token,
         responseType: 'arraybuffer',
+        signal,
+        onDownloadProgress,
       })
       .then(({ data }) => data);
   },
@@ -41,84 +40,32 @@ function getReader({ name }) {
   return READER_MAPPING[extToUse];
 }
 
-function readRawData({ fileName, data }) {
-  return new Promise((resolve, reject) => {
-    const readerMapping = getReader({ name: fileName });
-    if (readerMapping) {
-      const {
-        vtkReader,
-        parseMethod,
-        fileNameMethod,
-        sourceType,
-      } = readerMapping;
-      const reader = vtkReader.newInstance();
-      if (fileNameMethod) {
-        reader[fileNameMethod](fileName);
+function downloadFrame(axios, fileName, url, { onDownloadProgress } = {}) {
+  const abortController = new AbortController();
+
+  return {
+    promise: new Promise((resolve, reject) => {
+      const readerMapping = getReader({ name: fileName });
+      if (readerMapping) {
+        const { readMethod } = readerMapping;
+        FETCH_DATA[readMethod](axios, url, abortController.signal, { onDownloadProgress })
+          .then((rawData) => {
+            if (rawData) {
+              resolve(new File([rawData], fileName));
+            } else {
+              throw new Error(`No data for ${fileName}`);
+            }
+          })
+          .catch(reject);
+      } else {
+        throw new Error(`No reader found for ${fileName}`);
       }
-      const ds = reader[parseMethod](data);
-      Promise.resolve(ds)
-        .then((frame) => resolve({
-          frame,
-          reader,
-          sourceType,
-          name: fileName,
-        }))
-        .catch(reject);
-    } else {
-      reject();
-    }
-  });
-}
-
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-    const readerMapping = getReader(file);
-    if (readerMapping) {
-      const { readMethod } = readerMapping;
-      const io = new FileReader();
-      io.onload = function onLoad() {
-        readRawData({ fileName: file.name, data: io.result })
-          .then((result) => resolve(result))
-          .catch((error) => reject(error));
-      };
-      io[readMethod](file);
-    } else {
-      reject(new Error('No reader mapping'));
-    }
-  });
-}
-
-function loadFiles(files) {
-  const promises = [];
-  for (let i = 0; i < files.length; i += 1) {
-    promises.push(readFile(files[i]));
-  }
-  return Promise.all(promises);
-}
-
-function downloadFrame(axios, fileName, url) {
-  return new Promise((resolve, reject) => {
-    const readerMapping = getReader({ name: fileName });
-    if (readerMapping) {
-      const { readMethod } = readerMapping;
-      const source = CancelToken.source();
-      FETCH_DATA[readMethod](axios, url, source)
-        .then((rawData) => {
-          if (rawData) {
-            resolve(new File([rawData], fileName));
-          } else {
-            throw new Error(`No data for ${fileName}`);
-          }
-        })
-        .catch(reject);
-    } else {
-      throw new Error(`No reader found for ${fileName}`);
-    }
-  });
+    }),
+    abortController,
+  };
 }
 
 export default {
   downloadFrame,
-  loadFiles,
   registerReader,
 };

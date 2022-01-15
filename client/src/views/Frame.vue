@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import VtkViewer from '@/components/VtkViewer.vue';
-import { cleanFrameName } from '@/utils/helper';
+import { cleanFrameName, formatSize } from '@/utils/helper';
 
 export default {
   name: 'Frame',
@@ -19,6 +19,12 @@ export default {
     ControlPanel,
   },
   inject: ['user'],
+  data() {
+    return {
+      downloadLoaded: 0,
+      downloadTotal: 0,
+    };
+  },
   computed: {
     ...mapState([
       'vtkViews',
@@ -32,6 +38,15 @@ export default {
     ]),
     currentScanFrames() {
       return this.scanFrames[this.currentScan.id];
+    },
+    downloadProgressPercent() {
+      return 100 * (this.downloadLoaded / this.downloadTotal);
+    },
+    loadProgressMessage() {
+      if (this.downloadTotal && this.downloadLoaded === this.downloadTotal) {
+        return 'Loading image viewer...';
+      }
+      return `Downloading image ${formatSize(this.downloadLoaded)} / ${formatSize(this.downloadTotal)}`;
     },
   },
   watch: {
@@ -52,7 +67,10 @@ export default {
     const { projectId, frameId } = this.$route.params;
     const frame = await this.getFrame({ frameId, projectId });
     if (frame) {
-      await this.swapToFrame(frame);
+      await this.swapToFrame({
+        frame,
+        onDownloadProgress: this.onFrameDownloadProgress,
+      });
     } else {
       this.$router.replace('/').catch(this.handleNavigationError);
     }
@@ -61,7 +79,10 @@ export default {
     const toFrame = await this.getFrame({ frameId: to.params.frameId, projectId: undefined });
     next(true);
     if (toFrame) {
-      this.swapToFrame(toFrame);
+      this.swapToFrame({
+        frame: toFrame,
+        onDownloadProgress: this.onFrameDownloadProgress,
+      });
     }
   },
   async beforeRouteLeave(to, from, next) {
@@ -89,6 +110,10 @@ export default {
         this.updateFrame();
         this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
       }
+    },
+    onFrameDownloadProgress(e) {
+      this.downloadLoaded = e.loaded;
+      this.downloadTotal = e.total;
     },
   },
 };
@@ -128,15 +153,30 @@ export default {
       class="loading-indicator-container"
       align-center
       justify-center
-      row
       fill-height
     >
-      <v-progress-circular
-        :width="4"
-        :size="50"
-        color="primary"
-        indeterminate
-      />
+      <v-col>
+        <v-row justify="center">
+          <v-progress-circular
+            :width="4"
+            :size="56"
+            :rotate="-90"
+            :value="downloadProgressPercent"
+            :indeterminate="downloadTotal === 0 || downloadTotal === downloadLoaded"
+            color="primary"
+          >
+            {{ Math.round(downloadProgressPercent || 0) }}%
+          </v-progress-circular>
+        </v-row>
+        <v-row
+          justify="center"
+          class="mt-2"
+        >
+          <div class="text-center">
+            {{ loadProgressMessage }}
+          </div>
+        </v-row>
+      </v-col>
     </v-layout>
     <template v-if="currentFrame">
       <v-flex class="layout-container">
@@ -211,7 +251,7 @@ export default {
   }
 
   .loading-indicator-container {
-    background: #ffffff57;
+    background: #ffffffcc;
     position: absolute;
     top: 0;
     bottom: 0;
