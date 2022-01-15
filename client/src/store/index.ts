@@ -27,6 +27,7 @@ Vue.use(Vuex);
 const fileCache = new Map();
 const frameCache = new Map();
 let readDataQueue = [];
+const pendingFrameDownloads = new Set();
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
@@ -104,21 +105,23 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId) {
+function loadFile(frameId, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
-  const p = ReaderFactory.downloadFrame(
+  const { promise } = ReaderFactory.downloadFrame(
     apiClient,
     'nifti.nii.gz',
     `/frames/${frameId}/download`,
+    { onDownloadProgress },
   );
-  fileCache.set(frameId, p);
-  return { frameId, fileP: p };
+  fileCache.set(frameId, promise);
+  return { frameId, fileP: promise };
 }
 
-function loadFileAndGetData(frameId) {
-  return loadFile(frameId).fileP.then((file) => getData(frameId, file, savedWorker)
+function loadFileAndGetData(frameId, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frameId, { onDownloadProgress });
+  return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
@@ -146,12 +149,19 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frameId)) {
       filePromise = fileCache.get(frameId);
     } else {
-      filePromise = ReaderFactory.downloadFrame(
+      const download = ReaderFactory.downloadFrame(
         apiClient,
         'nifti.nii.gz',
         `/frames/${frameId}/download`,
       );
+      filePromise = download.promise;
       fileCache.set(frameId, filePromise);
+      pendingFrameDownloads.add(download);
+      filePromise.then(() => {
+        pendingFrameDownloads.delete(download);
+      }).catch(() => {
+        pendingFrameDownloads.delete(download);
+      });
     }
 
     filePromise
@@ -172,11 +182,7 @@ function progressHandler(completed, total) {
 }
 
 function startReaderWorkerPool() {
-  const taskArgsArray = [];
-  readDataQueue.forEach((taskInfo) => {
-    taskArgsArray.push([taskInfo]);
-  });
-
+  const taskArgsArray = readDataQueue.map((taskInfo) => [taskInfo]);
   readDataQueue = [];
 
   const { runId, promise } = store.state.workerPool.runTasks(
@@ -190,7 +196,7 @@ function startReaderWorkerPool() {
       taskRunId = -1;
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
     })
     .finally(() => {
       store.state.workerPool.terminateWorkers();
@@ -698,7 +704,7 @@ const {
     },
     async swapToFrame({
       state, dispatch, getters, commit,
-    }, frame) {
+    }, { frame, onDownloadProgress = null }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
       }
@@ -719,10 +725,14 @@ const {
       if (
         newExperiment
         && oldExperiment
-        && newExperiment.folderId !== oldExperiment.folderId
+        && newExperiment.id !== oldExperiment.id
         && taskRunId >= 0
       ) {
         state.workerPool.cancel(taskRunId);
+        pendingFrameDownloads.forEach(({ abortController }) => {
+          abortController.abort();
+        });
+        pendingFrameDownloads.clear();
         taskRunId = -1;
       }
 
@@ -761,7 +771,7 @@ const {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(frame.id);
+          const result = await loadFileAndGetData(frame.id, { onDownloadProgress });
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
