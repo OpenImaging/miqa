@@ -228,7 +228,7 @@ function checkLoadExperiment(oldValue, newValue) {
   const newExperimentScans = store.state.experimentScans[newValue.id];
   newExperimentScans.forEach((scanId) => {
     const scanFrames = store.state.scanFrames[scanId].map(
-      (frameId) => store.state.frames[frameId]
+      (frameId) => store.state.frames[frameId],
     );
     scanFrames.forEach((frame) => {
       readDataQueue.push({
@@ -774,7 +774,9 @@ const {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(frame.id, frame.extension, { onDownloadProgress });
+          const result = await loadFileAndGetData(
+            frame.id, frame.extension, { onDownloadProgress },
+          );
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
