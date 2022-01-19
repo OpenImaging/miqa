@@ -1,6 +1,7 @@
 from guardian.shortcuts import get_perms
 import pytest
 
+from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
 from miqa.core.rest.user import UserSerializer
@@ -220,13 +221,7 @@ def test_frames_list(user_api_client, frame, user):
             'count': 1,
             'next': None,
             'previous': None,
-            'results': [
-                {
-                    'id': frame.id,
-                    'frame_number': frame.frame_number,
-                    'frame_evaluation': None,
-                }
-            ],
+            'results': [FrameSerializer(frame).data],
         }
 
 
