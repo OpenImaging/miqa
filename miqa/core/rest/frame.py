@@ -24,10 +24,14 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class FrameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['id', 'frame_number', 'frame_evaluation']
+        fields = ['id', 'frame_number', 'frame_evaluation', 'extension']
         ref_name = 'scan_frame'
 
     frame_evaluation = EvaluationSerializer()
+    extension = serializers.SerializerMethodField('get_extension')
+
+    def get_extension(self, obj):
+        return ''.join(Path(obj.raw_path).suffixes)
 
 
 class FrameViewSet(ListModelMixin, GenericViewSet):
