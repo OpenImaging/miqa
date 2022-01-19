@@ -20,3 +20,19 @@ ReaderFactory.registerReader({
   binary: true,
   fileNameMethod: 'setFileName',
 });
+
+ReaderFactory.registerReader({
+  extension: 'nrrd',
+  name: 'NRRD Reader',
+  vtkReader: vtkITKImageReader,
+  binary: true,
+  fileNameMethod: 'setFileName',
+});
+
+ReaderFactory.registerReader({
+  extension: 'mgz',
+  name: 'MGZ Reader',
+  vtkReader: vtkITKImageReader,
+  binary: true,
+  fileNameMethod: 'setFileName',
+});
