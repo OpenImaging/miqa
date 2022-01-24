@@ -61,7 +61,7 @@ export default {
       });
     },
     getURLForFirstFrameInScan(scanId) {
-      return `${this.currentProject.id}/${this.scanFrames[scanId][0]}`;
+      return `/${this.currentProject.id}/${this.scanFrames[scanId][0]}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
