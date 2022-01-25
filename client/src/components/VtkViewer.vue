@@ -25,7 +25,6 @@ export default {
     resized: false,
     fullscreen: false,
     screenshotContainer: document.createElement('div'),
-    originalZoom: undefined,
   }),
   computed: {
     ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
@@ -144,7 +143,6 @@ export default {
     initializeView() {
       this.view.setContainer(this.$refs.viewer);
       fill2DView(this.view);
-      this.originalZoom = this.view.getCamera().getParallelScale();
       if (this.name !== 'default') {
         this.modifiedSubscription = this.representation.onModified(() => {
           if (!this.loadingFrame) {
@@ -235,11 +233,6 @@ export default {
           this.resized = true;
         });
       });
-    },
-    onWindowResize() {
-      if (this.resized && this.originalZoom === this.view.getCamera().getParallelScale()) {
-        fill2DView(this.view);
-      }
     },
     changeSlice(newValue) {
       this.slice = newValue;
