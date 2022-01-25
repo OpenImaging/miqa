@@ -162,7 +162,6 @@ class ProjectViewSet(
 
             project.import_path = request.data['importPath']
             project.export_path = request.data['exportPath']
-            project.global_import_export = request.data['globalImportExport']
             project.full_clean()
             project.save()
         serializer = ProjectSettingsSerializer(project)
