@@ -5,7 +5,6 @@ from schema import And, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
-
 IMPORT_CSV_COLUMNS = [
     'project_name',
     'experiment_name',

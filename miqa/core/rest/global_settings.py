@@ -1,12 +1,17 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from miqa.core.models import GlobalSettings
 from miqa.core.tasks import export_data, import_data
+
+
+class IsSuperUser(BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_superuser)
 
 
 class GlobalSettingsSerializer(serializers.ModelSerializer):
@@ -23,7 +28,7 @@ class GlobalSettingsViewSet(ViewSet):
         if self.request.method == 'GET':
             return [IsAuthenticated()]
         else:
-            return [IsAdminUser()]
+            return [IsSuperUser()]
 
     @swagger_auto_schema(
         method='GET',
