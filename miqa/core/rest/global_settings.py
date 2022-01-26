@@ -40,12 +40,13 @@ class GlobalSettingsViewSet(ViewSet):
         methods=['GET', 'PUT'],
     )
     def settings_(self, request):
-        serializer = GlobalSettingsSerializer(self.get_object())
         if request.method == 'PUT':
-            serializer = GlobalSettingsSerializer(self.get_object(), data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            global_settings = self.get_object()
+            global_settings.import_path = request.data['importPath']
+            global_settings.export_path = request.data['exportPath']
+            global_settings.full_clean()
+            global_settings.save()
+        return Response(GlobalSettingsSerializer(self.get_object()).data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(responses={204: 'Import succeeded.'})
     @action(
