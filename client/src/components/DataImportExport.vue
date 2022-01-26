@@ -40,7 +40,9 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        await loadProject(currentProject.value);
+        if (currentProject.value.id !== 'global') {
+          await loadProject(currentProject.value);
+        }
       } catch (ex) {
         importing.value = false;
         this.$snackbar({
@@ -102,7 +104,7 @@ export default defineComponent({
           Import
         </v-btn>
       </template>
-      <span>Import from {{ currentProject.settings.importPath }}</span>
+      <span>Import from import path</span>
     </v-tooltip>
 
     <v-tooltip
@@ -130,7 +132,7 @@ export default defineComponent({
           </span>
         </v-btn>
       </template>
-      <span>Export to {{ currentProject.settings.exportPath }}</span>
+      <span>Export to export path</span>
     </v-tooltip>
 
     <v-dialog
@@ -142,7 +144,10 @@ export default defineComponent({
         <v-card-title class="title">
           Import
         </v-card-title>
-        <v-card-text>
+        <v-card-text v-if="currentProject.id == 'global'">
+          Importing data will overwrite all objects in every project listed in the import file.
+          Are you sure you want to overwrite all objects in multiple projects?
+        </v-card-text><v-card-text v-else>
           Importing data will overwrite all objects in this project, do you want
           to continue?
         </v-card-text>

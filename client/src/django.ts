@@ -1,7 +1,7 @@
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
 import {
-  Project, ProjectTaskOverview, Settings, User,
+  Project, ProjectTaskOverview, ProjectSettings, User,
 } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
@@ -50,10 +50,21 @@ const djangoClient = {
     const { data } = await apiClient.get('/configuration/');
     return data;
   },
+  async globalSettings() {
+    const { data } = await apiClient.get('/global/settings');
+    return data;
+  },
   async import(projectId: string) {
-    await apiClient.post(`/projects/${projectId}/import`);
+    if (projectId === 'global') {
+      await apiClient.post('/global/import');
+    } else {
+      await apiClient.post(`/projects/${projectId}/import`);
+    }
   },
   async export(projectId: string) {
+    if (projectId === 'global') {
+      return apiClient.post('/global/export');
+    }
     return apiClient.post(`/projects/${projectId}/export`);
   },
   async createProject(projectName: string): Promise<Project> {
@@ -77,11 +88,15 @@ const djangoClient = {
     const { data } = await apiClient.get(`/projects/${projectId}/task_overview`);
     return data;
   },
-  async settings(projectId: string): Promise<Settings> {
+  async settings(projectId: string): Promise<ProjectSettings> {
     const { data } = await apiClient.get(`/projects/${projectId}/settings`);
     return data;
   },
-  async setSettings(projectId: string, settings: Settings) {
+  async setSettings(projectId: string, settings: ProjectSettings) {
+    if (projectId === 'global') {
+      const resp = await apiClient.put('/global/settings', settings);
+      return resp.status === 200 ? resp.data : null;
+    }
     const resp = await apiClient.put(`/projects/${projectId}/settings`, settings);
     return resp.status === 200 ? resp.data : null;
   },
