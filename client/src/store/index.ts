@@ -579,9 +579,9 @@ const {
           exportPath: globalSettings.export_path,
           permissions: null,
         },
-        status: null
+        status: null,
       };
-      commit('setCurrentProject', pseudoProject)
+      commit('setCurrentProject', pseudoProject);
     },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
