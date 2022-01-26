@@ -19,11 +19,12 @@ export default defineComponent({
   setup() {
     const currentProject = computed(() => store.state.currentProject);
     const projects = computed(() => store.state.projects);
+    const { isGlobal } = store.getters;
 
     const importPath = ref('');
     const exportPath = ref('');
     watchEffect(() => {
-      if (currentProject.value.id === 'global') {
+      if (isGlobal) {
         importPath.value = currentProject.value.settings.importPath;
         exportPath.value = currentProject.value.settings.exportPath;
       } else {
@@ -44,10 +45,17 @@ export default defineComponent({
         return;
       }
       try {
-        await djangoRest.setSettings(currentProject.value.id, {
-          importPath: importPath.value,
-          exportPath: exportPath.value,
-        });
+        if (isGlobal) {
+          await djangoRest.setGlobalSettings({
+            importPath: importPath.value,
+            exportPath: exportPath.value,
+          });
+        } else {
+          await djangoRest.setProjectSettings(currentProject.value.id, {
+            importPath: importPath.value,
+            exportPath: exportPath.value,
+          });
+        }
         changed.value = false;
       } catch (e) {
         const { message } = e.response.data;
@@ -171,7 +179,7 @@ export default defineComponent({
           class="text-right"
         >
           <v-btn
-            v-if="user.is_superuser && currentProject.id !== 'global'"
+            v-if="user.is_superuser && !isGlobal"
             @click="showDeleteWarningOverlay = true"
             class="red white--text"
             style="float: right"
@@ -182,7 +190,7 @@ export default defineComponent({
       </v-row>
     </v-layout>
     <v-overlay
-      v-if="user.is_superuser && currentProject.id !== 'global'"
+      v-if="user.is_superuser && !isGlobal"
       :value="showDeleteWarningOverlay"
       :dark="false"
     >

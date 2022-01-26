@@ -1,10 +1,10 @@
 from pathlib import Path
+from typing import Optional
 
 from rest_framework.exceptions import APIException
 from schema import And, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
-
 
 IMPORT_CSV_COLUMNS = [
     'project_name',
@@ -39,7 +39,7 @@ def validate_file_locations(input_dict, project):
     return input_dict
 
 
-def validate_import_dict(import_dict, project):
+def validate_import_dict(import_dict, project: Optional[Project]):
     import_schema = Schema(
         {
             'projects': {
@@ -62,11 +62,9 @@ def validate_import_dict(import_dict, project):
         import_schema.validate(import_dict)
         import_dict = validate_file_locations(import_dict, project)
     except SchemaError:
-        import_path = (
-            GlobalSettings.load().import_path if project == 'global' else project.import_path
-        )
+        import_path = GlobalSettings.load().import_path if project is None else project.import_path
         raise APIException(f'Invalid format of import file {import_path}')
-    if project == 'global':
+    if not project:
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
                 raise APIException(f'Project {project_name} does not exist')

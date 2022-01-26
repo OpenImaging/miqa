@@ -16,11 +16,10 @@ from miqa.core.tasks import export_data, import_data
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['importPath', 'exportPath', 'globalImportExport', 'permissions']
+        fields = ['importPath', 'exportPath', 'permissions']
 
     importPath = serializers.CharField(source='import_path')  # noqa: N815
     exportPath = serializers.CharField(source='export_path')  # noqa: N815
-    globalImportExport = serializers.BooleanField(source='global_import_export')  # noqa: N815
     permissions = serializers.SerializerMethodField('get_permissions')
 
     def get_permissions(self, obj):
