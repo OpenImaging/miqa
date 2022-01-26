@@ -22,13 +22,16 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
-    const globalImportExport = ref(false);
     watchEffect(() => {
-      djangoRest.settings(currentProject.value.id).then((settings) => {
-        importPath.value = settings.importPath;
-        exportPath.value = settings.exportPath;
-        globalImportExport.value = settings.globalImportExport;
-      });
+      if (currentProject.value.id === 'global') {
+        importPath.value = currentProject.value.settings.importPath;
+        exportPath.value = currentProject.value.settings.exportPath;
+      } else {
+        djangoRest.settings(currentProject.value.id).then((settings) => {
+          importPath.value = settings.importPath;
+          exportPath.value = settings.exportPath;
+        });
+      }
     });
 
     const changed = ref(false);
@@ -44,7 +47,6 @@ export default defineComponent({
         await djangoRest.setSettings(currentProject.value.id, {
           importPath: importPath.value,
           exportPath: exportPath.value,
-          globalImportExport: globalImportExport.value,
         });
         changed.value = false;
       } catch (e) {
@@ -66,7 +68,6 @@ export default defineComponent({
       projects,
       importPath,
       exportPath,
-      globalImportExport,
       changed,
       importPathError,
       exportPathError,
@@ -151,29 +152,6 @@ export default defineComponent({
       </v-flex>
     </v-layout>
     <v-layout>
-      <v-switch
-        v-model="globalImportExport"
-        @click="changed = true"
-        color="primary"
-        label="Global import/export"
-      />
-      <v-tooltip top>
-        <template v-slot:activator="{ on, attrs }">
-          <v-icon
-            v-bind="attrs"
-            v-on="on"
-            color="primary"
-            small
-            class="mx-1"
-          >
-            mdi-information-outline
-          </v-icon>
-        </template>
-        Global imports/exports will use the project name from the import file, which will
-        potentially modify other projects.
-      </v-tooltip>
-    </v-layout>
-    <v-layout>
       <v-row>
         <v-col cols="1">
           <v-btn
@@ -193,7 +171,7 @@ export default defineComponent({
           class="text-right"
         >
           <v-btn
-            v-if="user.is_superuser"
+            v-if="user.is_superuser && currentProject.id !== 'global'"
             @click="showDeleteWarningOverlay = true"
             class="red white--text"
             style="float: right"
@@ -204,6 +182,7 @@ export default defineComponent({
       </v-row>
     </v-layout>
     <v-overlay
+      v-if="user.is_superuser && currentProject.id !== 'global'"
       :value="showDeleteWarningOverlay"
       :dark="false"
     >

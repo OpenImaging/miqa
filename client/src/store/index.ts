@@ -568,6 +568,21 @@ const {
       dispatch('reset');
       await djangoRest.logout();
     },
+    async loadGlobal({ commit }) {
+      const globalSettings = await djangoRest.globalSettings();
+      const pseudoProject = {
+        id: 'global',
+        name: 'Global',
+        experiments: null,
+        settings: {
+          importPath: globalSettings.import_path,
+          exportPath: globalSettings.export_path,
+          permissions: null,
+        },
+        status: null
+      };
+      commit('setCurrentProject', pseudoProject)
+    },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
       commit('setProjects', projects);
