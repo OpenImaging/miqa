@@ -411,8 +411,8 @@ const {
       return projectPerms;
     },
     isGlobal(state) {
-      return state.currentProject?.id === 'global'
-    }
+      return state.currentProject?.id === 'global';
+    },
   },
   mutations: {
     reset(state) {
