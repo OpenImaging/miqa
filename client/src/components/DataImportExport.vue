@@ -20,6 +20,7 @@ export default defineComponent({
   setup() {
     const currentProject = computed(() => store.state.currentProject);
     const loadProject = (project: Project) => store.dispatch.loadProject(project);
+    const { isGlobal } = store.getters;
 
     const importing = ref(false);
     const importDialog = ref(false);
@@ -32,7 +33,11 @@ export default defineComponent({
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        await djangoRest.import(currentProject.value.id);
+        if (isGlobal) {
+          await djangoRest.globalImport();
+        } else {
+          await djangoRest.projectImport(currentProject.value.id);
+        }
         importing.value = false;
 
         this.$snackbar({
@@ -40,7 +45,7 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        if (currentProject.value.id !== 'global') {
+        if (!isGlobal) {
           await loadProject(currentProject.value);
         }
       } catch (ex) {
@@ -55,7 +60,11 @@ export default defineComponent({
     async function exportData() {
       exporting.value = true;
       try {
-        await djangoRest.export(currentProject.value.id);
+        if (isGlobal) {
+          await djangoRest.globalExport();
+        } else {
+          await djangoRest.projectExport(currentProject.value.id);
+        }
         this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
@@ -72,6 +81,7 @@ export default defineComponent({
 
     return {
       currentProject,
+      isGlobal,
       loadProject,
       importing,
       importDialog,
@@ -144,7 +154,7 @@ export default defineComponent({
         <v-card-title class="title">
           Import
         </v-card-title>
-        <v-card-text v-if="currentProject.id == 'global'">
+        <v-card-text v-if="isGlobal">
           Importing data will overwrite all objects in every project listed in the import file.
           Are you sure you want to overwrite all objects in multiple projects?
         </v-card-text><v-card-text v-else>

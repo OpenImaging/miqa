@@ -54,17 +54,16 @@ const djangoClient = {
     const { data } = await apiClient.get('/global/settings');
     return data;
   },
-  async import(projectId: string) {
-    if (projectId === 'global') {
-      await apiClient.post('/global/import');
-    } else {
-      await apiClient.post(`/projects/${projectId}/import`);
-    }
+  async globalImport() {
+    await apiClient.post('/global/import');
   },
-  async export(projectId: string) {
-    if (projectId === 'global') {
-      return apiClient.post('/global/export');
-    }
+  async projectImport(projectId: string) {
+    await apiClient.post(`/projects/${projectId}/import`);
+  },
+  async globalExport() {
+    return apiClient.post('/global/export');
+  },
+  async projectExport(projectId: string) {
     return apiClient.post(`/projects/${projectId}/export`);
   },
   async createProject(projectName: string): Promise<Project> {
@@ -92,11 +91,11 @@ const djangoClient = {
     const { data } = await apiClient.get(`/projects/${projectId}/settings`);
     return data;
   },
-  async setSettings(projectId: string, settings: ProjectSettings) {
-    if (projectId === 'global') {
-      const resp = await apiClient.put('/global/settings', settings);
-      return resp.status === 200 ? resp.data : null;
-    }
+  async setGlobalSettings(settings: ProjectSettings) {
+    const resp = await apiClient.put('/global/settings', settings);
+    return resp.status === 200 ? resp.data : null;
+  },
+  async setProjectSettings(projectId: string, settings: ProjectSettings) {
     const resp = await apiClient.put(`/projects/${projectId}/settings`, settings);
     return resp.status === 200 ? resp.data : null;
   },

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 from rest_framework.exceptions import APIException
 from schema import And, Schema, SchemaError, Use
@@ -38,7 +39,7 @@ def validate_file_locations(input_dict, project):
     return input_dict
 
 
-def validate_import_dict(import_dict, project):
+def validate_import_dict(import_dict, project: Optional[Project]):
     import_schema = Schema(
         {
             'projects': {
@@ -65,7 +66,7 @@ def validate_import_dict(import_dict, project):
             GlobalSettings.load().import_path if project == 'global' else project.import_path
         )
         raise APIException(f'Invalid format of import file {import_path}')
-    if project == 'global':
+    if not project:
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
                 raise APIException(f'Project {project_name} does not exist')

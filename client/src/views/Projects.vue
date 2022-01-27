@@ -34,6 +34,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
+    const { isGlobal } = store.getters;
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
@@ -71,6 +72,7 @@ export default defineComponent({
 
     return {
       currentProject,
+      isGlobal,
       currentTaskOverview,
       selectedProjectIndex,
       projects,
@@ -118,7 +120,7 @@ export default defineComponent({
   <div>
     <Navbar />
     <div class="d-flex">
-      <v-card style="height: calc(100vh - 50px)">
+      <v-card class="project-list-container">
         <v-navigation-drawer permanent>
           <v-card-title>Projects</v-card-title>
           <v-list-item-group
@@ -192,7 +194,7 @@ export default defineComponent({
         v-if="currentProject"
         class="flex-grow-1 ma-3 pa-5"
       >
-        <v-card-title v-if="currentProject.id === 'global'">
+        <v-card-title v-if="isGlobal">
           Perform Global Import / Export
         </v-card-title>
         <v-card-title v-else>
@@ -204,7 +206,7 @@ export default defineComponent({
             class="flex-card"
             style="flex-grow: 4;"
           >
-            <v-subheader v-if="currentProject.id === 'global'">
+            <v-subheader v-if="isGlobal">
               WARNING: Global imports will modify multiple projects.
             </v-subheader>
             <v-subheader v-else>
@@ -291,6 +293,9 @@ export default defineComponent({
   flex-grow: 1;
   margin-top: 10px;
   padding-bottom: 20px;
+}
+.project-list-container {
+  height: calc(100vh - 50px);
 }
 .project-list {
   height: calc(100% - 80px);

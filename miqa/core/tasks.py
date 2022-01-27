@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 from celery import shared_task
 import pandas
@@ -44,9 +45,9 @@ def evaluate_data(frames_by_project):
         )
 
 
-def import_data(project_id):
-    if project_id == 'global':
-        project = 'global'
+def import_data(project_id: Optional[str]):
+    if not project_id:
+        project = None
         import_path = GlobalSettings.load().import_path
     else:
         project = Project.objects.get(id=project_id)
@@ -64,14 +65,14 @@ def import_data(project_id):
 
 
 @shared_task
-def perform_import(import_dict, project_id):
+def perform_import(import_dict, project_id: Optional[str]):
     new_projects = []
     new_experiments = []
     new_scans = []
     new_frames = []
 
     for project_name, project_data in import_dict['projects'].items():
-        if project_id == 'global':
+        if not project_id:
             # A global import uses the project name column to determine which project to import to
             project_object = Project.objects.get(name=project_name)
         else:
@@ -116,8 +117,8 @@ def perform_import(import_dict, project_id):
     evaluate_data.delay(frames_by_project)
 
 
-def export_data(project_id):
-    if project_id == 'global':
+def export_data(project_id: Optional[str]):
+    if not project_id:
         export_path = GlobalSettings.load().export_path
     else:
         project = Project.objects.get(id=project_id)
@@ -130,10 +131,10 @@ def export_data(project_id):
 
 
 @shared_task
-def perform_export(project_id):
+def perform_export(project_id: Optional[str]):
     data = []
 
-    if project_id == 'global':
+    if not project_id:
         # A global export should export all projects
         projects = Project.objects.all()
         export_path = GlobalSettings.load().export_path

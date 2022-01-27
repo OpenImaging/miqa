@@ -51,7 +51,7 @@ class GlobalSettingsViewSet(ViewSet):
             global_settings.export_path = request.data['exportPath']
             global_settings.full_clean()
             global_settings.save()
-        return Response(GlobalSettingsSerializer(self.get_object()).data, status=status.HTTP_200_OK)
+        return Response(GlobalSettingsSerializer(self.get_object()).data)
 
     @swagger_auto_schema(responses={204: 'Import succeeded.'})
     @action(
@@ -60,7 +60,7 @@ class GlobalSettingsViewSet(ViewSet):
         methods=['POST'],
     )
     def import_(self, request, **kwargs):
-        import_data('global')
+        import_data(None)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(responses={204: 'Export succeeded.'})
@@ -70,5 +70,5 @@ class GlobalSettingsViewSet(ViewSet):
         methods=['POST'],
     )
     def export_(self, request, **kwargs):
-        export_data('global')
+        export_data(None)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -410,6 +410,9 @@ const {
       }
       return projectPerms;
     },
+    isGlobal(state) {
+      return state.currentProject?.id === 'global'
+    }
   },
   mutations: {
     reset(state) {
@@ -572,7 +575,7 @@ const {
       const globalSettings = await djangoRest.globalSettings();
       const pseudoProject = {
         id: 'global',
-        name: 'Global',
+        name: null,
         experiments: null,
         settings: {
           importPath: globalSettings.import_path,
