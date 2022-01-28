@@ -4,7 +4,7 @@
 This is the simplest configuration for developers to start with.
 
 ### Initial Setup
-1. Run `docker-compose run --rm npm npm install` (`docker-compose` must be at least version 1.28)
+1. Run `docker-compose run --rm npm npm ci` (`docker-compose` must be at least version 1.28)
 2. Run `docker-compose run --rm django ./manage.py migrate`
 3. Run `docker-compose run --rm django ./manage.py createsuperuser`
    and follow the prompts to create your own user.
