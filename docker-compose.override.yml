@@ -52,6 +52,11 @@ services:
     image: node:latest
     command: ["npm", "run", "serve"]
     working_dir: /opt/client
+    environment:
+      # Fixes https://github.com/OpenImaging/miqa/issues/298
+      # nodeversion >=17 deprecated some OpenSSL algorithms which a dependency is still using
+      # https://nodejs.org/en/blog/release/v17.0.0/
+      - NODE_OPTIONS=--openssl-legacy-provider
     volumes:
       - ./client:/opt/client
     ports:
