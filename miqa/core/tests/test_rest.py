@@ -2,6 +2,7 @@ from guardian.shortcuts import get_perms
 import pytest
 
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
+from miqa.core.rest.project import ProjectSerializer
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
 from miqa.core.rest.user import UserSerializer
 
@@ -23,7 +24,7 @@ def test_projects_list(user_api_client, project, user):
             'count': 1,
             'next': None,
             'previous': None,
-            'results': [{'id': project.id, 'name': project.name, 'status': project.get_status()}],
+            'results': [ProjectSerializer(project).data],
         }
 
 
