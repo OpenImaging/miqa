@@ -82,29 +82,21 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
         }
 
 
-class ProjectRetrieveSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = ['id', 'name', 'experiments', 'settings']
-        ref_name = 'project'
-
-    experiments = ExperimentSerializer(many=True)
-    settings = serializers.SerializerMethodField('get_settings')
-
-    def get_settings(self, obj):
-        return ProjectSettingsSerializer(obj).data
-
-
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'name', 'status']
+        fields = ['id', 'name', 'status', 'experiments', 'settings']
         ref_name = 'projects'
 
     status = serializers.SerializerMethodField('get_status')
+    experiments = ExperimentSerializer(many=True, required=False)
+    settings = serializers.SerializerMethodField('get_settings')
 
     def get_status(self, obj):
         return obj.get_status()
+
+    def get_settings(self, obj):
+        return ProjectSettingsSerializer(obj).data
 
 
 class ProjectViewSet(
@@ -113,6 +105,7 @@ class ProjectViewSet(
     mixins.DestroyModelMixin,
 ):
     permission_classes = [IsAuthenticated]
+    serializer_class = ProjectSerializer
 
     def get_queryset(self):
         projects = get_objects_for_user(
@@ -127,19 +120,13 @@ class ProjectViewSet(
         else:
             return projects.all()
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return ProjectRetrieveSerializer
-        else:
-            return ProjectSerializer
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         project = serializer.save(creator=request.user)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            ProjectRetrieveSerializer(project).data, status=status.HTTP_201_CREATED, headers=headers
+            self.get_serializer(project).data, status=status.HTTP_201_CREATED, headers=headers
         )
 
     @swagger_auto_schema(
