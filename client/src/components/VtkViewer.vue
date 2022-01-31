@@ -234,11 +234,6 @@ export default {
         });
       });
     },
-    onWindowResize() {
-      if (this.resized) {
-        fill2DView(this.view);
-      }
-    },
     changeSlice(newValue) {
       this.slice = newValue;
     },
