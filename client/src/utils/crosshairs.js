@@ -108,56 +108,33 @@ class CrosshairSet {
     ];
   }
 
-  locationOfClick(clickEvent) {
-    const location = {
-      i: undefined,
-      j: undefined,
-      k: undefined,
-    };
-    let worldCoordsClickLocation = this.renderWindow.displayToWorld(
-      clickEvent.position.x,
-      clickEvent.position.y,
-      0, this.renderer,
-    );
+  getPicker() {
     const picker = vtkCellPicker.newInstance();
     picker.setPickFromList(1);
     picker.setTolerance(0);
     picker.initializePickList();
     picker.addPickList(this.imageRepresentation.getActors()[0]);
+    return picker;
+  }
+
+  locationOfClick(clickEvent) {
+    const picker = this.getPicker();
     picker.pick([clickEvent.position.x, clickEvent.position.y, 0], this.renderer);
-    if (picker.getActors().length > 0) {
-      const xyzLocation = picker.getPickedPositions()[0];
-      worldCoordsClickLocation = xyzLocation;
-    }
-    const iloc = this.imageData.worldToIndex(worldCoordsClickLocation);
-    const dims = this.imageData.getDimensions();
+    if (picker.getActors().length === 0) return { i: undefined, j: undefined, k: undefined };
 
-    // x
-    {
-      const tmp = [...iloc];
-      tmp[1] = dims[1] / 2;
-      tmp[2] = dims[2] / 2;
-      const coord = this.imageData.indexToWorld(tmp);
-      [location.i] = coord;
-    }
-    // y
-    {
-      const tmp = [...iloc];
-      tmp[0] = dims[0] / 2;
-      tmp[2] = dims[2] / 2;
-      const coord = this.imageData.indexToWorld(tmp);
-      [, location.j] = coord;
-    }
-    // z
-    {
-      const tmp = [...iloc];
-      tmp[0] = dims[0] / 2;
-      tmp[1] = dims[1] / 2;
-      const coord = this.imageData.indexToWorld(tmp);
-      [,, location.k] = coord;
-    }
+    const [xyzLocation] = picker.getPickedPositions();
+    const indexLocation = this.imageData.worldToIndex(xyzLocation);
+    const halfDims = this.imageData.getDimensions().map((dim) => dim / 2);
 
-    return location;
+    const iIndexCoords = [indexLocation[0], halfDims[1], halfDims[2]];
+    const jIndexCoords = [halfDims[0], indexLocation[1], halfDims[2]];
+    const kIndexCoords = [halfDims[0], halfDims[1], indexLocation[2]];
+
+    return {
+      i: this.imageData.indexToWorld(iIndexCoords)[0],
+      j: this.imageData.indexToWorld(jIndexCoords)[1],
+      k: this.imageData.indexToWorld(kIndexCoords)[2],
+    };
   }
 }
 
