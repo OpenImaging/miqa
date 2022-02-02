@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { vec3 } from 'gl-matrix';
 
 import Vue from 'vue';
@@ -27,7 +27,14 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager', 'loadingFrame', 'showCrosshairs', 'iIndexSlice', 'jIndexSlice', 'kIndexSlice']),
+    ...mapState(['proxyManager',
+      'loadingFrame',
+      'showCrosshairs',
+      'sliceLocation',
+      'iIndexSlice',
+      'jIndexSlice',
+      'kIndexSlice',
+    ]),
     ...mapGetters(['currentFrame', 'currentScan']),
     representation() {
       return (
@@ -39,7 +46,7 @@ export default {
     sliceDomain() {
       return this.representation.getPropertyDomainByName('slice');
     },
-    name() {
+    name() : ('x' | 'y' | 'z') {
       return this.view.getName();
     },
     displayName() {
@@ -53,6 +60,14 @@ export default {
         default:
           return '';
       }
+    },
+    ijkName() : ('i' | 'j' | 'k') {
+      const ijkMapping = {
+        x: 'i',
+        y: 'j',
+        z: 'k',
+      };
+      return ijkMapping[this.name];
     },
     keyboardBindings() {
       switch (this.name) {
@@ -80,6 +95,13 @@ export default {
           indexAxis: ijkMapping[this.trueAxis(this.name)],
           value: this.representation.getSliceIndex(),
         });
+      }
+    },
+    sliceLocation(value) {
+      if (value[this.ijkName]
+      && this.sliceDomain.min < value[this.ijkName]
+      && this.sliceDomain.max > value[this.ijkName]) {
+        this.representation.setSlice(value[this.ijkName]);
       }
     },
     iIndexSlice() {
@@ -129,12 +151,17 @@ export default {
       }
     });
     this.resizeObserver.observe(this.$refs.viewer);
+    this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
   },
   beforeUnmount() {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice', 'setCurrentScreenshot', 'setCurrentVtkIndexSlices']),
+    ...mapMutations(['saveSlice',
+      'setCurrentScreenshot',
+      'setCurrentVtkIndexSlices',
+      'setSliceLocation',
+    ]),
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
@@ -249,13 +276,14 @@ export default {
       ctx.stroke();
     },
     updateCrosshairs() {
-      const myCanvas = document.getElementById(`crosshairs-${this.name}`);
+      const myCanvas: HTMLCanvasElement = document.getElementById(`crosshairs-${this.name}`) as HTMLCanvasElement;
       if (myCanvas && myCanvas.getContext) {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
 
         if (this.showCrosshairs) {
           const crosshairSet = new CrosshairSet(
+            this.name, this.ijkName,
             this.representation, this.view, myCanvas,
             this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
           );
@@ -275,6 +303,16 @@ export default {
         }
       }
     },
+    placeCrosshairs(clickEvent) {
+      const crosshairSet = new CrosshairSet(
+        this.name, this.ijkName,
+        this.representation, this.view, null,
+        this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+      );
+      const location = crosshairSet.locationOfClick(clickEvent);
+      location[this.ijkName] = this.representation.getSliceIndex();
+      this.setSliceLocation(location);
+    },
     cleanup() {
       if (this.renderSubscription) {
         this.renderSubscription.unsubscribe();
@@ -290,9 +328,9 @@ export default {
 
 <template>
   <div
-    v-resize="onWindowResize"
     :class="{ fullscreen }"
     class="vtk-viewer"
+    style="font-size: 20px"
   >
     <div
       v-if="name !== 'default'"
@@ -377,7 +415,6 @@ export default {
   right: 0;
   background: black;
   z-index: 0;
-
   display: flex;
   flex-direction: column;
 
@@ -465,6 +502,7 @@ export default {
     flex: 1 1 0px;
     position: relative;
     overflow-y: hidden;
+    cursor: crosshair!important;
   }
 }
 

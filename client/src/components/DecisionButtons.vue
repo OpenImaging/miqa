@@ -23,11 +23,14 @@ export default {
       newComment: '',
       confirmedPresent: [],
       confirmedAbsent: [],
+      storeCrosshairs: true,
     };
   },
   computed: {
     ...mapState([
       'currentViewData',
+      'proxyManager',
+      'vtkViews',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -176,11 +179,19 @@ export default {
             absent: this.confirmedAbsent,
           };
           const { addScanDecision } = store.commit;
+          const zxyLocation = this.vtkViews.map(
+            (view) => this.proxyManager.getRepresentation(null, view).getSlice(),
+          );
           const savedObj = await djangoRest.setDecision(
             this.currentViewData.scanId,
             decision,
             this.newComment,
             userIdentifiedArtifacts,
+            (this.storeCrosshairs ? {
+              i: zxyLocation[1],
+              j: zxyLocation[2],
+              k: zxyLocation[0],
+            } : {}),
           );
           addScanDecision({
             currentScan: this.currentViewData.scanId,
@@ -337,24 +348,46 @@ export default {
         Decisions other than "usable" must have a comment.
       </v-col>
     </v-row>
-    <div
+    <v-row
       v-if="experimentIsEditable"
-      no-gutters
-      class="button-container"
+      dense
+      class="pr-3"
     >
-      <div
-        v-for="option in options"
-        :key="option.code"
-        style="text-align: center"
-      >
-        <v-btn
-          @click="handleCommentSave(option.code)"
-          :color="option.color"
+      <v-col cols="9">
+        <div
+          no-gutters
+          class="button-container"
         >
-          {{ option.label }}
-        </v-btn>
-      </div>
-    </div>
+          <div
+            v-for="option in options"
+            :key="option.code"
+            style="text-align: center"
+          >
+            <v-btn
+              @click="handleCommentSave(option.code)"
+              :color="option.color"
+            >
+              {{ option.label }}
+            </v-btn>
+          </div>
+        </div>
+      </v-col>
+      <v-col
+        cols="1"
+        align="right"
+      >
+        <v-simple-checkbox
+          :value="storeCrosshairs"
+          @input="(value) => storeCrosshairs = value"
+        />
+      </v-col>
+      <v-col
+        cols="2"
+        class="pa-0"
+      >
+        Store crosshair location
+      </v-col>
+    </v-row>
   </div>
 </template>
 

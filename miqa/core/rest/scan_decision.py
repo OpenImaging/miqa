@@ -15,7 +15,15 @@ from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_re
 class ScanDecisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScanDecision
-        fields = ['id', 'decision', 'creator', 'created', 'note', 'user_identified_artifacts']
+        fields = [
+            'id',
+            'decision',
+            'creator',
+            'created',
+            'note',
+            'user_identified_artifacts',
+            'location',
+        ]
         read_only_fields = ['created', 'creator']
         ref_name = 'scan_decision'
 
