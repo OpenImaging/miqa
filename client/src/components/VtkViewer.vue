@@ -151,6 +151,7 @@ export default {
       }
     });
     this.resizeObserver.observe(this.$refs.viewer);
+    this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
   },
   beforeUnmount() {
     this.cleanup();
@@ -308,8 +309,9 @@ export default {
         this.representation, this.view, null,
         this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
       );
-      const ijkLocation = crosshairSet.ijkLocationOfClick(clickEvent);
-      this.setSliceLocation(ijkLocation);
+      const location = crosshairSet.locationOfClick(clickEvent);
+      location[this.ijkName] = this.representation.getSliceIndex();
+      this.setSliceLocation(location);
     },
     cleanup() {
       if (this.renderSubscription) {
@@ -326,9 +328,9 @@ export default {
 
 <template>
   <div
-    v-resize="onWindowResize"
     :class="{ fullscreen }"
     class="vtk-viewer"
+    style="font-size: 20px"
   >
     <div
       v-if="name !== 'default'"
@@ -359,7 +361,6 @@ export default {
     >
       <div
         ref="viewer"
-        @click="placeCrosshairs"
         :style="{ visibility: resized ? 'unset' : 'hidden' }"
       />
       <canvas
