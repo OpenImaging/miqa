@@ -27,6 +27,7 @@ export default {
       'proxyManager',
       'scanCachedPercentage',
       'showCrosshairs',
+      'storeCrosshairs',
       'myCurrentProjectRoles',
     ]),
     ...mapGetters([
@@ -126,6 +127,7 @@ export default {
     ]),
     ...mapMutations([
       'setShowCrosshairs',
+      'setStoreCrosshairs',
     ]),
     async switchLock(newExp, oldExp = null) {
       if (!this.navigateToNextIfCurrentScanNull()) {
@@ -264,14 +266,13 @@ export default {
                   {{ currentViewData.experimentName }}
                 </v-col>
               </v-row>
-
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 @input="handleExperimentNoteChange"
                 :disabled="!experimentIsEditable"
                 filled
                 no-resize
-                height="120px"
+                height="80px"
                 hide-details
                 class="mt-3"
                 name="input-experiment-notes"
@@ -286,6 +287,30 @@ export default {
                   style="text-align: right"
                 >
                   Save Note
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  Display crosshairs
+                </v-col>
+                <v-col cols="2">
+                  <v-switch
+                    :input-value="showCrosshairs"
+                    @change="setShowCrosshairs"
+                    hide-details
+                    class="shrink ma-0 pa-0 ml-n2"
+                  />
+                </v-col>
+                <v-col cols="4">
+                  Store crosshairs with decision
+                </v-col>
+                <v-col cols="2">
+                  <v-switch
+                    :input-value="storeCrosshairs"
+                    @change="setStoreCrosshairs"
+                    hide-details
+                    class="shrink ma-0 pa-0 ml-n2"
+                  />
                 </v-col>
               </v-row>
             </v-container>
@@ -304,7 +329,7 @@ export default {
               class="pa-0"
             >
               <v-row no-gutters>
-                <v-col cols="5">
+                <v-col cols="6">
                   <v-container
                     fill-height
                     fluid
@@ -494,43 +519,24 @@ export default {
                         </v-slider>
                       </v-col>
                     </v-row>
-                    <v-row>
-                      <v-col cols="4">
-                        Display crosshairs
-                      </v-col>
-                      <v-col cols="8">
-                        <v-switch
-                          :input-value="showCrosshairs"
-                          @change="setShowCrosshairs"
-                          hide-details
-                          class="shrink ma-0 pa-0 ml-n2"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row class="py-3">
+                    <v-row
+                      v-if="scanCachedPercentage < 1"
+                      class="py-3"
+                    >
                       <v-col
                         cols="12"
                         style="text-align: center; height: 70px"
                       >
-                        <transition name="bounce">
-                          <div v-if="scanCachedPercentage < 1">
-                            <v-progress-circular
-                              :value="scanCachedPercentage * 100"
-                              color="blue"
-                            />
-                            <div> Loading... </div>
-                          </div>
-                        </transition>
+                        <div>
+                          <v-progress-circular
+                            :value="scanCachedPercentage * 100"
+                            color="blue"
+                          />
+                          <div> Loading... </div>
+                        </div>
                       </v-col>
                     </v-row>
-                  </v-container>
-                </v-col>
-                <v-col cols="7">
-                  <v-container
-                    fluid
-                    class="px-5"
-                  >
-                    <v-row>
+                    <v-row v-else>
                       <v-col cols="12">
                         <v-container
                           class="grey lighten-4"
@@ -550,11 +556,13 @@ export default {
                         </v-container>
                       </v-col>
                     </v-row>
-                    <DecisionButtons
-                      :experimentIsEditable="experimentIsEditable"
-                      @handleKeyPress="handleKeyPress"
-                    />
                   </v-container>
+                </v-col>
+                <v-col cols="6">
+                  <DecisionButtons
+                    :experimentIsEditable="experimentIsEditable"
+                    @handleKeyPress="handleKeyPress"
+                  />
                 </v-col>
               </v-row>
             </v-container>
