@@ -12,12 +12,12 @@ If your import file is a CSV, it should contain a header row and any following r
 ```
 project_name, experiment_name, scan_name, scan_type, frame_number, file_location
 ```
-Project name: The name of the Project you create in MIQA that points to this file as its import file
-Experiment name: The name you would like to apply to the experiment to which this Frame belongs
-Scan name: The name you would like to apply to the scan to which this Frame belongs
-Scan type: Can be one of "T1", "T2", "FMRI", "MRA", "PD", "DTI", "DWI", or any of the ncanda-specific scan types (see miqa.core.models.scan for more)
-Frame number: An integer to determine the order of Frames in a Scan. If only one Frame exists, enter 0 for this value.
-File location: The file path of the image file (.nii.gz, .nii, .mgz, .nrrd). This can be an absolute path (with the same restrictions as above for the import file) or a relative path to the parent of the import file itself.
+- Project name: The name of the Project you create in MIQA that points to this file as its import file
+- Experiment name: The name you would like to apply to the experiment to which this Frame belongs
+- Scan name: The name you would like to apply to the scan to which this Frame belongs
+- Scan type: Can be one of "T1", "T2", "FMRI", "MRA", "PD", "DTI", "DWI", or any of the ncanda-specific scan types (see miqa.core.models.scan for more)
+- Frame number: An integer to determine the order of Frames in a Scan. If only one Frame exists, enter 0 for this value.
+- File location: The file path of the image file (.nii.gz, .nii, .mgz, .nrrd). This can be an absolute path (with the same restrictions as above for the import file) or a relative path to the parent of the import file itself.
 
 ### Import JSON
 If your import file is a JSON, the representation for Frames is nested into the representations for Scans within Experiments within your project. Below is an example of an import JSON:
@@ -58,3 +58,10 @@ If your import file is a JSON, the representation for Frames is nested into the 
    }
 }
 ```
+
+## Old CSV format
+The original Girder 3 MIQA server used a different CSV format with different column names. If you have CSV files in the old format, they can be converted using the `convert_miqa_import_csv_format.py` script:
+```bash
+python dev/convert_miqa_import_csv_format.py old_import.csv another_import.csv
+```
+This will create two new files `new_import.csv` and `new_another_import.csv` containing the same data in the new CSV format.
