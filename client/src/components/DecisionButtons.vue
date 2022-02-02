@@ -229,35 +229,33 @@ export default {
     fluid
     class="px-5"
   >
-    <v-row dense>
-      <v-col cols="6">
-        <v-subheader class="pl-0">
-          Indicate presence/absence of artifacts in this scan
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon
-                v-bind="attrs"
-                v-on="on"
-                small
-                class="pl-2"
-              >
-                info
-              </v-icon>
-            </template>
-            <span>
-              Toggle each tag below.
-              Fill red to confirm an artifact is present.
-              Crossthrough to confirm an artifact is absent.
-            </span>
-          </v-tooltip>
-        </v-subheader>
-      </v-col>
-      <v-col
+    <v-flex class="d-flex">
+      <v-subheader class="pa-0  ma-0">
+        Indicate artifacts in this scan
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              class="pl-2"
+            >
+              info
+            </v-icon>
+          </template>
+          <span>
+            Toggle each tag below.
+            Fill red to confirm an artifact is present.
+            Crossthrough to confirm an artifact is absent.
+          </span>
+        </v-tooltip>
+      </v-subheader>
+      <v-flex
         v-if="currentViewData.currentAutoEvaluation"
         cols="6"
         class="d-flex justify-end align-center"
       >
-        <v-subheader class="pr-0">
+        <v-subheader class="pa-0 ma-0">
           Auto evaluation
         </v-subheader>
         <v-tooltip bottom>
@@ -278,13 +276,13 @@ export default {
         <EvaluationResults
           :results="currentViewData.currentAutoEvaluation.results"
         />
-      </v-col>
-      <v-col
+      </v-flex>
+      <v-flex
         v-else
         cols="5"
         class="d-flex justify-end align-center"
       >
-        <v-subheader class="pr-0">
+        <v-subheader class="pa-0 ma-0">
           No Auto evaluation available
         </v-subheader>
         <v-tooltip bottom>
@@ -302,8 +300,8 @@ export default {
             An evaluation performed by the MIQA server using artificial intelligence
           </span>
         </v-tooltip>
-      </v-col>
-    </v-row>
+      </v-flex>
+    </v-flex>
     <v-row no-gutters>
       <v-col
         cols="12"
@@ -324,12 +322,10 @@ export default {
         </v-chip>
       </v-col>
     </v-row>
-    <v-row
-      dense
-    >
+    <v-row dense>
       <v-col
         cols="12"
-        class="pa-0 ma-0"
+        class="pt-5"
       >
         <v-textarea
           @input="handleCommentChange"
@@ -383,5 +379,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+}
+.v-subheader {
+  height: 30px;
 }
 </style>
