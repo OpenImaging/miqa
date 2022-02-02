@@ -24,7 +24,7 @@ export SAMPLES_DIR=/absolute/path/to/sample_images_parent_directory/
 
 **IMPORTANT**: For the next command, the trailing slash in the `uri` argument is important! Type this argument exactly as OAuth should redirect to in order to reach the npm service. In this case, npm is running on port 8081, so OAuth should redirect there after a successful login.
 ```
-docker-compose run --rm django ./manage.py makeclient --username super.user@miqa.com --uri https://localhost:8081/
+docker-compose run --rm django ./manage.py makeclient --username your.super.user@email.address --uri https://localhost:8081/
 ```
 > Note that this command is the most important for being able to access the frontend application correctly. This command creates an OAuth Application object in your Django database. If you later find that your login procedure is not working as expected, it may be the way the Application object is configured. This is okay, because you can edit the Application object in the Django admin console. Navigate to https://localhost:8080/admin/. Click on "Applications" under "Django OAuth Toolkit". Edit the one Application object there by clicking on its row.
 
