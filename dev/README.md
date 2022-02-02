@@ -38,7 +38,7 @@ docker-compose run --rm django ./manage.py makeclient --username your.super.user
 
 
 ## Run the server
-Run the following command in a new shell in the same directory (this command needs to continue running as the server; use Ctrl+C to down the server).
+Run the following command in a new shell in the same directory (this command needs to continue running as the server; use Ctrl+C to stop the server gracefully).
 ```
 docker-compose up
 ```
