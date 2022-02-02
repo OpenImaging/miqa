@@ -124,9 +124,10 @@ const djangoClient = {
     decision: string,
     comment: string,
     userIdentifiedArtifacts: Object,
+    location: Object,
   ) {
     const { data } = await apiClient.post('/scan-decisions', {
-      scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts,
+      scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts, location,
     });
     return data;
   },

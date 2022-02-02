@@ -1,11 +1,28 @@
+import { vec3 } from 'gl-matrix';
+import vtkCellPicker from 'vtk.js/Sources/Rendering/Core/CellPicker';
+import { VIEW_ORIENTATIONS } from '../vtk/constants';
+
 class CrosshairSet {
-  constructor(imageRepresentation, imageView, imageCanvas, iSlice, jSlice, kSlice) {
+  constructor(
+    xyzName, ijkName, imageRepresentation,
+    imageView, imageCanvas, iSlice, jSlice, kSlice,
+  ) {
+    this.xyzName = xyzName;
+    this.ijkName = ijkName;
     this.imageRepresentation = imageRepresentation;
+    this.imageData = this.imageRepresentation.getInputDataSet();
     this.imageView = imageView;
+    this.renderer = this.imageView.getRenderer();
+    this.renderWindow = this.imageView.getOpenglRenderWindow();
     this.imageCanvas = imageCanvas;
     this.iSlice = iSlice;
     this.jSlice = jSlice;
     this.kSlice = kSlice;
+    this.ijkMapping = {
+      x: 'i',
+      y: 'j',
+      z: 'k',
+    };
   }
 
   getOrientation() {
@@ -13,10 +30,7 @@ class CrosshairSet {
   }
 
   getSliceLines() {
-    const imageData = this.imageRepresentation.getInputDataSet();
-    const [iMax, jMax, kMax] = imageData.getDimensions();
-    const renderer = this.imageView.getRenderer();
-    const renderWindow = this.imageView.getOpenglRenderWindow();
+    const [iMax, jMax, kMax] = this.imageData.getDimensions();
 
     const iRepresentation = [
       [0, this.jSlice, this.kSlice],
@@ -32,10 +46,10 @@ class CrosshairSet {
     ];
     const [iPoints, jPoints, kPoints] = [iRepresentation, jRepresentation, kRepresentation].map(
       (representation) => [
-        imageData.indexToWorld(representation[0]),
-        imageData.indexToWorld(representation[1]),
+        this.imageData.indexToWorld(representation[0]),
+        this.imageData.indexToWorld(representation[1]),
       ].map(
-        (point) => renderWindow.worldToDisplay(point[0], point[1], point[2], renderer)
+        (point) => this.renderWindow.worldToDisplay(point[0], point[1], point[2], this.renderer)
           .map((c) => c / devicePixelRatio).slice(0, 2),
       ).map((point) => [point[0], this.imageCanvas.height - point[1]]),
     );
@@ -71,6 +85,56 @@ class CrosshairSet {
     }
 
     return [horizontalLine, verticalLine];
+  }
+
+  findAxes() {
+    const orientations = VIEW_ORIENTATIONS[this.xyzName];
+    const signFlipVertical = Math.sign(orientations.viewUp.filter((v) => v !== 0)[0]);
+    const upVector = orientations.viewUp;
+    const leftVector = vec3.cross(
+      [], orientations.viewUp, orientations.directionOfProjection,
+    ).map((val) => val * signFlipVertical);
+    const [verticalVectorIndex, horizontalVectorIndex] = [upVector, leftVector].map(
+      (vector) => vector.findIndex((val) => val !== 0),
+    );
+    const [verticalAxisName, horizontalAxisName] = [verticalVectorIndex, horizontalVectorIndex].map(
+      (index) => Object.values(this.ijkMapping)[index],
+    );
+    return [
+      verticalAxisName,
+      horizontalAxisName,
+      verticalVectorIndex,
+      horizontalVectorIndex,
+    ];
+  }
+
+  getPicker() {
+    const picker = vtkCellPicker.newInstance();
+    picker.setPickFromList(1);
+    picker.setTolerance(0);
+    picker.initializePickList();
+    picker.addPickList(this.imageRepresentation.getActors()[0]);
+    return picker;
+  }
+
+  locationOfClick(clickEvent) {
+    const picker = this.getPicker();
+    picker.pick([clickEvent.position.x, clickEvent.position.y, 0], this.renderer);
+    if (picker.getActors().length === 0) return { i: undefined, j: undefined, k: undefined };
+
+    const [xyzLocation] = picker.getPickedPositions();
+    const indexLocation = this.imageData.worldToIndex(xyzLocation);
+    const halfDims = this.imageData.getDimensions().map((dim) => dim / 2);
+
+    const iIndexCoords = [indexLocation[0], halfDims[1], halfDims[2]];
+    const jIndexCoords = [halfDims[0], indexLocation[1], halfDims[2]];
+    const kIndexCoords = [halfDims[0], halfDims[1], indexLocation[2]];
+
+    return {
+      i: this.imageData.indexToWorld(iIndexCoords)[0],
+      j: this.imageData.indexToWorld(jIndexCoords)[1],
+      k: this.imageData.indexToWorld(kIndexCoords)[2],
+    };
   }
 }
 
