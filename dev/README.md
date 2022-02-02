@@ -17,6 +17,7 @@ docker-compose run --rm django ./manage.py createsuperuser
 ```
 
 **IMPORTANT**: For the next command, you should set the `SAMPLES_DIR` environment variable to a central location on this same machine where you will be placing all images you wish to access in MIQA, as well as any import and export files for your MIQA projects. Your docker-compose configuration will mount this directory to the django container. This means your import file can reference the same paths as on your native file system.
+If you leave `SAMPLES_DIR` unset, it will default to the `samples` directory in this repository.
 ```
 export SAMPLES_DIR=/absolute/path/to/sample_images_parent_directory/
 ```

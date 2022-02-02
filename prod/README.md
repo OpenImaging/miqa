@@ -97,7 +97,7 @@ docker-compose run --rm django ./manage.py makeclient --username super.user@miqa
 ## Adding data to MIQA
 MIQA is a project-based application. To review scan images in MIQA, create a project on the homepage. Once your project is created, you will need to supply an import file path and an export file path for your project.
 
-The import file is how you ingest data into the project and the export file will write project contents into an ingestable format. These files must be either CSV or JSON. These should be absolute file paths that point to a location within the parent directory you selected for your `SAMPLES_DIR`. Save your changes to this first project.
+The import file is how you ingest data into the project and the export file will write project contents into an ingestable format. These files must be either CSV or JSON. These should be absolute file paths that point to a location within the parent directory you selected for your `MIQA_MOUNT_DIR`. Save your changes to this first project.
 
 Before you can perform an import, be sure the import file you referenced exists and contains properly-formatted information to supply your scan images to the server and structure them within your project. To find documentation on writing an import file, reference [IMPORTING.md](../IMPORTING.md).
 
