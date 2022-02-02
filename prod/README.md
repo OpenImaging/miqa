@@ -80,7 +80,7 @@ docker-compose run --rm django ./manage.py makeclient --username super.user@miqa
    **Only do the following if your login procedure is not working properly**
    1. Client id: Set this to the value of `VUE_APP_OAUTH_CLIENT_ID` located in `client/.env`.
    2. User: Click magnifying glass and select yourself
-   3. Redirect uris: The uri of the frontend printed as a result of running `npm run serve` in the `client` directory. For example, `http://localhost:8081/`.
+   3. Redirect uris: The uri of the frontend printed as a result of running `npm run serve` in the `client` directory. For example, `https://miqa.local/`.
    4. Client type: public
    5. Authorization grant type: Authorization Code
    6. Name: Any name will suffice
