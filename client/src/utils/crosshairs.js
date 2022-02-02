@@ -1,4 +1,5 @@
 import { vec3 } from 'gl-matrix';
+import vtkCellPicker from 'vtk.js/Sources/Rendering/Core/CellPicker';
 import { VIEW_ORIENTATIONS } from '../vtk/constants';
 
 class CrosshairSet {
@@ -107,32 +108,56 @@ class CrosshairSet {
     ];
   }
 
-  ijkLocationOfClick(clickEvent) {
-    const ijkLocation = {
+  locationOfClick(clickEvent) {
+    const location = {
       i: undefined,
       j: undefined,
       k: undefined,
     };
-    const { layerX, layerY } = clickEvent;
-    const { clientWidth, clientHeight } = this.imageView.getContainer();
-    const [
-      verticalAxisName,
-      horizontalAxisName,
-      verticalVectorIndex,
-      horizontalVectorIndex,
-    ] = this.findAxes();
-    const horizontalFromCenter = layerX - (clientWidth / 2);
-    const verticalFromCenter = (clientHeight / 2) - layerY;
-
-    const worldCoordsClickLocation = this.renderWindow.displayToWorld(
-      clientWidth / 2 + horizontalFromCenter,
-      clientHeight / 2 + verticalFromCenter,
+    let worldCoordsClickLocation = this.renderWindow.displayToWorld(
+      clickEvent.position.x,
+      clickEvent.position.y,
       0, this.renderer,
     );
-    ijkLocation[horizontalAxisName] = worldCoordsClickLocation[horizontalVectorIndex];
-    ijkLocation[verticalAxisName] = worldCoordsClickLocation[verticalVectorIndex];
+    const picker = vtkCellPicker.newInstance();
+    picker.setPickFromList(1);
+    picker.setTolerance(0);
+    picker.initializePickList();
+    picker.addPickList(this.imageRepresentation.getActors()[0]);
+    picker.pick([clickEvent.position.x, clickEvent.position.y, 0], this.renderer);
+    if (picker.getActors().length > 0) {
+      const xyzLocation = picker.getPickedPositions()[0];
+      worldCoordsClickLocation = xyzLocation;
+    }
+    const iloc = this.imageData.worldToIndex(worldCoordsClickLocation);
+    const dims = this.imageData.getDimensions();
 
-    return ijkLocation;
+    // x
+    {
+      const tmp = [...iloc];
+      tmp[1] = dims[1] / 2;
+      tmp[2] = dims[2] / 2;
+      const coord = this.imageData.indexToWorld(tmp);
+      [location.i] = coord;
+    }
+    // y
+    {
+      const tmp = [...iloc];
+      tmp[0] = dims[0] / 2;
+      tmp[2] = dims[2] / 2;
+      const coord = this.imageData.indexToWorld(tmp);
+      [, location.j] = coord;
+    }
+    // z
+    {
+      const tmp = [...iloc];
+      tmp[0] = dims[0] / 2;
+      tmp[1] = dims[1] / 2;
+      const coord = this.imageData.indexToWorld(tmp);
+      [,, location.k] = coord;
+    }
+
+    return location;
   }
 }
 
