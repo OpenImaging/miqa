@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { vec3 } from 'gl-matrix';
 
 import Vue from 'vue';
@@ -46,7 +46,7 @@ export default {
     sliceDomain() {
       return this.representation.getPropertyDomainByName('slice');
     },
-    name() {
+    name() : ('x' | 'y' | 'z') {
       return this.view.getName();
     },
     displayName() {
@@ -61,7 +61,7 @@ export default {
           return '';
       }
     },
-    ijkName() {
+    ijkName() : ('i' | 'j' | 'k') {
       const ijkMapping = {
         x: 'i',
         y: 'j',
@@ -276,7 +276,7 @@ export default {
       ctx.stroke();
     },
     updateCrosshairs() {
-      const myCanvas = document.getElementById(`crosshairs-${this.name}`);
+      const myCanvas: HTMLCanvasElement = document.getElementById(`crosshairs-${this.name}`) as HTMLCanvasElement;
       if (myCanvas && myCanvas.getContext) {
         const ctx = myCanvas.getContext('2d');
         ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
