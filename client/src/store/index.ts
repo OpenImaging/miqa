@@ -524,8 +524,8 @@ const {
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
     },
-    setStoreCrosshairs(state, store) {
-      state.storeCrosshairs = store;
+    setStoreCrosshairs(state, value) {
+      state.storeCrosshairs = value;
     },
     switchReviewMode(state, mode) {
       state.reviewMode = mode || false;
