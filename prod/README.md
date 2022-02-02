@@ -21,7 +21,7 @@ cp .env.template .env
 
 > 127.0.0.1 miqa.local
 
-4. You will need SSL certificates for your server. For a real production instance, these certificates should be signed by a third-parth certificate authority. If you have third-party certificates, skip to 5. For testing a production instance, it is sufficient to create self-sgined certificates.
+4. You will need SSL certificates for your server. For a real production instance, these certificates should be signed by a third-parth certificate authority. If you have third-party certificates, skip to 5. For testing a production instance, it is sufficient to create self-signed certificates.
 
 > For a self-signed certificate, install [mkcert](https://github.com/FiloSottile/mkcert). It is recommended that you install the latest released binaries. Run `mkcert -install` to create a local certificate authority. Then, run `mkcert miqa.local` to generate some SSL certificates for your nginx instance. Replace `miqa.local` with the domain name of your MIQA instance. It should generate `miqa.local.pem` and `miqa.local-key.pem` inside the `prod` directory.
 
@@ -60,7 +60,7 @@ docker-compose run --rm django ./manage.py createsuperuser
 
 
 ## Run the server
-Run the following command in a new shell in the same directory (as this command needs to continue running as the server; use Ctrl+C to down the server).
+Run the following command in a new shell in the same directory (as this command needs to continue running as the server; use Ctrl+C to stop the server gracefully).
 ```
 docker-compose up
 ```
