@@ -56,7 +56,8 @@ def import_data(project_id: Optional[str]):
     if import_path.endswith('.csv'):
         import_dict = import_dataframe_to_dict(pandas.read_csv(import_path))
     elif import_path.endswith('.json'):
-        import_dict = json.load(open(import_path))
+        with open(import_path) as import_fd:
+            import_dict = json.load(import_fd)
     else:
         raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
 
