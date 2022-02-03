@@ -46,7 +46,7 @@ def evaluate_data(frames_by_project):
 
 
 def import_data(project_id: Optional[str]):
-    if not project_id:
+    if project_id is None:
         project = None
         import_path = GlobalSettings.load().import_path
     else:
