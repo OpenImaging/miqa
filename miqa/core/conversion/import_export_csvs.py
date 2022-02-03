@@ -62,9 +62,7 @@ def validate_import_dict(import_dict, project: Optional[Project]):
         import_schema.validate(import_dict)
         import_dict = validate_file_locations(import_dict, project)
     except SchemaError:
-        import_path = (
-            GlobalSettings.load().import_path if project is None else project.import_path
-        )
+        import_path = GlobalSettings.load().import_path if project is None else project.import_path
         raise APIException(f'Invalid format of import file {import_path}')
     if not project:
         for project_name in import_dict['projects']:
