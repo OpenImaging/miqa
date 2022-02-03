@@ -18,6 +18,7 @@ export default defineComponent({
   }),
   setup() {
     const currentProject = computed(() => store.state.currentProject);
+    const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
     const { isGlobal } = store.getters;
 
@@ -25,8 +26,8 @@ export default defineComponent({
     const exportPath = ref('');
     watchEffect(() => {
       if (isGlobal) {
-        importPath.value = currentProject.value.settings.importPath;
-        exportPath.value = currentProject.value.settings.exportPath;
+        importPath.value = globalSettings.value.importPath;
+        exportPath.value = globalSettings.value.exportPath;
       } else {
         djangoRest.settings(currentProject.value.id).then((settings) => {
           importPath.value = settings.importPath;
@@ -73,6 +74,7 @@ export default defineComponent({
 
     return {
       currentProject,
+      isGlobal,
       projects,
       importPath,
       exportPath,

@@ -13,7 +13,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, Frame, ScanState,
+  Project, ProjectTaskOverview, User, Frame, ScanState, ProjectSettings,
 } from '@/types';
 import ReaderFactory from '../utils/ReaderFactory';
 
@@ -280,7 +280,8 @@ const initState = {
   me: null,
   allUsers: [],
   reviewMode: false,
-  currentProject: null as Project | null,
+  globalSettings: undefined as ProjectSettings,
+  currentProject: undefined as Project | null,
   currentTaskOverview: null as ProjectTaskOverview | null,
   currentProjectPermissions: {},
   projects: [] as Project[],
@@ -411,7 +412,7 @@ const {
       return projectPerms;
     },
     isGlobal(state) {
-      return state.currentProject?.id === 'global';
+      return state.currentProject === null;
     },
   },
   mutations: {
@@ -454,6 +455,9 @@ const {
       if (project) {
         state.currentProjectPermissions = project.settings.permissions;
       }
+    },
+    setGlobalSettings(state, settings) {
+      state.globalSettings = settings;
     },
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
@@ -573,18 +577,11 @@ const {
     },
     async loadGlobal({ commit }) {
       const globalSettings = await djangoRest.globalSettings();
-      const pseudoProject = {
-        id: 'global',
-        name: null,
-        experiments: null,
-        settings: {
-          importPath: globalSettings.import_path,
-          exportPath: globalSettings.export_path,
-          permissions: null,
-        },
-        status: null,
-      };
-      commit('setCurrentProject', pseudoProject);
+      commit('setCurrentProject', null);
+      commit('setGlobalSettings', {
+        importPath: globalSettings.import_path,
+        exportPath: globalSettings.export_path,
+      });
     },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
