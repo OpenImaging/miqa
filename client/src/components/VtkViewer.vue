@@ -25,6 +25,11 @@ export default {
     resized: false,
     fullscreen: false,
     screenshotContainer: document.createElement('div'),
+    ijkMapping: {
+      x: 'i',
+      y: 'j',
+      z: 'k',
+    },
   }),
   computed: {
     ...mapState(['proxyManager',
@@ -62,12 +67,7 @@ export default {
       }
     },
     ijkName() : ('i' | 'j' | 'k') {
-      const ijkMapping = {
-        x: 'i',
-        y: 'j',
-        z: 'k',
-      };
-      return ijkMapping[this.name];
+      return this.ijkMapping[this.name];
     },
     keyboardBindings() {
       switch (this.name) {
@@ -86,13 +86,8 @@ export default {
     slice(value) {
       this.representation.setSlice(value);
       if (this.setCurrentVtkIndexSlices) {
-        const ijkMapping = {
-          x: 'i',
-          y: 'j',
-          z: 'k',
-        };
         this.setCurrentVtkIndexSlices({
-          indexAxis: ijkMapping[this.trueAxis(this.name)],
+          indexAxis: this.ijkMapping[this.trueAxis(this.name)],
           value: this.representation.getSliceIndex(),
         });
       }
@@ -118,6 +113,7 @@ export default {
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
+      view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
     },
     currentFrame() {
       this.representation.setSlice(this.slice);
