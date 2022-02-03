@@ -134,7 +134,7 @@ def export_data(project_id: Optional[str]):
 def perform_export(project_id: Optional[str]):
     data = []
 
-    if not project_id:
+    if project_id is None:
         # A global export should export all projects
         projects = Project.objects.all()
         export_path = GlobalSettings.load().export_path
