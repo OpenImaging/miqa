@@ -61,8 +61,6 @@ export default defineComponent({
       const { isGlobal } = store.getters;
       exporting.value = true;
       try {
-        console.log('global', isGlobal);
-
         if (isGlobal) {
           await djangoRest.globalExport();
         } else {
