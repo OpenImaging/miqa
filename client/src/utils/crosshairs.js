@@ -1,11 +1,10 @@
-import { vec3 } from 'gl-matrix';
 import vtkCellPicker from 'vtk.js/Sources/Rendering/Core/CellPicker';
-import { VIEW_ORIENTATIONS } from '../vtk/constants';
 
 class CrosshairSet {
   constructor(
-    xyzName, ijkName, imageRepresentation,
-    imageView, imageCanvas, iSlice, jSlice, kSlice,
+    xyzName, ijkName,
+    imageRepresentation, imageView, imageCanvas,
+    iSlice, jSlice, kSlice,
   ) {
     this.xyzName = xyzName;
     this.ijkName = ijkName;
@@ -87,25 +86,27 @@ class CrosshairSet {
     return [horizontalLine, verticalLine];
   }
 
-  findAxes() {
-    const orientations = VIEW_ORIENTATIONS[this.xyzName];
-    const signFlipVertical = Math.sign(orientations.viewUp.filter((v) => v !== 0)[0]);
-    const upVector = orientations.viewUp;
-    const leftVector = vec3.cross(
-      [], orientations.viewUp, orientations.directionOfProjection,
-    ).map((val) => val * signFlipVertical);
-    const [verticalVectorIndex, horizontalVectorIndex] = [upVector, leftVector].map(
-      (vector) => vector.findIndex((val) => val !== 0),
+  trueAxis(axisName) {
+    const xyzAxisOrdering = ['x', 'y', 'z'];
+    const ijkAxisOrdering = ['i', 'j', 'k'];
+    let axisOrdering = xyzAxisOrdering;
+    if (ijkAxisOrdering.includes(axisName)) {
+      axisOrdering = ijkAxisOrdering;
+    }
+
+    const axisNumber = axisOrdering.indexOf(axisName);
+    const orientation = this.getOrientation();
+    const axisOrientation = [
+      orientation[axisNumber],
+      orientation[3 + axisNumber],
+      orientation[6 + axisNumber],
+    ].map(
+      (val) => Math.abs(val),
     );
-    const [verticalAxisName, horizontalAxisName] = [verticalVectorIndex, horizontalVectorIndex].map(
-      (index) => Object.values(this.ijkMapping)[index],
-    );
-    return [
-      verticalAxisName,
-      horizontalAxisName,
-      verticalVectorIndex,
-      horizontalVectorIndex,
+    const trueAxis = axisOrdering[
+      axisOrientation.indexOf(Math.max(...axisOrientation))
     ];
+    return trueAxis;
   }
 
   getPicker() {
@@ -126,14 +127,19 @@ class CrosshairSet {
     const indexLocation = this.imageData.worldToIndex(xyzLocation);
     const halfDims = this.imageData.getDimensions().map((dim) => dim / 2);
 
-    const iIndexCoords = [indexLocation[0], halfDims[1], halfDims[2]];
-    const jIndexCoords = [halfDims[0], indexLocation[1], halfDims[2]];
-    const kIndexCoords = [halfDims[0], halfDims[1], indexLocation[2]];
+    const worldCoords = Object.fromEntries(Object.entries({
+      i: [indexLocation[0], halfDims[1], halfDims[2]],
+      j: [halfDims[0], indexLocation[1], halfDims[2]],
+      k: [halfDims[0], halfDims[1], indexLocation[2]],
+    }).map(
+      ([axis, coords]) => [axis, this.imageData.indexToWorld(coords)],
+    ));
 
+    const correctedAxes = Object.fromEntries(['i', 'j', 'k'].map((ijk) => [ijk, this.trueAxis(ijk)]));
     return {
-      i: this.imageData.indexToWorld(iIndexCoords)[0],
-      j: this.imageData.indexToWorld(jIndexCoords)[1],
-      k: this.imageData.indexToWorld(kIndexCoords)[2],
+      i: worldCoords[correctedAxes.i][0],
+      j: worldCoords[correctedAxes.j][1],
+      k: worldCoords[correctedAxes.k][2],
     };
   }
 }
