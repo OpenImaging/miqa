@@ -105,13 +105,13 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId, { onDownloadProgress = null } = {}) {
+function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
   const { promise } = ReaderFactory.downloadFrame(
     apiClient,
-    'nifti.nii.gz',
+    `image${frameExtension}`,
     `/frames/${frameId}/download`,
     { onDownloadProgress },
   );
@@ -119,8 +119,8 @@ function loadFile(frameId, { onDownloadProgress = null } = {}) {
   return { frameId, fileP: promise };
 }
 
-function loadFileAndGetData(frameId, { onDownloadProgress = null } = {}) {
-  const loadResult = loadFile(frameId, { onDownloadProgress });
+function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frameId, frameExtension, { onDownloadProgress });
   return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
@@ -142,7 +142,7 @@ function loadFileAndGetData(frameId, { onDownloadProgress = null } = {}) {
 
 function poolFunction(webWorker, taskInfo) {
   return new Promise((resolve, reject) => {
-    const { frameId } = taskInfo;
+    const { frameId, frameExtension } = taskInfo;
 
     let filePromise = null;
 
@@ -151,7 +151,7 @@ function poolFunction(webWorker, taskInfo) {
     } else {
       const download = ReaderFactory.downloadFrame(
         apiClient,
-        'nifti.nii.gz',
+        `image${frameExtension}`,
         `/frames/${frameId}/download`,
       );
       filePromise = download.promise;
@@ -227,14 +227,17 @@ function checkLoadExperiment(oldValue, newValue) {
   readDataQueue = [];
   const newExperimentScans = store.state.experimentScans[newValue.id];
   newExperimentScans.forEach((scanId) => {
-    const scanFrames = store.state.scanFrames[scanId];
-    scanFrames.forEach((frameId) => {
+    const scanFrames = store.state.scanFrames[scanId].map(
+      (frameId) => store.state.frames[frameId],
+    );
+    scanFrames.forEach((frame) => {
       readDataQueue.push({
         // TODO don't hardcode projectId
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        frameId,
+        frameId: frame.id,
+        frameExtension: frame.extension,
       });
     });
   });
@@ -777,7 +780,9 @@ const {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(frame.id, { onDownloadProgress });
+          const result = await loadFileAndGetData(
+            frame.id, frame.extension, { onDownloadProgress },
+          );
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);

@@ -13,6 +13,7 @@ interface Frame {
   id: string,
   name: string,
   scan: string,
+  extension: string,
 }
 
 interface ScanDecision {
