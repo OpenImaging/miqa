@@ -91,7 +91,7 @@ export default defineComponent({
       try {
         await djangoRest.deleteProject(this.currentProject.id);
         this.setProjects(this.projects.filter((proj) => proj.id !== this.currentProject.id));
-        this.setCurrentProject(null);
+        this.setCurrentProject(undefined);
         this.showDeleteWarningOverlay = false;
 
         this.$snackbar({

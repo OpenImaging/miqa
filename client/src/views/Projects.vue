@@ -132,7 +132,10 @@ export default defineComponent({
               :key="project.id"
               @click="selectProject(project)"
             >
-              <v-tooltip right>
+              <v-tooltip
+                v-if="project.status"
+                right
+              >
                 <template v-slot:activator="{ on, attrs }">
                   <v-container
                     v-bind="attrs"
