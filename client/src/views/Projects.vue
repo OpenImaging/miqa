@@ -207,7 +207,7 @@ export default defineComponent({
             style="flex-grow: 4;"
           >
             <v-subheader v-if="isGlobal">
-              WARNING: Global imports will modify multiple projects.
+              WARNING: Global imports will modify all projects referenced in the import file.
             </v-subheader>
             <v-subheader v-else>
               Settings
