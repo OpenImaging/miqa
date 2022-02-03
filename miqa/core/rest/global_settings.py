@@ -26,9 +26,9 @@ class GlobalSettingsViewSet(ViewSet):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [IsAuthenticated()]
+            return [IsAuthenticated]
         else:
-            return [IsSuperUser()]
+            return [IsSuperUser]
 
     @swagger_auto_schema(
         method='GET',
