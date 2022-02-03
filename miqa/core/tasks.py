@@ -111,10 +111,10 @@ def perform_import(import_dict, project_id: Optional[str]):
 
     frames_by_project = {}
     for frame in new_frames:
-        project_id = str(frame.scan.experiment.project.id)
+        project_id = frame.scan.experiment.project.id
         if project_id not in frames_by_project:
             frames_by_project[project_id] = []
-        frames_by_project[project_id].append(str(frame.id))
+        frames_by_project[project_id].append(frame.id)
     evaluate_data.delay(frames_by_project)
 
 
