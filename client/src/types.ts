@@ -52,7 +52,7 @@ interface Experiment {
 interface ProjectSettings {
   importPath: string,
   exportPath: string,
-  permissions: Object,
+  permissions?: Object,
 }
 
 enum ScanState {
@@ -81,13 +81,7 @@ interface Project {
   }
 }
 
-interface Settings {
-  importPath: string,
-  exportPath: string,
-  globalImportExport: boolean
-}
-
 export {
-  User, Project, ProjectTaskOverview,
-  Settings, ScanDecision, Frame, ScanState,
+  User, Project, ProjectTaskOverview, ProjectSettings,
+  ScanDecision, Frame, ScanState,
 };

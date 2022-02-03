@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 from celery import shared_task
 import pandas
@@ -11,22 +12,22 @@ from miqa.core.conversion.import_export_csvs import (
     validate_import_dict,
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
-from miqa.core.models import Evaluation, Experiment, Frame, Project, Scan
+from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Project, Scan
 from miqa.learning.evaluation_models import available_evaluation_models
 from miqa.learning.nn_inference import evaluate_many
 
 
 @shared_task
-def evaluate_data(frame_ids, project_id):
-    frames = Frame.objects.filter(pk__in=frame_ids)
-    project = Project.objects.get(id=project_id)
-
+def evaluate_data(frames_by_project):
     model_to_frames_map = {}
-    for frame in frames:
-        eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
-        if eval_model_name not in model_to_frames_map:
-            model_to_frames_map[eval_model_name] = []
-        model_to_frames_map[eval_model_name].append(frame)
+    for project_id, frame_ids in frames_by_project.items():
+        project = Project.objects.get(id=project_id)
+        for frame_id in frame_ids:
+            frame = Frame.objects.get(id=frame_id)
+            eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
+            if eval_model_name not in model_to_frames_map:
+                model_to_frames_map[eval_model_name] = []
+            model_to_frames_map[eval_model_name].append(frame)
 
     for model_name, frame_set in model_to_frames_map.items():
         current_model = available_evaluation_models[model_name].load()
@@ -44,38 +45,40 @@ def evaluate_data(frame_ids, project_id):
         )
 
 
-def import_data(user_id, project_id):
-    project = Project.objects.get(id=project_id)
-
-    if project.import_path.endswith('.csv'):
-        import_dict = import_dataframe_to_dict(pandas.read_csv(project.import_path))
-    elif project.import_path.endswith('.json'):
-        import_dict = json.load(open(project.import_path))
+def import_data(project_id: Optional[str]):
+    if project_id is None:
+        project = None
+        import_path = GlobalSettings.load().import_path
     else:
-        raise APIException(f'Invalid import file {project.import_path}.')
+        project = Project.objects.get(id=project_id)
+        import_path = project.import_path
+
+    if import_path.endswith('.csv'):
+        import_dict = import_dataframe_to_dict(pandas.read_csv(import_path))
+    elif import_path.endswith('.json'):
+        with open(import_path) as import_fd:
+            import_dict = json.load(import_fd)
+    else:
+        raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
 
     import_dict = validate_import_dict(import_dict, project)
     perform_import.delay(import_dict, project_id)
 
 
 @shared_task
-def perform_import(import_dict, project_id):
+def perform_import(import_dict, project_id: Optional[str]):
     new_projects = []
     new_experiments = []
     new_scans = []
     new_frames = []
 
-    # comment out the below line and remove project_id param
-    # when multi-project imports are supported
-    project = Project.objects.get(id=project_id)
-
     for project_name, project_data in import_dict['projects'].items():
-        if project.global_import_export:
+        if project_id is None:
             # A global import uses the project name column to determine which project to import to
             project_object = Project.objects.get(name=project_name)
         else:
             # A normal import ignores the project name column
-            project_object = project
+            project_object = Project.objects.get(id=project_id)
 
         # delete old imports of these projects
         Experiment.objects.filter(
@@ -106,41 +109,41 @@ def perform_import(import_dict, project_id):
     Scan.objects.bulk_create(new_scans)
     Frame.objects.bulk_create(new_frames)
 
-    evaluate_data.delay([frame.id for frame in new_frames], project.id)
+    frames_by_project = {}
+    for frame in new_frames:
+        project_id = frame.scan.experiment.project.id
+        if project_id not in frames_by_project:
+            frames_by_project[project_id] = []
+        frames_by_project[project_id].append(frame.id)
+    evaluate_data.delay(frames_by_project)
 
 
-def export_data(project_id):
-    project = Project.objects.get(id=project_id)
-    parent_location = Path(project.export_path).parent
+def export_data(project_id: Optional[str]):
+    if not project_id:
+        export_path = GlobalSettings.load().export_path
+    else:
+        project = Project.objects.get(id=project_id)
+        export_path = project.export_path
+    parent_location = Path(export_path).parent
     if not parent_location.exists():
         raise APIException(f'No such location {parent_location} to create export file.')
 
-    # In the event of a global export, we only want to export the projects listed in the import
-    # file. Read the import file now and extract the project names.
-    if project.import_path.endswith('.csv'):
-        import_dict = import_dataframe_to_dict(pandas.read_csv(project.import_path))
-    elif project.import_path.endswith('.json'):
-        import_dict = json.load(open(project.import_path))
-    else:
-        raise APIException(f'Invalid import file {project.import_path}.')
-
-    import_dict = validate_import_dict(import_dict, project)
-    project_names = import_dict['projects'].keys()
-
-    perform_export.delay(project_id, project_names)
+    perform_export.delay(project_id)
 
 
 @shared_task
-def perform_export(project_id, project_names):
-    project = Project.objects.get(id=project_id)
+def perform_export(project_id: Optional[str]):
     data = []
 
-    if project.global_import_export:
-        # A global export should export all projects listed in the import file
-        projects = [Project.objects.get(name=project_name) for project_name in project_names]
+    if project_id is None:
+        # A global export should export all projects
+        projects = Project.objects.all()
+        export_path = GlobalSettings.load().export_path
     else:
         # A normal export should only export the current project
+        project = Project.objects.get(id=project_id)
         projects = [project]
+        export_path = project.export_path
 
     for project_object in projects:
         for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
@@ -155,4 +158,4 @@ def perform_export(project_id, project_names):
                 ]
             )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
-    export_df.to_csv(project_object.export_path, index=False)
+    export_df.to_csv(export_path, index=False)
