@@ -306,7 +306,6 @@ export default {
         this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
       );
       const location = crosshairSet.locationOfClick(clickEvent);
-      location[this.ijkName] = this.representation.getSliceIndex();
       this.setSliceLocation(location);
     },
     cleanup() {
