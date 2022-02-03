@@ -72,7 +72,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     new_frames = []
 
     for project_name, project_data in import_dict['projects'].items():
-        if not project_id:
+        if project_id is None:
             # A global import uses the project name column to determine which project to import to
             project_object = Project.objects.get(name=project_name)
         else:
