@@ -132,7 +132,10 @@ export default defineComponent({
               :key="project.id"
               @click="selectProject(project)"
             >
-              <v-tooltip right>
+              <v-tooltip
+                v-if="project.status"
+                right
+              >
                 <template v-slot:activator="{ on, attrs }">
                   <v-container
                     v-bind="attrs"
@@ -191,14 +194,14 @@ export default defineComponent({
         </v-navigation-drawer>
       </v-card>
       <div
-        v-if="currentProject"
+        v-if="currentProject !== undefined"
         class="flex-grow-1 ma-3 pa-5"
       >
         <v-card-title v-if="isGlobal">
           Perform Global Import / Export
         </v-card-title>
         <v-card-title v-else>
-          Project: {{ currentProject.name }}
+          Project: {{ currentProject ?currentProject.name :'Global' }}
         </v-card-title>
         <div class="flex-container">
           <v-card
@@ -242,14 +245,14 @@ export default defineComponent({
           class="flex-container"
         >
           <v-card
-            v-if="currentProject.experiments"
+            v-if="currentProject && currentProject.experiments"
             class="flex-card"
           >
             <v-subheader>Experiments</v-subheader>
             <ExperimentsView />
           </v-card>
           <v-card
-            v-if="currentProject.settings.permissions"
+            v-if="currentProject && currentProject.settings.permissions"
             class="flex-card"
           >
             <v-subheader>Users</v-subheader>
