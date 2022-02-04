@@ -95,7 +95,7 @@ export default defineComponent({
         try {
           const newProject = await djangoRest.createProject(this.newName);
           this.setProjects(this.projects.concat([newProject]));
-          this.setCurrentProject(newProject);
+          store.dispatch.loadProject(newProject);
           this.creating = false;
           this.newName = '';
 
