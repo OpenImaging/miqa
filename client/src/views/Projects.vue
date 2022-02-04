@@ -37,14 +37,15 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
-    // We don't actually use selectedProjectIndex for anything
-    // It is determined here so that the projects list selects the current project when navigating
-    // to it from a different tab.
+    const { isGlobal } = store.getters;
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
     const selectProject = (project: Project) => {
       store.dispatch.loadProject(project);
+    };
+    const selectGlobal = () => {
+      store.dispatch.loadGlobal();
     };
 
     const overviewSections = ref([]);
@@ -77,10 +78,12 @@ export default defineComponent({
     return {
       currentProject,
       loadingProjects,
+      isGlobal,
       currentTaskOverview,
       selectedProjectIndex,
       projects,
       selectProject,
+      selectGlobal,
       overviewSections,
       setOverviewSections,
     };
@@ -123,16 +126,22 @@ export default defineComponent({
   <div>
     <Navbar />
     <div class="d-flex">
-      <v-card>
+      <v-card class="project-list-container">
         <v-navigation-drawer permanent>
           <v-card-title>Projects</v-card-title>
-          <v-list-item-group v-model="selectedProjectIndex">
+          <v-list-item-group
+            v-model="selectedProjectIndex"
+            class="project-list"
+          >
             <v-list-item
               v-for="project in projects"
               :key="project.id"
               @click="selectProject(project)"
             >
-              <v-tooltip right>
+              <v-tooltip
+                v-if="project.status"
+                right
+              >
                 <template v-slot:activator="{ on, attrs }">
                   <v-container
                     v-bind="attrs"
@@ -176,21 +185,42 @@ export default defineComponent({
                 + Create new Project
               </v-btn>
             </v-list-item>
+            <div
+              v-if="user.is_superuser"
+              class="global-settings"
+            >
+              <v-btn
+                @click="selectGlobal()"
+                class="primary white--text"
+              >
+                Global import/export
+              </v-btn>
+            </div>
           </v-list-item-group>
         </v-navigation-drawer>
       </v-card>
       <div
-        v-if="currentProject"
+        v-if="currentProject !== undefined"
         class="flex-grow-1 ma-3 pa-5"
       >
-        <v-card-title>Project: {{ currentProject.name }}</v-card-title>
+        <v-card-title v-if="isGlobal">
+          Perform Global Import / Export
+        </v-card-title>
+        <v-card-title v-else>
+          Project: {{ currentProject ?currentProject.name :'Global' }}
+        </v-card-title>
         <div class="flex-container">
           <v-card
             v-if="user.is_superuser"
             class="flex-card"
             style="flex-grow: 4;"
           >
-            <v-subheader>Settings</v-subheader>
+            <v-subheader v-if="isGlobal">
+              WARNING: Global imports will modify all projects referenced in the import file.
+            </v-subheader>
+            <v-subheader v-else>
+              Settings
+            </v-subheader>
 
             <v-layout class="pa-5">
               <v-flex>
@@ -218,8 +248,8 @@ export default defineComponent({
           </v-card>
         </div>
         <div class="flex-container">
-          <ExperimentsView />
-          <ProjectUsers />
+          <ExperimentsView v-if="currentProject && currentProject.experiments" />
+          <ProjectUsers v-if="currentProject && currentProject.settings.permissions" />
         </div>
       </div>
       <v-card
@@ -263,5 +293,17 @@ export default defineComponent({
   flex-grow: 1;
   margin-top: 10px;
   padding-bottom: 20px;
+}
+.project-list-container {
+  height: calc(100vh - 50px);
+}
+.project-list {
+  height: calc(100% - 80px);
+}
+.global-settings {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
 }
 </style>
