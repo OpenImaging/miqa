@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from django.http import FileResponse, HttpResponseServerError
 from django_filters import rest_framework as filters
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Evaluation, Frame, Project
@@ -34,6 +34,12 @@ class FrameSerializer(serializers.ModelSerializer):
         return ''.join(Path(obj.raw_path).suffixes)
 
 
+class FrameContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Frame
+        fields = ['content']
+
+
 class FrameViewSet(ListModelMixin, GenericViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
@@ -49,19 +55,6 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
 
     @action(detail=True)
     @project_permission_required(experiments__scans__frames__pk='pk')
-    def download(self, request, pk=None, **kwargs):
+    def download_url(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
-        path: Path = frame.path
-
-        if not path.is_file():
-            return HttpResponseServerError('File no longer exists.')
-
-        # send client zarr data instead when client is ready
-        # path: Path = frame.zarr_path
-        # if not path.exists():
-        #     return HttpResponseServerError('File no longer exists.')
-
-        fd = open(path, 'rb')
-        resp = FileResponse(fd, filename=str(frame.frame_number))
-        resp['Content-Length'] = frame.size
-        return resp
+        return Response(FrameContentSerializer(frame).data)
