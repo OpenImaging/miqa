@@ -16,6 +16,10 @@ export default {
   inject: ['user'],
   data: () => ({
     API_URL,
+    showUploadModal: false,
+    uploadToExisting: false,
+    experimentNameForUpload: '',
+    fileSetForUpload: [],
   }),
   computed: {
     ...mapState([
@@ -42,6 +46,11 @@ export default {
     },
     loadingIconColor() {
       return this.loadingExperiment ? 'red' : 'green';
+    },
+  },
+  watch: {
+    showUploadModal() {
+      setTimeout(this.prepareDropZone, 500);
     },
   },
   methods: {
@@ -97,6 +106,26 @@ export default {
         classes = `${classes} current`;
       }
       return classes;
+    },
+    prepareDropZone() {
+      const dropZone = document.getElementById('dropZone');
+      if (dropZone) {
+        dropZone.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('hover');
+        });
+        dropZone.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('hover');
+        });
+      }
+    },
+    addDropFile(e) {
+      this.fileSetForUpload = [...e.dataTransfer.files];
+    },
+    uploadToExperiment() {
+      console.log('upload', this.fileSetForUpload, 'to', this.experimentNameForUpload);
+      // this.showUploadModal = false;
     },
   },
 };
@@ -195,6 +224,118 @@ export default {
       >
         <span class="px-5">No imported data.</span>
       </div>
+      <v-dialog
+        v-model="showUploadModal"
+        width="600px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <div
+            v-bind="attrs"
+            v-on="on"
+            class="add-scans"
+          >
+            <v-btn
+              @click="() => {experimentNameForUpload = ''}"
+              class="green white--text"
+            >
+              + Add Scans...
+            </v-btn>
+          </div>
+        </template>
+
+        <v-card>
+          <v-card-title class="text-h6">
+            Upload Image Files to Experiment
+          </v-card-title>
+          <div
+            class="d-flex px-6"
+            style="align-items: baseline; justify-content: space-between;"
+          >
+            <div
+              class="d-flex mode-toggle"
+            >
+              <span>Upload to New</span>
+              <v-switch
+                @change="(value) => {uploadToExisting = value; experimentNameForUpload = ''}"
+                :value="uploadToExisting"
+                :disabled="!(orderedExperiments && orderedExperiments.length)"
+                inset
+                dense
+                style="display: inline-block; max-height: 40px; max-width: 60px;"
+                class="px-3 ma-0"
+              />
+              <span
+                :class="!(orderedExperiments && orderedExperiments.length) ? 'grey--text' : ''"
+              >
+                Upload to Existing
+              </span>
+            </div>
+            <div style="max-width:200px">
+              <v-select
+                v-if="orderedExperiments && orderedExperiments.length && uploadToExisting"
+                :items="orderedExperiments"
+                v-model="experimentNameForUpload"
+                item-text="name"
+                label="Select Experiment"
+                dense
+              />
+              <v-text-field
+                v-else
+                v-model="experimentNameForUpload"
+                label="Name new Experiment"
+              />
+            </div>
+          </div>
+          <div class="ma-5">
+            <v-file-input
+              v-model="fileSetForUpload"
+              label="Image files (.nii.gz, .nii, .mgz, .nrrd)"
+              prepend-icon="mdi-paperclip"
+              multiple
+              chips
+            >
+              <template v-slot:selection="{ index, text }">
+                <v-chip
+                  v-if="index < 2"
+                  small
+                >
+                  {{ text }}
+                </v-chip>
+
+                <span
+                  v-else-if="index === 2"
+                  class="text-overline grey--text text--darken-3 mx-2"
+                >
+                  +{{ fileSetForUpload.length - 2 }}
+                  file{{ fileSetForUpload.length - 2 > 1 ? 's' :'' }}
+                </span>
+              </template>
+            </v-file-input>
+            <div
+              id="dropZone"
+              v-if="fileSetForUpload.length == 0"
+              @drop.prevent="addDropFile"
+              @dragover.prevent
+              style="text-align: center"
+              class="pa-3 drop-zone"
+            >
+              or drag and drop here
+            </div>
+          </div>
+          <v-divider />
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              @click="uploadToExperiment()"
+              :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"
+              color="primary"
+              text
+            >
+              Upload
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </div>
   </v-card>
 </template>
@@ -248,5 +389,16 @@ ul.scans {
 }
 .mode-toggle {
   align-items: baseline;
+}
+.add-scans {
+  min-width: 150px;
+  text-align: right;
+  padding-right: 15px;
+}
+.drop-zone {
+  border: 1px dashed #999999;
+}
+.drop-zone.hover {
+  background-color: rgba(74, 101, 255, 0.5);
 }
 </style>

@@ -122,8 +122,8 @@ export default defineComponent({
         <v-text-field
           v-model="importPath"
           :rules="[
-            v => !!v || 'path is required',
             v =>
+              !v.length ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
@@ -132,7 +132,7 @@ export default defineComponent({
           :error-messages="importPathError"
           @input="changed = true"
           label="Import path"
-          placeholder=" "
+          placeholder="Specify a server path to read an import file"
           autocomplete="on"
           name="miqa-json-import-path"
         />
@@ -145,8 +145,8 @@ export default defineComponent({
         <v-text-field
           v-model="exportPath"
           :rules="[
-            v => !!v || 'path is required',
             v =>
+              !v.length ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
@@ -155,7 +155,7 @@ export default defineComponent({
           :error-messages="exportPathError"
           @input="changed = true"
           label="Export path"
-          placeholder=" "
+          placeholder="Specify a server path to write an export file"
           autocomplete="on"
           name="miqa-json-export-path"
         />
