@@ -103,92 +103,100 @@ export default {
 </script>
 
 <template>
-  <div class="scans-view">
-    <div v-if="orderedExperiments && orderedExperiments.length">
-      <ul class="experiment">
-        <li
-          v-for="experiment of orderedExperiments"
-          :key="`e.${experiment.id}`"
-          class="body-2 pb-5"
-        >
-          <v-card
-            flat
-            class="d-flex pr-2"
+  <v-card class="flex-card">
+    <v-subheader
+      class="d-flex"
+      style="justify-content: space-between"
+    >
+      Experiments
+      <div
+        class="d-flex mode-toggle"
+      >
+        <span>All scans</span>
+        <v-switch
+          @change="switchReviewMode"
+          :value="reviewMode"
+          inset
+          dense
+          style="display: inline-block; max-height: 40px; max-width: 60px;"
+          class="px-3 ma-0"
+        />
+        <span>Scans for my review</span>
+      </div>
+    </v-subheader>
+    <div class="scans-view">
+      <div v-if="orderedExperiments && orderedExperiments.length">
+        <ul class="experiment">
+          <li
+            v-for="experiment of orderedExperiments"
+            :key="`e.${experiment.id}`"
+            class="body-2 pb-5"
           >
-            <v-card flat>
-              {{ experiment.name }}
-              <UserAvatar
-                :target-user="experiment.lock_owner"
-                as-editor
-              />
-            </v-card>
-            <v-card flat>
-              <v-icon
-                v-show="experiment === currentExperiment"
-                :color="loadingIconColor"
-                class="pl-5"
-              >
-                {{ loadingIcon }}
-              </v-icon>
-            </v-card>
-          </v-card>
-          <ul class="scans">
-            <li
-              v-for="scan of scansForExperiment(experiment.id)"
-              :key="`s.${scan.id}`"
-              :class="scanStateClass(scan)"
+            <v-card
+              flat
+              class="d-flex pr-2"
             >
-              <v-tooltip right>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    :to="getURLForFirstFrameInScan(scan.id)"
-                    class="ml-0 px-1 scan-name"
-                    href
-                    text
-                    small
-                    active-class=""
-                  >
-                    {{ scan.name }}
-                    <span
-                      v-if="scan.decisions.length !== 0"
-                      :class="scan.color + ' pl-3'"
+              <v-card flat>
+                {{ experiment.name }}
+                <UserAvatar
+                  :target-user="experiment.lock_owner"
+                  as-editor
+                />
+              </v-card>
+              <v-card flat>
+                <v-icon
+                  v-show="experiment === currentExperiment"
+                  :color="loadingIconColor"
+                  class="pl-5"
+                >
+                  {{ loadingIcon }}
+                </v-icon>
+              </v-card>
+            </v-card>
+            <ul class="scans">
+              <li
+                v-for="scan of scansForExperiment(experiment.id)"
+                :key="`s.${scan.id}`"
+                :class="scanStateClass(scan)"
+              >
+                <v-tooltip right>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      v-bind="attrs"
+                      v-on="on"
+                      :to="getURLForFirstFrameInScan(scan.id)"
+                      class="ml-0 px-1 scan-name"
+                      href
+                      text
                       small
-                    >({{ scan.decision }})</span>
-                  </v-btn>
-                </template>
-                <span>
-                  {{ scanState(scan) }}
-                </span>
-              </v-tooltip>
-            </li>
-          </ul>
-        </li>
-      </ul>
+                      active-class=""
+                    >
+                      {{ scan.name }}
+                      <span
+                        v-if="scan.decisions.length !== 0"
+                        :class="scan.color + ' pl-3'"
+                        small
+                      >({{ scan.decision }})</span>
+                    </v-btn>
+                  </template>
+                  <span>
+                    {{ scanState(scan) }}
+                  </span>
+                </v-tooltip>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div
+        v-else
+        class="pa-5"
+        style="width: max-content"
+      >
+        <span class="px-5">No imported data.</span>
+      </div>
     </div>
-    <div
-      v-else
-      class="pa-5"
-      style="width: max-content"
-    >
-      <span class="px-5">No imported data.</span>
-    </div>
-    <div
-      class="mode-toggle"
-    >
-      All scans
-      <v-switch
-        @change="switchReviewMode"
-        :value="reviewMode"
-        inset
-        dense
-        style="display: inline-block; max-height: 40px; max-width: 60px"
-        class="px-3 ma-0"
-      />
-      Scans for my review
-    </div>
-  </div>
+  </v-card>
 </template>
 
 <style lang="scss" scoped>
@@ -239,9 +247,6 @@ ul.scans {
   text-transform: none;
 }
 .mode-toggle {
-  padding: 0px 20px;
-  display: block;
-  min-width: 350px;
-  height: min-content;
+  align-items: baseline;
 }
 </style>

@@ -77,196 +77,199 @@ export default {
 </script>
 
 <template>
-  <v-container class="pl-8">
-    <v-row
-      no-gutters
-      class="pb-3"
-    >
-      <v-col cols="12">
-        Members
-        <v-tooltip
-          v-if="user.is_superuser"
-          bottom
-          style="display: inline; padding-left: 5px"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon
-              v-bind="attrs"
-              v-on="on"
-              @click="showAddMemberOverlay = true"
-              color="blue darken-2"
-            >
-              mdi-cog
-            </v-icon>
-          </template>
-          <span>Grant/revoke review access</span>
-        </v-tooltip>
-      </v-col>
-    </v-row>
-    <v-row
-      v-for="(user, index) in members"
-      :key="'member_'+index"
-      no-gutters
-      class="py-1"
-    >
-      <v-col cols="1">
-        <UserAvatar :targetUser="user" />
-      </v-col>
-      <v-col cols="11">
-        {{ user.username }}
-        <span class="gray-info">
-          {{ getGroup(user) }}
-        </span>
-      </v-col>
-    </v-row>
-    <v-row
-      no-gutters
-      class="pt-5 pb-3"
-    >
-      <v-col cols="12">
-        Collaborators <span class="gray-info">(Read only)</span>
-        <v-tooltip
-          v-if="user.is_superuser"
-          bottom
-          style="display: inline; padding-left: 5px"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-icon
-              v-bind="attrs"
-              v-on="on"
-              @click="showAddCollaboratorOverlay = true"
-              color="blue darken-2"
-            >
-              mdi-cog
-            </v-icon>
-          </template>
-          <span>Grant/revoke read access</span>
-        </v-tooltip>
-      </v-col>
-    </v-row>
-    <v-row
-      v-for="(user, index) in collaborators"
-      :key="'collaborator_'+index"
-      no-gutters
-      class="py-1"
-    >
-      <v-col cols="1">
-        <UserAvatar :targetUser="user" />
-      </v-col>
-      <v-col cols="11">
-        {{ user.username }}
-      </v-col>
-    </v-row>
-    <v-overlay
-      :value="showAddMemberOverlay"
-      :dark="false"
-    >
-      <v-card
-        class="dialog-box"
+  <v-card class="flex-card">
+    <v-subheader>Users</v-subheader>
+    <v-container class="pl-8">
+      <v-row
+        no-gutters
+        class="pb-3"
       >
-        <v-btn
-          @click="showAddMemberOverlay = false"
-          icon
-          style="float: right"
-        >
-          <v-icon
-            large
-            color="red darken-2"
+        <v-col cols="12">
+          Members
+          <v-tooltip
+            v-if="user.is_superuser"
+            bottom
+            style="display: inline; padding-left: 5px"
           >
-            mdi-close
-          </v-icon>
-        </v-btn>
-        <v-card-title>
-          Grant/Revoke Review Access
-        </v-card-title>
-        <v-select
-          v-model="selectedPermissionSet.tier_1_reviewer"
-          :items="allUsers"
-          item-text="username"
-          item-value="username"
-          label="Select Tier 1 Reviewers"
-          multiple
-          clearable
-          chips
-          deletable-chips
-          hint="Select Users by username"
-          persistent-hint
-          append-icon="mdi-account-search"
-        />
-        <br>
-        <v-select
-          v-model="selectedPermissionSet.tier_2_reviewer"
-          :items="allUsers"
-          item-text="username"
-          item-value="username"
-          label="Select Tier 2 Reviewers"
-          multiple
-          clearable
-          chips
-          deletable-chips
-          hint="Select Users by username"
-          persistent-hint
-          append-icon="mdi-account-search"
-        />
-        <br>
-        <v-btn
-          :disabled="!changesMade"
-          @click="savePermissions"
-          color="primary"
-          block
-        >
-          Save changes
-        </v-btn>
-      </v-card>
-    </v-overlay>
-    <v-overlay
-      :value="showAddCollaboratorOverlay"
-      :dark="false"
-    >
-      <v-card
-        class="dialog-box"
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                v-bind="attrs"
+                v-on="on"
+                @click="showAddMemberOverlay = true"
+                color="blue darken-2"
+              >
+                mdi-cog
+              </v-icon>
+            </template>
+            <span>Grant/revoke review access</span>
+          </v-tooltip>
+        </v-col>
+      </v-row>
+      <v-row
+        v-for="(user, index) in members"
+        :key="'member_'+index"
+        no-gutters
+        class="py-1"
       >
-        <v-btn
-          @click="showAddCollaboratorOverlay = false"
-          icon
-          style="float: right"
-        >
-          <v-icon
-            large
-            color="red darken-2"
+        <v-col cols="1">
+          <UserAvatar :targetUser="user" />
+        </v-col>
+        <v-col cols="11">
+          {{ user.username }}
+          <span class="gray-info">
+            {{ getGroup(user) }}
+          </span>
+        </v-col>
+      </v-row>
+      <v-row
+        no-gutters
+        class="pt-5 pb-3"
+      >
+        <v-col cols="12">
+          Collaborators <span class="gray-info">(Read only)</span>
+          <v-tooltip
+            v-if="user.is_superuser"
+            bottom
+            style="display: inline; padding-left: 5px"
           >
-            mdi-close
-          </v-icon>
-        </v-btn>
-        <v-card-title>
-          Grant/Revoke Read Access
-        </v-card-title>
-        <v-select
-          v-model="selectedPermissionSet.collaborator"
-          :items="allUsers"
-          item-text="username"
-          item-value="username"
-          label="Select Collaborators"
-          multiple
-          clearable
-          chips
-          deletable-chips
-          hint="Select Users by username"
-          persistent-hint
-          append-icon="mdi-account-search"
-        />
-        <br>
-        <v-btn
-          :disabled="!changesMade"
-          @click="savePermissions"
-          color="primary"
-          block
+            <template v-slot:activator="{ on, attrs }">
+              <v-icon
+                v-bind="attrs"
+                v-on="on"
+                @click="showAddCollaboratorOverlay = true"
+                color="blue darken-2"
+              >
+                mdi-cog
+              </v-icon>
+            </template>
+            <span>Grant/revoke read access</span>
+          </v-tooltip>
+        </v-col>
+      </v-row>
+      <v-row
+        v-for="(user, index) in collaborators"
+        :key="'collaborator_'+index"
+        no-gutters
+        class="py-1"
+      >
+        <v-col cols="1">
+          <UserAvatar :targetUser="user" />
+        </v-col>
+        <v-col cols="11">
+          {{ user.username }}
+        </v-col>
+      </v-row>
+      <v-overlay
+        :value="showAddMemberOverlay"
+        :dark="false"
+      >
+        <v-card
+          class="dialog-box"
         >
-          Save changes
-        </v-btn>
-      </v-card>
-    </v-overlay>
-  </v-container>
+          <v-btn
+            @click="showAddMemberOverlay = false"
+            icon
+            style="float: right"
+          >
+            <v-icon
+              large
+              color="red darken-2"
+            >
+              mdi-close
+            </v-icon>
+          </v-btn>
+          <v-card-title>
+            Grant/Revoke Review Access
+          </v-card-title>
+          <v-select
+            v-model="selectedPermissionSet.tier_1_reviewer"
+            :items="allUsers"
+            item-text="username"
+            item-value="username"
+            label="Select Tier 1 Reviewers"
+            multiple
+            clearable
+            chips
+            deletable-chips
+            hint="Select Users by username"
+            persistent-hint
+            append-icon="mdi-account-search"
+          />
+          <br>
+          <v-select
+            v-model="selectedPermissionSet.tier_2_reviewer"
+            :items="allUsers"
+            item-text="username"
+            item-value="username"
+            label="Select Tier 2 Reviewers"
+            multiple
+            clearable
+            chips
+            deletable-chips
+            hint="Select Users by username"
+            persistent-hint
+            append-icon="mdi-account-search"
+          />
+          <br>
+          <v-btn
+            :disabled="!changesMade"
+            @click="savePermissions"
+            color="primary"
+            block
+          >
+            Save changes
+          </v-btn>
+        </v-card>
+      </v-overlay>
+      <v-overlay
+        :value="showAddCollaboratorOverlay"
+        :dark="false"
+      >
+        <v-card
+          class="dialog-box"
+        >
+          <v-btn
+            @click="showAddCollaboratorOverlay = false"
+            icon
+            style="float: right"
+          >
+            <v-icon
+              large
+              color="red darken-2"
+            >
+              mdi-close
+            </v-icon>
+          </v-btn>
+          <v-card-title>
+            Grant/Revoke Read Access
+          </v-card-title>
+          <v-select
+            v-model="selectedPermissionSet.collaborator"
+            :items="allUsers"
+            item-text="username"
+            item-value="username"
+            label="Select Collaborators"
+            multiple
+            clearable
+            chips
+            deletable-chips
+            hint="Select Users by username"
+            persistent-hint
+            append-icon="mdi-account-search"
+          />
+          <br>
+          <v-btn
+            :disabled="!changesMade"
+            @click="savePermissions"
+            color="primary"
+            block
+          >
+            Save changes
+          </v-btn>
+        </v-card>
+      </v-overlay>
+    </v-container>
+  </v-card>
 </template>
 
 <style lang="scss" scoped>
