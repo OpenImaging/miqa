@@ -7,6 +7,7 @@ from uuid import uuid4
 import boto3
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
+from s3_file_field import S3FileField
 
 from miqa.core.conversion.nifti_to_zarr_ngff import convert_to_store_path
 
@@ -21,6 +22,7 @@ class Frame(TimeStampedModel, models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     scan = models.ForeignKey('Scan', related_name='frames', on_delete=models.CASCADE)
+    content = S3FileField(null=True)
     raw_path = models.CharField(max_length=500, blank=False)
     frame_number = models.IntegerField(default=0)
 

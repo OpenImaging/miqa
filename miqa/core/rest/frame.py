@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Evaluation, Frame, Project
@@ -32,6 +33,12 @@ class FrameSerializer(serializers.ModelSerializer):
         return ''.join(obj.path.suffixes)
 
 
+class FrameContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Frame
+        fields = ['content']
+
+
 class FrameViewSet(ListModelMixin, GenericViewSet):
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
@@ -47,7 +54,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
 
     @action(detail=True)
     @project_permission_required(experiments__scans__frames__pk='pk')
-    def download(self, request, pk=None, **kwargs):
+    def download_url(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
 
         if frame.is_in_s3:

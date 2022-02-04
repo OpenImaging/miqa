@@ -128,14 +128,18 @@ def perform_import(import_dict, project_id: Optional[str]):
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
-    Frame.objects.bulk_create(new_frames)
+    created_frames = Frame.objects.bulk_create(new_frames)
+    for frame in created_frames:
+        with open(frame.raw_path, 'rb') as file_content:
+            frame.content.save(f'{frame.frame_number}', file_content)
 
+    # must use str, not UUID, to get sent to celery task properly
     frames_by_project = {}
     for frame in new_frames:
-        project_id = frame.scan.experiment.project.id
+        project_id = str(frame.scan.experiment.project.id)
         if project_id not in frames_by_project:
             frames_by_project[project_id] = []
-        frames_by_project[project_id].append(frame.id)
+        frames_by_project[project_id].append(str(frame.id))
     evaluate_data.delay(frames_by_project)
 
 
