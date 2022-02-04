@@ -30,7 +30,10 @@ export default defineComponent({
     newName: '',
   }),
   setup() {
-    store.dispatch.loadProjects();
+    const loadingProjects = ref(true);
+    store.dispatch.loadProjects().then(() => {
+      loadingProjects.value = false;
+    });
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
@@ -66,13 +69,15 @@ export default defineComponent({
             color: ScanState[stateString],
           }),
         );
+      } else {
+        overviewSections.value = [];
       }
     };
     watch(currentTaskOverview, setOverviewSections);
 
     return {
       currentProject,
-      isGlobal,
+      loadingProjects,
       currentTaskOverview,
       selectedProjectIndex,
       projects,
@@ -240,23 +245,9 @@ export default defineComponent({
             </vc-donut>
           </v-card>
         </div>
-        <div
-          class="flex-container"
-        >
-          <v-card
-            v-if="currentProject && currentProject.experiments"
-            class="flex-card"
-          >
-            <v-subheader>Experiments</v-subheader>
-            <ExperimentsView />
-          </v-card>
-          <v-card
-            v-if="currentProject && currentProject.settings.permissions"
-            class="flex-card"
-          >
-            <v-subheader>Users</v-subheader>
-            <ProjectUsers />
-          </v-card>
+        <div class="flex-container">
+          <ExperimentsView />
+          <ProjectUsers />
         </div>
       </div>
       <v-card
@@ -278,7 +269,12 @@ export default defineComponent({
             v-else
             class="title"
           >
-            You have not been added to any projects yet.
+            <v-progress-circular
+              v-if="loadingProjects"
+              indeterminate
+              color="primary"
+            />
+            <span v-else>You have not been added to any projects yet.</span>
           </div>
         </v-layout>
       </v-card>
