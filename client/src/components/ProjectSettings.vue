@@ -161,36 +161,30 @@ export default defineComponent({
         />
       </v-flex>
     </v-layout>
-    <v-layout>
-      <v-row>
-        <v-col cols="1">
-          <v-btn
-            :disabled="!changed"
-            v-if="user.is_superuser"
-            type="submit"
-            color="primary"
-          >
-            Save
-          </v-btn>
-        </v-col>
-        <v-col cols="9">
-          <DataImportExport />
-        </v-col>
-        <v-col
-          cols="2"
-          class="text-right"
+    <v-flex
+      class="d-flex"
+      style="flex-direction: row"
+    >
+      <v-btn
+        :disabled="!changed"
+        v-if="user.is_superuser"
+        type="submit"
+        color="primary"
+      >
+        Save
+      </v-btn>
+      <DataImportExport v-if="user.is_superuser" />
+      <div style="flex-grow:2">
+        <v-btn
+          v-if="user.is_superuser && !isGlobal"
+          @click="showDeleteWarningOverlay = true"
+          class="red white--text"
+          style="float: right;"
         >
-          <v-btn
-            v-if="user.is_superuser && !isGlobal"
-            @click="showDeleteWarningOverlay = true"
-            class="red white--text"
-            style="float: right"
-          >
-            DELETE PROJECT
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-layout>
+          DELETE PROJECT
+        </v-btn>
+      </div>
+    </v-flex>
     <v-overlay
       v-if="user.is_superuser && !isGlobal"
       :value="showDeleteWarningOverlay"
@@ -198,6 +192,7 @@ export default defineComponent({
     >
       <v-card
         class="dialog-box"
+        style="min-width:600px"
       >
         <v-btn
           @click="showDeleteWarningOverlay = false"
