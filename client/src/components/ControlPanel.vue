@@ -136,7 +136,6 @@ export default {
             try {
               await this.setLock({ experimentId: oldExp, lock: false });
             } catch (err) {
-              console.log(err);
               this.$snackbar({
                 text: 'Failed to release edit access on Experiment.',
                 timeout: 6000,
@@ -146,7 +145,6 @@ export default {
           try {
             await this.setLock({ experimentId: newExp, lock: true });
           } catch (err) {
-            console.log(err);
             this.$snackbar({
               text: 'Failed to claim edit access on Experiment.',
               timeout: 6000,

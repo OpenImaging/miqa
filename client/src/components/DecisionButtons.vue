@@ -205,7 +205,6 @@ export default {
           this.warnDecision = false;
           this.newComment = '';
         } catch (err) {
-          console.log(err);
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
             timeout: 6000,

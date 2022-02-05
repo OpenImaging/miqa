@@ -59,7 +59,7 @@ export default {
         ),
       );
       try {
-        const resp = await djangoRest.setSettings(this.currentProject.id, newSettings);
+        const resp = await djangoRest.setProjectSettings(this.currentProject.id, newSettings);
         this.showAddMemberOverlay = false;
         this.showAddCollaboratorOverlay = false;
         const changedProject = { ...this.currentProject };

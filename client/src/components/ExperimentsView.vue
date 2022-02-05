@@ -1,7 +1,10 @@
 <script>
 import _ from 'lodash';
-import { mapState, mapGetters, mapMutations } from 'vuex';
+import {
+  mapState, mapGetters, mapMutations, mapActions,
+} from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
+import djangoRest from '@/django';
 import { API_URL } from '../constants';
 
 export default {
@@ -36,8 +39,7 @@ export default {
     ]),
     ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
-      const allExperiments = this.experiments;
-      return this.experimentIds.map((expId) => allExperiments[expId]);
+      return this.experimentIds.map((expId) => this.experiments[expId]);
     },
     loadingIcon() {
       return this.loadingExperiment
@@ -50,12 +52,15 @@ export default {
   },
   watch: {
     showUploadModal() {
-      setTimeout(this.prepareDropZone, 500);
+      this.delayPrepareDropZone();
     },
   },
   methods: {
     ...mapMutations([
       'switchReviewMode',
+    ]),
+    ...mapActions([
+      'loadProject',
     ]),
     scansForExperiment(expId) {
       const expScanIds = this.experimentScans[expId];
@@ -107,6 +112,9 @@ export default {
       }
       return classes;
     },
+    delayPrepareDropZone() {
+      setTimeout(this.prepareDropZone, 500);
+    },
     prepareDropZone() {
       const dropZone = document.getElementById('dropZone');
       if (dropZone) {
@@ -120,12 +128,24 @@ export default {
         });
       }
     },
-    addDropFile(e) {
+    addDropFiles(e) {
       this.fileSetForUpload = [...e.dataTransfer.files];
     },
-    uploadToExperiment() {
-      console.log('upload', this.fileSetForUpload, 'to', this.experimentNameForUpload);
-      // this.showUploadModal = false;
+    async uploadToExperiment() {
+      let experimentId;
+      if (!this.uploadToExisting) {
+        const newExperiment = await djangoRest.createExperiment(
+          this.currentProject.id, this.experimentNameForUpload,
+        );
+        experimentId = newExperiment.id;
+      } else {
+        experimentId = Object.values(this.experiments).find(
+          (experiment) => experiment.name === this.experimentNameForUpload,
+        ).id;
+      }
+      await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
+      this.loadProject(this.currentProject);
+      this.showUploadModal = false;
     },
   },
 };
@@ -134,6 +154,7 @@ export default {
 <template>
   <v-card class="flex-card">
     <v-subheader
+      v-if="!minimal"
       class="d-flex"
       style="justify-content: space-between"
     >
@@ -152,6 +173,20 @@ export default {
         />
         <span>Scans for my review</span>
       </div>
+    </v-subheader>
+    <v-subheader
+      v-if="minimal"
+      class="d-flex mode-toggle"
+    >
+      <span>All scans</span>
+      <v-switch
+        @change="switchReviewMode"
+        :value="reviewMode"
+        dense
+        style="display: inline-block; max-height: 40px; max-width: 60px;"
+        class="px-3 ma-0"
+      />
+      <span>Scans for my review</span>
     </v-subheader>
     <div class="scans-view">
       <div v-if="orderedExperiments && orderedExperiments.length">
@@ -225,6 +260,7 @@ export default {
         <span class="px-5">No imported data.</span>
       </div>
       <v-dialog
+        v-if="!minimal"
         v-model="showUploadModal"
         width="600px"
       >
@@ -289,6 +325,7 @@ export default {
           <div class="ma-5">
             <v-file-input
               v-model="fileSetForUpload"
+              @click:clear="delayPrepareDropZone"
               label="Image files (.nii.gz, .nii, .mgz, .nrrd)"
               prepend-icon="mdi-paperclip"
               multiple
@@ -314,7 +351,7 @@ export default {
             <div
               id="dropZone"
               v-if="fileSetForUpload.length == 0"
-              @drop.prevent="addDropFile"
+              @drop.prevent="addDropFiles"
               @dragover.prevent
               style="text-align: center"
               class="pa-3 drop-zone"
@@ -344,36 +381,27 @@ export default {
 .current {
   background: rgb(206, 206, 206);
 }
-
 .state-unreviewed::marker {
   color: #1460A3;
   content: '\25C8';
 }
-
 .state-needs-tier-2-review::marker {
   color: #6DB1ED;
   content: '\25C8'
 }
-
 .state-complete::marker {
   color: #00C853;
   content: '\25C8'
 }
-
 li.cached {
   list-style-type: disc;
 }
-
 ul.experiment {
   list-style: none;
 }
-
 ul.scans {
   padding-left: 15px;
 }
-</style>
-
-<style lang="scss">
 .scans-view {
   text-transform: none;
   display: flex;
@@ -399,6 +427,6 @@ ul.scans {
   border: 1px dashed #999999;
 }
 .drop-zone.hover {
-  background-color: rgba(74, 101, 255, 0.5);
+  background-color: rgba(92, 167, 247, 0.5);
 }
 </style>
