@@ -1,5 +1,7 @@
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
+import S3FileFieldClient from 'django-s3-file-field';
+
 import {
   Project, ProjectTaskOverview, ProjectSettings, User,
 } from './types';
@@ -13,6 +15,8 @@ interface Paginated<T> {
 }
 
 const apiClient = axios.create({ baseURL: API_URL });
+let s3ffClient;
+
 apiClient.interceptors.response.use(null, (error) => {
   const msg = error?.response?.data?.detail || 'No response from server';
   throw new Error(msg);
@@ -27,6 +31,12 @@ const djangoClient = {
         apiClient.defaults.headers.common,
         oauthClient.authHeaders,
       );
+      s3ffClient = new S3FileFieldClient({
+        baseUrl: API_URL + '/s3-upload/',
+        apiConfig: {
+          headers: apiClient.defaults.headers.common,
+        },
+      });
     } else {
       this.login();
     }
@@ -110,6 +120,23 @@ const djangoClient = {
     const { data } = await apiClient.get(`/experiments/${experimentId}`);
     return data;
   },
+  async createExperiment(projectId:string, experimentName: string) {
+    const { data } = await apiClient.post(`/experiments`, {
+      project: projectId,
+      name: experimentName
+    });
+    return data;
+  },
+  async uploadToExperiment(experimentId: string, files: File[]) {
+    const uploadResponses = await Promise.all(files.map(
+      (file) => s3ffClient.uploadFile(file, 'core.Frame.content')
+    ))
+    const uploadedValues = uploadResponses.map((response) => response.value)
+    const { data } = await apiClient.patch(`/experiments/${experimentId}`, {
+      frames: uploadedValues
+    });
+    return data;
+  },
   async setExperimentNote(experimentId: string, note: string) {
     const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
     return data;
@@ -151,6 +178,10 @@ const djangoClient = {
     });
     const { results } = data;
     return results;
+  },
+  async frameDownloadURL(frameId: string) {
+    const { data } = await apiClient.get(`/frames/${frameId}/download_url`)
+    return data.content
   },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');
