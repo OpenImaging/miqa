@@ -17,6 +17,7 @@ import {
 } from '@/types';
 import ReaderFactory from '../utils/ReaderFactory';
 
+import axios from 'axios';
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 
@@ -92,10 +93,6 @@ function getData(id, file, webWorker = null) {
             resolve({ frameData, webWorker });
           })
           .catch((error) => {
-            console.log('Problem reading image array buffer');
-            console.log('webworker', webWorker);
-            console.log('fileName', fileName);
-            console.log(error);
             reject(error);
           });
       };
@@ -105,22 +102,23 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
+async function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
+  const download_url = await djangoRest.frameDownloadURL(frameId).then()
   const { promise } = ReaderFactory.downloadFrame(
-    apiClient,
+    axios.create(),
     `image${frameExtension}`,
-    `/frames/${frameId}/download`,
+    download_url,
     { onDownloadProgress },
   );
   fileCache.set(frameId, promise);
   return { frameId, fileP: promise };
 }
 
-function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  const loadResult = loadFile(frameId, frameExtension, { onDownloadProgress });
+async function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
+  const loadResult = await loadFile(frameId, frameExtension, { onDownloadProgress });
   return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
@@ -128,8 +126,6 @@ function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null
     })
     .catch((error) => {
       const msg = 'loadFileAndGetData caught error getting data';
-      console.log(msg);
-      console.log(error);
       return Promise.reject(msg);
     })
     .finally(() => {
@@ -141,7 +137,7 @@ function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null
 }
 
 function poolFunction(webWorker, taskInfo) {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const { frameId, frameExtension } = taskInfo;
 
     let filePromise = null;
@@ -149,10 +145,11 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frameId)) {
       filePromise = fileCache.get(frameId);
     } else {
+      const download_url = await djangoRest.frameDownloadURL(frameId).then()
       const download = ReaderFactory.downloadFrame(
-        apiClient,
+        axios.create(),
         `image${frameExtension}`,
-        `/frames/${frameId}/download`,
+        download_url,
       );
       filePromise = download.promise;
       fileCache.set(frameId, filePromise);
@@ -169,8 +166,6 @@ function poolFunction(webWorker, taskInfo) {
         resolve(getData(frameId, file, webWorker));
       })
       .catch((err) => {
-        console.log('poolFunction: fileP error of some kind');
-        console.log(err);
         reject(err);
       });
   });
