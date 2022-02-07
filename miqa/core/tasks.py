@@ -1,6 +1,8 @@
+from io import BytesIO
 import json
 from pathlib import Path
 
+import boto3
 from celery import shared_task
 import pandas
 from rest_framework.exceptions import APIException
@@ -44,13 +46,30 @@ def evaluate_data(frame_ids, project_id):
         )
 
 
+def _download_from_s3(path: str) -> bytes:
+    bucket, key = path.strip()[5:].split('/', maxsplit=1)
+    client = boto3.client('s3')
+    buf = BytesIO()
+    client.download_fileobj(bucket, key, buf)
+    return buf.getvalue()
+
+
 def import_data(user_id, project_id):
     project = Project.objects.get(id=project_id)
 
     if project.import_path.endswith('.csv'):
-        import_dict = import_dataframe_to_dict(pandas.read_csv(project.import_path))
+        if project.import_path.startswith('s3://'):
+            buf = _download_from_s3(project.import_path).decode('utf-8')
+        else:
+            with open(project.import_path) as fd:
+                buf = fd.read()
+        import_dict = import_dataframe_to_dict(pandas.read_csv(buf))
     elif project.import_path.endswith('.json'):
-        import_dict = json.load(open(project.import_path))
+        if project.import_path.startswith('s3://'):
+            import_dict = json.loads(_download_from_s3(project.import_path))
+        else:
+            with open(project.import_path) as fd:
+                import_dict = json.load(fd)
     else:
         raise APIException(f'Invalid import file {project.import_path}.')
 
