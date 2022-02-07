@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from miqa.core.models import Experiment, Frame, Project, Scan, ScanDecision
+from miqa.core.models import Experiment, Project, ScanDecision
 from miqa.core.rest.permissions import project_permission_required
 from miqa.core.rest.scan import ScanSerializer
 
@@ -53,8 +53,11 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
     )
 
 
-class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin):
+class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
+    # Our default serializer nests its experiment (not sure why though)
+
     filter_backends = [filters.DjangoFilterBackend]
+    permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
     serializer_class = ExperimentSerializer
 
     def get_queryset(self):
@@ -64,12 +67,6 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.Up
             any_perm=True,
         )
         return Experiment.objects.filter(project__in=projects)
-
-    def get_permissions(self):
-        if self.request.method == 'DELETE':
-            return [IsAuthenticated(), UserHoldsExperimentLock()]
-        else:
-            return [IsAuthenticated()]
 
     @swagger_auto_schema(
         request_body=ExperimentCreateSerializer(),
@@ -89,23 +86,8 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.Up
             status=status.HTTP_201_CREATED,
         )
 
-    def update(self, request, *args, **kwargs):
-        experiment: Experiment = self.get_object()
-        if 'frames' in request.data:
-            num_existing_scans = experiment.scans.count()
-            for index, s3_reference in enumerate(request.data['frames']):
-                new_scan = Scan(
-                    name=f'SCAN_{index + num_existing_scans}',
-                    experiment=experiment,
-                )
-                new_scan.save()
-                new_frame = Frame(content=s3_reference, scan=new_scan)
-                new_frame.save()
-            del request.data['frames']
-        return super().update(request, *args, **kwargs)
-
     @project_permission_required(experiments__pk='pk')
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def note(self, request, pk=None):
         experiment_object = self.get_object()
         experiment_object.note = request.data['note']
@@ -123,18 +105,15 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.Up
         },
     )
     @project_permission_required(review_access=True, experiments__pk='pk')
-    @action(detail=True, methods=['POST'])
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
     def lock(self, request, pk=None):
         """Acquire the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
-
             if experiment.project.archived:
                 raise ArchivedProject()
-
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
-
             if experiment.lock_owner is None or experiment.lock_owner == request.user:
                 previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
                 for previously_locked_experiment in previously_locked_experiments:
@@ -142,37 +121,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.Up
                     previously_locked_experiment.save()
                 experiment.lock_owner = request.user
                 experiment.save(update_fields=['lock_owner'])
-
                 return Response(
                     ExperimentSerializer(experiment).data,
                     status=status.HTTP_200_OK,
                 )
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @swagger_auto_schema(
-        request_body=no_body,
-        responses={
-            200: 'Lock released.',
-            204: 'Lock not yet acquired for release.',
-            409: 'The lock is held by a different user.',
-        },
-    )
-    @project_permission_required(review_access=True, experiments__pk='pk')
-    @lock.mapping.delete
-    def release_lock(self, request, pk=None):
-        """Release the exclusive write lock on this experiment."""
-        with transaction.atomic():
-            experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
-
-            if experiment.lock_owner is not None and experiment.lock_owner != request.user:
-                raise LockContention()
-
-            if experiment.lock_owner is not None:
-                experiment.lock_owner = None
-                experiment.save(update_fields=['lock_owner'])
-
-                return Response(
-                    ExperimentSerializer(experiment).data,
-                    status=status.HTTP_200_OK,
-                )
-        return Response(status=status.HTTP_204_NO_CONTENT)

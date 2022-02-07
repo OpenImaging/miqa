@@ -131,11 +131,13 @@ const djangoClient = {
     const uploadResponses = await Promise.all(files.map(
       (file) => s3ffClient.uploadFile(file, 'core.Frame.content')
     ))
-    const uploadedValues = uploadResponses.map((response) => response.value)
-    const { data } = await apiClient.patch(`/experiments/${experimentId}`, {
-      frames: uploadedValues
-    });
-    return data;
+    await Promise.all(uploadResponses.map(
+      async (uploadResponse) => {
+      return apiClient.post(`/frames`, {
+        experiment: experimentId,
+        content: uploadResponse.value
+      });
+    }));
   },
   async setExperimentNote(experimentId: string, note: string) {
     const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
@@ -178,10 +180,6 @@ const djangoClient = {
     });
     const { results } = data;
     return results;
-  },
-  async frameDownloadURL(frameId: string) {
-    const { data } = await apiClient.get(`/frames/${frameId}/download_url`)
-    return data.content
   },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');

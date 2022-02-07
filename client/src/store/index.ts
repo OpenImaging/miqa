@@ -102,23 +102,22 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-async function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
+function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frameId)) {
     return { frameId, fileP: fileCache.get(frameId) };
   }
-  const download_url = await djangoRest.frameDownloadURL(frameId).then()
   const { promise } = ReaderFactory.downloadFrame(
-    axios.create(),
+    apiClient,
     `image${frameExtension}`,
-    download_url,
+    `/frames/${frameId}/download`,
     { onDownloadProgress },
   );
   fileCache.set(frameId, promise);
   return { frameId, fileP: promise };
 }
 
-async function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  const loadResult = await loadFile(frameId, frameExtension, { onDownloadProgress });
+function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frameId, frameExtension, { onDownloadProgress });
   return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
@@ -137,7 +136,7 @@ async function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress 
 }
 
 function poolFunction(webWorker, taskInfo) {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     const { frameId, frameExtension } = taskInfo;
 
     let filePromise = null;
@@ -145,11 +144,10 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frameId)) {
       filePromise = fileCache.get(frameId);
     } else {
-      const download_url = await djangoRest.frameDownloadURL(frameId).then()
       const download = ReaderFactory.downloadFrame(
-        axios.create(),
+        apiClient,
         `image${frameExtension}`,
-        download_url,
+        `/frames/${frameId}/download`,
       );
       filePromise = download.promise;
       fileCache.set(frameId, filePromise);

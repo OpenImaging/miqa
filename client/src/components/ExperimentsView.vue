@@ -16,7 +16,7 @@ export default {
       default: false,
     },
   },
-  inject: ['user'],
+  inject: ['user', 'MIQAConfig'],
   data: () => ({
     API_URL,
     showUploadModal: false,
@@ -260,7 +260,7 @@ export default {
         <span class="px-5">No imported data.</span>
       </div>
       <v-dialog
-        v-if="!minimal"
+        v-if="!minimal && MIQAConfig.S3_SUPPORT"
         v-model="showUploadModal"
         width="600px"
       >
