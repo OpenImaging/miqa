@@ -107,10 +107,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
-    created_frames = Frame.objects.bulk_create(new_frames)
-    for frame in created_frames:
-        with open(frame.raw_path, 'rb') as file_content:
-            frame.content.save(f'{frame.frame_number}', file_content)
+    Frame.objects.bulk_create(new_frames)
 
     # must use str, not UUID, to get sent to celery task properly
     frames_by_project = {}
