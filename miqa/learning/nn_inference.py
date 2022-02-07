@@ -1,7 +1,9 @@
 import logging
 import math
 
+import itk
 import monai
+import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
 import torch
 from torch.utils.data import DataLoader
@@ -97,6 +99,91 @@ def get_model(file_path=None):
     return model
 
 
+# from https://gist.github.com/thewtex/9503448d2ad1dfacc2cbd620d95d3dac
+def affine_transform_to_matrix(transform):
+    dimension = itk.template(transform)[1][1]
+    params = np.asarray(transform.GetParameters())
+    affine = params.reshape((dimension + 1, dimension))
+    affine_matrix = np.eye(dimension + 1)
+    affine_matrix[:dimension, :dimension] = affine[:dimension, :dimension]
+    affine_matrix[:dimension, dimension] = affine[dimension, :]
+    return affine_matrix
+
+
+# TorchIO uses RAS orientation internally
+ras_to_lps = itk.Rigid3DTransform.New()  # identity by default
+ras_to_lps_parameters = ras_to_lps.GetParameters()
+ras_to_lps_parameters[0] = -1  # invert L<->R
+ras_to_lps_parameters[4] = -1  # invert P<->A
+ras_to_lps.SetParameters(ras_to_lps_parameters)
+
+
+class ReorientAndRescale(torchio.transforms.RescaleIntensity):
+    def apply_transform(self, subject: torchio.Subject) -> torchio.Subject:
+        # rescaling intensity first gives us a copy of the data
+        transformed_subject = super().apply_transform(subject)
+
+        np_array = transformed_subject.img.data
+        assert np_array.shape[0] == 1  # we are dealing with scalar images
+        np_array = np.squeeze(np_array, axis=0)  # remove channel dimension
+        affine_matrix = subject['img'].affine
+
+        # conversion of numpy ndarray + affine matrix into ITK image comes from:
+        # https://gist.github.com/thewtex/9503448d2ad1dfacc2cbd620d95d3dac
+        dimension = affine_matrix.shape[0] - 1
+        assert dimension == 3
+        itk_np_view = itk.image_view_from_array(np_array, is_vector=False)
+
+        transform = itk.AffineTransform[itk.D, dimension].New()
+        params = transform.GetParameters()
+        affine = affine_matrix[:dimension, :dimension]
+        for idx, val in enumerate(affine.flat):
+            params[idx] = val
+        for idx in range(dimension):
+            params[dimension * dimension + idx] = affine_matrix[idx, dimension]
+        transform.SetParameters(params)
+        transform.Compose(ras_to_lps)
+
+        origin = transform.TransformPoint([0.0] * dimension)
+        itk_np_view.SetOrigin(origin)
+
+        identity = np.eye(dimension)
+        spacing = []
+        direction = np.eye(dimension)
+        for dim in range(dimension):
+            vector = identity[dim, :]
+            transformed = transform.TransformVector(vector)
+            spacing.append(transformed.Normalize())
+            direction[dim, :] = transformed
+        itk_np_view.SetSpacing(spacing)
+        itk_np_view.SetDirection(direction)
+
+        # reorient all images into DICOM LPS
+        reoriented = itk.orient_image_filter(
+            itk_np_view,
+            use_image_direction=True,
+            desired_coordinate_orientation=itk.SpatialOrientationEnums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI,
+        )
+        # TODO: detect no-op case and exit early
+
+        # add channel dimension again
+        np_reoriented = itk.array_from_image(reoriented)
+        transformed_subject.img.data = np.expand_dims(np_reoriented, 0)
+
+        # update the transform matrix
+        # we need to transpose direction here, maybe due to TorchIO RAS
+        transposed_direction = reoriented.GetDirection().GetTranspose()  # this is a VNL matrix
+        transform = itk.AffineTransform[itk.D, 3].New()
+        transform.SetMatrix(itk.Matrix[itk.D, 3, 3](transposed_direction))
+        transform.Scale(reoriented.GetSpacing(), True)
+        transform.SetOffset(reoriented.GetOrigin())
+        transform.Compose(ras_to_lps)
+        affine_matrix = affine_transform_to_matrix(transform)
+        transformed_subject['img'].affine = affine_matrix
+
+        return transformed_subject
+
+
 def clamp(num, min_value, max_value):
     return max(min(num, max_value), min_value)
 
@@ -185,7 +272,7 @@ def label_results(result):
 
 def evaluate1(model, image_path):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    rescale = ReorientAndRescale(out_min_max=(0, 1))
 
     evaluation_ds = monai.data.Dataset(
         data=[
@@ -223,7 +310,7 @@ def evaluate_many(model, image_paths):
         for image_path in image_paths
     ]
 
-    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    rescale = ReorientAndRescale(out_min_max=(0, 1))
     evaluation_ds = monai.data.Dataset(evaluation_files, transform=rescale)
     evaluation_loader = DataLoader(evaluation_ds, pin_memory=torch.cuda.is_available())
     results = evaluate_model(model, evaluation_loader, device, None, 0, 'evaluate_many')
