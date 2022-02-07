@@ -3,10 +3,6 @@ __all__ = ['nifti_to_zarr_ngff', 'convert_to_store_path']
 from pathlib import Path
 
 from celery import shared_task
-import itk
-import spatial_image_multiscale
-import spatial_image_ngff
-import zarr
 
 
 def convert_to_store_path(nifti_file: str) -> Path:
@@ -23,6 +19,11 @@ def nifti_to_zarr_ngff(nifti_file: str) -> str:
 
     If the store already exists, it will not be re-created.
     """
+    import itk
+    import spatial_image_multiscale
+    import spatial_image_ngff
+    import zarr
+
     store_path = convert_to_store_path(nifti_file)
     if store_path.exists():
         return store_path

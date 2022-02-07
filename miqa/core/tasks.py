@@ -4,6 +4,7 @@ from pathlib import Path
 
 import boto3
 from celery import shared_task
+from django.conf import settings
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -118,7 +119,8 @@ def perform_import(import_dict, project_id):
                         scan=scan_object,
                     )
                     new_frames.append(frame_object)
-                    nifti_to_zarr_ngff.delay(frame_data['file_location'])
+                    if settings.ZARR_SUPPORT:
+                        nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
