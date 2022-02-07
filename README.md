@@ -25,3 +25,5 @@ Get started right away using our pre-built docker containers.
 
 ### :page_with_curl: Documentation
 Read about configuring your instance of MIQA for production in [prod/README.md](prod/README.md) or for development in [dev/README.md](dev/README.md)
+
+Read about using MIQA's import feature in [IMPORTING.md](IMPORTING.md)
