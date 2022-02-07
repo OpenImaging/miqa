@@ -308,7 +308,7 @@ export default {
                     @change="setShowCrosshairs"
                     label="Display crosshairs"
                     hide-details
-                    class="shrink ma-0 pa-0 ml-n2"
+                    class="shrink pa-0 ml-n2"
                   />
                 </div>
                 <div style="flex-grow: 1">
@@ -317,7 +317,7 @@ export default {
                     @change="setStoreCrosshairs"
                     label="Store crosshairs with decision"
                     hide-details
-                    class="shrink ma-0 pa-0 ml-n2"
+                    class="shrink pa-0 ml-n2"
                   />
                 </div>
               </v-flex>
