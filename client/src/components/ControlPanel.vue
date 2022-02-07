@@ -27,6 +27,7 @@ export default {
       'proxyManager',
       'scanCachedPercentage',
       'showCrosshairs',
+      'storeCrosshairs',
       'myCurrentProjectRoles',
     ]),
     ...mapGetters([
@@ -126,6 +127,7 @@ export default {
     ]),
     ...mapMutations([
       'setShowCrosshairs',
+      'setStoreCrosshairs',
     ]),
     async switchLock(newExp, oldExp = null) {
       if (!this.navigateToNextIfCurrentScanNull()) {
@@ -237,48 +239,56 @@ export default {
           >
             <v-container fluid>
               <v-row dense>
-                <v-col cols="6">
-                  Project
+                <v-col
+                  cols="3"
+                  class="d-flex"
+                  style="flex-direction:column; row-gap: 5px;"
+                >
+                  <span>Project</span>
+                  <span>Experiment</span>
                 </v-col>
                 <v-col
                   cols="6"
-                  class="grey--text"
-                  style="text-align: right"
+                  rows="2"
+                  class="py-3"
+                  style="text-align: center; height: 70px"
                 >
-                  {{ currentViewData.projectName }}
-                </v-col>
-              </v-row>
-              <v-row dense>
-                <v-col cols="6">
-                  Experiment
+                  <div v-if="scanCachedPercentage < 1">
+                    <v-progress-circular
+                      :value="scanCachedPercentage * 100"
+                      color="blue"
+                    />
+                    <div> Loading... </div>
+                  </div>
                 </v-col>
                 <v-col
-                  cols="6"
-                  class="grey--text"
-                  style="text-align: right"
+                  cols="3"
+                  class="grey--text d-flex"
+                  style="text-align: right; flex-direction:column; row-gap: 5px;"
                 >
-                  <UserAvatar
-                    :target-user="lockOwner"
-                    as-editor
-                  />
-                  {{ currentViewData.experimentName }}
+                  <span>{{ currentViewData.projectName }}</span>
+                  <div>
+                    <UserAvatar
+                      :target-user="lockOwner"
+                      as-editor
+                    />
+                    {{ currentViewData.experimentName }}
+                  </div>
                 </v-col>
               </v-row>
-
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 @input="handleExperimentNoteChange"
                 :disabled="!experimentIsEditable"
                 filled
                 no-resize
-                height="120px"
+                height="80px"
                 hide-details
                 class="mt-3"
                 name="input-experiment-notes"
                 label="Experiment Notes"
                 placeholder="There are no notes on this experiment."
               />
-
               <v-row no-gutters>
                 <v-col
                   v-on:click="handleExperimentNoteSave()"
@@ -288,6 +298,29 @@ export default {
                   Save Note
                 </v-col>
               </v-row>
+              <v-flex
+                class="d-flex ml-5"
+                style="flex-direction:column"
+              >
+                <div style="flex-grow: 1">
+                  <v-switch
+                    :input-value="showCrosshairs"
+                    @change="setShowCrosshairs"
+                    label="Display crosshairs"
+                    hide-details
+                    class="shrink pa-0 ml-n2"
+                  />
+                </div>
+                <div style="flex-grow: 1">
+                  <v-switch
+                    :input-value="storeCrosshairs"
+                    @change="setStoreCrosshairs"
+                    label="Store crosshairs with decision"
+                    hide-details
+                    class="shrink pa-0 ml-n2"
+                  />
+                </div>
+              </v-flex>
             </v-container>
           </v-card>
         </v-col>
@@ -304,7 +337,7 @@ export default {
               class="pa-0"
             >
               <v-row no-gutters>
-                <v-col cols="5">
+                <v-col cols="6">
                   <v-container
                     fill-height
                     fluid
@@ -494,67 +527,32 @@ export default {
                         </v-slider>
                       </v-col>
                     </v-row>
-                    <v-row>
-                      <v-col cols="4">
-                        Display crosshairs
-                      </v-col>
-                      <v-col cols="8">
-                        <v-switch
-                          :input-value="showCrosshairs"
-                          @change="setShowCrosshairs"
-                          hide-details
-                          class="shrink ma-0 pa-0 ml-n2"
-                        />
-                      </v-col>
-                    </v-row>
-                    <v-row class="py-3">
+                    <v-row class="mx-0">
                       <v-col
                         cols="12"
-                        style="text-align: center; height: 70px"
+                        class="grey lighten-4"
+                        style="height: 100px; overflow:auto;"
                       >
-                        <transition name="bounce">
-                          <div v-if="scanCachedPercentage < 1">
-                            <v-progress-circular
-                              :value="scanCachedPercentage * 100"
-                              color="blue"
-                            />
-                            <div> Loading... </div>
-                          </div>
-                        </transition>
+                        <ScanDecision
+                          v-for="decision in currentViewData.scanDecisions"
+                          :key="decision.id"
+                          :decision="decision"
+                        />
+                        <div
+                          v-if="currentViewData.scanDecisions.length === 0"
+                          class="grey--text"
+                        >
+                          This scan has no prior comments.
+                        </div>
                       </v-col>
                     </v-row>
                   </v-container>
                 </v-col>
-                <v-col cols="7">
-                  <v-container
-                    fluid
-                    class="px-5"
-                  >
-                    <v-row>
-                      <v-col cols="12">
-                        <v-container
-                          class="grey lighten-4"
-                          style="height: 100px; overflow:auto;"
-                        >
-                          <ScanDecision
-                            v-for="decision in currentViewData.scanDecisions"
-                            :key="decision.id"
-                            :decision="decision"
-                          />
-                          <div
-                            v-if="currentViewData.scanDecisions.length === 0"
-                            class="grey--text"
-                          >
-                            This scan has no prior comments.
-                          </div>
-                        </v-container>
-                      </v-col>
-                    </v-row>
-                    <DecisionButtons
-                      :experimentIsEditable="experimentIsEditable"
-                      @handleKeyPress="handleKeyPress"
-                    />
-                  </v-container>
+                <v-col cols="6">
+                  <DecisionButtons
+                    :experimentIsEditable="experimentIsEditable"
+                    @handleKeyPress="handleKeyPress"
+                  />
                 </v-col>
               </v-row>
             </v-container>

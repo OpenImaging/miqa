@@ -304,6 +304,7 @@ const initState = {
   screenshots: [],
   scanCachedPercentage: 0,
   showCrosshairs: true,
+  storeCrosshairs: true,
   sliceLocation: {},
   iIndexSlice: 0,
   jIndexSlice: 0,
@@ -525,6 +526,9 @@ const {
     },
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
+    },
+    setStoreCrosshairs(state, value) {
+      state.storeCrosshairs = value;
     },
     switchReviewMode(state, mode) {
       state.reviewMode = mode || false;
