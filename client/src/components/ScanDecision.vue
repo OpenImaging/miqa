@@ -42,60 +42,63 @@ export default {
 </script>
 
 <template>
-  <v-row dense>
-    <v-col
-      :class="convertDecisionToColor(decision.decision)"
-      cols="2"
+  <v-flex
+    class="d-flex"
+    style="flex-direction:row; column-gap: 5px"
+  >
+    <div
+      class="d-flex"
+      style="flex-direction:row; column-gap: 2px"
     >
       <UserAvatar
         :target-user="decision.creator"
       />
-      ({{ decision.decision[0] }})
+      <div :class="convertDecisionToColor(decision.decision)">
+        ({{ decision.decision[0] }})
+      </div>
       <v-icon
         v-if="Object.values(decision.location).length > 0"
         @click="goToLocation"
       >
         mdi-crosshairs-gps
       </v-icon>
-    </v-col>
-    <v-col
+    </div>
+    <v-flex
       :class="decision.note ? 'black--text' : 'grey--text'"
       class="d-flex justify-space-between"
-      cols="8"
+      grow
     >
-      <v-flex grow>
-        {{ decision.note ? decision.note : "No comment" }}
-      </v-flex>
-      <v-flex
-        shrink
-        class="d-flex flex-wrap justify-end flex-shrink-1"
+      {{ decision.note ? decision.note : "No comment" }}
+    </v-flex>
+    <v-flex
+      shrink
+      class="d-flex flex-wrap justify-end flex-shrink-1"
+    >
+      <v-tooltip
+        v-for="chip in artifactChips"
+        :v-bind="chip.code"
+        :key="'chip_'+ chip.value"
+        bottom
       >
-        <v-tooltip
-          v-for="chip in artifactChips"
-          :v-bind="chip.code"
-          :key="'chip_'+ chip.value"
-          bottom
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-chip
-              v-bind="attrs"
-              v-on="on"
-            >
-              {{ chip.code }}
-            </v-chip>
-          </template>
-          <span>{{ chip.value }}</span>
-        </v-tooltip>
-      </v-flex>
-    </v-col>
-    <v-col
-      cols="2"
+        <template v-slot:activator="{ on, attrs }">
+          <v-chip
+            v-bind="attrs"
+            v-on="on"
+            small
+          >
+            {{ chip.code }}
+          </v-chip>
+        </template>
+        <span>{{ chip.value }}</span>
+      </v-tooltip>
+    </v-flex>
+    <div
       class="grey--text"
       style="text-align: right"
     >
       {{ decision.created }}
-    </v-col>
-  </v-row>
+    </div>
+  </v-flex>
 </template>
 
 <style scoped>
