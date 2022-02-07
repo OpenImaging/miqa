@@ -9,7 +9,15 @@ import sys
 
 import itk
 import monai
-from nn_inference import artifacts, clamp, evaluate1, evaluate_model, get_model, regression_count
+from nn_inference import (
+    artifacts,
+    clamp,
+    evaluate1,
+    evaluate_model,
+    get_model,
+    regression_count,
+    ReorientAndRescale,
+)
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -49,6 +57,17 @@ ghosting_motion_index = regression_count + artifacts.index('ghosting_motion')
 inhomogeneity_index = regression_count + artifacts.index('inhomogeneity')
 
 
+def index_of_abs_max(my_list):
+    max_val = abs(my_list[0])
+    max_index = 0
+    for index, item in enumerate(my_list):
+        abs_item = abs(item)
+        if abs_item > max_val:
+            max_val = abs_item
+            max_index = index
+    return max_index
+
+
 def get_image_dimension(path):
     image_io = itk.ImageIOFactory.CreateImageIO(path, itk.CommonEnums.IOFileMode_ReadMode)
     dim = (0, 0, 0)
@@ -58,6 +77,12 @@ def get_image_dimension(path):
             image_io.ReadImageInformation()
             assert image_io.GetNumberOfDimensions() == 3
             dim = (image_io.GetDimensions(0), image_io.GetDimensions(1), image_io.GetDimensions(2))
+            identity = True
+            for d in range(2):
+                if index_of_abs_max(image_io.GetDirection(d)) != d:
+                    identity = False
+            # if not identity:
+            #     print(f"Non-identity direction matrix: {path}")  # finds non LPS instances
         except RuntimeError:
             pass
     return dim
@@ -394,7 +419,7 @@ def create_train_and_test_data_loaders(df, count_train):
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
-    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    rescale = ReorientAndRescale(out_min_max=(0, 1))
     ghosting = CustomGhosting(p=0.3, intensity=(0.2, 0.8))
     motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
     inhomogeneity = CustomBiasField(p=0.1)
