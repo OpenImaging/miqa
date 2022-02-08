@@ -1,7 +1,7 @@
 ## Objects in MIQA
 It may be helpful to know how objects are organized in MIQA before you start importing. Each user of MIQA may have a different way of storing their medical scans, so MIQA's object structure is intended to be flexible towards different organization methods.
 
-The top-level organization in MIQA is the Project. At the Project level, MIQA superusers may edit the import and export paths, perform imports and exports, and edit the users who have permissions on that project. Each project has a group of members who may be given read-only access, tier 1 review access, or tier 2 review access.
+The top-level organization in MIQA is the Project. At the Project level, MIQA superusers may edit the import and export paths, perform imports and exports, and edit the users who have permissions on that project. Each project has a group of members who may be given read-only access, tier 1 review access, or tier 2 review access. To read more about User Roles in MIQA, see [USERS.md](USERS.md)
 
 Each Project has within it a set of Experiments, and each Experiment has within it a set of Scans. It is up to the superuser who creates this project how to organize image files in this schema. There is one final layer of organization that may be applied at the sub-Scan level: each Scan can have one or more Frames.
 
