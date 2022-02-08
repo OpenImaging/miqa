@@ -48,12 +48,6 @@ setup(
         'django-guardian',
         'drf-yasg',
         'uri',
-        # For Neural Net
-        'monai',
-        'sklearn',
-        'torch',
-        'torchio',
-        'wandb',
         # Production-only
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
@@ -69,6 +63,13 @@ setup(
             'tox',
             'django-click',
             'factory_boy',
+        ],
+        'learning': [
+            'monai',
+            'sklearn',
+            'torch',
+            'torchio',
+            'wandb',
         ],
         'zarr': [
             'itk-io',

@@ -15,12 +15,13 @@ from miqa.core.conversion.import_export_csvs import (
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import Evaluation, Experiment, Frame, Project, Scan
-from miqa.learning.evaluation_models import available_evaluation_models
-from miqa.learning.nn_inference import evaluate_many
 
 
 @shared_task
 def evaluate_data(frame_ids, project_id):
+    from miqa.learning.evaluation_models import available_evaluation_models
+    from miqa.learning.nn_inference import evaluate_many
+
     frames = Frame.objects.filter(pk__in=frame_ids)
     project = Project.objects.get(id=project_id)
 

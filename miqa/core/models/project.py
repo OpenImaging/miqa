@@ -8,7 +8,6 @@ from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, rem
 
 from miqa.core.models.scan import SCAN_TYPES, Scan
 from miqa.core.models.scan_decision import ScanDecision
-from miqa.learning.evaluation_models import available_evaluation_models
 
 
 def default_evaluation_model_mapping():
@@ -54,13 +53,14 @@ class Project(TimeStampedModel, models.Model):
                 f'Valid scan types are {scan_types}.'
             )
         # do we want to demand that every scan type has a chosen evaluation model?
+        available_evaluation_models = ['MIQAT1-0', 'MIQAT2-0']
         if any(
             value is None or value not in available_evaluation_models
             for value in self.evaluation_models.values()
         ):
             raise ValidationError(
                 f'Values in evaluation models must be valid evalution model names. '
-                f'Valid evaluation model names are {available_evaluation_models.keys()}'
+                f'Valid evaluation model names are {available_evaluation_models}'
             )
 
         super().clean()
