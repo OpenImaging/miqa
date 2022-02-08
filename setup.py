@@ -47,6 +47,7 @@ setup(
         'django-click',
         'django-guardian',
         'drf-yasg',
+        'pandas',
         'uri',
         # Production-only
         'django-composed-configuration[prod]',
