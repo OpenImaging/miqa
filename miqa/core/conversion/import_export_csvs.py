@@ -24,9 +24,7 @@ def validate_file_locations(input_dict, project):
             raw_path = Path(value)
             if not raw_path.is_absolute():
                 import_path = (
-                    GlobalSettings.load().import_path
-                    if project == 'global'
-                    else project.import_path
+                    GlobalSettings.load().import_path if project is None else project.import_path
                 )
                 # not an absolute file path; refer to import csv location
                 raw_path = Path(import_path).parent.parent / raw_path
