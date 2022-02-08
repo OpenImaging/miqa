@@ -4,8 +4,8 @@ MIQA users have a global role as well as any number of per-project roles.
 ### Project Roles
 Each Project has a list of members specifying who may view and edit that project and the objects within.
 
-- Users added as "Collaborators" have read-only access. Collaborators cannot edit Experiment notes, upload scans, or submit decisions on scans.
-- Users added as "Members" have write access. Members can edit Experiment notes, upload scans, and submit decisions on scans. There are two classes of Members; A Member can either be "Tier 1 Reviewer" or "Tier 2 Reviewer".  Tier 1 Reviewers can submit a decision that a scan is either "usable" or "questionable". Tier 2 Reviewers can submit a decision that a scan is "usable", "unusable", or "usable-extra".
+- Users added as "Collaborators" have read-only access. Collaborators cannot edit Experiment notes or submit decisions on scans.
+- Users added as "Members" have write access. Members can edit Experiment notes and submit decisions on scans. There are two classes of Members; A Member can either be "Tier 1 Reviewer" or "Tier 2 Reviewer".  Tier 1 Reviewers can submit a decision that a scan is either "usable" or "questionable". Tier 2 Reviewers can submit a decision that a scan is "usable", "unusable", or "usable-extra".
 
 A Scan is considered "unreviewed" when no decisions exist for that scan; it is not considered "complete" until a decision has been made by a Tier 2 Reviewer. If a Scan only has decisions made by Tier 1 Reviewers, it is considered as "needs Tier 2 review".
 
