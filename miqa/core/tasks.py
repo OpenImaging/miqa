@@ -1,4 +1,4 @@
-from io import BytesIO
+from io import BytesIO, StringIO
 import json
 from pathlib import Path
 
@@ -65,7 +65,7 @@ def import_data(user_id, project_id):
         else:
             with open(project.import_path) as fd:
                 buf = fd.read()
-        import_dict = import_dataframe_to_dict(pandas.read_csv(buf))
+        import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
     elif project.import_path.endswith('.json'):
         if project.import_path.startswith('s3://'):
             import_dict = json.loads(_download_from_s3(project.import_path))
