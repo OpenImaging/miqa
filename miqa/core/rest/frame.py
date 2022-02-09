@@ -29,7 +29,7 @@ class FrameSerializer(serializers.ModelSerializer):
     extension = serializers.SerializerMethodField('get_extension')
 
     def get_extension(self, obj):
-        return ''.join(Path(obj.raw_path).suffixes)
+        return ''.join(obj.path.suffixes)
 
 
 class FrameViewSet(ListModelMixin, GenericViewSet):
@@ -60,7 +60,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
             if not frame.path.is_file():
                 return HttpResponseServerError('File no longer exists.')
 
-            # The file handle is closed by Django; do not use ctx manager to open it
-            resp = FileResponse(open(frame.path, 'rb'), filename=str(frame.frame_number))
-            resp['Content-Length'] = frame.size
-            return resp
+            with open(frame.path, 'rb') as fd:
+                resp = FileResponse(fd, filename=str(frame.frame_number))
+                resp['Content-Length'] = frame.size
+                return resp
