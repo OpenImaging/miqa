@@ -153,6 +153,7 @@ export default defineComponent({
     <v-layout>
       <v-switch
         v-model="globalImportExport"
+        :disabled="!user.is_superuser"
         @click="changed = true"
         color="primary"
         label="Global import/export"
@@ -186,7 +187,7 @@ export default defineComponent({
           </v-btn>
         </v-col>
         <v-col cols="9">
-          <DataImportExport v-if="user.is_superuser" />
+          <DataImportExport />
         </v-col>
         <v-col
           cols="2"
