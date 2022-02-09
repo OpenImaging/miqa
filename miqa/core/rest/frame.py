@@ -60,7 +60,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
             if not frame.path.is_file():
                 return HttpResponseServerError('File no longer exists.')
 
-            with open(frame.path, 'rb') as fd:
-                resp = FileResponse(fd, filename=str(frame.frame_number))
-                resp['Content-Length'] = frame.size
-                return resp
+            # The file handle is closed by Django; do not use ctx manager to open it
+            resp = FileResponse(open(frame.path, 'rb'), filename=str(frame.frame_number))
+            resp['Content-Length'] = frame.size
+            return resp
