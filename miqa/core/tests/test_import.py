@@ -4,9 +4,9 @@ import json
 from pathlib import Path
 import re
 
+from guardian.shortcuts import get_perms
 import pytest
 from rest_framework.exceptions import APIException
-from guardian.shortcuts import get_perms
 
 from miqa.core.tasks import import_data
 
