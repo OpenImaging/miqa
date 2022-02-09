@@ -172,7 +172,7 @@ class ProjectViewSet(
         request_body=no_body,
         responses={204: 'Import succeeded.'},
     )
-    @project_permission_required(superuser_access=True)
+    @project_permission_required()
     @action(detail=True, url_path='import', url_name='import', methods=['POST'])
     def import_(self, request, **kwargs):
         project: Project = self.get_object()

@@ -180,7 +180,6 @@ export default defineComponent({
         <v-card-title>Project: {{ currentProject.name }}</v-card-title>
         <div class="flex-container">
           <v-card
-            v-if="user.is_superuser"
             class="flex-card"
             style="flex-grow: 4;"
           >

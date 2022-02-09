@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 
+from guardian.shortcuts import get_perms
 import pytest
 from rest_framework.exceptions import APIException
 
@@ -86,7 +87,7 @@ def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_clie
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
-    if user.is_superuser:
+    if get_perms(user, project):
         assert resp.status_code == 204
         # The import should update the project, even though the names do not match
         project.refresh_from_db()
@@ -115,7 +116,7 @@ def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_a
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
-    if user.is_superuser:
+    if get_perms(user, project):
         assert resp.status_code == 204
         # The import should update the correctly named projects, but not the original import project
         project.refresh_from_db()
@@ -147,7 +148,7 @@ def test_import_json(
     project = project_factory(import_path=json_file)
 
     resp = user_api_client(project=project).post(f'/api/v1/projects/{project.id}/import')
-    if user.is_superuser:
+    if get_perms(user, project):
         assert resp.status_code == 204
         # The import should update the project, even though the names do not match
         project.refresh_from_db()
@@ -181,7 +182,7 @@ def test_import_global_json(
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
-    if user.is_superuser:
+    if get_perms(user, project):
         assert resp.status_code == 204
         # The import should update the correctly named projects, but not the original import project
         project.refresh_from_db()
