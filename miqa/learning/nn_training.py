@@ -402,7 +402,7 @@ def create_train_and_test_data_loaders(df, count_train):
     gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
     noise = CustomNoise(p=0.1)
 
-    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike])
+    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, noise])
 
     # create a training data loader
     train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
