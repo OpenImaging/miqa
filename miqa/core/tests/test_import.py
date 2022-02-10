@@ -116,7 +116,7 @@ def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_a
     project_ucsd = project_factory(import_path=csv_file, name='ucsd')
 
     resp = user_api_client().post('/api/v1/global/import')
-    if get_perms(user, project):
+    if user.is_superuser:
         assert resp.status_code == 204
         # The import should update the correctly named projects, but not the original import project
         project_ohsu.refresh_from_db()
@@ -179,7 +179,7 @@ def test_import_global_json(
     project_ucsd = project_factory(import_path=json_file, name='ucsd')
 
     resp = user_api_client().post('/api/v1/global/import')
-    if get_perms(user, project):
+    if user.is_superuser:
         assert resp.status_code == 204
         # The import should update the correctly named projects, but not the original import project
         project_ohsu.refresh_from_db()
