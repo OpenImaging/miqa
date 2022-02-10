@@ -128,14 +128,16 @@ const djangoClient = {
     return data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {
+    // Promise.all maintains order so we can reference filenames by index
     const uploadResponses = await Promise.all(files.map(
       (file) => s3ffClient.uploadFile(file, 'core.Frame.content')
     ))
     await Promise.all(uploadResponses.map(
-      async (uploadResponse) => {
+      async (uploadResponse, index) => {
       return apiClient.post(`/frames`, {
         experiment: experimentId,
-        content: uploadResponse.value
+        content: uploadResponse.value,
+        filename: files[index].name,
       });
     }));
   },

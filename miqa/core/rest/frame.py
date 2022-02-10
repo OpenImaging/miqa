@@ -44,7 +44,7 @@ class FrameSerializer(serializers.ModelSerializer):
 class FrameCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['content', 'experiment']
+        fields = ['content', 'experiment', 'filename']
         extra_kwargs = {'content': {'required': True}}
 
     def is_valid_experiment(experiment_id):
@@ -54,6 +54,7 @@ class FrameCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f'Experiment {experiment_id} does not exist.')
 
     experiment = serializers.CharField(required=True, validators=[is_valid_experiment])
+    filename = serializers.CharField(required=True)
 
 
 class FrameContentSerializer(serializers.ModelSerializer):
@@ -84,8 +85,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         serializer.is_valid(raise_exception=True)
         experiment = Experiment.objects.get(id=serializer.data['experiment'])
 
-        num_existing_scans = experiment.scans.count()
-        new_scan = Scan(name=f'SCAN_{num_existing_scans}', experiment=experiment)
+        new_scan = Scan(name=serializer.data['filename'], experiment=experiment)
         new_scan.save()
 
         content_serializer = FrameContentSerializer(
