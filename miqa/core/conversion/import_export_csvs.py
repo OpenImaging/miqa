@@ -27,7 +27,7 @@ def validate_file_locations(input_dict, project):
                     raw_path = Path(project.import_path).parent.parent / raw_path
                 if not raw_path.exists():
                     raise APIException(f'Could not locate file "{raw_path}".')
-            input_dict[key] = str(raw_path)
+            input_dict[key] = value
         else:
             input_dict[key] = validate_file_locations(value, project)
     return input_dict
