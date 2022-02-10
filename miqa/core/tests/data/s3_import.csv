@@ -1,0 +1,2 @@
+project_name,experiment_name,scan_name,scan_type,frame_number,file_location
+Guys,IXI002,0828-DTI,DTI,00,s3://miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz
