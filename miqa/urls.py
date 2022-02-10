@@ -11,6 +11,7 @@ from miqa.core.rest import (
     EmailView,
     ExperimentViewSet,
     FrameViewSet,
+    GlobalSettingsViewSet,
     HomePageView,
     LogoutView,
     MIQAConfigView,
@@ -26,6 +27,7 @@ router.register('experiments', ExperimentViewSet, basename='experiment')
 router.register('scans', ScanViewSet, basename='scan')
 router.register('frames', FrameViewSet, basename='frame')
 router.register('scan-decisions', ScanDecisionViewSet, basename='scan_decisions')
+router.register('global', GlobalSettingsViewSet, basename='global')
 router.register('users', UserViewSet)
 
 # OpenAPI generation

@@ -10,6 +10,7 @@
   "dependencies": {
     "@girder/oauth-client": "^0.7.7",
     "@mdi/font": "^6.5.95",
+    "@sentry/vue": "^6.17.6",
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^4.31.0",
     "@typescript-eslint/parser": "^4.31.0",
