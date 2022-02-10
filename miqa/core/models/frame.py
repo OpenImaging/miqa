@@ -8,7 +8,6 @@ from uuid import uuid4
 import boto3
 from django.conf import settings
 from django.db import models
-
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django_extensions.db.models import TimeStampedModel
@@ -60,8 +59,7 @@ class Frame(TimeStampedModel, models.Model):
                 return StorageMode.CONTENT_STORAGE
             elif self.raw_path.startswith('s3://'):
                 return StorageMode.S3_PATH
-        else:
-            return StorageMode.LOCAL_PATH
+        return StorageMode.LOCAL_PATH
 
     @property
     def s3_download_url(self) -> Optional[str]:

@@ -13,8 +13,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Evaluation, Experiment, Frame, Project, Scan
-from miqa.core.rest.permissions import project_permission_required
 from miqa.core.models.frame import StorageMode
+from miqa.core.rest.permissions import project_permission_required
 
 from .permissions import UserHoldsExperimentLock
 
@@ -116,10 +116,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         frame: Frame = self.get_object()
 
         if frame.storage_mode == StorageMode.LOCAL_PATH:
-            # send client zarr data instead when client is ready
-            # path: Path = frame.zarr_path
-            # if not path.exists():
-            #     return HttpResponseServerError('File no longer exists.')
+            print(frame.path)
             if not frame.path.is_file():
                 return HttpResponseServerError('File no longer exists.')
 

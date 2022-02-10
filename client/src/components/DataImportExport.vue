@@ -33,7 +33,7 @@ export default defineComponent({
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.globalImport();
         } else {
           await djangoRest.projectImport(currentProject.value.id);
@@ -45,7 +45,7 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        if (!isGlobal) {
+        if (!isGlobal.value) {
           await loadProject(currentProject.value);
         }
       } catch (ex) {
@@ -60,7 +60,7 @@ export default defineComponent({
     async function exportData() {
       exporting.value = true;
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.globalExport();
         } else {
           await djangoRest.projectExport(currentProject.value.id);

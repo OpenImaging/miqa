@@ -25,7 +25,7 @@ export default defineComponent({
     const importPath = ref('');
     const exportPath = ref('');
     watchEffect(() => {
-      if (isGlobal) {
+      if (isGlobal.value) {
         importPath.value = globalSettings.value.importPath;
         exportPath.value = globalSettings.value.exportPath;
       } else {
@@ -46,7 +46,7 @@ export default defineComponent({
         return;
       }
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.setGlobalSettings({
             importPath: importPath.value,
             exportPath: exportPath.value,
@@ -123,7 +123,6 @@ export default defineComponent({
           v-model="importPath"
           :rules="[
             v =>
-              !v.length ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
@@ -146,7 +145,6 @@ export default defineComponent({
           v-model="exportPath"
           :rules="[
             v =>
-              !v.length ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'

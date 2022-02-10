@@ -228,7 +228,7 @@ function checkLoadExperiment(oldValue, newValue) {
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        frame: frame,
+        frame,
       });
     });
   });
