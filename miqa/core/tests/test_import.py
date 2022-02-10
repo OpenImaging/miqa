@@ -261,5 +261,5 @@ def test_import_s3_preserves_path(project_factory):
     frame = Frame.objects.first()
     assert (
         frame.raw_path
-        == 's3://miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
+        == 's3:/miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
     )

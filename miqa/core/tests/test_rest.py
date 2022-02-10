@@ -36,7 +36,7 @@ def test_project_settings_get(user_api_client, project, user):
         assert resp.status_code == 401
     else:
         assert resp.status_code == 200
-        assert all(key in resp.data for key in ['importPath', 'exportPath', 'permissions'])
+        assert all(key in resp.data for key in ['import_path', 'export_path', 'permissions'])
 
 
 @pytest.mark.django_db
@@ -72,8 +72,8 @@ def test_project_settings_put(user_api_client, project, user):
         }
         assert resp.status_code == 200
         assert user_api_client.get(f'/api/v1/projects/{project.id}/settings').data == {
-            'importPath': '/new/fake/path',
-            'exportPath': '/new/fake/path',
+            'import_path': '/new/fake/path',
+            'export_path': '/new/fake/path',
             'permissions': expected_perms,
         }
         my_new_perms = get_perms(user, project)

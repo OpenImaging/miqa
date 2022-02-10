@@ -59,7 +59,7 @@ class FrameCreateSerializer(serializers.ModelSerializer):
         fields = ['content', 'experiment', 'filename']
         extra_kwargs = {'content': {'required': True}}
 
-    def is_valid_experiment(experiment_id):
+    def is_valid_experiment(self, experiment_id):
         try:
             Experiment.objects.get(id=experiment_id)
         except Experiment.DoesNotExist:
