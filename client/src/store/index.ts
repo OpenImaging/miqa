@@ -15,6 +15,7 @@ import djangoRest, { apiClient } from '@/django';
 import {
   Project, ProjectTaskOverview, User, Frame, ScanState, ProjectSettings,
 } from '@/types';
+import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
 
 import { proxy } from '../vtk';
@@ -105,10 +106,16 @@ function loadFile(frame, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frame.id)) {
     return { frameId: frame.id, fileP: fileCache.get(frame.id) };
   }
+  let client = apiClient;
+  let downloadURL = `/frames/${frame.id}/download`;
+  if (frame.download_url) {
+    client = axios.create();
+    downloadURL = frame.download_url;
+  }
   const { promise } = ReaderFactory.downloadFrame(
-    apiClient,
+    client,
     `image${frame.extension}`,
-    frame.download_url || `/frames/${frame.id}/download`,
+    downloadURL,
     { onDownloadProgress },
   );
   fileCache.set(frame.id, promise);
@@ -143,10 +150,16 @@ function poolFunction(webWorker, taskInfo) {
     if (fileCache.has(frame.id)) {
       filePromise = fileCache.get(frame.id);
     } else {
+      let client = apiClient;
+      let downloadURL = `/frames/${frame.id}/download`;
+      if (frame.download_url) {
+        client = axios.create();
+        downloadURL = frame.download_url;
+      }
       const download = ReaderFactory.downloadFrame(
-        apiClient,
+        client,
         `image${frame.extension}`,
-        frame.download_url || `/frames/${frame.id}/download`,
+        downloadURL,
       );
       filePromise = download.promise;
       fileCache.set(frame.id, filePromise);
