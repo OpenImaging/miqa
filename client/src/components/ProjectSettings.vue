@@ -18,17 +18,22 @@ export default defineComponent({
   }),
   setup() {
     const currentProject = computed(() => store.state.currentProject);
+    const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
+    const { isGlobal } = store.getters;
 
     const importPath = ref('');
     const exportPath = ref('');
-    const globalImportExport = ref(false);
     watchEffect(() => {
-      djangoRest.settings(currentProject.value.id).then((settings) => {
-        importPath.value = settings.importPath;
-        exportPath.value = settings.exportPath;
-        globalImportExport.value = settings.globalImportExport;
-      });
+      if (isGlobal) {
+        importPath.value = globalSettings.value.importPath;
+        exportPath.value = globalSettings.value.exportPath;
+      } else {
+        djangoRest.settings(currentProject.value.id).then((settings) => {
+          importPath.value = settings.importPath;
+          exportPath.value = settings.exportPath;
+        });
+      }
     });
 
     const changed = ref(false);
@@ -41,11 +46,17 @@ export default defineComponent({
         return;
       }
       try {
-        await djangoRest.setSettings(currentProject.value.id, {
-          importPath: importPath.value,
-          exportPath: exportPath.value,
-          globalImportExport: globalImportExport.value,
-        });
+        if (isGlobal) {
+          await djangoRest.setGlobalSettings({
+            importPath: importPath.value,
+            exportPath: exportPath.value,
+          });
+        } else {
+          await djangoRest.setProjectSettings(currentProject.value.id, {
+            importPath: importPath.value,
+            exportPath: exportPath.value,
+          });
+        }
         changed.value = false;
       } catch (e) {
         const { message } = e.response.data;
@@ -63,10 +74,10 @@ export default defineComponent({
 
     return {
       currentProject,
+      isGlobal,
       projects,
       importPath,
       exportPath,
-      globalImportExport,
       changed,
       importPathError,
       exportPathError,
@@ -80,7 +91,7 @@ export default defineComponent({
       try {
         await djangoRest.deleteProject(this.currentProject.id);
         this.setProjects(this.projects.filter((proj) => proj.id !== this.currentProject.id));
-        this.setCurrentProject(null);
+        this.setCurrentProject(undefined);
         this.showDeleteWarningOverlay = false;
 
         this.$snackbar({
@@ -151,30 +162,6 @@ export default defineComponent({
       </v-flex>
     </v-layout>
     <v-layout>
-      <v-switch
-        v-model="globalImportExport"
-        :disabled="!user.is_superuser"
-        @click="changed = true"
-        color="primary"
-        label="Global import/export"
-      />
-      <v-tooltip top>
-        <template v-slot:activator="{ on, attrs }">
-          <v-icon
-            v-bind="attrs"
-            v-on="on"
-            color="primary"
-            small
-            class="mx-1"
-          >
-            mdi-information-outline
-          </v-icon>
-        </template>
-        Global imports/exports will use the project name from the import file, which will
-        potentially modify other projects.
-      </v-tooltip>
-    </v-layout>
-    <v-layout>
       <v-row>
         <v-col cols="1">
           <v-btn
@@ -194,7 +181,7 @@ export default defineComponent({
           class="text-right"
         >
           <v-btn
-            v-if="user.is_superuser"
+            v-if="user.is_superuser && !isGlobal"
             @click="showDeleteWarningOverlay = true"
             class="red white--text"
             style="float: right"
@@ -205,6 +192,7 @@ export default defineComponent({
       </v-row>
     </v-layout>
     <v-overlay
+      v-if="user.is_superuser && !isGlobal"
       :value="showDeleteWarningOverlay"
       :dark="false"
     >
