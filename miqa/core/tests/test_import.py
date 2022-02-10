@@ -8,7 +8,7 @@ from guardian.shortcuts import get_perms
 import pytest
 from rest_framework.exceptions import APIException
 
-from miqa.core.models import GlobalSettings
+from miqa.core.models import Frame, GlobalSettings
 from miqa.core.tasks import import_data
 
 
@@ -250,3 +250,16 @@ def test_import_invalid_json(
         match=re.escape('Invalid format of import file'),
     ):
         import_data(project.id)
+
+
+@pytest.mark.django_db
+def test_import_s3_preserves_path(project_factory):
+    s3_import_csv = Path(__file__).parent / 'data' / 's3_import.csv'
+    project = project_factory(import_path=s3_import_csv)
+    import_data(project.id)
+
+    frame = Frame.objects.first()
+    assert (
+        frame.raw_path
+        == 's3://miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
+    )

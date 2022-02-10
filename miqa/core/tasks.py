@@ -1,8 +1,11 @@
+from io import BytesIO, StringIO
 import json
 from pathlib import Path
 from typing import Optional
 
+import boto3
 from celery import shared_task
+from django.conf import settings
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -13,12 +16,13 @@ from miqa.core.conversion.import_export_csvs import (
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Project, Scan
-from miqa.learning.evaluation_models import available_evaluation_models
-from miqa.learning.nn_inference import evaluate_many
 
 
 @shared_task
 def evaluate_data(frames_by_project):
+    from miqa.learning.evaluation_models import available_evaluation_models
+    from miqa.learning.nn_inference import evaluate_many
+
     model_to_frames_map = {}
     for project_id, frame_ids in frames_by_project.items():
         project = Project.objects.get(id=project_id)
@@ -45,6 +49,14 @@ def evaluate_data(frames_by_project):
         )
 
 
+def _download_from_s3(path: str) -> bytes:
+    bucket, key = path.strip()[5:].split('/', maxsplit=1)
+    client = boto3.client('s3')
+    buf = BytesIO()
+    client.download_fileobj(bucket, key, buf)
+    return buf.getvalue()
+
+
 def import_data(project_id: Optional[str]):
     if project_id is None:
         project = None
@@ -54,10 +66,18 @@ def import_data(project_id: Optional[str]):
         import_path = project.import_path
 
     if import_path.endswith('.csv'):
-        import_dict = import_dataframe_to_dict(pandas.read_csv(import_path))
+        if import_path.startswith('s3://'):
+            buf = _download_from_s3(import_path).decode('utf-8')
+        else:
+            with open(import_path) as fd:
+                buf = fd.read()
+        import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
     elif import_path.endswith('.json'):
-        with open(import_path) as import_fd:
-            import_dict = json.load(import_fd)
+        if import_path.startswith('s3://'):
+            import_dict = json.loads(_download_from_s3(import_path))
+        else:
+            with open(import_path) as fd:
+                import_dict = json.load(fd)
     else:
         raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
 
@@ -102,7 +122,8 @@ def perform_import(import_dict, project_id: Optional[str]):
                         scan=scan_object,
                     )
                     new_frames.append(frame_object)
-                    nifti_to_zarr_ngff.delay(frame_data['file_location'])
+                    if settings.ZARR_SUPPORT:
+                        nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
