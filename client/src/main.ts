@@ -5,6 +5,7 @@ import Vuetify from 'vuetify';
 import AsyncComputed from 'vue-async-computed';
 import config from 'itk/itkConfig';
 import IdleVue from 'idle-vue';
+import * as Sentry from '@sentry/vue';
 import App from './App.vue';
 import router from './router';
 
@@ -38,6 +39,11 @@ Vue.use(promptService(vuetify));
 config.itkModulesPath = STATIC_PATH + config.itkModulesPath;
 
 Vue.config.productionTip = true;
+
+Sentry.init({
+  Vue,
+  dsn: process.env.VUE_APP_SENTRY_DSN,
+});
 
 djangoRest.restoreLogin(store).then(async () => {
   await Promise.all([store.dispatch.loadMe(), store.dispatch.loadConfiguration()]);
