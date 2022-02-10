@@ -25,7 +25,6 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 
     import_path = factory.Faker('file_path')
     export_path = factory.Faker('file_path')
-    global_import_export = False
 
 
 class ExperimentFactory(factory.django.DjangoModelFactory):
