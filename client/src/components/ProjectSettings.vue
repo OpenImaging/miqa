@@ -174,7 +174,7 @@ export default defineComponent({
           </v-btn>
         </v-col>
         <v-col cols="9">
-          <DataImportExport v-if="user.is_superuser" />
+          <DataImportExport />
         </v-col>
         <v-col
           cols="2"

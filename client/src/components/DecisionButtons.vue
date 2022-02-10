@@ -23,7 +23,6 @@ export default {
       newComment: '',
       confirmedPresent: [],
       confirmedAbsent: [],
-      storeCrosshairs: true,
     };
   },
   computed: {
@@ -31,6 +30,7 @@ export default {
       'currentViewData',
       'proxyManager',
       'vtkViews',
+      'storeCrosshairs',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -109,10 +109,14 @@ export default {
   },
   methods: {
     convertValueToLabel(artifactName) {
-      return artifactName.replace('susceptibility_metal', 'metal_susceptibility').replace(/_/g, ' ').replace(
-        /\w\S*/g,
-        (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-      );
+      return artifactName
+        .replace('susceptibility_metal', 'metal_susceptibility')
+        .replace('partial_brain_coverage', 'partial_coverage')
+        .replace(/_/g, ' ')
+        .replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        );
     },
     getCurrentChipState(artifact) {
       // this function determines the styling of the four chip states.
@@ -220,36 +224,38 @@ export default {
 </script>
 
 <template>
-  <div style="pa-0 ma-0">
-    <v-row no-gutters>
-      <v-col cols="7">
-        <v-subheader class="pl-0">
-          Indicate presence/absence of artifacts in this scan
-          <v-tooltip bottom>
-            <template v-slot:activator="{ on, attrs }">
-              <v-icon
-                v-bind="attrs"
-                v-on="on"
-                small
-                class="pl-2"
-              >
-                info
-              </v-icon>
-            </template>
-            <span>
-              Toggle each tag below.
-              Fill red to confirm an artifact is present.
-              Crossthrough to confirm an artifact is absent.
-            </span>
-          </v-tooltip>
-        </v-subheader>
-      </v-col>
-      <v-col
+  <v-container
+    v-if="experimentIsEditable"
+    fluid
+    class="px-5"
+  >
+    <v-flex class="d-flex">
+      <v-subheader class="pa-0  ma-0">
+        Indicate artifacts in this scan
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attrs }">
+            <v-icon
+              v-bind="attrs"
+              v-on="on"
+              small
+              class="pl-2"
+            >
+              info
+            </v-icon>
+          </template>
+          <span>
+            Toggle each tag below.
+            Fill red to confirm an artifact is present.
+            Crossthrough to confirm an artifact is absent.
+          </span>
+        </v-tooltip>
+      </v-subheader>
+      <v-flex
         v-if="currentViewData.currentAutoEvaluation"
-        cols="5"
+        cols="6"
         class="d-flex justify-end align-center"
       >
-        <v-subheader class="pr-0">
+        <v-subheader class="pa-0 ma-0">
           Auto evaluation
         </v-subheader>
         <v-tooltip bottom>
@@ -270,13 +276,13 @@ export default {
         <EvaluationResults
           :results="currentViewData.currentAutoEvaluation.results"
         />
-      </v-col>
-      <v-col
+      </v-flex>
+      <v-flex
         v-else
         cols="5"
         class="d-flex justify-end align-center"
       >
-        <v-subheader class="pr-0">
+        <v-subheader class="pa-0 ma-0">
           No Auto evaluation available
         </v-subheader>
         <v-tooltip bottom>
@@ -294,8 +300,8 @@ export default {
             An evaluation performed by the MIQA server using artificial intelligence
           </span>
         </v-tooltip>
-      </v-col>
-    </v-row>
+      </v-flex>
+    </v-flex>
     <v-row no-gutters>
       <v-col
         cols="12"
@@ -310,17 +316,16 @@ export default {
           :color="chipState.color"
           :text-color="chipState.textColor"
           :style="'text-decoration: '+chipState.textDecoration +'; margin-bottom: 3px;'"
+          small
         >
           {{ chipState.label }}
         </v-chip>
       </v-col>
     </v-row>
-    <v-row
-      v-if="experimentIsEditable"
-    >
+    <v-row dense>
       <v-col
         cols="12"
-        class="pb-0 mb-0 pt-5"
+        class="pt-5"
       >
         <v-textarea
           @input="handleCommentChange"
@@ -329,7 +334,7 @@ export default {
           v-model="newComment"
           filled
           no-resize
-          height="60px"
+          height="75px"
           name="input-comment"
           label="Evaluation Comment"
           placeholder="Write a comment about the scan and submit a decision"
@@ -338,7 +343,7 @@ export default {
     </v-row>
     <v-row
       v-if="warnDecision"
-      no-gutters
+      dense
     >
       <v-col
         cols="12"
@@ -348,16 +353,9 @@ export default {
         Decisions other than "usable" must have a comment.
       </v-col>
     </v-row>
-    <v-row
-      v-if="experimentIsEditable"
-      dense
-      class="pr-3"
-    >
-      <v-col cols="9">
-        <div
-          no-gutters
-          class="button-container"
-        >
+    <v-row dense>
+      <v-col cols="12">
+        <div class="button-container">
           <div
             v-for="option in options"
             :key="option.code"
@@ -372,23 +370,8 @@ export default {
           </div>
         </div>
       </v-col>
-      <v-col
-        cols="1"
-        align="right"
-      >
-        <v-simple-checkbox
-          :value="storeCrosshairs"
-          @input="(value) => storeCrosshairs = value"
-        />
-      </v-col>
-      <v-col
-        cols="2"
-        class="pa-0"
-      >
-        Store crosshair location
-      </v-col>
     </v-row>
-  </div>
+  </v-container>
 </template>
 
 <style scoped>
@@ -396,5 +379,8 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+}
+.v-subheader {
+  height: 30px;
 }
 </style>
