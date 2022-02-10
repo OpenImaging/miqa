@@ -1,6 +1,4 @@
-from pathlib import Path
-
-from django.http import FileResponse, HttpResponseServerError
+from django.http import FileResponse, HttpResponseRedirect, HttpResponseServerError
 from django_filters import rest_framework as filters
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import serializers
@@ -31,7 +29,7 @@ class FrameSerializer(serializers.ModelSerializer):
     extension = serializers.SerializerMethodField('get_extension')
 
     def get_extension(self, obj):
-        return ''.join(Path(obj.raw_path).suffixes)
+        return ''.join(obj.path.suffixes)
 
 
 class FrameViewSet(ListModelMixin, GenericViewSet):
@@ -51,17 +49,18 @@ class FrameViewSet(ListModelMixin, GenericViewSet):
     @project_permission_required(experiments__scans__frames__pk='pk')
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
-        path: Path = frame.path
 
-        if not path.is_file():
-            return HttpResponseServerError('File no longer exists.')
+        if frame.is_in_s3:
+            return HttpResponseRedirect(frame.s3_download_url)
+        else:
+            # send client zarr data instead when client is ready
+            # path: Path = frame.zarr_path
+            # if not path.exists():
+            #     return HttpResponseServerError('File no longer exists.')
+            if not frame.path.is_file():
+                return HttpResponseServerError('File no longer exists.')
 
-        # send client zarr data instead when client is ready
-        # path: Path = frame.zarr_path
-        # if not path.exists():
-        #     return HttpResponseServerError('File no longer exists.')
-
-        fd = open(path, 'rb')
-        resp = FileResponse(fd, filename=str(frame.frame_number))
-        resp['Content-Length'] = frame.size
-        return resp
+            with open(frame.path, 'rb') as fd:
+                resp = FileResponse(fd, filename=str(frame.frame_number))
+                resp['Content-Length'] = frame.size
+                return resp

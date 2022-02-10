@@ -8,11 +8,21 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-from miqa.learning.nn_inference import artifacts
-
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
+artifacts = [
+    'normal_variants',
+    'lesions',
+    'full_brain_coverage',
+    'misalignment',
+    'swap_wraparound',
+    'ghosting_motion',
+    'inhomogeneity',
+    'susceptibility_metal',
+    'flow_artifact',
+    'truncation_artifact',
+]
 
 DECISION_CHOICES = [
     ('U', 'Usable'),
