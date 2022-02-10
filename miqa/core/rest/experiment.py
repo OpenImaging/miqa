@@ -72,6 +72,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
         request_body=ExperimentCreateSerializer(),
         responses={201: ExperimentSerializer},
     )
+    @project_permission_required(experiments__pk='pk')
     def create(self, request, *args, **kwargs):
         serializer = ExperimentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

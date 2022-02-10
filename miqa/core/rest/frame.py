@@ -92,6 +92,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         request_body=FrameCreateSerializer(),
         responses={201: FrameSerializer},
     )
+    @project_permission_required(experiments__scans__frames__pk='pk')
     def create(self, request, *args, **kwargs):
         serializer = FrameCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
