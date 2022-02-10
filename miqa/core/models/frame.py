@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
+import boto3
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
@@ -38,3 +39,15 @@ class Frame(TimeStampedModel, models.Model):
     @property
     def experiment(self) -> Experiment:
         return self.scan.experiment
+
+    @property
+    def is_in_s3(self) -> bool:
+        return self.raw_path.startswith('s3://')
+
+    @property
+    def s3_download_url(self) -> Optional[str]:
+        if not self.is_in_s3:
+            return None
+        bucket, key = self.raw_path.strip()[5:].split('/', maxsplit=1)
+        client = boto3.client('s3')
+        return client.generate_presigned_url('get_object', Params={'Bucket': bucket, 'Key': key})

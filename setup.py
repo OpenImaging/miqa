@@ -47,23 +47,13 @@ setup(
         'django-click',
         'django-guardian',
         'drf-yasg',
+        'pandas',
         'uri',
-        # For Neural Net
-        'monai',
-        'sklearn',
-        'torch',
-        'torchio',
-        'tensorboard',
-        'wandb',
         # Production-only
         'django-composed-configuration[prod]',
         'django-s3-file-field[boto3]',
         'gunicorn',
         'schema',
-        'spatial_image_ngff',
-        'spatial_image_multiscale',
-        'itk-io',
-        'itk-filtering',
     ],
     extras_require={
         'dev': [
@@ -74,6 +64,19 @@ setup(
             'tox',
             'django-click',
             'factory_boy',
-        ]
+        ],
+        'learning': [
+            'monai',
+            'sklearn',
+            'torch',
+            'torchio',
+            'wandb',
+        ],
+        'zarr': [
+            'itk-io',
+            'itk-filtering',
+            'spatial_image_ngff',
+            'spatial_image_multiscale',
+        ],
     },
 )

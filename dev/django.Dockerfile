@@ -14,7 +14,7 @@ ENV PYTHONUNBUFFERED 1
 # over top of this directory, the .egg-link in site-packages resolves to the mounted directory
 # and all package modules are importable.
 COPY ./setup.py /opt/django-project/setup.py
-RUN pip install --editable /opt/django-project[dev]
+RUN pip install --editable /opt/django-project[dev,zarr,learning]
 
 # Use a directory name which will never be an import name, as isort considers this as first-party.
 WORKDIR /opt/django-project

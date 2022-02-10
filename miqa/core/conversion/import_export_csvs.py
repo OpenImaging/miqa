@@ -19,19 +19,17 @@ IMPORT_CSV_COLUMNS = [
 def validate_file_locations(input_dict, project):
     if not isinstance(input_dict, dict):
         return input_dict
+    import_path = GlobalSettings.load().import_path if project is None else project.import_path
     for key, value in input_dict.items():
         if key == 'file_location':
             raw_path = Path(value)
-            if not raw_path.is_absolute():
-                import_path = (
-                    GlobalSettings.load().import_path if project is None else project.import_path
-                )
-                # not an absolute file path; refer to import csv location
-                raw_path = Path(import_path).parent.parent / raw_path
-                # TODO: add support for interpreting URIs not on host machine
-            if not raw_path.exists():
-                raise APIException(f'Could not locate file "{raw_path}".')
-            input_dict[key] = str(raw_path)
+            if not value.startswith('s3://'):
+                if not raw_path.is_absolute():
+                    # not an absolute file path; refer to project import csv location
+                    raw_path = Path(import_path).parent.parent / raw_path
+                if not raw_path.exists():
+                    raise APIException(f'Could not locate file "{raw_path}".')
+            input_dict[key] = value
         else:
             input_dict[key] = validate_file_locations(value, project)
     return input_dict
