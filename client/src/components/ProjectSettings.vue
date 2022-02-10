@@ -20,7 +20,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
-    const { isGlobal } = store.getters;
+    const isGlobal = computed(() => store.getters.isGlobal);
 
     const importPath = ref('');
     const exportPath = ref('');

@@ -37,7 +37,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
-    const { isGlobal } = store.getters;
+    const isGlobal = computed(() => store.getters.isGlobal);
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
@@ -81,6 +81,7 @@ export default defineComponent({
       currentTaskOverview,
       selectedProjectIndex,
       projects,
+      isGlobal,
       selectProject,
       selectGlobal,
       overviewSections,
@@ -245,7 +246,10 @@ export default defineComponent({
             </vc-donut>
           </v-card>
         </div>
-        <div class="flex-container">
+        <div
+          v-if="!isGlobal"
+          class="flex-container"
+        >
           <ExperimentsView />
           <ProjectUsers />
         </div>

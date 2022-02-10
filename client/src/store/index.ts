@@ -122,7 +122,7 @@ function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
     })
-    .catch((error) => {
+    .catch(() => {
       const msg = 'loadFileAndGetData caught error getting data';
       return Promise.reject(msg);
     })
@@ -587,6 +587,7 @@ const {
         importPath: globalSettings.import_path,
         exportPath: globalSettings.export_path,
       });
+      commit('setTaskOverview', {});
     },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
