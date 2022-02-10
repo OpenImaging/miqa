@@ -17,7 +17,6 @@ import {
 } from '@/types';
 import ReaderFactory from '../utils/ReaderFactory';
 
-import axios from 'axios';
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 

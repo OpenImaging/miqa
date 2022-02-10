@@ -32,7 +32,7 @@ const djangoClient = {
         oauthClient.authHeaders,
       );
       s3ffClient = new S3FileFieldClient({
-        baseUrl: API_URL + '/s3-upload/',
+        baseUrl: `${API_URL}/s3-upload/`,
         apiConfig: {
           headers: apiClient.defaults.headers.common,
         },
@@ -121,25 +121,24 @@ const djangoClient = {
     return data;
   },
   async createExperiment(projectId:string, experimentName: string) {
-    const { data } = await apiClient.post(`/experiments`, {
+    const { data } = await apiClient.post('/experiments', {
       project: projectId,
-      name: experimentName
+      name: experimentName,
     });
     return data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {
     // Promise.all maintains order so we can reference filenames by index
     const uploadResponses = await Promise.all(files.map(
-      (file) => s3ffClient.uploadFile(file, 'core.Frame.content')
-    ))
+      (file) => s3ffClient.uploadFile(file, 'core.Frame.content'),
+    ));
     await Promise.all(uploadResponses.map(
-      async (uploadResponse, index) => {
-      return apiClient.post(`/frames`, {
+      async (uploadResponse, index) => apiClient.post('/frames', {
         experiment: experimentId,
         content: uploadResponse.value,
         filename: files[index].name,
-      });
-    }));
+      }),
+    ));
   },
   async setExperimentNote(experimentId: string, note: string) {
     const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });

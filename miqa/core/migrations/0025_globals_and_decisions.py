@@ -5,12 +5,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [
-        ('core', '0025_decision_location'),
-        ('core', '0026_merge_0025_decision_location_0025_globalsettings'),
-        ('core', '0027_remove_project_global_boolean'),
-    ]
-
     dependencies = [
         ('core', '0024_alter_frame_raw_path'),
     ]

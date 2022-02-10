@@ -121,7 +121,37 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
                     previously_locked_experiment.save()
                 experiment.lock_owner = request.user
                 experiment.save(update_fields=['lock_owner'])
+
                 return Response(
                     ExperimentSerializer(experiment).data,
                     status=status.HTTP_200_OK,
                 )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(
+        request_body=no_body,
+        responses={
+            200: 'Lock released.',
+            204: 'Lock not yet acquired for release.',
+            409: 'The lock is held by a different user.',
+        },
+    )
+    @project_permission_required(review_access=True, experiments__pk='pk')
+    @lock.mapping.delete
+    def release_lock(self, request, pk=None):
+        """Release the exclusive write lock on this experiment."""
+        with transaction.atomic():
+            experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
+
+            if experiment.lock_owner is not None and experiment.lock_owner != request.user:
+                raise LockContention()
+
+            if experiment.lock_owner is not None:
+                experiment.lock_owner = None
+                experiment.save(update_fields=['lock_owner'])
+
+                return Response(
+                    ExperimentSerializer(experiment).data,
+                    status=status.HTTP_200_OK,
+                )
+        return Response(status=status.HTTP_204_NO_CONTENT)
