@@ -28,11 +28,16 @@ export default defineComponent({
     const exporting = ref(false);
 
     async function importData() {
+      const { isGlobal } = store.getters;
       importing.value = true;
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        await djangoRest.import(currentProject.value.id);
+        if (isGlobal) {
+          await djangoRest.globalImport();
+        } else {
+          await djangoRest.projectImport(currentProject.value.id);
+        }
         importing.value = false;
 
         this.$snackbar({
@@ -40,7 +45,9 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        await loadProject(currentProject.value);
+        if (!isGlobal) {
+          await loadProject(currentProject.value);
+        }
       } catch (ex) {
         importing.value = false;
         this.$snackbar({
@@ -51,9 +58,14 @@ export default defineComponent({
       importDialog.value = false;
     }
     async function exportData() {
+      const { isGlobal } = store.getters;
       exporting.value = true;
       try {
-        await djangoRest.export(currentProject.value.id);
+        if (isGlobal) {
+          await djangoRest.globalExport();
+        } else {
+          await djangoRest.projectExport(currentProject.value.id);
+        }
         this.$snackbar({
           text: 'Saved data to file successfully.',
           timeout: 6000,
@@ -67,9 +79,11 @@ export default defineComponent({
       }
       exporting.value = false;
     }
+    const { isGlobal } = store.getters;
 
     return {
       currentProject,
+      isGlobal,
       loadProject,
       importing,
       importDialog,
@@ -102,7 +116,7 @@ export default defineComponent({
           Import
         </v-btn>
       </template>
-      <span>Import from {{ currentProject.settings.importPath }}</span>
+      <span>Import from import path</span>
     </v-tooltip>
 
     <v-tooltip
@@ -130,7 +144,7 @@ export default defineComponent({
           </span>
         </v-btn>
       </template>
-      <span>Export to {{ currentProject.settings.exportPath }}</span>
+      <span>Export to export path</span>
     </v-tooltip>
 
     <v-dialog
@@ -142,7 +156,10 @@ export default defineComponent({
         <v-card-title class="title">
           Import
         </v-card-title>
-        <v-card-text>
+        <v-card-text v-if="isGlobal">
+          Importing data will overwrite all objects in every project listed in the import file.
+          Are you sure you want to overwrite all objects in multiple projects?
+        </v-card-text><v-card-text v-else>
           Importing data will overwrite all objects in this project, do you want
           to continue?
         </v-card-text>

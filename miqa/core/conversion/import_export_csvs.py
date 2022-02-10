@@ -1,9 +1,10 @@
 from pathlib import Path
+from typing import Optional
 
 from rest_framework.exceptions import APIException
 from schema import And, Schema, SchemaError, Use
 
-from miqa.core.models import Project
+from miqa.core.models import GlobalSettings, Project
 
 IMPORT_CSV_COLUMNS = [
     'project_name',
@@ -22,8 +23,11 @@ def validate_file_locations(input_dict, project):
         if key == 'file_location':
             raw_path = Path(value)
             if not raw_path.is_absolute():
-                # not an absolute file path; refer to project import csv location
-                raw_path = Path(project.import_path).parent.parent / raw_path
+                import_path = (
+                    GlobalSettings.load().import_path if project is None else project.import_path
+                )
+                # not an absolute file path; refer to import csv location
+                raw_path = Path(import_path).parent.parent / raw_path
                 # TODO: add support for interpreting URIs not on host machine
             if not raw_path.exists():
                 raise APIException(f'Could not locate file "{raw_path}".')
@@ -33,7 +37,7 @@ def validate_file_locations(input_dict, project):
     return input_dict
 
 
-def validate_import_dict(import_dict, project: Project):
+def validate_import_dict(import_dict, project: Optional[Project]):
     import_schema = Schema(
         {
             'projects': {
@@ -56,8 +60,9 @@ def validate_import_dict(import_dict, project: Project):
         import_schema.validate(import_dict)
         import_dict = validate_file_locations(import_dict, project)
     except SchemaError:
-        raise APIException(f'Invalid format of import file {project.import_path}')
-    if project.global_import_export:
+        import_path = GlobalSettings.load().import_path if project is None else project.import_path
+        raise APIException(f'Invalid format of import file {import_path}')
+    if not project:
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
                 raise APIException(f'Project {project_name} does not exist')
