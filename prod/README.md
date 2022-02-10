@@ -106,7 +106,7 @@ Once your import file is written, you may click the "Import" button on the Proje
 Now that data is ingested into your Project, you may now also click the "Export" button to write to your specified export file path. The export file does not need to exist already, but if it does, its contents will be overwritten by the "Export" action. The contents written to your export file are an ingestable format that can be recycled as an import file.
 
 
-# Ongoing development
+# Updating the deployment
 To non-destructively update your instance at any time:
 1. Pull changes from github.
 2. Run `docker-compose pull`
