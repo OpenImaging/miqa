@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from django.http import FileResponse, HttpResponseRedirect, HttpResponseServerError
+from django.core.exceptions import BadRequest
+from django.http import FileResponse, HttpResponseServerError
 from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user
@@ -27,11 +28,18 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class FrameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['id', 'frame_number', 'frame_evaluation', 'extension']
+        fields = [
+            'id',
+            'frame_number',
+            'frame_evaluation',
+            'extension',
+            'download_url',
+        ]
         ref_name = 'scan_frame'
 
     frame_evaluation = EvaluationSerializer()
     extension = serializers.SerializerMethodField('get_extension')
+    download_url = serializers.SerializerMethodField('get_download_url')
 
     def get_extension(self, obj):
         if obj.content:
@@ -39,6 +47,10 @@ class FrameSerializer(serializers.ModelSerializer):
         else:
             filename = obj.raw_path
         return ''.join(Path(filename).suffixes)
+
+    def get_download_url(self, obj):
+        if obj.storage_mode == StorageMode.CONTENT_STORAGE:
+            return obj.content.url
 
 
 class FrameCreateSerializer(serializers.ModelSerializer):
@@ -103,11 +115,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
     def download(self, request, pk=None, **kwargs):
         frame: Frame = self.get_object()
 
-        if frame.storage_mode == StorageMode.S3_PATH:
-            return HttpResponseRedirect(frame.s3_download_url)
-        elif frame.storage_mode == StorageMode.CONTENT_STORAGE:
-            return HttpResponseRedirect(frame.content.url)
-        else:
+        if frame.storage_mode == StorageMode.LOCAL_PATH:
             # send client zarr data instead when client is ready
             # path: Path = frame.zarr_path
             # if not path.exists():
@@ -119,3 +127,4 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
             resp = FileResponse(fd, filename=str(frame.frame_number))
             resp['Content-Length'] = frame.size
             return resp
+        raise BadRequest('This endpoint is only valid for local files on the server machine.')

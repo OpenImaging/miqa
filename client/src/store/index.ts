@@ -101,23 +101,23 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  if (fileCache.has(frameId)) {
-    return { frameId, fileP: fileCache.get(frameId) };
+function loadFile(frame, { onDownloadProgress = null } = {}) {
+  if (fileCache.has(frame.id)) {
+    return { frameId: frame.id, fileP: fileCache.get(frame.id) };
   }
   const { promise } = ReaderFactory.downloadFrame(
     apiClient,
-    `image${frameExtension}`,
-    `/frames/${frameId}/download`,
+    `image${frame.extension}`,
+    frame.download_url || `/frames/${frame.id}/download`,
     { onDownloadProgress },
   );
-  fileCache.set(frameId, promise);
-  return { frameId, fileP: promise };
+  fileCache.set(frame.id, promise);
+  return { frameId: frame.id, fileP: promise };
 }
 
-function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  const loadResult = loadFile(frameId, frameExtension, { onDownloadProgress });
-  return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
+function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frame, { onDownloadProgress });
+  return loadResult.fileP.then((file) => getData(frame.id, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
@@ -136,20 +136,20 @@ function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null
 
 function poolFunction(webWorker, taskInfo) {
   return new Promise((resolve, reject) => {
-    const { frameId, frameExtension } = taskInfo;
+    const { frame } = taskInfo;
 
     let filePromise = null;
 
-    if (fileCache.has(frameId)) {
-      filePromise = fileCache.get(frameId);
+    if (fileCache.has(frame.id)) {
+      filePromise = fileCache.get(frame.id);
     } else {
       const download = ReaderFactory.downloadFrame(
         apiClient,
-        `image${frameExtension}`,
-        `/frames/${frameId}/download`,
+        `image${frame.extension}`,
+        frame.download_url || `/frames/${frame.id}/download`,
       );
       filePromise = download.promise;
-      fileCache.set(frameId, filePromise);
+      fileCache.set(frame.id, filePromise);
       pendingFrameDownloads.add(download);
       filePromise.then(() => {
         pendingFrameDownloads.delete(download);
@@ -160,7 +160,7 @@ function poolFunction(webWorker, taskInfo) {
 
     filePromise
       .then((file) => {
-        resolve(getData(frameId, file, webWorker));
+        resolve(getData(frame.id, file, webWorker));
       })
       .catch((err) => {
         reject(err);
@@ -228,8 +228,7 @@ function checkLoadExperiment(oldValue, newValue) {
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        frameId: frame.id,
-        frameExtension: frame.extension,
+        frame: frame,
       });
     });
   });
@@ -793,7 +792,7 @@ const {
           frameData = frameCache.get(frame.id).frameData;
         } else {
           const result = await loadFileAndGetData(
-            frame.id, frame.extension, { onDownloadProgress },
+            frame, { onDownloadProgress },
           );
           frameData = result.frameData;
         }
