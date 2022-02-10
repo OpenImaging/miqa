@@ -57,7 +57,7 @@ def _download_from_s3(path: str) -> bytes:
     return buf.getvalue()
 
 
-def import_data(user_id, project_id: Optional[str]):
+def import_data(project_id: Optional[str]):
     if project_id is None:
         project = None
         import_path = GlobalSettings.load().import_path

@@ -253,10 +253,10 @@ def test_import_invalid_json(
 
 
 @pytest.mark.django_db
-def test_import_s3_preserves_path(project_factory, user):
+def test_import_s3_preserves_path(project_factory):
     s3_import_csv = Path(__file__).parent / 'data' / 's3_import.csv'
     project = project_factory(import_path=s3_import_csv)
-    import_data(user.id, project.id)
+    import_data(project.id)
 
     frame = Frame.objects.first()
     assert (
