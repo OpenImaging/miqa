@@ -15,6 +15,7 @@ from rest_framework.viewsets import GenericViewSet
 from miqa.core.models import Evaluation, Experiment, Frame, Project, Scan
 from miqa.core.models.frame import StorageMode
 from miqa.core.rest.permissions import project_permission_required
+from miqa.core.tasks import evaluate_frame_content
 
 from .permissions import UserHoldsExperimentLock
 
@@ -109,6 +110,7 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         )
         content_serializer.is_valid(raise_exception=True)
         new_frame = content_serializer.save()
+        evaluate_frame_content.delay(str(new_frame.id))
         return Response(
             FrameSerializer(new_frame).data,
             status=status.HTTP_201_CREATED,

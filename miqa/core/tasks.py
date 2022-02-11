@@ -19,6 +19,24 @@ from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Proj
 
 
 @shared_task
+def evaluate_frame_content(frame_id):
+    from miqa.learning.evaluation_models import available_evaluation_models
+    from miqa.learning.nn_inference import evaluate1
+
+    frame = Frame.objects.get(id=frame_id)
+    eval_model_name = frame.scan.experiment.project.evaluation_models[[frame.scan.scan_type][0]]
+    eval_model = available_evaluation_models[eval_model_name].load()
+    # How can we send the content to the ML evaluation?
+    result = evaluate1(eval_model, frame.content.url)
+
+    Evaluation.objects.create(
+        frame=frame,
+        evaluation_model=eval_model_name,
+        results=result,
+    )
+
+
+@shared_task
 def evaluate_data(frames_by_project):
     from miqa.learning.evaluation_models import available_evaluation_models
     from miqa.learning.nn_inference import evaluate_many
