@@ -20,18 +20,18 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
-    const { isGlobal } = store.getters;
+    const isGlobal = computed(() => store.getters.isGlobal);
 
     const importPath = ref('');
     const exportPath = ref('');
     watchEffect(() => {
-      if (isGlobal) {
-        importPath.value = globalSettings.value.importPath;
-        exportPath.value = globalSettings.value.exportPath;
+      if (isGlobal.value) {
+        importPath.value = globalSettings.value.import_path;
+        exportPath.value = globalSettings.value.export_path;
       } else {
         djangoRest.settings(currentProject.value.id).then((settings) => {
-          importPath.value = settings.importPath;
-          exportPath.value = settings.exportPath;
+          importPath.value = settings.import_path;
+          exportPath.value = settings.export_path;
         });
       }
     });
@@ -46,15 +46,15 @@ export default defineComponent({
         return;
       }
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.setGlobalSettings({
-            importPath: importPath.value,
-            exportPath: exportPath.value,
+            import_path: importPath.value,
+            export_path: exportPath.value,
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {
-            importPath: importPath.value,
-            exportPath: exportPath.value,
+            import_path: importPath.value,
+            export_path: exportPath.value,
           });
         }
         changed.value = false;
@@ -122,7 +122,6 @@ export default defineComponent({
         <v-text-field
           v-model="importPath"
           :rules="[
-            v => !!v || 'path is required',
             v =>
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
@@ -132,7 +131,7 @@ export default defineComponent({
           :error-messages="importPathError"
           @input="changed = true"
           label="Import path"
-          placeholder=" "
+          placeholder="Specify a server path to read an import file"
           autocomplete="on"
           name="miqa-json-import-path"
         />
@@ -145,7 +144,6 @@ export default defineComponent({
         <v-text-field
           v-model="exportPath"
           :rules="[
-            v => !!v || 'path is required',
             v =>
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
@@ -155,42 +153,36 @@ export default defineComponent({
           :error-messages="exportPathError"
           @input="changed = true"
           label="Export path"
-          placeholder=" "
+          placeholder="Specify a server path to write an export file"
           autocomplete="on"
           name="miqa-json-export-path"
         />
       </v-flex>
     </v-layout>
-    <v-layout>
-      <v-row>
-        <v-col cols="1">
-          <v-btn
-            :disabled="!changed"
-            v-if="user.is_superuser"
-            type="submit"
-            color="primary"
-          >
-            Save
-          </v-btn>
-        </v-col>
-        <v-col cols="9">
-          <DataImportExport />
-        </v-col>
-        <v-col
-          cols="2"
-          class="text-right"
+    <v-flex
+      class="d-flex"
+      style="flex-direction: row"
+    >
+      <v-btn
+        :disabled="!changed"
+        v-if="user.is_superuser"
+        type="submit"
+        color="primary"
+      >
+        Save
+      </v-btn>
+      <DataImportExport v-if="user.is_superuser" />
+      <div style="flex-grow:2">
+        <v-btn
+          v-if="user.is_superuser && !isGlobal"
+          @click="showDeleteWarningOverlay = true"
+          class="red white--text"
+          style="float: right;"
         >
-          <v-btn
-            v-if="user.is_superuser && !isGlobal"
-            @click="showDeleteWarningOverlay = true"
-            class="red white--text"
-            style="float: right"
-          >
-            DELETE PROJECT
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-layout>
+          DELETE PROJECT
+        </v-btn>
+      </div>
+    </v-flex>
     <v-overlay
       v-if="user.is_superuser && !isGlobal"
       :value="showDeleteWarningOverlay"
@@ -198,6 +190,7 @@ export default defineComponent({
     >
       <v-card
         class="dialog-box"
+        style="min-width:600px"
       >
         <v-btn
           @click="showDeleteWarningOverlay = false"

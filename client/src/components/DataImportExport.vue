@@ -20,6 +20,7 @@ export default defineComponent({
   setup() {
     const currentProject = computed(() => store.state.currentProject);
     const loadProject = (project: Project) => store.dispatch.loadProject(project);
+    const isGlobal = computed(() => store.getters.isGlobal);
 
     const importing = ref(false);
     const importDialog = ref(false);
@@ -28,12 +29,11 @@ export default defineComponent({
     const exporting = ref(false);
 
     async function importData() {
-      const { isGlobal } = store.getters;
       importing.value = true;
       importErrorText.value = '';
       importErrors.value = false;
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.globalImport();
         } else {
           await djangoRest.projectImport(currentProject.value.id);
@@ -45,7 +45,7 @@ export default defineComponent({
           timeout: 6000,
         });
 
-        if (!isGlobal) {
+        if (!isGlobal.value) {
           await loadProject(currentProject.value);
         }
       } catch (ex) {
@@ -58,10 +58,9 @@ export default defineComponent({
       importDialog.value = false;
     }
     async function exportData() {
-      const { isGlobal } = store.getters;
       exporting.value = true;
       try {
-        if (isGlobal) {
+        if (isGlobal.value) {
           await djangoRest.globalExport();
         } else {
           await djangoRest.projectExport(currentProject.value.id);
@@ -79,7 +78,6 @@ export default defineComponent({
       }
       exporting.value = false;
     }
-    const { isGlobal } = store.getters;
 
     return {
       currentProject,

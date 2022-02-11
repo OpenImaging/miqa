@@ -2,8 +2,8 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user
-from rest_framework import serializers, status
+from guardian.shortcuts import get_objects_for_user, get_perms
+from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.fields import UUIDField
 from rest_framework.permissions import IsAuthenticated
@@ -43,7 +43,17 @@ class ExperimentSerializer(serializers.ModelSerializer):
     project = serializers.PrimaryKeyRelatedField(read_only=True, pk_field=UUIDField())
 
 
-class ExperimentViewSet(ReadOnlyModelViewSet):
+class ExperimentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Experiment
+        fields = ['name', 'project']
+
+    project = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.all(), pk_field=UUIDField()
+    )
+
+
+class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
     # Our default serializer nests its experiment (not sure why though)
 
     filter_backends = [filters.DjangoFilterBackend]
@@ -57,6 +67,27 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
             any_perm=True,
         )
         return Experiment.objects.filter(project__in=projects)
+
+    @swagger_auto_schema(
+        request_body=ExperimentCreateSerializer(),
+        responses={201: ExperimentSerializer},
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = ExperimentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project = Project.objects.get(id=serializer.data['project'])
+        if not get_perms(request.user, project):
+            Response(status=status.HTTP_401_UNAUTHORIZED)
+        experiment = Experiment(
+            project=project,
+            name=serializer.data['name'],
+            lock_owner=None,
+        )
+        experiment.save()
+        return Response(
+            ExperimentSerializer(experiment).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     @project_permission_required(experiments__pk='pk')
     @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated])
@@ -82,13 +113,10 @@ class ExperimentViewSet(ReadOnlyModelViewSet):
         """Acquire the exclusive write lock on this experiment."""
         with transaction.atomic():
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
-
             if experiment.project.archived:
                 raise ArchivedProject()
-
             if experiment.lock_owner is not None and experiment.lock_owner != request.user:
                 raise LockContention()
-
             if experiment.lock_owner is None or experiment.lock_owner == request.user:
                 previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
                 for previously_locked_experiment in previously_locked_experiments:

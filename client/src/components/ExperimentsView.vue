@@ -1,7 +1,10 @@
 <script>
 import _ from 'lodash';
-import { mapState, mapGetters, mapMutations } from 'vuex';
+import {
+  mapState, mapGetters, mapMutations, mapActions,
+} from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
+import djangoRest from '@/django';
 import { API_URL } from '../constants';
 
 export default {
@@ -13,9 +16,13 @@ export default {
       default: false,
     },
   },
-  inject: ['user'],
+  inject: ['user', 'MIQAConfig'],
   data: () => ({
     API_URL,
+    showUploadModal: false,
+    uploadToExisting: false,
+    experimentNameForUpload: '',
+    fileSetForUpload: [],
   }),
   computed: {
     ...mapState([
@@ -32,8 +39,7 @@ export default {
     ]),
     ...mapGetters(['currentScan', 'currentExperiment']),
     orderedExperiments() {
-      const allExperiments = this.experiments;
-      return this.experimentIds.map((expId) => allExperiments[expId]);
+      return this.experimentIds.map((expId) => this.experiments[expId]);
     },
     loadingIcon() {
       return this.loadingExperiment
@@ -44,9 +50,17 @@ export default {
       return this.loadingExperiment ? 'red' : 'green';
     },
   },
+  watch: {
+    showUploadModal() {
+      this.delayPrepareDropZone();
+    },
+  },
   methods: {
     ...mapMutations([
       'switchReviewMode',
+    ]),
+    ...mapActions([
+      'loadProject',
     ]),
     scansForExperiment(expId) {
       const expScanIds = this.experimentScans[expId];
@@ -98,133 +112,296 @@ export default {
       }
       return classes;
     },
+    delayPrepareDropZone() {
+      setTimeout(this.prepareDropZone, 500);
+    },
+    prepareDropZone() {
+      const dropZone = document.getElementById('dropZone');
+      if (dropZone) {
+        dropZone.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('hover');
+        });
+        dropZone.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('hover');
+        });
+      }
+    },
+    addDropFiles(e) {
+      this.fileSetForUpload = [...e.dataTransfer.files];
+    },
+    async uploadToExperiment() {
+      let experimentId;
+      if (!this.uploadToExisting) {
+        const newExperiment = await djangoRest.createExperiment(
+          this.currentProject.id, this.experimentNameForUpload,
+        );
+        experimentId = newExperiment.id;
+      } else {
+        experimentId = Object.values(this.experiments).find(
+          (experiment) => experiment.name === this.experimentNameForUpload,
+        ).id;
+      }
+      await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
+      this.loadProject(this.currentProject);
+      this.showUploadModal = false;
+    },
   },
 };
 </script>
 
 <template>
-  <div class="scans-view">
-    <div v-if="orderedExperiments && orderedExperiments.length">
-      <ul class="experiment">
-        <li
-          v-for="experiment of orderedExperiments"
-          :key="`e.${experiment.id}`"
-          class="body-2 pb-5"
-        >
-          <v-card
-            flat
-            class="d-flex pr-2"
-          >
-            <v-card flat>
-              {{ experiment.name }}
-              <UserAvatar
-                :target-user="experiment.lock_owner"
-                as-editor
-              />
-            </v-card>
-            <v-card flat>
-              <v-icon
-                v-show="experiment === currentExperiment"
-                :color="loadingIconColor"
-                class="pl-5"
-              >
-                {{ loadingIcon }}
-              </v-icon>
-            </v-card>
-          </v-card>
-          <ul class="scans">
-            <li
-              v-for="scan of scansForExperiment(experiment.id)"
-              :key="`s.${scan.id}`"
-              :class="scanStateClass(scan)"
-            >
-              <v-tooltip right>
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    v-bind="attrs"
-                    v-on="on"
-                    :to="getURLForFirstFrameInScan(scan.id)"
-                    class="ml-0 px-1 scan-name"
-                    href
-                    text
-                    small
-                    active-class=""
-                  >
-                    {{ scan.name }}
-                    <span
-                      v-if="scan.decisions.length !== 0"
-                      :class="scan.color + ' pl-3'"
-                      small
-                    >({{ scan.decision }})</span>
-                  </v-btn>
-                </template>
-                <span>
-                  {{ scanState(scan) }}
-                </span>
-              </v-tooltip>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    </div>
-    <div
-      v-else
-      class="pa-5"
-      style="width: max-content"
+  <v-card class="flex-card">
+    <v-subheader
+      v-if="!minimal"
+      class="d-flex"
+      style="justify-content: space-between"
     >
-      <span class="px-5">No imported data.</span>
-    </div>
-    <div
-      class="mode-toggle"
+      Experiments
+      <div
+        class="d-flex mode-toggle"
+      >
+        <span>All scans</span>
+        <v-switch
+          @change="switchReviewMode"
+          :value="reviewMode"
+          inset
+          dense
+          style="display: inline-block; max-height: 40px; max-width: 60px;"
+          class="px-3 ma-0"
+        />
+        <span>Scans for my review</span>
+      </div>
+    </v-subheader>
+    <v-subheader
+      v-if="minimal"
+      class="d-flex mode-toggle"
     >
-      All scans
+      <span>All scans</span>
       <v-switch
         @change="switchReviewMode"
         :value="reviewMode"
-        inset
         dense
-        style="display: inline-block; max-height: 40px; max-width: 60px"
+        style="display: inline-block; max-height: 40px; max-width: 60px;"
         class="px-3 ma-0"
       />
-      Scans for my review
+      <span>Scans for my review</span>
+    </v-subheader>
+    <div class="scans-view">
+      <div v-if="orderedExperiments && orderedExperiments.length">
+        <ul class="experiment">
+          <li
+            v-for="experiment of orderedExperiments"
+            :key="`e.${experiment.id}`"
+            class="body-2 pb-5"
+          >
+            <v-card
+              flat
+              class="d-flex pr-2"
+            >
+              <v-card flat>
+                {{ experiment.name }}
+                <UserAvatar
+                  :target-user="experiment.lock_owner"
+                  as-editor
+                />
+              </v-card>
+              <v-card flat>
+                <v-icon
+                  v-show="experiment === currentExperiment"
+                  :color="loadingIconColor"
+                  class="pl-5"
+                >
+                  {{ loadingIcon }}
+                </v-icon>
+              </v-card>
+            </v-card>
+            <ul class="scans">
+              <li
+                v-for="scan of scansForExperiment(experiment.id)"
+                :key="`s.${scan.id}`"
+                :class="scanStateClass(scan)"
+              >
+                <v-tooltip right>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      v-bind="attrs"
+                      v-on="on"
+                      :to="getURLForFirstFrameInScan(scan.id)"
+                      class="ml-0 px-1 scan-name"
+                      href
+                      text
+                      small
+                      active-class=""
+                    >
+                      {{ scan.name }}
+                      <span
+                        v-if="scan.decisions.length !== 0"
+                        :class="scan.color + ' pl-3'"
+                        small
+                      >({{ scan.decision }})</span>
+                    </v-btn>
+                  </template>
+                  <span>
+                    {{ scanState(scan) }}
+                  </span>
+                </v-tooltip>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div
+        v-else
+        class="pa-5"
+        style="width: max-content"
+      >
+        <span class="px-5">No imported data.</span>
+      </div>
+      <v-dialog
+        v-if="!minimal && MIQAConfig.S3_SUPPORT"
+        v-model="showUploadModal"
+        width="600px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <div
+            v-bind="attrs"
+            v-on="on"
+            class="add-scans"
+          >
+            <v-btn
+              @click="() => {experimentNameForUpload = ''}"
+              class="green white--text"
+            >
+              + Add Scans...
+            </v-btn>
+          </div>
+        </template>
+
+        <v-card>
+          <v-card-title class="text-h6">
+            Upload Image Files to Experiment
+          </v-card-title>
+          <div
+            class="d-flex px-6"
+            style="align-items: baseline; justify-content: space-between;"
+          >
+            <div
+              class="d-flex mode-toggle"
+            >
+              <span>Upload to New</span>
+              <v-switch
+                @change="(value) => {uploadToExisting = value; experimentNameForUpload = ''}"
+                :value="uploadToExisting"
+                :disabled="!(orderedExperiments && orderedExperiments.length)"
+                inset
+                dense
+                style="display: inline-block; max-height: 40px; max-width: 60px;"
+                class="px-3 ma-0"
+              />
+              <span
+                :class="!(orderedExperiments && orderedExperiments.length) ? 'grey--text' : ''"
+              >
+                Upload to Existing
+              </span>
+            </div>
+            <div style="max-width:200px">
+              <v-select
+                v-if="orderedExperiments && orderedExperiments.length && uploadToExisting"
+                :items="orderedExperiments"
+                v-model="experimentNameForUpload"
+                item-text="name"
+                label="Select Experiment"
+                dense
+              />
+              <v-text-field
+                v-else
+                v-model="experimentNameForUpload"
+                label="Name new Experiment"
+              />
+            </div>
+          </div>
+          <div class="ma-5">
+            <v-file-input
+              v-model="fileSetForUpload"
+              @click:clear="delayPrepareDropZone"
+              label="Image files (.nii.gz, .nii, .mgz, .nrrd)"
+              prepend-icon="mdi-paperclip"
+              multiple
+              chips
+            >
+              <template v-slot:selection="{ index, text }">
+                <v-chip
+                  v-if="index < 2"
+                  small
+                >
+                  {{ text }}
+                </v-chip>
+
+                <span
+                  v-else-if="index === 2"
+                  class="text-overline grey--text text--darken-3 mx-2"
+                >
+                  +{{ fileSetForUpload.length - 2 }}
+                  file{{ fileSetForUpload.length - 2 > 1 ? 's' :'' }}
+                </span>
+              </template>
+            </v-file-input>
+            <div
+              id="dropZone"
+              v-if="fileSetForUpload.length == 0"
+              @drop.prevent="addDropFiles"
+              @dragover.prevent
+              style="text-align: center"
+              class="pa-3 drop-zone"
+            >
+              or drag and drop here
+            </div>
+          </div>
+          <v-divider />
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              @click="uploadToExperiment()"
+              :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"
+              color="primary"
+              text
+            >
+              Upload
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </div>
-  </div>
+  </v-card>
 </template>
 
 <style lang="scss" scoped>
 .current {
   background: rgb(206, 206, 206);
 }
-
 .state-unreviewed::marker {
   color: #1460A3;
   content: '\25C8';
 }
-
 .state-needs-tier-2-review::marker {
   color: #6DB1ED;
   content: '\25C8'
 }
-
 .state-complete::marker {
   color: #00C853;
   content: '\25C8'
 }
-
 li.cached {
   list-style-type: disc;
 }
-
 ul.experiment {
   list-style: none;
 }
-
 ul.scans {
   padding-left: 15px;
 }
-</style>
-
-<style lang="scss">
 .scans-view {
   text-transform: none;
   display: flex;
@@ -239,9 +416,17 @@ ul.scans {
   text-transform: none;
 }
 .mode-toggle {
-  padding: 0px 20px;
-  display: block;
-  min-width: 350px;
-  height: min-content;
+  align-items: baseline;
+}
+.add-scans {
+  min-width: 150px;
+  text-align: right;
+  padding-right: 15px;
+}
+.drop-zone {
+  border: 1px dashed #999999;
+}
+.drop-zone.hover {
+  background-color: rgba(92, 167, 247, 0.5);
 }
 </style>
