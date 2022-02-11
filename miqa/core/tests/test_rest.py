@@ -51,8 +51,8 @@ def test_project_settings_put(user_api_client, project, user):
     resp = user_api_client.put(
         f'/api/v1/projects/{project.id}/settings',
         data={
-            'importPath': '/new/fake/path',
-            'exportPath': '/new/fake/path',
+            'import_path': '/new/fake/path',
+            'export_path': '/new/fake/path',
             'permissions': new_perms,
         },
     )
@@ -88,8 +88,8 @@ def test_settings_endpoint_requires_superuser(user_api_client, project, user):
     resp = user_api_client().put(
         f'/api/v1/projects/{project.id}/settings',
         data={
-            'importPath': '/new/fake/path',
-            'exportPath': '/new/fake/path',
+            'import_path': '/new/fake/path',
+            'export_path': '/new/fake/path',
             'permissions': {},
         },
     )

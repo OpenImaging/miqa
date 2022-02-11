@@ -26,12 +26,12 @@ export default defineComponent({
     const exportPath = ref('');
     watchEffect(() => {
       if (isGlobal.value) {
-        importPath.value = globalSettings.value.importPath;
-        exportPath.value = globalSettings.value.exportPath;
+        importPath.value = globalSettings.value.import_path;
+        exportPath.value = globalSettings.value.export_path;
       } else {
         djangoRest.settings(currentProject.value.id).then((settings) => {
-          importPath.value = settings.importPath;
-          exportPath.value = settings.exportPath;
+          importPath.value = settings.import_path;
+          exportPath.value = settings.export_path;
         });
       }
     });
@@ -48,13 +48,13 @@ export default defineComponent({
       try {
         if (isGlobal.value) {
           await djangoRest.setGlobalSettings({
-            importPath: importPath.value,
-            exportPath: exportPath.value,
+            import_path: importPath.value,
+            export_path: exportPath.value,
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {
-            importPath: importPath.value,
-            exportPath: exportPath.value,
+            import_path: importPath.value,
+            export_path: exportPath.value,
           });
         }
         changed.value = false;

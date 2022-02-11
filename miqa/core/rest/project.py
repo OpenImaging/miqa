@@ -157,8 +157,8 @@ class ProjectViewSet(
                     except ValueError as e:
                         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-            project.import_path = request.data['importPath']
-            project.export_path = request.data['exportPath']
+            project.import_path = request.data['import_path']
+            project.export_path = request.data['export_path']
             project.full_clean()
             project.save()
         serializer = ProjectSettingsSerializer(project)

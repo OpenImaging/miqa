@@ -596,8 +596,8 @@ const {
       const globalSettings = await djangoRest.globalSettings();
       commit('setCurrentProject', null);
       commit('setGlobalSettings', {
-        importPath: globalSettings.import_path,
-        exportPath: globalSettings.export_path,
+        import_path: globalSettings.import_path,
+        export_path: globalSettings.export_path,
       });
       commit('setTaskOverview', {});
     },
