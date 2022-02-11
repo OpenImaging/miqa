@@ -236,17 +236,17 @@ export default {
             elevation="3"
           >
             <v-container fluid>
-              <v-row dense>
-                <v-col
-                  cols="3"
+              <v-flex
+                class="d-flex justify-space-between"
+              >
+                <div
                   class="d-flex"
                   style="flex-direction:column; row-gap: 5px;"
                 >
                   <span>Project</span>
                   <span>Experiment</span>
-                </v-col>
-                <v-col
-                  cols="6"
+                </div>
+                <div
                   rows="2"
                   class="py-3"
                   style="text-align: center; height: 70px"
@@ -258,9 +258,8 @@ export default {
                     />
                     <div> Loading... </div>
                   </div>
-                </v-col>
-                <v-col
-                  cols="3"
+                </div>
+                <div
                   class="grey--text d-flex"
                   style="text-align: right; flex-direction:column; row-gap: 5px;"
                 >
@@ -272,8 +271,8 @@ export default {
                     />
                     {{ currentViewData.experimentName }}
                   </div>
-                </v-col>
-              </v-row>
+                </div>
+              </v-flex>
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 @input="handleExperimentNoteChange"

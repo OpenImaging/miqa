@@ -122,7 +122,6 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         frame: Frame = self.get_object()
 
         if frame.storage_mode == StorageMode.LOCAL_PATH:
-            print(frame.path)
             if not frame.path.is_file():
                 return HttpResponseServerError('File no longer exists.')
 

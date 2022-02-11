@@ -48,11 +48,12 @@ export default {
         v-bind="attrs"
         v-on="on"
         :class="convertValueToColor(results.overall_quality)"
+        style="display: flex"
       >
         {{ Math.round(results.overall_quality * 100) }}%
         <v-img
-          class="float-right ml-3"
           src="evaluation-details.png"
+          style="display: inline-block"
           height="20"
           width="20"
         />
