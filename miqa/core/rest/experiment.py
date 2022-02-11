@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.fields import UUIDField
@@ -72,12 +72,14 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
         request_body=ExperimentCreateSerializer(),
         responses={201: ExperimentSerializer},
     )
-    @project_permission_required(experiments__pk='pk')
     def create(self, request, *args, **kwargs):
         serializer = ExperimentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        project = Project.objects.get(id=serializer.data['project'])
+        if not get_perms(request.user, project):
+            Response(status=status.HTTP_401_UNAUTHORIZED)
         experiment = Experiment(
-            project=Project.objects.get(id=serializer.data['project']),
+            project=project,
             name=serializer.data['name'],
             lock_owner=None,
         )

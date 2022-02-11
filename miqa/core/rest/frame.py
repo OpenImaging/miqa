@@ -4,7 +4,7 @@ from django.core.exceptions import BadRequest
 from django.http import FileResponse, HttpResponseServerError
 from django_filters import rest_framework as filters
 from drf_yasg.utils import swagger_auto_schema
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
@@ -53,17 +53,18 @@ class FrameSerializer(serializers.ModelSerializer):
             return obj.content.url
 
 
+def is_valid_experiment(experiment_id):
+    try:
+        Experiment.objects.get(id=experiment_id)
+    except Experiment.DoesNotExist:
+        raise serializers.ValidationError(f'Experiment {experiment_id} does not exist.')
+
+
 class FrameCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
         fields = ['content', 'experiment', 'filename']
         extra_kwargs = {'content': {'required': True}}
-
-    def is_valid_experiment(self, experiment_id):
-        try:
-            Experiment.objects.get(id=experiment_id)
-        except Experiment.DoesNotExist:
-            raise serializers.ValidationError(f'Experiment {experiment_id} does not exist.')
 
     experiment = serializers.CharField(required=True, validators=[is_valid_experiment])
     filename = serializers.CharField(required=True)
@@ -92,11 +93,13 @@ class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
         request_body=FrameCreateSerializer(),
         responses={201: FrameSerializer},
     )
-    @project_permission_required(experiments__scans__frames__pk='pk')
     def create(self, request, *args, **kwargs):
         serializer = FrameCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         experiment = Experiment.objects.get(id=serializer.data['experiment'])
+
+        if not get_perms(request.user, experiment.project):
+            Response(status=status.HTTP_401_UNAUTHORIZED)
 
         new_scan = Scan(name=serializer.data['filename'], experiment=experiment)
         new_scan.save()
