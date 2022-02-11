@@ -253,6 +253,16 @@ def test_import_invalid_json(
 
 
 @pytest.mark.django_db
+def test_import_with_relative_path(project_factory):
+    rel_import_csv = Path(__file__).parent / 'data' / 'relative_import.csv'
+    project = project_factory(import_path=rel_import_csv)
+    import_data(project.id)
+
+    frame = Frame.objects.first()
+    assert frame.raw_path == str(Path(__file__).parent / 'data' / 'example.nii.gz')
+
+
+@pytest.mark.django_db
 def test_import_s3_preserves_path(project_factory):
     s3_import_csv = Path(__file__).parent / 'data' / 's3_import.csv'
     project = project_factory(import_path=s3_import_csv)
@@ -261,5 +271,5 @@ def test_import_s3_preserves_path(project_factory):
     frame = Frame.objects.first()
     assert (
         frame.raw_path
-        == 's3:/miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
+        == 's3://miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
     )
