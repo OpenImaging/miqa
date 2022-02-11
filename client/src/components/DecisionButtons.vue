@@ -209,7 +209,6 @@ export default {
           this.warnDecision = false;
           this.newComment = '';
         } catch (err) {
-          console.log(err);
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
             timeout: 6000,
@@ -229,8 +228,11 @@ export default {
     fluid
     class="px-5"
   >
-    <v-flex class="d-flex">
-      <v-subheader class="pa-0  ma-0">
+    <v-flex
+      class="d-flex pb-3"
+      style="justify-content: space-between; column-gap: 20px"
+    >
+      <v-subheader class="pa-0 ma-0">
         Indicate artifacts in this scan
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attrs }">
@@ -252,10 +254,12 @@ export default {
       </v-subheader>
       <v-flex
         v-if="currentViewData.currentAutoEvaluation"
-        cols="6"
-        class="d-flex justify-end align-center"
+        style="display: flex; align-items: flex-start; justify-content: flex-end"
       >
-        <v-subheader class="pa-0 ma-0">
+        <v-subheader
+          class="pa-0 ma-0"
+          style="text-align: right"
+        >
           Auto evaluation
         </v-subheader>
         <v-tooltip bottom>
@@ -282,7 +286,10 @@ export default {
         cols="5"
         class="d-flex justify-end align-center"
       >
-        <v-subheader class="pa-0 ma-0">
+        <v-subheader
+          class="pa-0 ma-0"
+          style="text-align: right"
+        >
           No Auto evaluation available
         </v-subheader>
         <v-tooltip bottom>

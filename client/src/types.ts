@@ -56,8 +56,8 @@ interface Experiment {
 }
 
 interface ProjectSettings {
-  importPath: string,
-  exportPath: string,
+  import_path: string,
+  export_path: string,
   permissions?: Object,
 }
 

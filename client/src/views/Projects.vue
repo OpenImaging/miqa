@@ -30,11 +30,14 @@ export default defineComponent({
     newName: '',
   }),
   setup() {
-    store.dispatch.loadProjects();
+    const loadingProjects = ref(true);
+    store.dispatch.loadProjects().then(() => {
+      loadingProjects.value = false;
+    });
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
-    const { isGlobal } = store.getters;
+    const isGlobal = computed(() => store.getters.isGlobal);
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
@@ -66,16 +69,19 @@ export default defineComponent({
             color: ScanState[stateString],
           }),
         );
+      } else {
+        overviewSections.value = [];
       }
     };
     watch(currentTaskOverview, setOverviewSections);
 
     return {
       currentProject,
-      isGlobal,
+      loadingProjects,
       currentTaskOverview,
       selectedProjectIndex,
       projects,
+      isGlobal,
       selectProject,
       selectGlobal,
       overviewSections,
@@ -89,7 +95,7 @@ export default defineComponent({
         try {
           const newProject = await djangoRest.createProject(this.newName);
           this.setProjects(this.projects.concat([newProject]));
-          this.setCurrentProject(newProject);
+          store.dispatch.loadProject(newProject);
           this.creating = false;
           this.newName = '';
 
@@ -241,22 +247,11 @@ export default defineComponent({
           </v-card>
         </div>
         <div
+          v-if="!isGlobal"
           class="flex-container"
         >
-          <v-card
-            v-if="currentProject && currentProject.experiments"
-            class="flex-card"
-          >
-            <v-subheader>Experiments</v-subheader>
-            <ExperimentsView />
-          </v-card>
-          <v-card
-            v-if="currentProject && currentProject.settings.permissions"
-            class="flex-card"
-          >
-            <v-subheader>Users</v-subheader>
-            <ProjectUsers />
-          </v-card>
+          <ExperimentsView />
+          <ProjectUsers />
         </div>
       </div>
       <v-card
@@ -278,7 +273,12 @@ export default defineComponent({
             v-else
             class="title"
           >
-            You have not been added to any projects yet.
+            <v-progress-circular
+              v-if="loadingProjects"
+              indeterminate
+              color="primary"
+            />
+            <span v-else>You have not been added to any projects yet.</span>
           </div>
         </v-layout>
       </v-card>

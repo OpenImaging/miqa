@@ -16,10 +16,8 @@ from miqa.core.tasks import export_data, import_data
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['importPath', 'exportPath', 'permissions']
+        fields = ['import_path', 'export_path', 'permissions']
 
-    importPath = serializers.CharField(source='import_path')  # noqa: N815
-    exportPath = serializers.CharField(source='export_path')  # noqa: N815
     permissions = serializers.SerializerMethodField('get_permissions')
 
     def get_permissions(self, obj):
@@ -159,8 +157,8 @@ class ProjectViewSet(
                     except ValueError as e:
                         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-            project.import_path = request.data['importPath']
-            project.export_path = request.data['exportPath']
+            project.import_path = request.data['import_path']
+            project.export_path = request.data['export_path']
             project.full_clean()
             project.save()
         serializer = ProjectSettingsSerializer(project)

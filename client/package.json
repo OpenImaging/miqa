@@ -19,6 +19,7 @@
     "@vue/eslint-config-typescript": "^7.0.0",
     "axios": "^0.24.0",
     "direct-vuex": "^0.12.1",
+    "django-s3-file-field": "^0.3.0",
     "gl-matrix": "^3.4.3",
     "idle-vue": "^2.0.5",
     "itk": "14.0.0",

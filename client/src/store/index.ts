@@ -15,6 +15,7 @@ import djangoRest, { apiClient } from '@/django';
 import {
   Project, ProjectTaskOverview, User, Frame, ScanState, ProjectSettings,
 } from '@/types';
+import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
 
 import { proxy } from '../vtk';
@@ -92,10 +93,6 @@ function getData(id, file, webWorker = null) {
             resolve({ frameData, webWorker });
           })
           .catch((error) => {
-            console.log('Problem reading image array buffer');
-            console.log('webworker', webWorker);
-            console.log('fileName', fileName);
-            console.log(error);
             reject(error);
           });
       };
@@ -105,31 +102,35 @@ function getData(id, file, webWorker = null) {
   });
 }
 
-function loadFile(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  if (fileCache.has(frameId)) {
-    return { frameId, fileP: fileCache.get(frameId) };
+function loadFile(frame, { onDownloadProgress = null } = {}) {
+  if (fileCache.has(frame.id)) {
+    return { frameId: frame.id, fileP: fileCache.get(frame.id) };
+  }
+  let client = apiClient;
+  let downloadURL = `/frames/${frame.id}/download`;
+  if (frame.download_url) {
+    client = axios.create();
+    downloadURL = frame.download_url;
   }
   const { promise } = ReaderFactory.downloadFrame(
-    apiClient,
-    `image${frameExtension}`,
-    `/frames/${frameId}/download`,
+    client,
+    `image${frame.extension}`,
+    downloadURL,
     { onDownloadProgress },
   );
-  fileCache.set(frameId, promise);
-  return { frameId, fileP: promise };
+  fileCache.set(frame.id, promise);
+  return { frameId: frame.id, fileP: promise };
 }
 
-function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null } = {}) {
-  const loadResult = loadFile(frameId, frameExtension, { onDownloadProgress });
-  return loadResult.fileP.then((file) => getData(frameId, file, savedWorker)
+function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
+  const loadResult = loadFile(frame, { onDownloadProgress });
+  return loadResult.fileP.then((file) => getData(frame.id, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
     })
-    .catch((error) => {
+    .catch(() => {
       const msg = 'loadFileAndGetData caught error getting data';
-      console.log(msg);
-      console.log(error);
       return Promise.reject(msg);
     })
     .finally(() => {
@@ -142,20 +143,26 @@ function loadFileAndGetData(frameId, frameExtension, { onDownloadProgress = null
 
 function poolFunction(webWorker, taskInfo) {
   return new Promise((resolve, reject) => {
-    const { frameId, frameExtension } = taskInfo;
+    const { frame } = taskInfo;
 
     let filePromise = null;
 
-    if (fileCache.has(frameId)) {
-      filePromise = fileCache.get(frameId);
+    if (fileCache.has(frame.id)) {
+      filePromise = fileCache.get(frame.id);
     } else {
+      let client = apiClient;
+      let downloadURL = `/frames/${frame.id}/download`;
+      if (frame.download_url) {
+        client = axios.create();
+        downloadURL = frame.download_url;
+      }
       const download = ReaderFactory.downloadFrame(
-        apiClient,
-        `image${frameExtension}`,
-        `/frames/${frameId}/download`,
+        client,
+        `image${frame.extension}`,
+        downloadURL,
       );
       filePromise = download.promise;
-      fileCache.set(frameId, filePromise);
+      fileCache.set(frame.id, filePromise);
       pendingFrameDownloads.add(download);
       filePromise.then(() => {
         pendingFrameDownloads.delete(download);
@@ -166,11 +173,9 @@ function poolFunction(webWorker, taskInfo) {
 
     filePromise
       .then((file) => {
-        resolve(getData(frameId, file, webWorker));
+        resolve(getData(frame.id, file, webWorker));
       })
       .catch((err) => {
-        console.log('poolFunction: fileP error of some kind');
-        console.log(err);
         reject(err);
       });
   });
@@ -236,8 +241,7 @@ function checkLoadExperiment(oldValue, newValue) {
         projectId: 1,
         experimentId: newValue.id,
         scanId,
-        frameId: frame.id,
-        frameExtension: frame.extension,
+        frame,
       });
     });
   });
@@ -592,9 +596,10 @@ const {
       const globalSettings = await djangoRest.globalSettings();
       commit('setCurrentProject', null);
       commit('setGlobalSettings', {
-        importPath: globalSettings.import_path,
-        exportPath: globalSettings.export_path,
+        import_path: globalSettings.import_path,
+        export_path: globalSettings.export_path,
       });
+      commit('setTaskOverview', {});
     },
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
@@ -800,7 +805,7 @@ const {
           frameData = frameCache.get(frame.id).frameData;
         } else {
           const result = await loadFileAndGetData(
-            frame.id, frame.extension, { onDownloadProgress },
+            frame, { onDownloadProgress },
           );
           frameData = result.frameData;
         }
