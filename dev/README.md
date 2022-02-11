@@ -87,3 +87,9 @@ Useful sub-commands include:
 
 To automatically reformat all code to comply with
 some (but not all) of the style checks, run `tox -e format`.
+
+### Generate a coverage report
+
+To generate an HTML coverage report from tests, run:
+
+`tox -e test -- --cov=miqa --cov-report=html`
