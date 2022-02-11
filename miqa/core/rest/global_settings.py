@@ -47,8 +47,8 @@ class GlobalSettingsViewSet(ViewSet):
     def settings_(self, request):
         global_settings = self.get_object()
         if request.method == 'PUT':
-            global_settings.import_path = request.data['importPath']
-            global_settings.export_path = request.data['exportPath']
+            global_settings.import_path = request.data['import_path']
+            global_settings.export_path = request.data['export_path']
             global_settings.full_clean()
             global_settings.save()
         return Response(GlobalSettingsSerializer(global_settings).data)

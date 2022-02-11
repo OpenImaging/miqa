@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -18,5 +19,6 @@ class MIQAConfigView(APIView):
                     'ABSENT': ArtifactState.ABSENT.value,
                     'UNDEFINED': ArtifactState.UNDEFINED.value,
                 },
+                'S3_SUPPORT': settings.S3_SUPPORT,
             }
         )

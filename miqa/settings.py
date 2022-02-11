@@ -30,6 +30,7 @@ class MiqaMixin(ConfigMixin):
     # This is required for the /api/v1/logout/ view to have access to the session cookie.
     CORS_ALLOW_CREDENTIALS = True
     ZARR_SUPPORT = True
+    S3_SUPPORT = True
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:

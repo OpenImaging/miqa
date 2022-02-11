@@ -1,0 +1,2 @@
+project_name,experiment_name,scan_name,scan_type,frame_number,file_location
+Guys,IXI002,0828-DTI,DTI,00,data/example.nii.gz

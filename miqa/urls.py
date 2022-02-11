@@ -44,6 +44,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
+    path('api/v1/s3-upload/', include('s3_file_field.urls')),
     path('api/v1/', include(router.urls)),
     path('api/v1/email', EmailView.as_view()),
     path('api/v1/logout/', LogoutView.as_view()),
