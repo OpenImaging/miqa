@@ -33,7 +33,7 @@ const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
 
-const actiontime = 1800000; // 30 minute no action timeout
+const actiontime = 28 * 60 * 1000; // 28 minute no action timeout + 2 minutes to take action
 
 function shrinkProxyManager(proxyManager) {
   proxyManager.getViews().forEach((view) => {
