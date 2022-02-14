@@ -25,8 +25,8 @@ jobs:
         # This image does not require any command arguments (which GitHub Actions don't support)
         image: bitnami/minio:latest
         env:
-          MINIO_ROOT_USER: minioRootUser
-          MINIO_ROOT_PASSWORD: minioRootPassword
+          MINIO_ACCESS_KEY: minioAccesskey
+          MINIO_SECRET_KEY: minioSecretkey
         ports:
           - 9000:9000
     steps:
@@ -47,8 +47,8 @@ jobs:
         env:
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioRootUser
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioRootPassword
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
   test-client:
     runs-on: ubuntu-latest
     defaults:
