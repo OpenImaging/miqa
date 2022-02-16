@@ -223,7 +223,7 @@ def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans)
     project = project_factory(import_path=csv_file)
 
     error_list = import_data(project.id)
-    assert error_list == ["File not found: /not/a/real/file.nii.gz"]
+    assert error_list == ['File not found: /not/a/real/file.nii.gz']
 
 
 @pytest.mark.django_db
