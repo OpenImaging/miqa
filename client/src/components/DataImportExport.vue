@@ -41,10 +41,10 @@ export default defineComponent({
           response = await djangoRest.projectImport(currentProject.value.id);
         }
         importing.value = false;
-        if (response.data.errors) {
+        if (response.errors) {
           importErrors.value = true;
-          importErrorText.value = response.data.detail;
-          importErrorList.value = response.data.errors;
+          importErrorText.value = response.detail;
+          importErrorList.value = response.errors;
         }
 
         this.$snackbar({

@@ -178,10 +178,10 @@ class ProjectViewSet(
         if len(error_list) > 0:
             return Response(
                 {
-                    "detail": "The following errors occurred during import. \
+                    'detail': 'The following errors occurred during import. \
                         Objects were still created for missing files, \
-                        but these objects will be non-functional until the file is present.",
-                    "errors": error_list,
+                        but these objects will be non-functional until the file is present.',
+                    'errors': error_list,
                 }
             )
 
