@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional
 
 from django.core.exceptions import BadRequest
 from django.http import FileResponse, HttpResponseServerError
@@ -49,9 +50,12 @@ class FrameSerializer(serializers.ModelSerializer):
             filename = obj.raw_path
         return ''.join(Path(filename).suffixes)
 
-    def get_download_url(self, obj):
+    def get_download_url(self, obj: Frame) -> Optional[str]:
         if obj.storage_mode == StorageMode.CONTENT_STORAGE:
             return obj.content.url
+        if obj.storage_mode == StorageMode.S3_PATH:
+            return obj.s3_download_url
+        return None
 
 
 def is_valid_experiment(experiment_id):
