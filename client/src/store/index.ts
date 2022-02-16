@@ -833,11 +833,11 @@ const {
       // If necessary, queue loading scans of new experiment
       checkLoadExperiment(oldExperiment, newExperiment);
     },
-    async setLock({ commit }, { experimentId, lock }) {
+    async setLock({ commit }, { experimentId, lock, force }) {
       if (lock) {
         commit(
           'updateExperiment',
-          await djangoRest.lockExperiment(experimentId),
+          await djangoRest.lockExperiment(experimentId, force),
         );
       } else {
         commit(

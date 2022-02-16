@@ -144,8 +144,8 @@ const djangoClient = {
     const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
     return data;
   },
-  async lockExperiment(experimentId: string) {
-    const { data } = await apiClient.post(`/experiments/${experimentId}/lock`);
+  async lockExperiment(experimentId: string, force: boolean) {
+    const { data } = await apiClient.post(`/experiments/${experimentId}/lock`, { force });
     return data;
   },
   async unlockExperiment(experimentId: string) {

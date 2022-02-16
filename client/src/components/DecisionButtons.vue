@@ -1,6 +1,6 @@
 <script>
 import _ from 'lodash';
-import { mapGetters, mapState } from 'vuex';
+import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 import EvaluationResults from '@/components/EvaluationResults.vue';
@@ -10,12 +10,6 @@ export default {
   inject: ['user', 'MIQAConfig'],
   components: {
     EvaluationResults,
-  },
-  props: {
-    experimentIsEditable: {
-      type: Boolean,
-      default: false,
-    },
   },
   data() {
     return {
@@ -108,6 +102,9 @@ export default {
     },
   },
   methods: {
+    ...mapMutations([
+      'updateExperiment',
+    ]),
     convertValueToLabel(artifactName) {
       return artifactName
         .replace('susceptibility_metal', 'metal_susceptibility')
@@ -210,9 +207,12 @@ export default {
           this.newComment = '';
         } catch (err) {
           this.$snackbar({
-            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
+            text: `Save failed: ${err || 'Server error'}`,
             timeout: 6000,
           });
+          if (err.toString().includes('lock')) {
+            this.updateExperiment(await djangoRest.experiment(this.currentViewData.experimentId));
+          }
         }
       } else {
         this.warnDecision = true;
@@ -224,7 +224,6 @@ export default {
 
 <template>
   <v-container
-    v-if="experimentIsEditable"
     fluid
     class="px-5"
   >
