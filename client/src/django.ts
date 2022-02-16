@@ -65,10 +65,10 @@ const djangoClient = {
     return data;
   },
   async globalImport() {
-    await apiClient.post('/global/import');
+    return await apiClient.post('/global/import');
   },
   async projectImport(projectId: string) {
-    await apiClient.post(`/projects/${projectId}/import`);
+    return await apiClient.post(`/projects/${projectId}/import`);
   },
   async globalExport() {
     return apiClient.post('/global/export');

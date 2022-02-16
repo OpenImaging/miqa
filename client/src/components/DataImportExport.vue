@@ -25,6 +25,7 @@ export default defineComponent({
     const importing = ref(false);
     const importDialog = ref(false);
     const importErrorText = ref('');
+    const importErrorList = ref([]);
     const importErrors = ref(false);
     const exporting = ref(false);
 
@@ -33,12 +34,18 @@ export default defineComponent({
       importErrorText.value = '';
       importErrors.value = false;
       try {
+        let response;
         if (isGlobal.value) {
-          await djangoRest.globalImport();
+          response = await djangoRest.globalImport();
         } else {
-          await djangoRest.projectImport(currentProject.value.id);
+          response = await djangoRest.projectImport(currentProject.value.id);
         }
         importing.value = false;
+        if (response.data.errors) {
+          importErrors.value = true;
+          importErrorText.value = response.data.detail;
+          importErrorList.value = response.data.errors;
+        }
 
         this.$snackbar({
           text: 'Import finished.',
@@ -86,6 +93,7 @@ export default defineComponent({
       importing,
       importDialog,
       importErrorText,
+      importErrorList,
       importErrors,
       exporting,
       importData,
@@ -183,14 +191,24 @@ export default defineComponent({
     </v-dialog>
     <v-dialog
       v-model="importErrors"
-      content-class="import-error-dialog"
+      width="500px"
     >
-      <v-card>
+      <v-card
+        class="pa-5"
+        style="overflow: auto"
+      >
         <v-card-title class="title">
           Import Errors Encountered
         </v-card-title>
-        <v-card-text class="console-format">
-          {{ importErrorText }}
+        {{ importErrorText }}
+        <v-divider class="my-3" />
+
+        <v-card-text
+          v-for="importError in importErrorList"
+          v-bind:key="importError"
+          class="console-format"
+        >
+          {{ importError }}
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -208,13 +226,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss">
-.import-error-dialog {
-  position: relative;
-  width: 100%;
-  margin: 48px;
-}
 .console-format {
-  white-space: pre-wrap;
   font-family: monospace;
 }
 </style>
