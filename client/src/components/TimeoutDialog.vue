@@ -118,7 +118,7 @@ export default {
           back in
         </p>
         <p v-else>
-          You have been inactive for more than 1 hour. Your session will
+          You have been inactive for almost 30 minutes. Your session will
           automatically terminate in {{ minutesStr }} {{ secondsStr }}
         </p>
       </v-card-text>
