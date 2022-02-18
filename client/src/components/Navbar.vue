@@ -118,7 +118,6 @@ export default defineComponent({
         v-model="emailDialog"
         :notes="notes"
       />
-      <TimeoutDialog />
     </div>
 
     <UserAvatar :target-user="user" />
@@ -126,6 +125,7 @@ export default defineComponent({
       @user="logoutUser()"
       @login="djangoRest.login()"
     />
+    <TimeoutDialog />
   </v-app-bar>
 </template>
 
