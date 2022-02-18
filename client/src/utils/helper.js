@@ -1,12 +1,4 @@
-export function cleanFrameName(name) {
-  const cleanName = name.replace(/^image/, '').replace(/.nii.gz$/, '');
-  if (cleanName === '') {
-    return '1';
-  }
-  return cleanName;
-}
-
-export function formatSize(size, { base = 1024, unit = 'B' } = {}) {
+export default function formatSize(size, { base = 1024, unit = 'B' } = {}) {
   if (size < base) {
     return `${size} ${unit}`;
   }

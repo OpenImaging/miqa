@@ -4,10 +4,8 @@ import { vec3 } from 'gl-matrix';
 import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
 
-import { cleanFrameName } from '@/utils/helper';
 import CrosshairSet from '../utils/crosshairs';
 import fill2DView from '../utils/fill2DView';
-import { getView } from '../vtk/viewManager';
 import { VIEW_ORIENTATIONS } from '../vtk/constants';
 
 export default {
@@ -40,7 +38,7 @@ export default {
       'jIndexSlice',
       'kIndexSlice',
     ]),
-    ...mapGetters(['currentFrame', 'currentScan']),
+    ...mapGetters(['currentFrame', 'currentScan', 'currentViewData']),
     representation() {
       return (
         // force add dependency on currentFrame
@@ -236,14 +234,11 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
-      const view = getView(this.proxyManager, `ScreenshotView2D_${this.name}:${this.name}`, this.screenshotContainer);
-      view.getOpenglRenderWindow().setSize(512, 512);
-      fill2DView(view, 512, 512);
-      const dataURL = await view.captureImage();
+      const dataURL = await this.view.captureImage();
       this.setCurrentScreenshot({
-        name: `${this.currentScan.experiment}/${
-          this.currentScan.name
-        }/${cleanFrameName(this.currentFrame.name)}/${this.displayName}`,
+        name: `${this.currentViewData.experimentName}/${
+          this.currentViewData.scanName
+        }/${this.currentFrame.frame_number}/${this.displayName}`,
         dataURL,
       });
     },
