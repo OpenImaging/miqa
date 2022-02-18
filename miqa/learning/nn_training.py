@@ -318,8 +318,8 @@ class CustomNoise(torchio.transforms.RandomNoise):
             transformed_subject = super().apply_transform(subject)
 
             # make sure we don't have negative intensities after adding noise
-            transformed_subject.img.data = torch.clamp(
-                transformed_subject.img.data, min=0.0, max=1.0
+            transformed_subject.img.set_data(
+                torch.clamp(transformed_subject.img.data, min=0.0, max=1.0)
             )
 
             # now determine how much quality was reduced
