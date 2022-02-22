@@ -114,6 +114,7 @@ export default {
       view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
     },
     currentFrame() {
+      this.prepareViewer();
       this.representation.setSlice(this.slice);
     },
     currentScan() {
@@ -125,27 +126,7 @@ export default {
     },
   },
   mounted() {
-    this.initializeView();
-    this.initializeSlice();
-    this.initializeCamera();
-    this.updateCrosshairs();
-    this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
-      this.updateCrosshairs();
-    });
-    this.resizeObserver = new window.ResizeObserver((entries) => {
-      if (entries.length === 1 && this.$refs.viewer && this.$refs.crosshairsCanvas) {
-        const width = this.$refs.viewer.clientWidth;
-        const height = this.$refs.viewer.clientHeight;
-        this.$refs.crosshairsCanvas.width = width;
-        this.$refs.crosshairsCanvas.height = height;
-        this.$refs.crosshairsCanvas.style.width = `${width}px`;
-        this.$refs.crosshairsCanvas.style.height = `${height}px`;
-        this.initializeCamera();
-        this.updateCrosshairs();
-      }
-    });
-    this.resizeObserver.observe(this.$refs.viewer);
-    this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+    this.prepareViewer();
   },
   beforeUnmount() {
     this.cleanup();
@@ -156,6 +137,29 @@ export default {
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
     ]),
+    prepareViewer() {
+      this.initializeView();
+      this.initializeSlice();
+      this.initializeCamera();
+      this.updateCrosshairs();
+      this.renderSubscription = this.view.getInteractor().onRenderEvent(() => {
+        this.updateCrosshairs();
+      });
+      this.resizeObserver = new window.ResizeObserver((entries) => {
+        if (entries.length === 1 && this.$refs.viewer && this.$refs.crosshairsCanvas) {
+          const width = this.$refs.viewer.clientWidth;
+          const height = this.$refs.viewer.clientHeight;
+          this.$refs.crosshairsCanvas.width = width;
+          this.$refs.crosshairsCanvas.height = height;
+          this.$refs.crosshairsCanvas.style.width = `${width}px`;
+          this.$refs.crosshairsCanvas.style.height = `${height}px`;
+          this.initializeCamera();
+          this.updateCrosshairs();
+        }
+      });
+      this.resizeObserver.observe(this.$refs.viewer);
+      this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+    },
     initializeSlice() {
       if (this.name !== 'default') {
         this.slice = this.representation.getSlice();
