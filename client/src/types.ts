@@ -87,7 +87,16 @@ interface Project {
   }
 }
 
+interface Email {
+  to: string[],
+  cc: string[],
+  bcc: string[],
+  subject: string,
+  body: string,
+  screenshots: any[],
+}
+
 export {
   User, Project, ProjectTaskOverview, ProjectSettings,
-  ScanDecision, Frame, ScanState,
+  ScanDecision, Frame, ScanState, Email,
 };
