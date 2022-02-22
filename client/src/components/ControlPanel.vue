@@ -21,6 +21,7 @@ export default {
     window: 256,
     level: 150,
     newExperimentNote: '',
+    loadingLock: undefined,
   }),
   computed: {
     ...mapState([
@@ -45,6 +46,11 @@ export default {
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
+    },
+    editRights() {
+      return this.myCurrentProjectRoles.includes('tier_1_reviewer')
+      || this.myCurrentProjectRoles.includes('tier_2_reviewer')
+      || this.myCurrentProjectRoles.includes('superuser');
     },
     experimentIsEditable() {
       return this.lockOwner && this.lockOwner.id === this.user.id;
@@ -129,14 +135,13 @@ export default {
       'setShowCrosshairs',
       'setStoreCrosshairs',
     ]),
-    async switchLock(newExp, oldExp = null) {
+    async switchLock(newExp, oldExp = null, force = false) {
       if (!this.navigateToNextIfCurrentScanNull()) {
-        if (this.myCurrentProjectRoles.includes('tier_1_reviewer')
-      || this.myCurrentProjectRoles.includes('tier_2_reviewer')
-      || this.myCurrentProjectRoles.includes('superuser')) {
+        if (this.editRights) {
+          this.loadingLock = true;
           if (oldExp) {
             try {
-              await this.setLock({ experimentId: oldExp, lock: false });
+              await this.setLock({ experimentId: oldExp, lock: false, force });
             } catch (err) {
               this.$snackbar({
                 text: 'Failed to release edit access on Experiment.',
@@ -145,12 +150,13 @@ export default {
             }
           }
           try {
-            await this.setLock({ experimentId: newExp, lock: true });
+            await this.setLock({ experimentId: newExp, lock: true, force });
           } catch (err) {
             this.$snackbar({
               text: 'Failed to claim edit access on Experiment.',
               timeout: 6000,
             });
+            this.loadingLock = false;
           }
         }
       }
@@ -547,9 +553,40 @@ export default {
                 </v-col>
                 <v-col cols="6">
                   <DecisionButtons
-                    :experimentIsEditable="experimentIsEditable"
+                    v-if="experimentIsEditable"
                     @handleKeyPress="handleKeyPress"
                   />
+                  <div
+                    v-else
+                    class="uneditable-notice"
+                  >
+                    <v-icon>mdi-lock</v-icon>
+                    You {{ editRights ?'have not claimed' :'do not have' }}
+                    edit access on this Experiment.
+                    <div
+                      v-if="lockOwner"
+                      class="my-3"
+                      style="text-align:center"
+                    >
+                      <UserAvatar
+                        :target-user="lockOwner"
+                        as-editor
+                      />
+                      <br>
+                      {{ lockOwner.username }}
+                      <br>
+                      currently has edit access.
+                    </div>
+                    <v-btn
+                      v-if="editRights && (user.is_superuser || !lockOwner)"
+                      :loading="loadingLock"
+                      :disabled="loadingLock"
+                      @click="switchLock(experimentId, null, force=true)"
+                      color="primary"
+                    >
+                      {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
+                    </v-btn>
+                  </div>
                 </v-col>
               </v-row>
             </v-container>
@@ -585,4 +622,12 @@ export default {
   }
 }
 
+.uneditable-notice {
+  display: flex;
+  flex-flow: column wrap;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-content: center;
+}
 </style>

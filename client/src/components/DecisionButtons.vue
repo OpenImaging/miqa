@@ -1,6 +1,6 @@
 <script>
 import _ from 'lodash';
-import { mapGetters, mapState } from 'vuex';
+import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 import EvaluationResults from '@/components/EvaluationResults.vue';
@@ -10,12 +10,6 @@ export default {
   inject: ['user', 'MIQAConfig'],
   components: {
     EvaluationResults,
-  },
-  props: {
-    experimentIsEditable: {
-      type: Boolean,
-      default: false,
-    },
   },
   data() {
     return {
@@ -108,6 +102,9 @@ export default {
     },
   },
   methods: {
+    ...mapMutations([
+      'updateExperiment',
+    ]),
     convertValueToLabel(artifactName) {
       return artifactName
         .replace('susceptibility_metal', 'metal_susceptibility')
@@ -210,9 +207,16 @@ export default {
           this.newComment = '';
         } catch (err) {
           this.$snackbar({
-            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
+            text: `Save failed: ${err || 'Server error'}`,
             timeout: 6000,
           });
+          // If error is due a lock contention, it is likely because someone claimed the lock
+          //   after we got the experiment data
+          //   (else we would already know about the lock owner and not attempt to lock).
+          //   Thus, we need to update our experiment's info and check who the lock owner is
+          if (err.toString().includes('lock')) {
+            this.updateExperiment(await djangoRest.experiment(this.currentViewData.experimentId));
+          }
         }
       } else {
         this.warnDecision = true;
@@ -224,7 +228,6 @@ export default {
 
 <template>
   <v-container
-    v-if="experimentIsEditable"
     fluid
     class="px-5"
   >
