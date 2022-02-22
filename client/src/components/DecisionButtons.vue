@@ -210,6 +210,10 @@ export default {
             text: `Save failed: ${err || 'Server error'}`,
             timeout: 6000,
           });
+          // If error is due a lock contention, it is likely because someone claimed the lock
+          //   after we got the experiment data
+          //   (else we would already know about the lock owner and not attempt to lock).
+          //   Thus, we need to update our experiment's info and check who the lock owner is
           if (err.toString().includes('lock')) {
             this.updateExperiment(await djangoRest.experiment(this.currentViewData.experimentId));
           }
