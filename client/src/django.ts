@@ -190,7 +190,7 @@ const djangoClient = {
     const resp = await apiClient.get('/users');
     return resp.status === 200 ? resp.data : null;
   },
-  async sendEmail(email: string) {
+  async sendEmail(email: Object) {
     await apiClient.post('/email', email);
   },
 };
