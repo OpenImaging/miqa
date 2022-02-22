@@ -115,20 +115,26 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
             experiment: Experiment = Experiment.objects.select_for_update().get(pk=pk)
             if experiment.project.archived:
                 raise ArchivedProject()
-            if experiment.lock_owner is not None and experiment.lock_owner != request.user:
-                raise LockContention()
-            if experiment.lock_owner is None or experiment.lock_owner == request.user:
-                previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
-                for previously_locked_experiment in previously_locked_experiments:
-                    previously_locked_experiment.lock_owner = None
-                    previously_locked_experiment.save()
-                experiment.lock_owner = request.user
-                experiment.save(update_fields=['lock_owner'])
-
-                return Response(
-                    ExperimentSerializer(experiment).data,
-                    status=status.HTTP_200_OK,
+            if (
+                experiment.lock_owner is not None
+                and experiment.lock_owner != request.user
+                and not (
+                    request.user.is_superuser and 'force' in request.data and request.data['force']
                 )
+            ):
+                raise LockContention()
+
+            previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
+            for previously_locked_experiment in previously_locked_experiments:
+                previously_locked_experiment.lock_owner = None
+                previously_locked_experiment.save(update_fields=['lock_owner'])
+            experiment.lock_owner = request.user
+            experiment.save(update_fields=['lock_owner'])
+
+            return Response(
+                ExperimentSerializer(experiment).data,
+                status=status.HTTP_200_OK,
+            )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
