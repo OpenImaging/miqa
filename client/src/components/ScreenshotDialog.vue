@@ -136,7 +136,7 @@ export default {
           color="primary"
           text
         >
-          Save
+          Attach to email draft
         </v-btn>
       </v-card-actions>
     </v-card>
