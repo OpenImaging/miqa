@@ -4,6 +4,7 @@ import {
 } from '@vue/composition-api';
 import store from '@/store';
 import { User } from '@/types';
+import djangoRest from '@/django';
 import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 
 export default defineComponent({
@@ -123,7 +124,7 @@ export default defineComponent({
         return candidate ? candidate.email : recipient;
       });
       this.sending = true;
-      await this.djangoRest.sendEmail({
+      await djangoRest.sendEmail({
         to: toAddresses,
         cc: ccAddresses,
         bcc: bccAddresses,
