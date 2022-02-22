@@ -16,13 +16,10 @@ export default defineComponent({
       type: Boolean,
       required: true,
     },
-    notes: {
-      type: Array,
-      default: () => [],
-    },
   },
   setup() {
     const screenshots = computed(() => store.state.screenshots);
+    const currentViewData = computed(() => store.getters.currentViewData);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
     const { removeScreenshot } = store.commit;
@@ -31,6 +28,7 @@ export default defineComponent({
 
     return {
       screenshots,
+      currentViewData,
       currentFrame,
       currentScan,
       removeScreenshot,
@@ -69,11 +67,6 @@ export default defineComponent({
         this.initialize();
       }
     },
-    notes(value) {
-      if (value) {
-        this.initialize();
-      }
-    },
   },
   methods: {
     initialize() {
@@ -95,19 +88,13 @@ export default defineComponent({
       }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      const experiment = `Regarding ${this.currentScan.experiment}, ${this.currentScan.name}`;
-      this.subject = experiment;
-      this.body = `Experiment: ${this.currentScan.experiment}
-Scan: ${this.currentScan.name}`;
-      if (this.notes) {
-        this.body = `${this.body}
-Notes:
-`;
-        this.body = this.notes
-          .map(
-            (note) => `${note.creator.first_name} ${note.creator.last_name}: ${note.created}\n${note.note}`,
-          )
-          .join('\n');
+      this.subject = `Regarding ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
+      this.body = `Experiment: ${this.currentViewData.experimentName}\nScan: ${this.currentScan.name}\n`;
+      if (this.currentViewData.scanDecisions.length > 0) {
+        this.body += `Decisions:\n ${this.currentViewData.scanDecisions.map(
+          (decision) => `    ${decision.creator.email} (${decision.created}): `
+          + `${decision.decision.toUpperCase()} ${decision.note.length > 0 ? `, ${decision.note}` : ''}`,
+        )}`;
       }
       this.initialized = true;
     },

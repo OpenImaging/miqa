@@ -8,7 +8,7 @@ import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import VtkViewer from '@/components/VtkViewer.vue';
-import { cleanFrameName, formatSize } from '@/utils/helper';
+import formatSize from '@/utils/helper';
 
 export default {
   name: 'Frame',
@@ -96,7 +96,6 @@ export default {
       'swapToFrame',
       'getFrame',
     ]),
-    cleanFrameName,
     async logoutUser() {
       await this.logout();
       this.$router.go('/'); // trigger re-render into oauth flow

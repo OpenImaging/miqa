@@ -57,12 +57,6 @@ function prepareProxyManager(proxyManager) {
   }
 }
 
-function prepareScreenshotViews(proxyManager) {
-  ['ScreenshotView2D_x:x', 'ScreenshotView2D_y:y', 'ScreenshotView2D_z:z'].forEach((type) => {
-    getView(proxyManager, type, null);
-  });
-}
-
 function getArrayName(filename) {
   const idx = filename.lastIndexOf('.');
   const name = idx > -1 ? filename.substring(0, idx) : filename;
@@ -384,8 +378,7 @@ const {
       };
     },
     currentFrame(state) {
-      const { frames, currentFrameId } = state;
-      return currentFrameId ? frames[currentFrameId] : null;
+      return state.currentFrameId ? state.frames[state.currentFrameId] : null;
     },
     previousFrame(state, getters) {
       return getters.currentFrame
@@ -813,9 +806,6 @@ const {
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
-          // initializing the screenshot view resets the render settings, so do it now instead of
-          // when a screenshot is taken
-          prepareScreenshotViews(state.proxyManager);
         }
         if (!state.vtkViews.length) {
           state.vtkViews = state.proxyManager.getViews();

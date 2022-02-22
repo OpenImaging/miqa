@@ -36,7 +36,7 @@ function getViewType(view) {
 
 // ----------------------------------------------------------------------------
 
-function getView(proxyManager, viewType, container) {
+function getView(proxyManager, viewType) {
   const [type, name] = viewType.split(':');
   let view = null;
   const views = proxyManager.getViews();
@@ -71,11 +71,6 @@ function getView(proxyManager, viewType, container) {
     view.setPresetToOrientationAxes('default');
   }
 
-  if (container) {
-    view.setContainer(container);
-    view.resize();
-  }
-
   return view;
 }
 
@@ -99,15 +94,8 @@ function updateViewsAnnotation(proxyManager) {
 }
 
 // ----------------------------------------------------------------------------
-
-function bindView(proxyManager, viewType, container) {
-  return getView(proxyManager, viewType, container);
-}
-
-// ----------------------------------------------------------------------------
 export default {
   getViewType,
-  bindView,
   getView,
   getViewActions,
   getNumberOfVisibleViews,
@@ -116,7 +104,6 @@ export default {
 
 export {
   getViewType,
-  bindView,
   getView,
   getViewActions,
   getNumberOfVisibleViews,
