@@ -118,7 +118,9 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
             if (
                 experiment.lock_owner is not None
                 and experiment.lock_owner != request.user
-                and not (request.user.is_superuser and 'force' in request.data)
+                and not (
+                    request.user.is_superuser and 'force' in request.data and request.data['force']
+                )
             ):
                 raise LockContention()
 
