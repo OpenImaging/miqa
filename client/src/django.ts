@@ -3,7 +3,7 @@ import OAuthClient from '@girder/oauth-client';
 import S3FileFieldClient from 'django-s3-file-field';
 
 import {
-  Project, ProjectTaskOverview, ProjectSettings, User,
+  Project, ProjectTaskOverview, ProjectSettings, User, Email,
 } from './types';
 import { API_URL, OAUTH_API_ROOT, OAUTH_CLIENT_ID } from './constants';
 
@@ -190,7 +190,7 @@ const djangoClient = {
     const resp = await apiClient.get('/users');
     return resp.status === 200 ? resp.data : null;
   },
-  async sendEmail(email: string) {
+  async sendEmail(email: Email) {
     await apiClient.post('/email', email);
   },
 };
