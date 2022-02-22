@@ -100,7 +100,7 @@ def import_data(project_id: Optional[str]):
                     import_dict = json.load(fd)
         else:
             raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
-    except FileNotFoundError:
+    except (FileNotFoundError, boto3.exceptions.Boto3Error):
         raise APIException(f'Could not locate import file at {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
