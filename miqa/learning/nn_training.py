@@ -399,7 +399,7 @@ def create_train_and_test_data_loaders(df, count_train):
     motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
     inhomogeneity = CustomBiasField(p=0.1)
     spike = CustomSpike(p=0.1, num_spikes=(1, 1))
-    gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
+    # gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
     noise = CustomNoise(p=0.1)
 
     transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, noise])
