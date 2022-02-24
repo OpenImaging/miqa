@@ -255,7 +255,7 @@ class CustomBiasField(torchio.transforms.RandomBiasField):
             # applied_params = transformed_subject.applied_transforms[-1][1]
             # coefficients = applied_params['coefficients']['img']
             # quality_reduction = 2 + np.linalg.norm(np.asarray(coefficients))
-            quality_reduction = 3  # it is hard to assess impact on image quality
+            quality_reduction = 4  # it is hard to assess impact on image quality
 
             # update the ground truth information
             new_quality = original_quality - quality_reduction
@@ -278,7 +278,7 @@ class CustomSpike(torchio.transforms.RandomSpike):
             applied_params = transformed_subject.applied_transforms[-1][1]
             intensity = applied_params['intensity']['img']
             # spikes_positions = applied_params['spikes_positions']['img']
-            quality_reduction = 1 + 2 * intensity
+            quality_reduction = 0 + 2 * intensity
 
             # update the ground truth information
             new_quality = original_quality - quality_reduction
@@ -318,8 +318,8 @@ class CustomNoise(torchio.transforms.RandomNoise):
             transformed_subject = super().apply_transform(subject)
 
             # make sure we don't have negative intensities after adding noise
-            transformed_subject.img.data = torch.clamp(
-                transformed_subject.img.data, min=0.0, max=1.0
+            transformed_subject.img.set_data(
+                torch.clamp(transformed_subject.img.data, min=0.0, max=1.0)
             )
 
             # now determine how much quality was reduced
@@ -399,10 +399,10 @@ def create_train_and_test_data_loaders(df, count_train):
     motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
     inhomogeneity = CustomBiasField(p=0.1)
     spike = CustomSpike(p=0.1, num_spikes=(1, 1))
-    gamma = CustomGamma(p=0.1)
+    # gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
     noise = CustomNoise(p=0.1)
 
-    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, gamma, noise])
+    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, noise])
 
     # create a training data loader
     train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
