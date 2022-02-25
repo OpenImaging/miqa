@@ -82,18 +82,22 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'name', 'status', 'experiments', 'settings']
+        fields = ['id', 'name', 'status', 'experiments', 'settings', 'creator']
         ref_name = 'projects'
 
     status = serializers.SerializerMethodField('get_status')
     experiments = ExperimentSerializer(many=True, required=False)
     settings = serializers.SerializerMethodField('get_settings')
+    creator = serializers.SerializerMethodField('get_creator')
 
     def get_status(self, obj):
         return obj.get_status()
 
     def get_settings(self, obj):
         return ProjectSettingsSerializer(obj).data
+
+    def get_creator(self, obj):
+        return obj.creator.username
 
 
 class ProjectViewSet(
@@ -121,6 +125,7 @@ class ProjectViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         project = serializer.save(creator=request.user)
+        project.update_group('tier_2_reviewer', [request.user])
         headers = self.get_success_headers(serializer.data)
         return Response(
             self.get_serializer(project).data, status=status.HTTP_201_CREATED, headers=headers
@@ -145,7 +150,7 @@ class ProjectViewSet(
     def settings_(self, request, **kwargs):
         project: Project = self.get_object()
         if request.method == 'PUT':
-            if not request.user.is_superuser:
+            if not (request.user.is_superuser or request.user == project.creator):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
             # TODO: need help changing the auto schema to expect permissions object

@@ -85,6 +85,7 @@ interface Project {
     total_scans: number,
     total_complete: number,
   }
+  creator: string;
 }
 
 interface Email {
