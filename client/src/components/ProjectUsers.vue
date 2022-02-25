@@ -91,12 +91,12 @@ export default {
             bottom
             style="display: inline; padding-left: 5px"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template #activator="{ on, attrs }">
               <v-icon
                 v-bind="attrs"
+                color="blue darken-2"
                 v-on="on"
                 @click="showAddMemberOverlay = true"
-                color="blue darken-2"
               >
                 mdi-cog
               </v-icon>
@@ -112,7 +112,7 @@ export default {
         class="py-1"
       >
         <v-col cols="1">
-          <UserAvatar :targetUser="user" />
+          <UserAvatar :target-user="user" />
         </v-col>
         <v-col cols="11">
           {{ user.username }}
@@ -132,12 +132,12 @@ export default {
             bottom
             style="display: inline; padding-left: 5px"
           >
-            <template v-slot:activator="{ on, attrs }">
+            <template #activator="{ on, attrs }">
               <v-icon
                 v-bind="attrs"
+                color="blue darken-2"
                 v-on="on"
                 @click="showAddCollaboratorOverlay = true"
-                color="blue darken-2"
               >
                 mdi-cog
               </v-icon>
@@ -153,7 +153,7 @@ export default {
         class="py-1"
       >
         <v-col cols="1">
-          <UserAvatar :targetUser="user" />
+          <UserAvatar :target-user="user" />
         </v-col>
         <v-col cols="11">
           {{ user.username }}
@@ -167,9 +167,9 @@ export default {
           class="dialog-box"
         >
           <v-btn
-            @click="showAddMemberOverlay = false"
             icon
             style="float: right"
+            @click="showAddMemberOverlay = false"
           >
             <v-icon
               large
@@ -213,9 +213,9 @@ export default {
           <br>
           <v-btn
             :disabled="!changesMade"
-            @click="savePermissions"
             color="primary"
             block
+            @click="savePermissions"
           >
             Save changes
           </v-btn>
@@ -229,9 +229,9 @@ export default {
           class="dialog-box"
         >
           <v-btn
-            @click="showAddCollaboratorOverlay = false"
             icon
             style="float: right"
+            @click="showAddCollaboratorOverlay = false"
           >
             <v-icon
               large
@@ -260,9 +260,9 @@ export default {
           <br>
           <v-btn
             :disabled="!changesMade"
-            @click="savePermissions"
             color="primary"
             block
+            @click="savePermissions"
           >
             Save changes
           </v-btn>

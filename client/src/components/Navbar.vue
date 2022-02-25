@@ -11,7 +11,6 @@ import UserAvatar from '@/components/UserAvatar.vue';
 
 export default defineComponent({
   name: 'Navbar',
-  inject: ['user'],
   components: {
     UserAvatar,
     UserButton,
@@ -20,21 +19,22 @@ export default defineComponent({
     TimeoutDialog,
     KeyboardShortcutDialog,
   },
+  inject: ['user'],
   props: {
     frameView: {
       type: Boolean,
       default: false,
     },
   },
+  setup() {
+    const version = computed(() => process.env.VERSION);
+    return { version };
+  },
   data: () => ({
     emailDialog: false,
     keyboardShortcutDialog: false,
     advanceTimeoutId: null,
   }),
-  setup() {
-    const version = computed(() => process.env.VERSION);
-    return { version };
-  },
   computed: {
     ...mapState([
       'screenshots',
@@ -89,17 +89,17 @@ export default defineComponent({
 
     <div v-if="frameView">
       <v-btn
-        @click="keyboardShortcutDialog = true"
         icon
         class="mr-4"
+        @click="keyboardShortcutDialog = true"
       >
         <v-icon>keyboard</v-icon>
       </v-btn>
       <v-btn
         :disabled="!currentFrame"
-        @click="emailDialog = true"
         icon
         class="mr-4"
+        @click="emailDialog = true"
       >
         <v-badge
           :value="screenshots.length"

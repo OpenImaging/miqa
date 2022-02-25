@@ -76,15 +76,15 @@ export default {
     >
       <v-tooltip
         v-for="chip in artifactChips"
-        :v-bind="chip.code"
         :key="'chip_'+ chip.value"
+        :v-bind="chip.code"
         bottom
       >
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <v-chip
             v-bind="attrs"
-            v-on="on"
             small
+            v-on="on"
           >
             {{ chip.code }}
           </v-chip>
