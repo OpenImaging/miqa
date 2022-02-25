@@ -238,7 +238,14 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
-      const dataURL = await this.view.captureImage({ size: [512, 512] });
+      const scale = fill2DView(this.view, 512, 512, false);
+      const dataURL = await this.view.captureImage({
+        size: [512, 512],
+        resetCamera: ({ renderer }) => {
+          renderer.resetCamera();
+          renderer.getActiveCamera().setParallelScale(scale);
+        },
+      });
       this.setCurrentScreenshot({
         name: `${this.currentViewData.experimentName}/${
           this.currentViewData.scanName
@@ -333,17 +340,17 @@ export default {
     >
       <v-layout align-center>
         <v-slider
-          :value="slice"
-          @change="changeSlice"
           v-mousetrap="[
             { bind: keyboardBindings[1] },
             { bind: keyboardBindings[0] }
           ]"
+          :value="slice"
           :min="sliceDomain.min"
           :max="sliceDomain.max"
           :step="sliceDomain.step"
           class="slice-slider mt-0 mx-4"
           hide-details
+          @change="changeSlice"
         />
         <div class="slice caption px-2">
           {{ roundSlice(slice) }} mm
@@ -358,8 +365,8 @@ export default {
         :style="{ visibility: resized ? 'unset' : 'hidden' }"
       />
       <canvas
-        ref="crosshairsCanvas"
         :id="'crosshairs-'+name"
+        ref="crosshairsCanvas"
         class="crosshairs"
       />
     </div>
@@ -380,8 +387,8 @@ export default {
       <v-spacer />
       <v-btn
         v-mousetrap="{ bind: keyboardBindings[2], handler: toggleFullscreen }"
-        @click="toggleFullscreen"
         icon
+        @click="toggleFullscreen"
       >
         <v-icon v-if="!fullscreen">
           fullscreen
@@ -391,8 +398,8 @@ export default {
         </v-icon>
       </v-btn>
       <v-btn
-        @click="takeScreenshot"
         icon
+        @click="takeScreenshot"
       >
         <v-icon>add_a_photo</v-icon>
       </v-btn>
