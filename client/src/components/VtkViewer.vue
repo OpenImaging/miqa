@@ -238,7 +238,7 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
-      const dataURL = await this.view.captureImage();
+      const dataURL = await this.view.captureImage({ size: [512, 512] });
       this.setCurrentScreenshot({
         name: `${this.currentViewData.experimentName}/${
           this.currentViewData.scanName
