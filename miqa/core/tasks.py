@@ -46,10 +46,11 @@ def evaluate_data(frames_by_project):
         project = Project.objects.get(id=project_id)
         for frame_id in frame_ids:
             frame = Frame.objects.get(id=frame_id)
-            eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
-            if eval_model_name not in model_to_frames_map:
-                model_to_frames_map[eval_model_name] = []
-            model_to_frames_map[eval_model_name].append(frame)
+            if Path(frame.raw_path).exists():
+                eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
+                if eval_model_name not in model_to_frames_map:
+                    model_to_frames_map[eval_model_name] = []
+                model_to_frames_map[eval_model_name].append(frame)
 
     for model_name, frame_set in model_to_frames_map.items():
         current_model = available_evaluation_models[model_name].load()
@@ -83,24 +84,28 @@ def import_data(project_id: Optional[str]):
         project = Project.objects.get(id=project_id)
         import_path = project.import_path
 
-    if import_path.endswith('.csv'):
-        if import_path.startswith('s3://'):
-            buf = _download_from_s3(import_path).decode('utf-8')
+    try:
+        if import_path.endswith('.csv'):
+            if import_path.startswith('s3://'):
+                buf = _download_from_s3(import_path).decode('utf-8')
+            else:
+                with open(import_path) as fd:
+                    buf = fd.read()
+            import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
+        elif import_path.endswith('.json'):
+            if import_path.startswith('s3://'):
+                import_dict = json.loads(_download_from_s3(import_path))
+            else:
+                with open(import_path) as fd:
+                    import_dict = json.load(fd)
         else:
-            with open(import_path) as fd:
-                buf = fd.read()
-        import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
-    elif import_path.endswith('.json'):
-        if import_path.startswith('s3://'):
-            import_dict = json.loads(_download_from_s3(import_path))
-        else:
-            with open(import_path) as fd:
-                import_dict = json.load(fd)
-    else:
-        raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
+            raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
+    except (FileNotFoundError, boto3.exceptions.Boto3Error):
+        raise APIException(f'Could not locate import file at {import_path}.')
 
-    import_dict = validate_import_dict(import_dict, project)
+    import_dict, not_found_errors = validate_import_dict(import_dict, project)
     perform_import.delay(import_dict, project_id)
+    return not_found_errors
 
 
 @shared_task
@@ -140,7 +145,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                         scan=scan_object,
                     )
                     new_frames.append(frame_object)
-                    if settings.ZARR_SUPPORT:
+                    if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
                         nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
     Project.objects.bulk_create(new_projects)
