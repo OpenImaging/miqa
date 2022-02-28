@@ -12,20 +12,6 @@ module.exports = {
   lintOnSave: false,
   publicPath: process.env.VUE_APP_STATIC_PATH,
   configureWebpack: {
-    // module: {
-    // rules: [
-    //   {
-    //     test: /\.worker\.js$/,
-    //     include: /node_modules(\/|\\)vtk\.js(\/|\\)/,
-    //     use: [
-    //       {
-    //         loader: 'worker-loader',
-    //         options: { inline: true, fallback: false },
-    //       },
-    //     ],
-    //   },
-    // ],
-    // },
     plugins: [
       new CopyPlugin([
         {
@@ -41,14 +27,6 @@ module.exports = {
     ],
   },
   chainWebpack: (config) => {
-    // config.module
-    //   .rule('glsl')
-    //   .test(/\.glsl$/)
-    //   .include.add(/vtk\.js(\/|\\)/)
-    //   .end()
-    //   .use()
-    //   .loader('shader-loader');
-    // Add vtk.js rules
     vtkChainWebpack(config);
   },
 };
