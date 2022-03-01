@@ -238,6 +238,9 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
+      // TODO: scale is currently slightly off, causing a no-content border around the screenshot
+      // scale calculated in fill2Dview comes from view bounds and input data spacing
+      // relevant info: frameData.getSpacing() where frameData comes from loadFileAndGetData
       const scale = fill2DView(this.view, 512, 512, false);
       const dataURL = await this.view.captureImage({
         size: [512, 512],
