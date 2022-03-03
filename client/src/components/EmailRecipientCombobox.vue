@@ -47,21 +47,21 @@ export default defineComponent({
       v =>
         !!v.length || (required ? `at least one recipient is required` : true)
     ]"
-    @input="$emit('input', $event)"
     multiple
     deletable-chips
     small-chips
     hide-selected
+    @input="$emit('input', $event)"
   >
     <template #selection="{ item, parent, selected }">
       <v-chip
         :key="JSON.stringify(item)"
         :color="isValid(item) ? '' : 'error'"
         :input-value="selected"
-        @input="parent.selectItem(item)"
-        @click:close="parent.selectItem(item)"
         small
         close
+        @input="parent.selectItem(item)"
+        @click:close="parent.selectItem(item)"
       >
         {{ item }}
       </v-chip>

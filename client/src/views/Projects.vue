@@ -25,10 +25,6 @@ export default defineComponent({
     ProjectUsers,
   },
   inject: ['user'],
-  data: () => ({
-    creating: false,
-    newName: '',
-  }),
   setup() {
     const loadingProjects = ref(true);
     store.dispatch.loadProjects().then(() => {
@@ -88,6 +84,18 @@ export default defineComponent({
       setOverviewSections,
     };
   },
+  data: () => ({
+    creating: false,
+    newName: '',
+  }),
+  mounted() {
+    this.setOverviewSections();
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        this.createProject();
+      }
+    });
+  },
   methods: {
     ...mapMutations(['setProjects', 'setCurrentProject']),
     async createProject() {
@@ -110,14 +118,6 @@ export default defineComponent({
         }
       }
     },
-  },
-  mounted() {
-    this.setOverviewSections();
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        this.createProject();
-      }
-    });
   },
 });
 </script>
@@ -142,7 +142,7 @@ export default defineComponent({
                 v-if="project.status"
                 right
               >
-                <template v-slot:activator="{ on, attrs }">
+                <template #activator="{ on, attrs }">
                   <v-container
                     v-bind="attrs"
                     v-on="on"
@@ -170,17 +170,17 @@ export default defineComponent({
               <v-text-field
                 v-if="creating"
                 v-model="newName"
-                @click:append="createProject"
                 autofocus
                 append-icon="mdi-arrow-right"
                 label="New Project Name"
                 filled
                 dense
+                @click:append="createProject"
               />
               <v-btn
-                @click="creating = true"
                 v-else
                 class="green white--text"
+                @click="creating = true"
               >
                 + Create new Project
               </v-btn>
@@ -190,8 +190,8 @@ export default defineComponent({
               class="global-settings"
             >
               <v-btn
-                @click="selectGlobal()"
                 class="primary white--text"
+                @click="selectGlobal()"
               >
                 Global import/export
               </v-btn>

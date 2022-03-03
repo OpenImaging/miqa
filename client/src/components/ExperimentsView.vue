@@ -10,13 +10,13 @@ import { API_URL } from '../constants';
 export default {
   name: 'ExperimentsView',
   components: { UserAvatar },
+  inject: ['user', 'MIQAConfig'],
   props: {
     minimal: {
       type: Boolean,
       default: false,
     },
   },
-  inject: ['user', 'MIQAConfig'],
   data: () => ({
     API_URL,
     showUploadModal: false,
@@ -164,12 +164,12 @@ export default {
       >
         <span>All scans</span>
         <v-switch
-          @change="switchReviewMode"
           :value="reviewMode"
           inset
           dense
           style="display: inline-block; max-height: 40px; max-width: 60px;"
           class="px-3 ma-0"
+          @change="switchReviewMode"
         />
         <span>Scans for my review</span>
       </div>
@@ -180,11 +180,11 @@ export default {
     >
       <span>All scans</span>
       <v-switch
-        @change="switchReviewMode"
         :value="reviewMode"
         dense
         style="display: inline-block; max-height: 40px; max-width: 60px;"
         class="px-3 ma-0"
+        @change="switchReviewMode"
       />
       <span>Scans for my review</span>
     </v-subheader>
@@ -224,16 +224,16 @@ export default {
                 :class="scanStateClass(scan)"
               >
                 <v-tooltip right>
-                  <template v-slot:activator="{ on, attrs }">
+                  <template #activator="{ on, attrs }">
                     <v-btn
                       v-bind="attrs"
-                      v-on="on"
                       :to="getURLForFirstFrameInScan(scan.id)"
                       class="ml-0 px-1 scan-name"
                       href
                       text
                       small
                       active-class=""
+                      v-on="on"
                     >
                       {{ scan.name }}
                       <span
@@ -264,15 +264,15 @@ export default {
         v-model="showUploadModal"
         width="600px"
       >
-        <template v-slot:activator="{ on, attrs }">
+        <template #activator="{ on, attrs }">
           <div
             v-bind="attrs"
-            v-on="on"
             class="add-scans"
+            v-on="on"
           >
             <v-btn
-              @click="() => {experimentNameForUpload = ''}"
               class="green white--text"
+              @click="() => {experimentNameForUpload = ''}"
             >
               + Add Scans...
             </v-btn>
@@ -292,13 +292,13 @@ export default {
             >
               <span>Upload to New</span>
               <v-switch
-                @change="(value) => {uploadToExisting = value; experimentNameForUpload = ''}"
                 :value="uploadToExisting"
                 :disabled="!(orderedExperiments && orderedExperiments.length)"
                 inset
                 dense
                 style="display: inline-block; max-height: 40px; max-width: 60px;"
                 class="px-3 ma-0"
+                @change="(value) => {uploadToExisting = value; experimentNameForUpload = ''}"
               />
               <span
                 :class="!(orderedExperiments && orderedExperiments.length) ? 'grey--text' : ''"
@@ -309,8 +309,8 @@ export default {
             <div style="max-width:200px">
               <v-select
                 v-if="orderedExperiments && orderedExperiments.length && uploadToExisting"
-                :items="orderedExperiments"
                 v-model="experimentNameForUpload"
+                :items="orderedExperiments"
                 item-text="name"
                 label="Select Experiment"
                 dense
@@ -325,13 +325,13 @@ export default {
           <div class="ma-5">
             <v-file-input
               v-model="fileSetForUpload"
-              @click:clear="delayPrepareDropZone"
               label="Image files (.nii.gz, .nii, .mgz, .nrrd)"
               prepend-icon="mdi-paperclip"
               multiple
               chips
+              @click:clear="delayPrepareDropZone"
             >
-              <template v-slot:selection="{ index, text }">
+              <template #selection="{ index, text }">
                 <v-chip
                   v-if="index < 2"
                   small
@@ -349,12 +349,12 @@ export default {
               </template>
             </v-file-input>
             <div
-              id="dropZone"
               v-if="fileSetForUpload.length == 0"
-              @drop.prevent="addDropFiles"
-              @dragover.prevent
+              id="dropZone"
               style="text-align: center"
               class="pa-3 drop-zone"
+              @drop.prevent="addDropFiles"
+              @dragover.prevent
             >
               or drag and drop here
             </div>
@@ -363,10 +363,10 @@ export default {
           <v-card-actions>
             <v-spacer />
             <v-btn
-              @click="uploadToExperiment()"
               :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"
               color="primary"
               text
+              @click="uploadToExperiment()"
             >
               Upload
             </v-btn>
