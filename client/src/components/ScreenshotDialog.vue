@@ -98,11 +98,11 @@ export default {
           <v-flex>
             <v-text-field
               v-model="filename"
+              label="Filename"
               @keyup.enter="
                 save();
                 close();
               "
-              label="Filename"
             />
           </v-flex>
           <v-flex xs2>
@@ -129,12 +129,12 @@ export default {
         </v-btn>
         <v-btn
           :disabled="!output"
+          color="primary"
+          text
           @click="
             save();
             close();
           "
-          color="primary"
-          text
         >
           Attach to email draft
         </v-btn>
