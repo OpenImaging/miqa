@@ -111,13 +111,13 @@ export default defineComponent({
       v-if="!exportOnly"
       top
     >
-      <template v-slot:activator="{ on, attrs }">
+      <template #activator="{ on, attrs }">
         <v-btn
-          @click="importDialog = true"
           v-bind="attrs"
-          v-on="on"
           text
           color="primary"
+          v-on="on"
+          @click="importDialog = true"
         >
           Import
         </v-btn>
@@ -129,14 +129,14 @@ export default defineComponent({
       v-if="!importOnly"
       top
     >
-      <template v-slot:activator="{ on, attrs }">
+      <template #activator="{ on, attrs }">
         <v-btn
           :disabled="exporting"
-          @click="exportData"
           v-bind="attrs"
-          v-on="on"
           text
           color="primary"
+          v-on="on"
+          @click="exportData"
         >
           <v-progress-circular
             v-if="exporting"
@@ -173,16 +173,16 @@ export default defineComponent({
           <v-spacer />
           <v-btn
             :disabled="importing"
-            @click="importDialog = false"
             text
+            @click="importDialog = false"
           >
             Cancel
           </v-btn>
           <v-btn
             :loading="importing"
-            @click="importData"
             text
             color="primary"
+            @click="importData"
           >
             Import
           </v-btn>
@@ -213,9 +213,9 @@ export default defineComponent({
         <v-card-actions>
           <v-spacer />
           <v-btn
-            @click="importErrors = false"
             color="primary"
             text
+            @click="importErrors = false"
           >
             Ok
           </v-btn>

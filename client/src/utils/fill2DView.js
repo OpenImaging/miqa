@@ -1,7 +1,7 @@
-export default function fill2DView(view, w, h) {
-  view.resize();
+export default function fill2DView(view, w, h, resize = true) {
+  if (resize) view.resize();
   const viewName = view.getName();
-  if (viewName === 'default') return;
+  if (viewName === 'default') return 0;
 
   const bounds = view.getRenderer().computeVisiblePropBounds();
   const dim = [
@@ -22,12 +22,15 @@ export default function fill2DView(view, w, h) {
   } else if (viewName === 'z') {
     [x, y] = dim;
   }
+  let scale;
   if (r >= x / y) {
-    // use width
-    view.getCamera().setParallelScale(y + 1);
+    scale = y + 1;
   } else {
-    // use height
-    view.getCamera().setParallelScale(x / r + 1);
+    scale = x / r + 1;
   }
-  view.resize();
+  if (resize) {
+    view.resize();
+    view.getCamera().setParallelScale(scale);
+  }
+  return scale;
 }
