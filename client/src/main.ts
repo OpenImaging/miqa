@@ -53,10 +53,10 @@ djangoRest.restoreLogin(store).then(async () => {
     vuetify,
     router,
     store: store.original,
-    render: (h) => h(App),
     provide: {
       user, MIQAConfig,
     },
+    render: (h) => h(App),
   })
     .$mount('#app')
     // @ts-ignore
