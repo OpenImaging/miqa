@@ -40,7 +40,9 @@ def test_project_settings_get(user_api_client, project, user):
 
 
 @pytest.mark.django_db
-def test_project_settings_put(user_api_client, project, user):
+def test_project_settings_put(user_api_client, project_factory, user_factory, user):
+    creator = user_factory()
+    project = project_factory(creator=creator)
     user_api_client = user_api_client()
     my_perms = get_perms(user, project)
     new_perms = {
@@ -84,7 +86,9 @@ def test_project_settings_put(user_api_client, project, user):
 
 
 @pytest.mark.django_db
-def test_settings_endpoint_requires_superuser(user_api_client, project, user):
+def test_settings_endpoint_requires_superuser(user_api_client, project_factory, user_factory, user):
+    creator = user_factory()
+    project = project_factory(creator=creator)
     resp = user_api_client().put(
         f'/api/v1/projects/{project.id}/settings',
         data={
