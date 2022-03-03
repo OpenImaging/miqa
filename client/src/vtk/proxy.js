@@ -9,6 +9,7 @@ import vtkProxySource from 'vtk.js/Sources/Proxy/Core/SourceProxy';
 import vtkSliceRepresentationProxy from 'vtk.js/Sources/Proxy/Representations/SliceRepresentationProxy';
 import vtkView from 'vtk.js/Sources/Proxy/Core/ViewProxy';
 import vtkVolumeRepresentationProxy from 'vtk.js/Sources/Proxy/Representations/VolumeRepresentationProxy';
+import 'vtk.js/Sources/Rendering/Profiles/All';
 
 import ConfigUtils from './configUtils';
 

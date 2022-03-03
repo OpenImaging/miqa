@@ -19,6 +19,19 @@ export default {
     ControlPanel,
   },
   inject: ['user'],
+  async beforeRouteUpdate(to, from, next) {
+    const toFrame = await this.getFrame({ frameId: to.params.frameId, projectId: undefined });
+    next(true);
+    if (toFrame) {
+      this.swapToFrame({
+        frame: toFrame,
+        onDownloadProgress: this.onFrameDownloadProgress,
+      });
+    }
+  },
+  async beforeRouteLeave(to, from, next) {
+    next(true);
+  },
   data() {
     return {
       downloadLoaded: 0,
@@ -75,19 +88,6 @@ export default {
       this.$router.replace('/').catch(this.handleNavigationError);
     }
   },
-  async beforeRouteUpdate(to, from, next) {
-    const toFrame = await this.getFrame({ frameId: to.params.frameId, projectId: undefined });
-    next(true);
-    if (toFrame) {
-      this.swapToFrame({
-        frame: toFrame,
-        onDownloadProgress: this.onFrameDownloadProgress,
-      });
-    }
-  },
-  async beforeRouteLeave(to, from, next) {
-    next(true);
-  },
   methods: {
     ...mapActions([
       'loadProject',
@@ -129,7 +129,7 @@ export default {
       expand-on-hover
       permanent
       app
-      width="350"
+      width="350px"
     >
       <v-list>
         <v-list-item>

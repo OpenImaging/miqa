@@ -43,12 +43,12 @@ export default {
     left
     color="rgba(0,0,0,0)"
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template #activator="{ on, attrs }">
       <div
         v-bind="attrs"
-        v-on="on"
         :class="convertValueToColor(results.overall_quality)"
         style="display: flex"
+        v-on="on"
       >
         {{ Math.round(results.overall_quality * 100) }}%
         <v-img
