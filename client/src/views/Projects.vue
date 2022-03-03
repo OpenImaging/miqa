@@ -24,7 +24,7 @@ export default defineComponent({
     ProjectSettings,
     ProjectUsers,
   },
-  inject: ['user'],
+  inject: ['user', 'MIQAConfig'],
   setup() {
     const loadingProjects = ref(true);
     store.dispatch.loadProjects().then(() => {
@@ -166,7 +166,10 @@ export default defineComponent({
                 </span>
               </v-tooltip>
             </v-list-item>
-            <v-list-item style="text-align: center">
+            <v-list-item
+              v-if="user.is_superuser || MIQAConfig.NORMAL_USERS_CAN_CREATE_PROJECTS"
+              style="text-align: center"
+            >
               <v-text-field
                 v-if="creating"
                 v-model="newName"

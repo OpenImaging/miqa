@@ -20,5 +20,6 @@ class MIQAConfigView(APIView):
                     'UNDEFINED': ArtifactState.UNDEFINED.value,
                 },
                 'S3_SUPPORT': settings.S3_SUPPORT,
+                'NORMAL_USERS_CAN_CREATE_PROJECTS': settings.NORMAL_USERS_CAN_CREATE_PROJECTS,
             }
         )
