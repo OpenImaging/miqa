@@ -13,9 +13,6 @@ export default defineComponent({
   components: {
     DataImportExport,
   },
-  data: () => ({
-    showDeleteWarningOverlay: false,
-  }),
   setup() {
     const user: User = inject('user');
     const currentProject = computed(() => store.state.currentProject);
@@ -91,6 +88,9 @@ export default defineComponent({
       save,
     };
   },
+  data: () => ({
+    showDeleteWarningOverlay: false,
+  }),
   methods: {
     ...mapMutations(['setProjects', 'setCurrentProject']),
     async deleteProject() {
@@ -135,11 +135,11 @@ export default defineComponent({
           ]"
           :disabled="!userCanEditProject"
           :error-messages="importPathError"
-          @input="changed = true"
           label="Import path"
           placeholder="Specify a server path to read an import file"
           autocomplete="on"
           name="miqa-json-import-path"
+          @input="changed = true"
         />
       </v-flex>
       <v-flex
@@ -157,11 +157,11 @@ export default defineComponent({
           ]"
           :disabled="!userCanEditProject"
           :error-messages="exportPathError"
-          @input="changed = true"
           label="Export path"
           placeholder="Specify a server path to write an export file"
           autocomplete="on"
           name="miqa-json-export-path"
+          @input="changed = true"
         />
       </v-flex>
     </v-layout>
@@ -170,8 +170,8 @@ export default defineComponent({
       style="flex-direction: row"
     >
       <v-btn
-        :disabled="!changed"
         v-if="userCanEditProject"
+        :disabled="!changed"
         type="submit"
         color="primary"
       >
@@ -181,9 +181,9 @@ export default defineComponent({
       <div style="flex-grow:2">
         <v-btn
           v-if="userCanEditProject && !isGlobal"
-          @click="showDeleteWarningOverlay = true"
           class="red white--text"
           style="float: right;"
+          @click="showDeleteWarningOverlay = true"
         >
           DELETE PROJECT
         </v-btn>
@@ -199,9 +199,9 @@ export default defineComponent({
         style="min-width:600px"
       >
         <v-btn
-          @click="showDeleteWarningOverlay = false"
           icon
           style="float: right"
+          @click="showDeleteWarningOverlay = false"
         >
           <v-icon
             large
@@ -217,9 +217,9 @@ export default defineComponent({
         project and its dependent objects (experiments, scans, etc.)?
         <br><br>
         <v-btn
-          @click="deleteProject"
           class="red white--text"
           block
+          @click="deleteProject"
         >
           PERMANENTLY DELETE THIS PROJECT AND ITS EXPERIMENTS
         </v-btn>

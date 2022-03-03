@@ -281,9 +281,8 @@ export default {
               </v-flex>
               <v-textarea
                 v-model="currentViewData.experimentNote"
-                @input="handleExperimentNoteChange"
-                :disabled="!experimentIsEditable"
                 filled
+                :disabled="!experimentIsEditable"
                 no-resize
                 height="80px"
                 hide-details
@@ -291,12 +290,13 @@ export default {
                 name="input-experiment-notes"
                 label="Experiment Notes"
                 placeholder="There are no notes on this experiment."
+                @input="handleExperimentNoteChange"
               />
               <v-row no-gutters>
                 <v-col
-                  v-on:click="handleExperimentNoteSave()"
                   :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
                   style="text-align: right"
+                  @click="handleExperimentNoteSave()"
                 >
                   Save Note
                 </v-col>
@@ -308,19 +308,19 @@ export default {
                 <div style="flex-grow: 1">
                   <v-switch
                     :input-value="showCrosshairs"
-                    @change="setShowCrosshairs"
                     label="Display crosshairs"
                     hide-details
                     class="shrink pa-0 ml-n2"
+                    @change="setShowCrosshairs"
                   />
                 </div>
                 <div style="flex-grow: 1">
                   <v-switch
                     :input-value="storeCrosshairs"
-                    @change="setStoreCrosshairs"
                     label="Store crosshairs with decision"
                     hide-details
                     class="shrink pa-0 ml-n2"
+                    @change="setStoreCrosshairs"
                   />
                 </div>
               </v-flex>
@@ -368,19 +368,19 @@ export default {
                       >
                         <v-btn
                           :disabled="!currentViewData.upTo"
-                          @mousedown="handleKeyPress('previous')"
                           small
                           depressed
                           class="transparent-btn"
+                          @mousedown="handleKeyPress('previous')"
                         >
                           <v-icon>fa-caret-up</v-icon>
                         </v-btn>
                         <v-btn
                           :disabled="!currentViewData.downTo"
-                          @mousedown="handleKeyPress('next')"
                           small
                           depressed
                           class="transparent-btn"
+                          @mousedown="handleKeyPress('next')"
                         >
                           <v-icon>fa-caret-down</v-icon>
                         </v-btn>
@@ -403,19 +403,19 @@ export default {
                       >
                         <v-btn
                           :disabled="!previousFrame"
-                          @mousedown="handleKeyPress('back')"
                           small
                           depressed
                           class="transparent-btn"
+                          @mousedown="handleKeyPress('back')"
                         >
                           <v-icon>fa-caret-left</v-icon>
                         </v-btn>
                         <v-btn
                           :disabled="!nextFrame"
-                          @mousedown="handleKeyPress('forward')"
                           small
                           depressed
                           class="transparent-btn"
+                          @mousedown="handleKeyPress('forward')"
                         >
                           <v-icon>fa-caret-right</v-icon>
                         </v-btn>
@@ -431,11 +431,11 @@ export default {
                       >
                         Window width
                         <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
+                          <template #activator="{ on, attrs }">
                             <v-icon
                               v-bind="attrs"
-                              v-on="on"
                               small
+                              v-on="on"
                             >
                               info
                             </v-icon>
@@ -458,10 +458,10 @@ export default {
                           class="align-center"
                           hide-details
                         >
-                          <template v-slot:prepend>
+                          <template #prepend>
                             {{ winMin }}
                           </template>
-                          <template v-slot:append>
+                          <template #append>
                             <div class="pr-5 pt-2">
                               {{ winMax }}
                             </div>
@@ -485,11 +485,11 @@ export default {
                       <v-col cols="4">
                         Window level
                         <v-tooltip bottom>
-                          <template v-slot:activator="{ on, attrs }">
+                          <template #activator="{ on, attrs }">
                             <v-icon
                               v-bind="attrs"
-                              v-on="on"
                               small
+                              v-on="on"
                             >
                               info
                             </v-icon>
@@ -511,10 +511,10 @@ export default {
                           class="align-center"
                           hide-details
                         >
-                          <template v-slot:prepend>
+                          <template #prepend>
                             {{ levMin }}
                           </template>
-                          <template v-slot:append>
+                          <template #append>
                             <div class="pr-5 pt-2">
                               {{ levMax }}
                             </div>
@@ -581,8 +581,8 @@ export default {
                       v-if="editRights && (user.is_superuser || !lockOwner)"
                       :loading="loadingLock"
                       :disabled="loadingLock"
-                      @click="switchLock(experimentId, null, force=true)"
                       color="primary"
+                      @click="switchLock(experimentId, null, force=true)"
                     >
                       {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
                     </v-btn>

@@ -51,10 +51,10 @@ export default defineComponent({
 <template>
   <v-dialog
     :value="value"
-    @input="$emit('input', $event)"
     max-width="500"
     height="500"
     scrollable
+    @input="$emit('input', $event)"
   >
     <v-card>
       <v-card-title
@@ -70,7 +70,7 @@ export default defineComponent({
           hide-default-footer
           hide-default-header
         >
-          <template v-slot:item="{ item }">
+          <template #item="{ item }">
             <tr>
               <td>{{ item[0] }}</td>
               <!-- eslint-disable vue/no-v-html -->
@@ -83,9 +83,9 @@ export default defineComponent({
       <v-card-actions>
         <v-spacer />
         <v-btn
-          @click="$emit('input', false)"
           color="primary"
           text
+          @click="$emit('input', false)"
         >
           Close
         </v-btn>
