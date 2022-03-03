@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from rest_framework import mixins, serializers, status
@@ -122,6 +123,8 @@ class ProjectViewSet(
             return projects.all()
 
     def create(self, request, *args, **kwargs):
+        if not settings.NORMAL_USERS_CAN_CREATE_PROJECTS and not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         project = serializer.save(creator=request.user)

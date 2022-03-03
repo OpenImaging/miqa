@@ -31,6 +31,7 @@ class MiqaMixin(ConfigMixin):
     CORS_ALLOW_CREDENTIALS = True
     ZARR_SUPPORT = True
     S3_SUPPORT = True
+    NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
