@@ -16,9 +16,9 @@ IMPORT_CSV_COLUMNS = [
 ]
 
 
-def validate_file_locations(input_dict, project):
+def validate_file_locations(input_dict, project, not_found_errors):
     if not isinstance(input_dict, dict):
-        return input_dict
+        return input_dict, not_found_errors
     import_path = GlobalSettings.load().import_path if project is None else project.import_path
     for key, value in input_dict.items():
         if key == 'file_location':
@@ -28,11 +28,12 @@ def validate_file_locations(input_dict, project):
                     # not an absolute file path; refer to project import csv location
                     raw_path = Path(import_path).parent.parent / raw_path
                 if not raw_path.exists():
-                    raise APIException(f'Could not locate file "{raw_path}".')
+                    not_found_errors.append(f'File not found: {raw_path}')
             input_dict[key] = str(raw_path) if 's3://' not in value else value
         else:
-            input_dict[key] = validate_file_locations(value, project)
-    return input_dict
+            new_value, not_found_errors = validate_file_locations(value, project, not_found_errors)
+            input_dict[key] = new_value
+    return input_dict, not_found_errors
 
 
 def validate_import_dict(import_dict, project: Optional[Project]):
@@ -54,9 +55,12 @@ def validate_import_dict(import_dict, project: Optional[Project]):
             }
         }
     )
+    not_found_errors = []
     try:
         import_schema.validate(import_dict)
-        import_dict = validate_file_locations(import_dict, project)
+        import_dict, not_found_errors = validate_file_locations(
+            import_dict, project, not_found_errors
+        )
     except SchemaError:
         import_path = GlobalSettings.load().import_path if project is None else project.import_path
         raise APIException(f'Invalid format of import file {import_path}')
@@ -64,7 +68,7 @@ def validate_import_dict(import_dict, project: Optional[Project]):
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
                 raise APIException(f'Project {project_name} does not exist')
-    return import_dict
+    return import_dict, not_found_errors
 
 
 def import_dataframe_to_dict(df):

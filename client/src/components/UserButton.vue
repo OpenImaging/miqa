@@ -16,17 +16,17 @@ export default defineComponent({
 <template>
   <v-btn
     v-if="user"
-    @click="$emit('user')"
     icon
     color="black lighten-1"
     class="mx-4"
+    @click="$emit('user')"
   >
     Logout
   </v-btn>
   <v-btn
     v-else
-    @click="$emit('login')"
     text
+    @click="$emit('login')"
   >
     Login
   </v-btn>

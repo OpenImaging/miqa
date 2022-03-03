@@ -53,13 +53,13 @@ export default {
     v-if="targetUser"
     bottom
   >
-    <template v-slot:activator="{ on, attrs }">
+    <template #activator="{ on, attrs }">
       <v-avatar
         v-bind="attrs"
-        v-on="on"
         :color="computeColor()"
         size="30"
         style="border-radius: 50%"
+        v-on="on"
       >
         <span
           v-if="targetUser.first_name && targetUser.last_name"

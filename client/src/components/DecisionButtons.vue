@@ -7,10 +7,10 @@ import EvaluationResults from '@/components/EvaluationResults.vue';
 
 export default {
   name: 'DecisionButtons',
-  inject: ['user', 'MIQAConfig'],
   components: {
     EvaluationResults,
   },
+  inject: ['user', 'MIQAConfig'],
   data() {
     return {
       warnDecision: false,
@@ -238,12 +238,12 @@ export default {
       <v-subheader class="pa-0 ma-0">
         Indicate artifacts in this scan
         <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
+          <template #activator="{ on, attrs }">
             <v-icon
               v-bind="attrs"
-              v-on="on"
               small
               class="pl-2"
+              v-on="on"
             >
               info
             </v-icon>
@@ -266,12 +266,12 @@ export default {
           Auto evaluation
         </v-subheader>
         <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
+          <template #activator="{ on, attrs }">
             <v-icon
               v-bind="attrs"
-              v-on="on"
               small
               style="height: 25px; padding: 5px"
+              v-on="on"
             >
               info
             </v-icon>
@@ -296,12 +296,12 @@ export default {
           No Auto evaluation available
         </v-subheader>
         <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
+          <template #activator="{ on, attrs }">
             <v-icon
               v-bind="attrs"
-              v-on="on"
               small
               style="height: 25px; padding: 5px"
+              v-on="on"
             >
               info
             </v-icon>
@@ -321,12 +321,12 @@ export default {
           v-for="([artifact, chipState]) in chips"
           v-bind="artifact"
           :key="artifact.value"
-          @click="clickChip(artifact, chipState.state)"
           :outlined="chipState.outlined"
           :color="chipState.color"
           :text-color="chipState.textColor"
           :style="'text-decoration: '+chipState.textDecoration +'; margin-bottom: 3px;'"
           small
+          @click="clickChip(artifact, chipState.state)"
         >
           {{ chipState.label }}
         </v-chip>
@@ -338,16 +338,16 @@ export default {
         class="pt-5"
       >
         <v-textarea
-          @input="handleCommentChange"
+          v-model="newComment"
           :counter="!warnDecision"
           :hide-details="warnDecision"
-          v-model="newComment"
           filled
           no-resize
           height="75px"
           name="input-comment"
           label="Evaluation Comment"
           placeholder="Write a comment about the scan and submit a decision"
+          @input="handleCommentChange"
         />
       </v-col>
     </v-row>
@@ -372,8 +372,8 @@ export default {
             style="text-align: center"
           >
             <v-btn
-              @click="handleCommentSave(option.code)"
               :color="option.color"
+              @click="handleCommentSave(option.code)"
             >
               {{ option.label }}
             </v-btn>

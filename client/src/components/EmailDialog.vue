@@ -158,8 +158,8 @@ export default defineComponent({
 <template>
   <v-dialog
     :value="value"
-    @input="$emit('input', $event)"
     max-width="60%"
+    @input="$emit('input', $event)"
   >
     <v-form
       ref="form"
@@ -170,10 +170,10 @@ export default defineComponent({
           Send email
           <v-spacer />
           <v-btn
-            @click="$emit('input', false)"
             small
             icon
             class="ma-0"
+            @click="$emit('input', false)"
           >
             <v-icon>close</v-icon>
           </v-btn>
@@ -194,13 +194,13 @@ export default defineComponent({
             <v-flex shrink>
               <a
                 v-if="!showCC"
-                @click="showCC = true"
                 class="px-2"
+                @click="showCC = true"
               >cc</a>
               <a
                 v-if="!showBCC"
-                @click="showBCC = true"
                 class="px-2"
+                @click="showBCC = true"
               >bcc</a>
             </v-flex>
           </v-layout>
@@ -256,13 +256,13 @@ export default defineComponent({
                 :key="index"
                 shrink
               >
-                <v-hover #default="{ hover }">
+                <v-hover v-slot="{ hover }">
                   <v-card
                     :style="{
                       borderColor: getBorder(screenshot)
                     }"
-                    @click="toggleScreenshotSelection(screenshot)"
                     class="screenshot"
+                    @click="toggleScreenshotSelection(screenshot)"
                   >
                     <v-img
                       :src="screenshot.dataURL"
@@ -279,11 +279,11 @@ export default defineComponent({
                     <v-fade-transition>
                       <v-btn
                         v-if="hover"
-                        @click.stop="removeScreenshot(screenshot)"
                         fab
                         small
                         color="primary"
                         class="close"
+                        @click.stop="removeScreenshot(screenshot)"
                       >
                         <v-icon>close</v-icon>
                       </v-btn>
