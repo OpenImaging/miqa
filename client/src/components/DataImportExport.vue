@@ -205,7 +205,7 @@ export default defineComponent({
 
         <v-card-text
           v-for="importError in importErrorList"
-          v-bind:key="importError"
+          :key="importError"
           class="console-format"
         >
           {{ importError }}
