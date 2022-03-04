@@ -13,26 +13,25 @@ export default defineComponent({
     shortcuts: [
       ['Next frame', [['→']]],
       ['Previous frame', [['←']]],
-      ['Next frame', [['↓']]],
-      ['Previous frame', [['↑']]],
-      // [
-      //   'Change slices',
-      //   [
-      //     ['q', 'w'],
-      //     ['a', 's'],
-      //     ['z', 'x'],
-      //   ],
-      // ],
+      [
+        'Change slices',
+        [
+          ['q', 'w'],
+          ['a', 's'],
+          ['z', 'x'],
+        ],
+      ],
       ['Toggle fullscreen', [['e', 'd', 'c']]],
       ['Zooming', [['right button + dragging']]],
       ['Panning', [['shift + dragging']]],
-      // ['Increase/decrease window width', [['=', '-']]],
-      // ['Increase/decrease window level', [['[', ']']]],
-      // ['Focus to note', [['n']]],
-      // ['Show note history', [['h']]],
-      // ['Unfocus from note', [['esc']]],
-      // ['Mark as bad/good/usable extra', [['b', 'g', 'u']]],
-      // ['Save', [['alt + s']]],
+      ['Cancel on confirm dialog', [['esc']]],
+      ['Increase/decrease window', [['=', '-']]],
+      ['Increase/decrease window level', [['[', ']']]],
+      ['Focus to note', [['n']]],
+      ['Show note history', [['h']]],
+      ['Unfocus from note', [['esc']]],
+      ['Mark as bad/good/usable extra', [['b', 'g', 'u']]],
+      ['Save', [['alt + s']]],
       ['Save on confirm dialog', [['y']]],
       ["Don't save on confirm dialog", [['n']]],
       ['Cancel on confirm dialog', [['esc']]],
@@ -47,12 +46,10 @@ export default defineComponent({
   },
 });
 </script>
-
 <template>
   <v-dialog
     :value="value"
     max-width="500"
-    height="500"
     scrollable
     @input="$emit('input', $event)"
   >
@@ -64,7 +61,7 @@ export default defineComponent({
         Keyboard shortcuts
       </v-card-title>
       <v-divider />
-      <v-card-text>
+      <v-card-text style="height: 500px;">
         <v-data-table
           :items="shortcuts"
           hide-default-footer
