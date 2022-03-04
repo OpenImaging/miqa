@@ -33,8 +33,6 @@ const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
 
-const actiontime = 28 * 60 * 1000; // 28 minute no action timeout + 2 minutes to take action
-
 function shrinkProxyManager(proxyManager) {
   proxyManager.getViews().forEach((view) => {
     view.setContainer(null);
@@ -320,8 +318,7 @@ const {
   state: {
     ...initState,
     workerPool: new WorkerPool(poolSize, poolFunction),
-    actionTimer: null,
-    actionTimeout: false,
+    lastApiRequestTime: Date.now(),
   },
   getters: {
     wholeState(state) {
@@ -479,8 +476,8 @@ const {
     removeScreenshot(state, screenshot) {
       state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
     },
-    setActionTimeout(state, value) {
-      state.actionTimeout = value;
+    updateLastApiRequestTime(state) {
+      state.lastApiRequestTime = Date.now();
     },
     setLoadingFrame(state, value) {
       state.loadingFrame = value;
@@ -835,15 +832,6 @@ const {
           await djangoRest.unlockExperiment(experimentId),
         );
       }
-    },
-    startActionTimer({ state, commit }) {
-      state.actionTimer = setTimeout(() => {
-        commit('setActionTimeout', true);
-      }, actiontime);
-    },
-    resetActionTimer({ state, dispatch }) {
-      clearTimeout(state.actionTimer);
-      dispatch('startActionTimer');
     },
   },
 });
