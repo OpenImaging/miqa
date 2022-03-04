@@ -1,23 +1,27 @@
 <script lang="ts">
 import {
-  computed, defineComponent, ref, watchEffect,
+  computed, defineComponent, ref, watchEffect, inject,
 } from '@vue/composition-api';
 import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
 import DataImportExport from '@/components/DataImportExport.vue';
+import { User } from '@/types';
 
 export default defineComponent({
   name: 'ProjectSettings',
   components: {
     DataImportExport,
   },
-  inject: ['user'],
   setup() {
+    const user: User = inject('user');
     const currentProject = computed(() => store.state.currentProject);
     const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
     const isGlobal = computed(() => store.getters.isGlobal);
+    const userCanEditProject = computed(
+      () => user.is_superuser || user.username === currentProject.value.creator,
+    );
 
     const importPath = ref('');
     const exportPath = ref('');
@@ -70,6 +74,8 @@ export default defineComponent({
     }
 
     return {
+      user,
+      userCanEditProject,
       currentProject,
       isGlobal,
       projects,
@@ -127,7 +133,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
-          :disabled="!user.is_superuser"
+          :disabled="!userCanEditProject"
           :error-messages="importPathError"
           label="Import path"
           placeholder="Specify a server path to read an import file"
@@ -149,7 +155,7 @@ export default defineComponent({
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
           ]"
-          :disabled="!user.is_superuser"
+          :disabled="!userCanEditProject"
           :error-messages="exportPathError"
           label="Export path"
           placeholder="Specify a server path to write an export file"
@@ -164,17 +170,17 @@ export default defineComponent({
       style="flex-direction: row"
     >
       <v-btn
-        v-if="user.is_superuser"
+        v-if="userCanEditProject"
         :disabled="!changed"
         type="submit"
         color="primary"
       >
         Save
       </v-btn>
-      <DataImportExport v-if="user.is_superuser" />
+      <DataImportExport v-if="(userCanEditProject)" />
       <div style="flex-grow:2">
         <v-btn
-          v-if="user.is_superuser && !isGlobal"
+          v-if="userCanEditProject && !isGlobal"
           class="red white--text"
           style="float: right;"
           @click="showDeleteWarningOverlay = true"
@@ -184,7 +190,7 @@ export default defineComponent({
       </div>
     </v-flex>
     <v-overlay
-      v-if="user.is_superuser && !isGlobal"
+      v-if="userCanEditProject && !isGlobal"
       :value="showDeleteWarningOverlay"
       :dark="false"
     >
