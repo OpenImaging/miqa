@@ -68,6 +68,7 @@ setup(
             'pytest-asyncio',
         ],
         'learning': [
+            'itk>=5.3rc4',
             'monai',
             'sklearn',
             'torch',
