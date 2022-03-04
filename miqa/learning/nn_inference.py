@@ -99,23 +99,47 @@ def get_model(file_path=None):
     return model
 
 
-# from https://gist.github.com/thewtex/9503448d2ad1dfacc2cbd620d95d3dac
-def affine_transform_to_matrix(transform):
-    dimension = itk.template(transform)[1][1]
-    params = np.asarray(transform.GetParameters())
-    affine = params.reshape((dimension + 1, dimension))
-    affine_matrix = np.eye(dimension + 1)
-    affine_matrix[:dimension, :dimension] = affine[:dimension, :dimension]
-    affine_matrix[:dimension, dimension] = affine[dimension, :]
-    return affine_matrix
+# Matrices used to switch between LPS and RAS
+FLIPXY_33 = np.diag([-1, -1, 1])
+FLIPXY_44 = np.diag([-1, -1, 1, 1])
 
 
-# TorchIO uses RAS orientation internally
-ras_to_lps = itk.Rigid3DTransform.New()  # identity by default
-ras_to_lps_parameters = ras_to_lps.GetParameters()
-ras_to_lps_parameters[0] = -1  # invert L<->R
-ras_to_lps_parameters[4] = -1  # invert P<->A
-ras_to_lps.SetParameters(ras_to_lps_parameters)
+# taken from TorchIO and modified
+# https://github.com/fepegar/torchio/blob/1bbf99e90cd06112c092a1fc227dedd5deb256ba/torchio/data/io.py#L344-L399
+def get_ras_affine_from_sitk(sitk_object) -> np.ndarray:
+    spacing = np.array(sitk_object.GetSpacing())
+    direction_lps = np.array(sitk_object.GetDirection())
+    origin_lps = np.array(sitk_object.GetOrigin())
+    rotation_lps = direction_lps.reshape(3, 3)
+    rotation_ras = np.dot(FLIPXY_33, rotation_lps)
+    rotation_ras_zoom = rotation_ras * spacing
+    translation_ras = np.dot(FLIPXY_33, origin_lps)
+    affine = np.eye(4)
+    affine[:3, :3] = rotation_ras_zoom
+    affine[:3, 3] = translation_ras
+    return affine
+
+
+def get_rotation_and_spacing_from_affine(affine: np.ndarray):
+    # From https://github.com/nipy/nibabel/blob/master/nibabel/orientations.py
+    rotation_zoom = affine[:3, :3]
+    spacing = np.sqrt(np.sum(rotation_zoom * rotation_zoom, axis=0))
+    rotation = rotation_zoom / spacing
+    return rotation, spacing
+
+
+def get_sitk_metadata_from_ras_affine(
+    affine: np.ndarray,
+    is_2d: bool = False,
+    lps: bool = True,
+):
+    direction_ras, spacing_array = get_rotation_and_spacing_from_affine(affine)
+    origin_ras = affine[:3, 3]
+    origin_lps = np.dot(FLIPXY_33, origin_ras)
+    direction_lps = np.dot(FLIPXY_33, direction_ras)
+    origin_array = origin_lps if lps else origin_ras
+    direction_array = direction_lps if lps else direction_ras
+    return origin_array, spacing_array, direction_array
 
 
 class ReorientAndRescale(torchio.transforms.RescaleIntensity):
@@ -134,27 +158,8 @@ class ReorientAndRescale(torchio.transforms.RescaleIntensity):
         assert dimension == 3
         itk_np_view = itk.image_view_from_array(np_array, is_vector=False)
 
-        transform = itk.AffineTransform[itk.D, dimension].New()
-        params = transform.GetParameters()
-        affine = affine_matrix[:dimension, :dimension]
-        for idx, val in enumerate(affine.flat):
-            params[idx] = val
-        for idx in range(dimension):
-            params[dimension * dimension + idx] = affine_matrix[idx, dimension]
-        transform.SetParameters(params)
-        transform.Compose(ras_to_lps)
-
-        origin = transform.TransformPoint([0.0] * dimension)
+        origin, spacing, direction = get_sitk_metadata_from_ras_affine(affine_matrix)
         itk_np_view.SetOrigin(origin)
-
-        identity = np.eye(dimension)
-        spacing = []
-        direction = np.eye(dimension)
-        for dim in range(dimension):
-            vector = identity[dim, :]
-            transformed = transform.TransformVector(vector)
-            spacing.append(transformed.Normalize())
-            direction[dim, :] = transformed
         itk_np_view.SetSpacing(spacing)
         itk_np_view.SetDirection(direction)
 
@@ -170,16 +175,7 @@ class ReorientAndRescale(torchio.transforms.RescaleIntensity):
         np_reoriented = itk.array_from_image(reoriented)
         transformed_subject.img.data = np.expand_dims(np_reoriented, 0)
 
-        # update the transform matrix
-        # we need to transpose direction here, maybe due to TorchIO RAS
-        transposed_direction = reoriented.GetDirection().GetTranspose()  # this is a VNL matrix
-        transform = itk.AffineTransform[itk.D, 3].New()
-        transform.SetMatrix(itk.Matrix[itk.D, 3, 3](transposed_direction))
-        transform.Scale(reoriented.GetSpacing(), True)
-        transform.SetOffset(reoriented.GetOrigin())
-        transform.Compose(ras_to_lps)
-        affine_matrix = affine_transform_to_matrix(transform)
-        transformed_subject['img'].affine = affine_matrix
+        transformed_subject['img'].affine = get_ras_affine_from_sitk(reoriented)
 
         return transformed_subject
 
