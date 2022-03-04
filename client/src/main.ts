@@ -4,7 +4,6 @@ import Vuetify from 'vuetify';
 
 import AsyncComputed from 'vue-async-computed';
 import config from 'itk/itkConfig';
-import IdleVue from 'idle-vue';
 import * as Sentry from '@sentry/vue';
 import App from './App.vue';
 import router from './router';
@@ -29,7 +28,6 @@ Vue.use(Vuetify);
 Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
 Vue.use(vMousetrap);
-Vue.use(IdleVue, { store: store.original, idleTime: 900000 }); // 15 minutes inactive timeout
 
 const vuetify = new Vuetify();
 
