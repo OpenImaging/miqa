@@ -59,7 +59,6 @@ export default defineComponent({
     // the countdown timer up to date.
     const updateCountdown = () => {
       const now = Date.now();
-      console.log('updating countdown', now);
       const sessionTimeRemaining = lastApiRequestTime.value + sessionTimeout - now;
       if (idleWarningTriggered.value) {
         // If the user is idle, we also need to consider the idle warning
@@ -91,13 +90,6 @@ export default defineComponent({
       sessionTimeout,
       idleTimeout,
     };
-  },
-  onIdle() {
-    // TODO why this does not trigger
-    console.log('Triggered onIdle!');
-    this.show = true;
-    this.idleWarningTriggered = true;
-    this.idleStartTime = Date.now();
   },
 });
 </script>
