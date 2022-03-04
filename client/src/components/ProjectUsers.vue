@@ -87,7 +87,7 @@ export default {
         <v-col cols="12">
           Members
           <v-tooltip
-            v-if="user.is_superuser"
+            v-if="user.is_superuser || user.username == currentProject.creator"
             bottom
             style="display: inline; padding-left: 5px"
           >
@@ -128,7 +128,7 @@ export default {
         <v-col cols="12">
           Collaborators <span class="gray-info">(Read only)</span>
           <v-tooltip
-            v-if="user.is_superuser"
+            v-if="user.is_superuser || user.username == currentProject.creator"
             bottom
             style="display: inline; padding-left: 5px"
           >

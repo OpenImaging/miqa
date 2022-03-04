@@ -46,7 +46,6 @@ export default defineComponent({
   },
 });
 </script>
-
 <template>
   <v-dialog
     :value="value"
