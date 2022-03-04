@@ -1,104 +1,105 @@
-<script>
-import {
-  mapState, mapActions, mapMutations,
-} from 'vuex';
+<script lang="ts">
+import IdleJS from 'idle-js';
 import djangoRest from '@/django';
+import store from '@/store';
+import {
+  computed, defineComponent, ref,
+} from '@vue/composition-api';
 
-const initMinutes = 1;
-const initSeconds = 59;
+const warningDuration = 2 * 60 * 1000; // the warning box will pop up for 2 minutes
+// The server-side session token lasts 30 minutes
+const sessionTimeout = 30 * 60 * 1000;
+// Log out after 15 minutes if the user is away from keyboard
+const idleTimeout = 15 * 60 * 1000;
 
-export default {
+export default defineComponent({
   name: 'TimeoutDialog',
-  data: () => ({
-    show: false,
-    minutes: initMinutes,
-    seconds: initSeconds,
-  }),
-  computed: {
-    ...mapState(['actionTimeout']),
-    minutesStr() {
-      switch (this.minutes) {
-        case 0:
-          return '';
-        case 1:
-          return '1 minute';
-        default:
-          return `${this.minutes} minutes`;
-      }
-    },
-    secondsStr() {
-      switch (this.seconds) {
-        case 0:
-          return '';
-        case 1:
-          return '1 second';
-        default:
-          return `${this.seconds} seconds`;
-      }
-    },
-    done() {
-      return this.minutes <= 0 && this.seconds <= 0;
-    },
-  },
-  watch: {
-    // vue-idle: Adds a computed value 'isAppIdle' to all Vue objects
-    isAppIdle(idle) {
-      if (idle && !this.show) {
-        this.show = true;
-        this.decrement();
-      }
-    },
-    actionTimeout(timeout) {
-      if (timeout && !this.show) {
-        this.show = true;
-        this.decrement();
-      }
-    },
-  },
-  created() {
-    this.startActionTimer();
-  },
-  methods: {
-    ...mapActions(['startActionTimer', 'resetActionTimer']),
-    ...mapMutations(['setActionTimeout']),
-    reset() {
+  setup() {
+    const show = ref(false);
+    const idleWarningTriggered = ref(false);
+    const idleStartTime = ref(0);
+    const timeRemaining = ref(0);
+    const timeRemainingStr = computed(() => {
+      const secondsRemaining = Math.floor(timeRemaining.value / 1000);
+      const minutes = Math.floor(secondsRemaining / 60);
+      const seconds = String(Math.floor(secondsRemaining % 60)).padStart(2, '0');
+      return `${minutes}:${seconds}`;
+    });
+
+    const lastApiRequestTime = computed(() => store.state.lastApiRequestTime);
+
+    const reset = () => {
+      // Send a request to refresh the server token
+      // Not awaited since we don't actually care about the result
+      djangoRest.projects();
+
       // reset dialog
-      this.show = false;
-      this.minutes = initMinutes;
-      this.seconds = initSeconds;
+      show.value = false;
+      idleWarningTriggered.value = false;
+    };
+    const logout = async () => {
+      await djangoRest.logout();
+      // This will redirect to the login page
+      await djangoRest.login();
+    };
 
-      // reset no-action timer
-      this.setActionTimeout(false);
-      this.resetActionTimer();
-    },
-    logout() {
-      this.minutes = 0;
-      this.seconds = 0;
-    },
-    reload() {
-      this.$router.go();
-    },
-    decrement() {
-      if (this.show) {
-        setTimeout(() => {
-          this.seconds -= 1;
+    // Watch for an absence of user interaction
+    const idle = new IdleJS({
+      idle: idleTimeout - warningDuration,
+      onIdle() {
+        if (!show.value) {
+          idleWarningTriggered.value = true;
+          idleStartTime.value = Date.now();
+        }
+      },
+    });
+    idle.start();
 
-          if (this.minutes <= 0 && this.seconds <= 0) {
-            djangoRest.logout();
-            return;
-          }
-
-          if (this.seconds === 0) {
-            this.minutes -= 1;
-            this.seconds = initSeconds;
-          }
-
-          this.decrement();
-        }, 1000);
+    // This function calls itself after 1 second to check if the session has expired and to keep
+    // the countdown timer up to date.
+    const updateCountdown = () => {
+      const now = Date.now();
+      console.log('updating countdown', now);
+      const sessionTimeRemaining = lastApiRequestTime.value + sessionTimeout - now;
+      if (idleWarningTriggered.value) {
+        // If the user is idle, we also need to consider the idle warning
+        const idleTimeRemaining = idleStartTime.value + warningDuration - now;
+        timeRemaining.value = Math.min(sessionTimeRemaining, idleTimeRemaining);
+      } else {
+        timeRemaining.value = sessionTimeRemaining;
       }
-    },
+      // The timer has expired, log out
+      if (timeRemaining.value <= 0) {
+        logout();
+      }
+      // Show the warning if the time remaining is getting close to 0
+      show.value = timeRemaining.value < warningDuration;
+      setTimeout(updateCountdown, 1000);
+    };
+    updateCountdown();
+    // TODO when the webpack dev server reloads, it doesn't stop this setTimeout loop.
+    // The component that the old loop was servicing no longer exists so it doesn't actually matter,
+    // but it would be nice to garbage collect it.
+
+    return {
+      show,
+      idleWarningTriggered,
+      timeRemaining,
+      timeRemainingStr,
+      reset,
+      logout,
+      sessionTimeout,
+      idleTimeout,
+    };
   },
-};
+  onIdle() {
+    // TODO why this does not trigger
+    console.log('Triggered onIdle!');
+    this.show = true;
+    this.idleWarningTriggered = true;
+    this.idleStartTime = Date.now();
+  },
+});
 </script>
 
 <template>
@@ -113,13 +114,15 @@ export default {
       </v-card-title>
 
       <v-card-text class="py-4 px-6">
-        <p v-if="done">
-          You have been logged out due to inactivity. Refresh the page to log
-          back in
+        <p v-if="idleWarningTriggered">
+          You have been idle for almost {{ Math.floor(idleTimeout / (60 * 1000)) }} minutes.
         </p>
         <p v-else>
-          You have been inactive for almost 30 minutes. Your session will
-          automatically terminate in {{ minutesStr }} {{ secondsStr }}
+          You have not made any network requests in almost
+          {{ Math.floor(sessionTimeout / (60 * 1000)) }} minutes.
+        </p>
+        <p>
+          Your session will automatically terminate in {{ timeRemainingStr }}
         </p>
       </v-card-text>
 
@@ -128,7 +131,6 @@ export default {
       <v-card-actions>
         <v-spacer />
         <v-btn
-          v-if="!done"
           color="primary"
           text
           @click="reset"
@@ -136,20 +138,11 @@ export default {
           Continue Session
         </v-btn>
         <v-btn
-          v-if="!done"
           color="secondary"
           text
           @click="logout"
         >
           Logout
-        </v-btn>
-        <v-btn
-          v-if="done"
-          color="primary"
-          text
-          @click="reload"
-        >
-          Reload
         </v-btn>
       </v-card-actions>
     </v-card>
