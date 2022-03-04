@@ -164,18 +164,21 @@ class ReorientAndRescale(torchio.transforms.RescaleIntensity):
         itk_np_view.SetDirection(direction)
 
         # reorient all images into DICOM LPS
-        reoriented = itk.orient_image_filter(
+        orient_filter = itk.OrientImageFilter.New(
             itk_np_view,
             use_image_direction=True,
             desired_coordinate_orientation=itk.SpatialOrientationEnums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI,
         )
-        # TODO: detect no-op case and exit early
+        orient_filter.UpdateOutputInformation()
 
-        # add channel dimension again
-        np_reoriented = itk.array_from_image(reoriented)
-        transformed_subject.img.data = np.expand_dims(np_reoriented, 0)
-
-        transformed_subject['img'].affine = get_ras_affine_from_sitk(reoriented)
+        # if original direction was not LPS, we need to run the filter and update the pixel data
+        if np.any(orient_filter.GetOutput().GetDirection() != direction):
+            orient_filter.Update()
+            reoriented = orient_filter.GetOutput()
+            # add channel dimension again
+            np_reoriented = itk.array_from_image(reoriented)
+            transformed_subject.img.data = np.expand_dims(np_reoriented, 0)
+            transformed_subject['img'].affine = get_ras_affine_from_sitk(reoriented)
 
         return transformed_subject
 
