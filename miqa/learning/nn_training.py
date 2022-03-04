@@ -14,9 +14,10 @@ from nn_inference import (
     clamp,
     evaluate1,
     evaluate_model,
+    get_itk_image_view_from_torchio_image,
     get_model,
+    get_torchio_image_from_itk_image,
     regression_count,
-    ReorientAndRescale,
 )
 import numpy as np
 import pandas as pd
@@ -68,7 +69,7 @@ def index_of_abs_max(my_list):
     return max_index
 
 
-def get_image_dimension(path):
+def get_image_dimension(path, print_non_lps=False):
     image_io = itk.ImageIOFactory.CreateImageIO(path, itk.CommonEnums.IOFileMode_ReadMode)
     dim = (0, 0, 0)
     if image_io is not None:
@@ -81,8 +82,8 @@ def get_image_dimension(path):
             for d in range(2):
                 if index_of_abs_max(image_io.GetDirection(d)) != d:
                     identity = False
-            # if not identity:
-            #     print(f"Non-identity direction matrix: {path}")  # finds non LPS instances
+            if not identity and print_non_lps:
+                print(f'Non-identity direction matrix: {path}')
         except RuntimeError:
             pass
     return dim
@@ -164,7 +165,7 @@ def verify_images(data_frame):
     all_ok = True
     for index, row in data_frame.iterrows():
         try:
-            dim = get_image_dimension(row.file_path)
+            dim = get_image_dimension(row.file_path, print_non_lps=True)
             if dim == (0, 0, 0):
                 logger.info(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
@@ -359,6 +360,70 @@ class CustomNoise(torchio.transforms.RandomNoise):
             return transformed_subject
 
 
+def remove_axis_code_and_its_opposite(axis_list, index):
+    axis_list.pop(index)
+    if index % 2 == 0:
+        axis_list.pop(index)  # the next one is here now
+    else:
+        axis_list.pop(index - 1)  # otherwise it is the previous
+    return axis_list
+
+
+class CustomReorient(
+    torchio.transforms.augmentation.RandomTransform, torchio.transforms.SpatialTransform
+):
+    def apply_transform(self, subject: torchio.Subject) -> torchio.Subject:
+        transformed_subject = subject
+        itk_np_view = get_itk_image_view_from_torchio_image(transformed_subject.img)
+
+        itk_so_enums = itk.SpatialOrientationEnums  # makes other lines shorter
+
+        # the usual way of specifying the orientation is:
+        # dicom_lps = itk_so_enums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI
+        # but here we construct an axis code computationally, based on random orientation
+
+        # make a list of 6 axis ends (orientations) and randomly choose 3
+        axis_ends = [
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Right,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Left,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Posterior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Anterior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Inferior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Superior,
+        ]
+
+        index = random.randrange(6)
+        first = axis_ends[index]
+        axis_ends = remove_axis_code_and_its_opposite(axis_ends, index)
+        index = random.randrange(4)
+        second = axis_ends[index]
+        axis_ends = remove_axis_code_and_its_opposite(axis_ends, index)
+        index = random.randrange(2)
+        third = axis_ends[index]
+
+        # make local constants with humanely short names
+        primary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_PrimaryMinor
+        secondary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_SecondaryMinor
+        tertiary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_TertiaryMinor
+
+        chosen_orientation = (first << primary) + (second << secondary) + (third << tertiary)
+
+        orient_filter = itk.OrientImageFilter.New(
+            itk_np_view,
+            use_image_direction=True,
+            desired_coordinate_orientation=chosen_orientation,
+        )
+        orient_filter.UpdateOutputInformation()  # computes output direction, among others
+
+        # check whether we need to run the filter and update the pixel data
+        if np.any(orient_filter.GetOutput().GetDirection() != itk_np_view.GetDirection()):
+            orient_filter.Update()
+            reoriented = orient_filter.GetOutput()
+            transformed_subject['img'] = get_torchio_image_from_itk_image(reoriented)
+
+        return transformed_subject
+
+
 def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
@@ -419,7 +484,9 @@ def create_train_and_test_data_loaders(df, count_train):
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
-    rescale = ReorientAndRescale(out_min_max=(0, 1))
+    rescale = torchio.transforms.RescaleIntensity(out_min_max=(0, 1))
+    # axis_flip = torchio.transforms.RandomFlip(p=0.5, axes=(0, 1, 2))
+    axis_orient = CustomReorient(p=0.5)
     ghosting = CustomGhosting(p=0.3, intensity=(0.2, 0.8))
     motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
     inhomogeneity = CustomBiasField(p=0.1)
@@ -427,7 +494,9 @@ def create_train_and_test_data_loaders(df, count_train):
     # gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
     noise = CustomNoise(p=0.1)
 
-    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, noise])
+    transforms = torchio.Compose(
+        [rescale, axis_orient, ghosting, motion, inhomogeneity, spike, noise]
+    )
 
     # create a training data loader
     train_ds = torchio.SubjectsDataset(train_files, transform=transforms)

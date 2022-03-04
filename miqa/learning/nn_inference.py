@@ -99,47 +99,71 @@ def get_model(file_path=None):
     return model
 
 
-# Matrices used to switch between LPS and RAS
-FLIPXY_33 = np.diag([-1, -1, 1])
-FLIPXY_44 = np.diag([-1, -1, 1, 1])
-
-
-# taken from TorchIO and modified
+# returns a 4x4 affine matrix for IJK to XYZ mapping
+# compatible with nibabel
+#
+# code taken from TorchIO and simplified
 # https://github.com/fepegar/torchio/blob/1bbf99e90cd06112c092a1fc227dedd5deb256ba/torchio/data/io.py#L344-L399
-def get_ras_affine_from_sitk(sitk_object) -> np.ndarray:
-    spacing = np.array(sitk_object.GetSpacing())
-    direction_lps = np.array(sitk_object.GetDirection())
-    origin_lps = np.array(sitk_object.GetOrigin())
+def get_ras_affine_from_itk(itk_image) -> np.ndarray:
+    spacing = np.array(itk_image.GetSpacing())
+    direction_lps = np.array(itk_image.GetDirection())
+    origin_lps = np.array(itk_image.GetOrigin())
     rotation_lps = direction_lps.reshape(3, 3)
-    rotation_ras = np.dot(FLIPXY_33, rotation_lps)
+
+    flip_xy_33 = np.diag([-1, -1, 1])
+    rotation_ras = np.dot(flip_xy_33, rotation_lps)
     rotation_ras_zoom = rotation_ras * spacing
-    translation_ras = np.dot(FLIPXY_33, origin_lps)
+    translation_ras = np.dot(flip_xy_33, origin_lps)
     affine = np.eye(4)
     affine[:3, :3] = rotation_ras_zoom
     affine[:3, 3] = translation_ras
     return affine
 
 
-def get_rotation_and_spacing_from_affine(affine: np.ndarray):
+# compatible with nibabel and TorchIO
+def get_itk_metadata_from_ras_affine(affine: np.ndarray):
     # From https://github.com/nipy/nibabel/blob/master/nibabel/orientations.py
     rotation_zoom = affine[:3, :3]
     spacing = np.sqrt(np.sum(rotation_zoom * rotation_zoom, axis=0))
-    rotation = rotation_zoom / spacing
-    return rotation, spacing
-
-
-def get_sitk_metadata_from_ras_affine(
-    affine: np.ndarray,
-    is_2d: bool = False,
-    lps: bool = True,
-):
-    direction_ras, spacing_array = get_rotation_and_spacing_from_affine(affine)
+    direction_ras = rotation_zoom / spacing
     origin_ras = affine[:3, 3]
-    origin_lps = np.dot(FLIPXY_33, origin_ras)
-    direction_lps = np.dot(FLIPXY_33, direction_ras)
-    origin_array = origin_lps if lps else origin_ras
-    direction_array = direction_lps if lps else direction_ras
-    return origin_array, spacing_array, direction_array
+
+    flip_xy_33 = np.diag([-1, -1, 1])
+    origin_lps = np.dot(flip_xy_33, origin_ras)
+    direction_lps = np.dot(flip_xy_33, direction_ras)
+
+    return origin_lps, spacing, direction_lps
+
+
+def get_itk_image_view_from_torchio_image(img):
+    np_array = img.data
+    assert np_array.shape[0] == 1  # we are dealing with scalar images
+    np_array = np.squeeze(np_array, axis=0)  # remove channel dimension
+    affine_matrix = img.affine
+
+    # conversion of numpy ndarray + affine matrix into ITK image comes from:
+    # https://gist.github.com/thewtex/9503448d2ad1dfacc2cbd620d95d3dac
+    dimension = affine_matrix.shape[0] - 1
+    assert dimension == 3
+    itk_np_view = itk.image_view_from_array(np_array, is_vector=False)
+
+    origin, spacing, direction = get_itk_metadata_from_ras_affine(affine_matrix)
+    itk_np_view.SetOrigin(origin)
+    itk_np_view.SetSpacing(spacing)
+    itk_np_view.SetDirection(direction)
+
+    return itk_np_view
+
+
+def get_torchio_image_from_itk_image(image):
+    np_array = itk.array_from_image(image)
+    np_array = np.expand_dims(np_array, 0)  # add channel dimension
+    img = torchio.ScalarImage(
+        tensor=np_array,
+        affine=get_ras_affine_from_itk(image),
+        check_nans=False,
+    )
+    return img
 
 
 class ReorientAndRescale(torchio.transforms.RescaleIntensity):
@@ -147,38 +171,23 @@ class ReorientAndRescale(torchio.transforms.RescaleIntensity):
         # rescaling intensity first gives us a copy of the data
         transformed_subject = super().apply_transform(subject)
 
-        np_array = transformed_subject.img.data
-        assert np_array.shape[0] == 1  # we are dealing with scalar images
-        np_array = np.squeeze(np_array, axis=0)  # remove channel dimension
-        affine_matrix = subject['img'].affine
-
-        # conversion of numpy ndarray + affine matrix into ITK image comes from:
-        # https://gist.github.com/thewtex/9503448d2ad1dfacc2cbd620d95d3dac
-        dimension = affine_matrix.shape[0] - 1
-        assert dimension == 3
-        itk_np_view = itk.image_view_from_array(np_array, is_vector=False)
-
-        origin, spacing, direction = get_sitk_metadata_from_ras_affine(affine_matrix)
-        itk_np_view.SetOrigin(origin)
-        itk_np_view.SetSpacing(spacing)
-        itk_np_view.SetDirection(direction)
+        itk_np_view = get_itk_image_view_from_torchio_image(transformed_subject.img)
 
         # reorient all images into DICOM LPS
+        itk_so_enums = itk.SpatialOrientationEnums  # keep the next long line below style threshold
+        itk_lps = itk_so_enums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI
         orient_filter = itk.OrientImageFilter.New(
             itk_np_view,
             use_image_direction=True,
-            desired_coordinate_orientation=itk.SpatialOrientationEnums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI,
+            desired_coordinate_orientation=itk_lps,
         )
         orient_filter.UpdateOutputInformation()
 
         # if original direction was not LPS, we need to run the filter and update the pixel data
-        if np.any(orient_filter.GetOutput().GetDirection() != direction):
+        if np.any(orient_filter.GetOutput().GetDirection() != itk_np_view.GetDirection()):
             orient_filter.Update()
             reoriented = orient_filter.GetOutput()
-            # add channel dimension again
-            np_reoriented = itk.array_from_image(reoriented)
-            transformed_subject.img.data = np.expand_dims(np_reoriented, 0)
-            transformed_subject['img'].affine = get_ras_affine_from_sitk(reoriented)
+            transformed_subject['img'] = get_torchio_image_from_itk_image(reoriented)
 
         return transformed_subject
 
