@@ -65,22 +65,20 @@ def evaluate_data(frames_by_project):
     with tempfile.TemporaryDirectory() as tmpdirname:
         for model_name, frame_set in model_to_frames_map.items():
             current_model = available_evaluation_models[model_name].load()
-            file_paths = []
-            for frame in frame_set:
-                file_path = str(frame.raw_path)
+            file_paths = {str(frame.id): str(frame.raw_path) for frame in frame_set}
+            for frame_id, file_path in file_path.items():
                 if file_path.startswith('s3://'):
                     tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
                     tmp.write(_download_from_s3(file_path))
-                    file_path = tmp.name
-                file_paths.append(file_path)
-            results = evaluate_many(current_model, file_paths)
+                    file_paths[frame_id] = tmp.name
+            results = evaluate_many(current_model, file_paths.values())
 
             Evaluation.objects.bulk_create(
                 [
                     Evaluation(
                         frame=frame,
                         evaluation_model=model_name,
-                        results=results[str(frame.raw_path)],
+                        results=results[file_paths[str(frame.id)]],
                     )
                     for frame in frame_set
                 ]
