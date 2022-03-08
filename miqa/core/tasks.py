@@ -1,6 +1,7 @@
 from io import BytesIO, StringIO
 import json
 from pathlib import Path
+import tempfile
 from typing import Optional
 
 import boto3
@@ -16,6 +17,14 @@ from miqa.core.conversion.import_export_csvs import (
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Project, Scan
+
+
+def _download_from_s3(path: str) -> bytes:
+    bucket, key = path.strip()[5:].split('/', maxsplit=1)
+    client = boto3.client('s3')
+    buf = BytesIO()
+    client.download_fileobj(bucket, key, buf)
+    return buf.getvalue()
 
 
 @shared_task
@@ -46,34 +55,34 @@ def evaluate_data(frames_by_project):
         project = Project.objects.get(id=project_id)
         for frame_id in frame_ids:
             frame = Frame.objects.get(id=frame_id)
-            if Path(frame.raw_path).exists():
+            file_path = frame.raw_path
+            if file_path.startswith('s3://') or Path(file_path).exists():
                 eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
                 if eval_model_name not in model_to_frames_map:
                     model_to_frames_map[eval_model_name] = []
                 model_to_frames_map[eval_model_name].append(frame)
 
-    for model_name, frame_set in model_to_frames_map.items():
-        current_model = available_evaluation_models[model_name].load()
-        results = evaluate_many(current_model, [str(frame.raw_path) for frame in frame_set])
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        for model_name, frame_set in model_to_frames_map.items():
+            current_model = available_evaluation_models[model_name].load()
+            file_paths = {str(frame.id): str(frame.raw_path) for frame in frame_set}
+            for frame_id, file_path in file_path.items():
+                if file_path.startswith('s3://'):
+                    tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
+                    tmp.write(_download_from_s3(file_path))
+                    file_paths[frame_id] = tmp.name
+            results = evaluate_many(current_model, file_paths.values())
 
-        Evaluation.objects.bulk_create(
-            [
-                Evaluation(
-                    frame=frame,
-                    evaluation_model=model_name,
-                    results=results[str(frame.raw_path)],
-                )
-                for frame in frame_set
-            ]
-        )
-
-
-def _download_from_s3(path: str) -> bytes:
-    bucket, key = path.strip()[5:].split('/', maxsplit=1)
-    client = boto3.client('s3')
-    buf = BytesIO()
-    client.download_fileobj(bucket, key, buf)
-    return buf.getvalue()
+            Evaluation.objects.bulk_create(
+                [
+                    Evaluation(
+                        frame=frame,
+                        evaluation_model=model_name,
+                        results=results[file_paths[str(frame.id)]],
+                    )
+                    for frame in frame_set
+                ]
+            )
 
 
 def import_data(project_id: Optional[str]):
