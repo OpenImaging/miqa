@@ -72,8 +72,7 @@ def evaluate_data(frames_by_project):
                     tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
                     tmp.write(_download_from_s3(file_path))
                     file_path = tmp.name
-                else:
-                    file_paths.append(file_path)
+                file_paths.append(file_path)
             results = evaluate_many(current_model, file_paths)
 
             Evaluation.objects.bulk_create(
