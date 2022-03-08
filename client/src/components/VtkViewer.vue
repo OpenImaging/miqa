@@ -344,8 +344,8 @@ export default {
       <v-layout align-center>
         <v-slider
           v-mousetrap="[
-            { bind: keyboardBindings[1] },
-            { bind: keyboardBindings[0] }
+            { bind: keyboardBindings[1], handler: () => changeSlice(slice + 1)},
+            { bind: keyboardBindings[0], handler: () => changeSlice(slice - 1) }
           ]"
           :value="slice"
           :min="sliceDomain.min"

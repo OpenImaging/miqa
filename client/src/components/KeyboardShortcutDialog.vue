@@ -11,8 +11,8 @@ export default defineComponent({
   },
   data: () => ({
     shortcuts: [
-      ['Next frame', [['→']]],
-      ['Previous frame', [['←']]],
+      ['Previous/next scan', [['↑', '↓']]],
+      ['Previous/next frame', [['←', '→']]],
       [
         'Change slices',
         [
@@ -21,20 +21,13 @@ export default defineComponent({
           ['z', 'x'],
         ],
       ],
+      ['Place crosshairs at location', [['click']]],
       ['Toggle fullscreen', [['e', 'd', 'c']]],
-      ['Zooming', [['right button + dragging']]],
+      ['Changing window width & level', [['click + dragging']]],
+      ['Zooming', [['right button + dragging'], ['Ctrl + dragging'], ['Alt + dragging']]],
       ['Panning', [['shift + dragging']]],
       ['Cancel on confirm dialog', [['esc']]],
-      ['Increase/decrease window', [['=', '-']]],
-      ['Increase/decrease window level', [['[', ']']]],
-      ['Focus to note', [['n']]],
-      ['Show note history', [['h']]],
-      ['Unfocus from note', [['esc']]],
-      ['Mark as bad/good/usable extra', [['b', 'g', 'u']]],
-      ['Save', [['alt + s']]],
-      ['Save on confirm dialog', [['y']]],
-      ["Don't save on confirm dialog", [['n']]],
-      ['Cancel on confirm dialog', [['esc']]],
+      ['Confirm on confirm dialog', [['enter']]],
     ],
   }),
   methods: {
@@ -58,7 +51,7 @@ export default defineComponent({
         class="title"
         primary-title
       >
-        Keyboard shortcuts
+        Keyboard shortcuts & Viewer Interaction
       </v-card-title>
       <v-divider />
       <v-card-text style="height: 500px;">
