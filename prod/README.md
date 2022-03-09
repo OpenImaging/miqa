@@ -112,5 +112,6 @@ To non-destructively update your instance at any time:
 2. Run `docker-compose pull`
 3. Run `docker-compose build --pull --no-cache`
 4. Run `docker-compose run --rm django ./manage.py migrate`
+5. Run `docker-compose up`
 
 Visit `https://miqa.local/admin/` for any admin configuration that needs to be done.
