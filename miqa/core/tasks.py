@@ -64,22 +64,24 @@ def evaluate_data(frames_by_project):
                 model_to_frames_map[eval_model_name].append(frame)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
+        tmpdir = Path(tmpdirname)
         for model_name, frame_set in model_to_frames_map.items():
             current_model = available_evaluation_models[model_name].load()
-            file_paths = {frame: str(frame.raw_path) for frame in frame_set}
-            for frame, file_path in file_path.items():
+            file_paths = {frame: frame.raw_path for frame in frame_set}
+            for frame, file_path in file_paths.items():
                 if frame.storage_mode == StorageMode.S3_PATH:
-                    tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
-                    tmp.write(_download_from_s3(file_path))
-                    file_paths[frame] = tmp.name
-            results = evaluate_many(current_model, file_paths.values())
+                    dest = tmpdir / frame.path.name
+                    with open(dest, 'wb') as fd:
+                        fd.write(_download_from_s3(file_path))
+                    file_paths[frame] = dest
+            results = evaluate_many(current_model, list(file_paths.values()))
 
             Evaluation.objects.bulk_create(
                 [
                     Evaluation(
                         frame=frame,
                         evaluation_model=model_name,
-                        results=results[file_paths[str(frame.id)]],
+                        results=results[file_paths[frame]],
                     )
                     for frame in frame_set
                 ]
