@@ -66,7 +66,7 @@ def evaluate_data(frames_by_project):
         for model_name, frame_set in model_to_frames_map.items():
             current_model = available_evaluation_models[model_name].load()
             file_paths = {str(frame.id): str(frame.raw_path) for frame in frame_set}
-            for frame_id, file_path in file_path.items():
+            for frame_id, file_path in file_paths.items():
                 if file_path.startswith('s3://'):
                     tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
                     tmp.write(_download_from_s3(file_path))
