@@ -17,6 +17,7 @@ from miqa.core.conversion.import_export_csvs import (
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Project, Scan
+from miqa.core.models.frame import StorageMode
 
 
 def _download_from_s3(path: str) -> bytes:
@@ -56,29 +57,31 @@ def evaluate_data(frames_by_project):
         for frame_id in frame_ids:
             frame = Frame.objects.get(id=frame_id)
             file_path = frame.raw_path
-            if file_path.startswith('s3://') or Path(file_path).exists():
+            if frame.storage_mode == StorageMode.S3_PATH or Path(file_path).exists():
                 eval_model_name = project.evaluation_models[[frame.scan.scan_type][0]]
                 if eval_model_name not in model_to_frames_map:
                     model_to_frames_map[eval_model_name] = []
                 model_to_frames_map[eval_model_name].append(frame)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
+        tmpdir = Path(tmpdirname)
         for model_name, frame_set in model_to_frames_map.items():
             current_model = available_evaluation_models[model_name].load()
-            file_paths = {str(frame.id): str(frame.raw_path) for frame in frame_set}
-            for frame_id, file_path in file_paths.items():
-                if file_path.startswith('s3://'):
-                    tmp = tempfile.NamedTemporaryFile(prefix=tmpdirname)
-                    tmp.write(_download_from_s3(file_path))
-                    file_paths[frame_id] = tmp.name
-            results = evaluate_many(current_model, file_paths.values())
+            file_paths = {frame: frame.raw_path for frame in frame_set}
+            for frame, file_path in file_paths.items():
+                if frame.storage_mode == StorageMode.S3_PATH:
+                    dest = tmpdir / frame.path.name
+                    with open(dest, 'wb') as fd:
+                        fd.write(_download_from_s3(file_path))
+                    file_paths[frame] = dest
+            results = evaluate_many(current_model, list(file_paths.values()))
 
             Evaluation.objects.bulk_create(
                 [
                     Evaluation(
                         frame=frame,
                         evaluation_model=model_name,
-                        results=results[file_paths[str(frame.id)]],
+                        results=results[file_paths[frame]],
                     )
                     for frame in frame_set
                 ]
