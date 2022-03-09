@@ -1,4 +1,5 @@
 from abc import ABC, abstractclassmethod
+from pathlib import Path
 from typing import List
 
 from uri import URI
@@ -19,7 +20,8 @@ class EvaluationModel(ABC):
 
 class NNModel(EvaluationModel):
     def load(self):
-        return get_model('miqa/learning/models/' + str(self.uri))
+        path = Path(__file__).parent / 'models' / str(self.uri)
+        return get_model(str(path))
 
 
 available_evaluation_models = {
