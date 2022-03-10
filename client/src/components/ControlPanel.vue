@@ -553,40 +553,11 @@ export default {
                 </v-col>
                 <v-col cols="6">
                   <DecisionButtons
-                    v-if="experimentIsEditable"
+                    :experiment-is-editable="experimentIsEditable"
+                    :edit-rights="editRights"
+                    :lock-owner="lockOwner"
                     @handleKeyPress="handleKeyPress"
                   />
-                  <div
-                    v-else
-                    class="uneditable-notice"
-                  >
-                    <v-icon>mdi-lock</v-icon>
-                    You {{ editRights ?'have not claimed' :'do not have' }}
-                    edit access on this Experiment.
-                    <div
-                      v-if="lockOwner"
-                      class="my-3"
-                      style="text-align:center"
-                    >
-                      <UserAvatar
-                        :target-user="lockOwner"
-                        as-editor
-                      />
-                      <br>
-                      {{ lockOwner.username }}
-                      <br>
-                      currently has edit access.
-                    </div>
-                    <v-btn
-                      v-if="editRights && (user.is_superuser || !lockOwner)"
-                      :loading="loadingLock"
-                      :disabled="loadingLock"
-                      color="primary"
-                      @click="switchLock(experimentId, null, force=true)"
-                    >
-                      {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
-                    </v-btn>
-                  </div>
                 </v-col>
               </v-row>
             </v-container>
@@ -620,14 +591,5 @@ export default {
   100% {
     transform: scale(1);
   }
-}
-
-.uneditable-notice {
-  display: flex;
-  flex-flow: column wrap;
-  width: 100%;
-  height: 100%;
-  justify-content: center;
-  align-content: center;
 }
 </style>
