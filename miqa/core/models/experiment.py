@@ -20,6 +20,7 @@ class Experiment(TimeStampedModel, models.Model):
     note = models.TextField(max_length=3000, blank=True)
     project = models.ForeignKey('Project', related_name='experiments', on_delete=models.CASCADE)
 
+    lock_time = models.DateTimeField(null=True)
     lock_owner = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
