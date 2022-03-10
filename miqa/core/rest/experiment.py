@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
@@ -121,15 +122,18 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
                 and not (
                     request.user.is_superuser and 'force' in request.data and request.data['force']
                 )
+                and timezone.now() - experiment.lock_time < timezone.timedelta(minutes=5)
             ):
                 raise LockContention()
 
             previously_locked_experiments = Experiment.objects.filter(lock_owner=request.user)
             for previously_locked_experiment in previously_locked_experiments:
                 previously_locked_experiment.lock_owner = None
-                previously_locked_experiment.save(update_fields=['lock_owner'])
+                previously_locked_experiment.lock_time = None
+                previously_locked_experiment.save(update_fields=['lock_owner', 'lock_time'])
             experiment.lock_owner = request.user
-            experiment.save(update_fields=['lock_owner'])
+            experiment.lock_time = timezone.now()
+            experiment.save(update_fields=['lock_owner', 'lock_time'])
 
             return Response(
                 ExperimentSerializer(experiment).data,
@@ -157,7 +161,8 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
 
             if experiment.lock_owner is not None:
                 experiment.lock_owner = None
-                experiment.save(update_fields=['lock_owner'])
+                experiment.lock_time = None
+                experiment.save(update_fields=['lock_owner', 'lock_time'])
 
                 return Response(
                     ExperimentSerializer(experiment).data,
