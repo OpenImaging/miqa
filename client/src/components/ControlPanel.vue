@@ -102,6 +102,7 @@ export default {
     },
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
+      clearInterval(this.lockCycle);
     },
     currentViewData() {
       this.navigateToNextIfCurrentScanNull();
@@ -126,6 +127,7 @@ export default {
   },
   beforeDestroy() {
     this.setLock({ experimentId: this.experimentId, lock: false });
+    clearInterval(this.lockCycle);
   },
   methods: {
     ...mapActions([
@@ -151,6 +153,9 @@ export default {
           }
           try {
             await this.setLock({ experimentId: newExp, lock: true, force });
+            this.lockCycle = setInterval(async (experimentId) => {
+              await this.setLock({ experimentId, lock: true });
+            }, 1000 * 60 * 5, this.currentViewData.experimentId);
           } catch (err) {
             this.$snackbar({
               text: 'Failed to claim edit access on Experiment.',
