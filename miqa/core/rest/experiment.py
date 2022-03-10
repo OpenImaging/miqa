@@ -122,7 +122,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
                 and not (
                     request.user.is_superuser and 'force' in request.data and request.data['force']
                 )
-                and not timezone.now() - experiment.lock_time > timezone.timedelta(minutes=5)
+                and timezone.now() - experiment.lock_time < timezone.timedelta(minutes=5)
             ):
                 raise LockContention()
 

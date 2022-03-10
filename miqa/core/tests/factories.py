@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils import timezone
 import factory
 
 from miqa.core.models import Experiment, Frame, Project, Scan, ScanDecision
@@ -36,6 +37,7 @@ class ExperimentFactory(factory.django.DjangoModelFactory):
     note = factory.Faker('sentence')
 
     project = factory.SubFactory(ProjectFactory)
+    lock_time = timezone.now()
 
 
 class ScanFactory(factory.django.DjangoModelFactory):
