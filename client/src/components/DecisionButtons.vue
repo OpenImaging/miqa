@@ -4,13 +4,29 @@ import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 import EvaluationResults from '@/components/EvaluationResults.vue';
+import UserAvatar from './UserAvatar.vue';
 
 export default {
   name: 'DecisionButtons',
   components: {
     EvaluationResults,
+    UserAvatar,
   },
   inject: ['user', 'MIQAConfig'],
+  props: {
+    experimentIsEditable: {
+      type: Boolean,
+      default: false,
+    },
+    editRights: {
+      type: Boolean,
+      default: false,
+    },
+    lockOwner: {
+      type: Object,
+      default: undefined,
+    },
+  },
   data() {
     return {
       warnDecision: false,
@@ -235,7 +251,10 @@ export default {
       class="d-flex pb-3"
       style="justify-content: space-between; column-gap: 20px"
     >
-      <v-subheader class="pa-0 ma-0">
+      <v-subheader
+        v-if="experimentIsEditable"
+        class="pa-0 ma-0"
+      >
         Indicate artifacts in this scan
         <v-tooltip bottom>
           <template #activator="{ on, attrs }">
@@ -312,7 +331,10 @@ export default {
         </v-tooltip>
       </v-flex>
     </v-flex>
-    <v-row no-gutters>
+    <v-row
+      v-if="experimentIsEditable"
+      no-gutters
+    >
       <v-col
         cols="12"
         class="d-flex justify-space-around flex-wrap"
@@ -332,7 +354,10 @@ export default {
         </v-chip>
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row
+      v-if="experimentIsEditable"
+      dense
+    >
       <v-col
         cols="12"
         class="pt-5"
@@ -363,7 +388,10 @@ export default {
         Decisions other than "usable" must have a comment.
       </v-col>
     </v-row>
-    <v-row dense>
+    <v-row
+      v-if="experimentIsEditable"
+      dense
+    >
       <v-col cols="12">
         <div class="button-container">
           <div
@@ -381,6 +409,40 @@ export default {
         </div>
       </v-col>
     </v-row>
+    <v-row v-if="!experimentIsEditable">
+      <v-col cols="12">
+        <div
+          class="uneditable-notice pa-3"
+        >
+          <v-icon>mdi-lock</v-icon>
+          You {{ editRights ?'have not claimed' :'do not have' }}
+          edit access on this Experiment.
+          <div
+            v-if="lockOwner"
+            class="my-3"
+            style="text-align:center"
+          >
+            <UserAvatar
+              :target-user="lockOwner"
+              as-editor
+            />
+            <br>
+            {{ lockOwner.username }}
+            <br>
+            currently has edit access.
+          </div>
+          <v-btn
+            v-if="editRights && (user.is_superuser || !lockOwner)"
+            :loading="loadingLock"
+            :disabled="loadingLock"
+            color="primary"
+            @click="switchLock(experimentId, null, force=true)"
+          >
+            {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
+          </v-btn>
+        </div>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -392,5 +454,14 @@ export default {
 }
 .v-subheader {
   height: 30px;
+}
+.uneditable-notice {
+  display: flex;
+  flex-flow: column wrap;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-content: center;
+  border: 1px dashed gray;
 }
 </style>
