@@ -1,3 +1,4 @@
+from base64 import b64decode
 from email.mime.image import MIMEImage
 import mimetypes
 import re
@@ -30,9 +31,10 @@ class EmailView(APIView):
             )
 
             if match:
-
+                b64_data = match.group('data')
+                data = b64decode(b64_data)
                 mime = match.group('mime')
-                img = MIMEImage(match.group('data'), mime.split('/')[1])
+                img = MIMEImage(data, mime.split('/')[1])
                 img.add_header('Content-Id', f'<file{index}>')
                 img.add_header(
                     'Content-Disposition',
