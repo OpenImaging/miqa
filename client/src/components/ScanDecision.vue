@@ -30,8 +30,8 @@ export default {
   methods: {
     ...mapMutations(['setSliceLocation']),
     convertDecisionToColor(decision) {
-      if (decision.toLowerCase() === 'bad') return 'red--text text--darken-2';
-      if (decision.toLowerCase() === 'good') return 'green--text text--darken-2';
+      if (decision === 'UN') return 'red--text text--darken-2';
+      if (decision === 'U') return 'green--text text--darken-2';
       return 'grey--text text--darken-2';
     },
     goToLocation() {
@@ -54,7 +54,7 @@ export default {
         :target-user="decision.creator"
       />
       <div :class="convertDecisionToColor(decision.decision)">
-        ({{ decision.decision[0] }})
+        ({{ decision.decision }})
       </div>
       <v-icon
         v-if="Object.values(decision.location).length > 0"
