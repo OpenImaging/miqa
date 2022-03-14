@@ -177,7 +177,7 @@ export default defineComponent({
       >
         Save
       </v-btn>
-      <DataImportExport v-if="(userCanEditProject)" />
+      <DataImportExport />
       <div style="flex-grow:2">
         <v-btn
           v-if="userCanEditProject && !isGlobal"
