@@ -1,9 +1,9 @@
 ﻿## Users
 ### Signing up
 **![](images/users_0.png)**
-The MIQA login screen has a button in the upper right corner that allows new users to request an account. This button leads to a form where new users can provide their email address and write a new password for their account. After submitting this form, a verification email will be sent to the email address that was provided. The new user must click the verification link in this email to verify their identity.
+The MIQA login screen has a button in the upper right corner that allows new users to request an account. This button leads to a form where a new user can provide their email address and write a new password for their account. After submitting this form, a verification email will be sent to the email address that was provided. The new user must click the verification link in this email to verify their identity.
 
-Once the email verification process has been completed, a second email will be sent to the MIQA administration (all users that have “superuser” status) that will request on behalf of the new user for manual account activation. Until an administrator activates the new account, the new user will not be able to log in. This process is done to ensure that the data on any instance of MIQA is only made available to trusted persons.
+Once the email verification process has been completed, a second email will be sent to the MIQA administration (all users with “superuser” status) requesting manual account activation on behalf of the new user. A new user of MIQA will not be able to log in until an administrator activates the new account. This process ensures  that the data on any instance of MIQA is only made available to trusted persons.
 
 ### User roles
 At the global level, a user is either a normal user or a “superuser” with heightened privileges and additional responsibilities. Superusers should be trusted individuals, as they are given the following privileges:
