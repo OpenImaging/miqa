@@ -129,6 +129,7 @@ export default defineComponent({
           v-model="importPath"
           :rules="[
             v =>
+              !v ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
@@ -151,6 +152,7 @@ export default defineComponent({
           v-model="exportPath"
           :rules="[
             v =>
+              !v ||
               v.endsWith('.json') ||
               v.endsWith('.csv') ||
               'Needs to be a json or csv file'
