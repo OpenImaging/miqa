@@ -8,7 +8,6 @@ from drf_yasg.utils import swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
-from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -81,7 +80,12 @@ class FrameContentSerializer(serializers.ModelSerializer):
         fields = ['content', 'scan']
 
 
-class FrameViewSet(ListModelMixin, GenericViewSet, mixins.CreateModelMixin):
+class FrameViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+    mixins.CreateModelMixin,
+):
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
     serializer_class = FrameSerializer

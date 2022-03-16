@@ -182,6 +182,10 @@ const djangoClient = {
     const { results } = data;
     return results;
   },
+  async frame(frameId: string) {
+    const { data } = await apiClient.get(`/frames/${frameId}`);
+    return data;
+  },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');
     return resp.status === 200 ? resp.data : null;

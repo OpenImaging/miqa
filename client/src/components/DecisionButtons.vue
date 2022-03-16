@@ -145,10 +145,24 @@ export default {
       }
     });
   },
+  mounted() {
+    if (!this.currentViewData.currentAutoEvaluation) {
+      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 30);
+    }
+  },
+  beforeUnmount() {
+    clearInterval(this.pollInterval);
+  },
   methods: {
     ...mapMutations([
       'updateExperiment',
+      'setFrameEvaluation',
     ]),
+    async pollForEvaluation() {
+      const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
+      this.setFrameEvaluation(frameData.frame_evaluation);
+      clearInterval(this.pollInterval);
+    },
     convertValueToLabel(artifactName) {
       return artifactName
         .replace('susceptibility_metal', 'metal_susceptibility')
