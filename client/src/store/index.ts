@@ -468,9 +468,9 @@ const {
     addScanDecision(state, { currentScan, newDecision }) {
       state.scans[currentScan].decisions.push(newDecision);
     },
-    setFrameEvaluation(state, evaluation){
+    setFrameEvaluation(state, evaluation) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
-      if(currentFrame){
+      if (currentFrame) {
         currentFrame.frame_evaluation = evaluation;
       }
     },
