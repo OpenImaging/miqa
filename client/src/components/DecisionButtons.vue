@@ -147,7 +147,7 @@ export default {
   },
   mounted() {
     if (!this.currentViewData.currentAutoEvaluation) {
-      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 30);
+      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
     }
   },
   beforeUnmount() {
