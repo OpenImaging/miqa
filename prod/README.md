@@ -37,6 +37,9 @@ cp .env.template .env
 docker run -v ~/git/miqa/prod:/etc/nginx/conf.d:ro --network=host nginx
 ```
 
+## Pull the evaluation models from git LFS
+TODO
+
 
 ## Build the docker image
 ```
