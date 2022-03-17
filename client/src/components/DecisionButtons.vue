@@ -26,6 +26,10 @@ export default {
       type: Object,
       default: undefined,
     },
+    loadingLock: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
