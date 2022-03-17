@@ -35,8 +35,8 @@ class Project(TimeStampedModel, models.Model):
     name = models.CharField(max_length=255)
     creator = models.ForeignKey(User, on_delete=models.PROTECT)
     archived = models.BooleanField(default=False)
-    import_path = models.CharField(max_length=500)
-    export_path = models.CharField(max_length=500)
+    import_path = models.CharField(max_length=500, blank=True)
+    export_path = models.CharField(max_length=500, blank=True)
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
 
     def __str__(self):
