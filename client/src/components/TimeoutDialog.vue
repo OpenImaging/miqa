@@ -1,10 +1,10 @@
 <script lang="ts">
 import IdleJS from 'idle-js';
-import djangoRest from '@/django';
-import store from '@/store';
 import {
   computed, defineComponent, ref,
 } from '@vue/composition-api';
+import djangoRest from '@/django';
+import store from '@/store';
 
 const warningDuration = 2 * 60 * 1000; // the warning box will pop up for 2 minutes
 // The server-side session token lasts 30 minutes
@@ -38,9 +38,13 @@ export default defineComponent({
       idleWarningTriggered.value = false;
     };
     const logout = async () => {
-      await djangoRest.logout();
-      // This will redirect to the login page
-      await djangoRest.login();
+      try {
+        // This may fail with a 401 if the user has already been logged out
+        await djangoRest.logout();
+      } finally {
+        // This will redirect to the login page
+        await djangoRest.login();
+      }
     };
 
     // Watch for an absence of user interaction
