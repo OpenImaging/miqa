@@ -561,6 +561,7 @@ export default {
                     :experiment-is-editable="experimentIsEditable"
                     :edit-rights="editRights"
                     :lock-owner="lockOwner"
+                    :loading-lock="loadingLock"
                     @handleKeyPress="handleKeyPress"
                   />
                 </v-col>
