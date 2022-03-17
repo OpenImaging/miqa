@@ -28,7 +28,7 @@ COPY ./setup.py /opt/django-project/setup.py
 COPY ./manage.py /opt/django-project/manage.py
 COPY ./miqa /opt/django-project/miqa
 WORKDIR /opt/django-project/
-RUN pip install . && \
+RUN pip install .[learning] && \
     ./manage.py collectstatic
 
 # Web client:
