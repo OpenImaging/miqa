@@ -56,11 +56,10 @@ export default defineComponent({
           await loadProject(currentProject.value);
         }
       } catch (ex) {
+        const text = ex || 'Import failed due to server error.';
+        importErrors.value = true;
+        importErrorText.value = text;
         importing.value = false;
-        this.$snackbar({
-          text: ex || 'Import failed. Refer to server logs for details.',
-        });
-        console.error(ex);
       }
       importDialog.value = false;
     }
@@ -76,12 +75,11 @@ export default defineComponent({
           text: 'Saved data to file successfully.',
           timeout: 6000,
         });
-      } catch (err) {
-        this.$snackbar({
-          text: err || `Export failed: ${err.response.data.detail || 'Server error'}`,
-          timeout: 6000,
-
-        });
+      } catch (ex) {
+        const text = ex || 'Export failed due to server error.';
+        importErrors.value = true;
+        importErrorText.value = text;
+        importing.value = false;
       }
       exporting.value = false;
     }
