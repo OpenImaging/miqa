@@ -37,6 +37,15 @@ cp .env.template .env
 docker run -v ~/git/miqa/prod:/etc/nginx/conf.d:ro --network=host nginx
 ```
 
+## Pull the evaluation models from git LFS
+```
+git lfs install
+cd miqa/learning/models
+git lfs fetch
+git lfs pull
+cd ../../..
+```
+
 
 ## Build the docker image
 ```
