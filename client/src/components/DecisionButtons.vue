@@ -127,6 +127,24 @@ export default {
       this.warnDecision = false;
     },
   },
+  mounted() {
+    const decisionShortcuts = {
+      u: 'U',
+      i: 'UE',
+      o: 'Q?',
+      p: 'UN',
+    };
+    window.addEventListener('keydown', (event) => {
+      if (Object.keys(decisionShortcuts).includes(event.key)) {
+        const code = decisionShortcuts[event.key];
+        if (this.options.map(
+          (option) => option.code,
+        ).includes(code)) {
+          this.handleCommentSave(decisionShortcuts[event.key]);
+        }
+      }
+    });
+  },
   methods: {
     ...mapMutations([
       'updateExperiment',
@@ -386,7 +404,7 @@ export default {
           height="75px"
           name="input-comment"
           label="Evaluation Comment"
-          placeholder="Write a comment about the scan and submit a decision"
+          placeholder="Write a comment about the scan"
           @input="handleCommentChange"
         />
       </v-col>
