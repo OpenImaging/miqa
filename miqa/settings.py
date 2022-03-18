@@ -29,7 +29,7 @@ class MiqaMixin(ConfigMixin):
 
     # This is required for the /api/v1/logout/ view to have access to the session cookie.
     CORS_ALLOW_CREDENTIALS = True
-    ZARR_SUPPORT = True
+    ZARR_SUPPORT = False
     S3_SUPPORT = True
     NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
 

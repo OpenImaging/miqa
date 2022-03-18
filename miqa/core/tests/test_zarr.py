@@ -2,10 +2,15 @@ import os
 from pathlib import Path
 import shutil
 
+from django.conf import settings
+
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 
 
 def test_convert_to_zarr():
+    if not settings.ZARR_SUPPORT:
+        assert True
+        return
     script_dir = Path(__file__).resolve().parent
     samples_dir = script_dir / '..' / '..' / '..' / 'samples'
     samples = [
