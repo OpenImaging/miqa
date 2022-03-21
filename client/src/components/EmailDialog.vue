@@ -12,6 +12,7 @@ export default defineComponent({
   components: {
     EmailRecipientCombobox,
   },
+  inject: ['MIQAConfig'],
   props: {
     value: {
       type: Boolean,
@@ -79,7 +80,11 @@ export default defineComponent({
       }
       this.selectedScreenshots = [];
       this.toCandidates = [];
-      this.ccCandidates = [];
+      this.ccCandidates = this.MIQAConfig.DEFAULT_EMAIL_RECIPIENTS.map(
+        (emailString) => ({
+          name: emailString,
+        }),
+      );
       this.bccCandidates = [];
       this.to = this.toCandidates.map((c) => c.name);
       this.cc = this.ccCandidates.map((c) => c.name);
