@@ -21,8 +21,11 @@ export default defineComponent({
           ['z', 'x'],
         ],
       ],
-      ['Place crosshairs at location', [['click']]],
+      ['Decrease/increase window', [['-', '=']]],
+      ['Decrease/increase window level', [['[', ']']]],
       ['Toggle fullscreen', [['e', 'd', 'c']]],
+      ['Mark as usable/usable extra/questionable/unusable', [['u', 'i', 'o', 'p']]],
+      ['Place crosshairs at location', [['click']]],
       ['Changing window width & level', [['click + dragging']]],
       ['Zooming', [['right button + dragging'], ['Ctrl + dragging'], ['Alt + dragging']]],
       ['Panning', [['shift + dragging']]],
@@ -42,7 +45,7 @@ export default defineComponent({
 <template>
   <v-dialog
     :value="value"
-    max-width="500"
+    max-width="600"
     scrollable
     @input="$emit('input', $event)"
   >
@@ -54,11 +57,12 @@ export default defineComponent({
         Keyboard shortcuts & Viewer Interaction
       </v-card-title>
       <v-divider />
-      <v-card-text style="height: 500px;">
+      <v-card-text style="overflow-y:auto">
         <v-data-table
           :items="shortcuts"
           hide-default-footer
           hide-default-header
+          disable-pagination
         >
           <template #item="{ item }">
             <tr>
