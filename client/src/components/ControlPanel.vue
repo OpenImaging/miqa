@@ -166,6 +166,12 @@ export default {
         }
       }
     },
+    setWindowWidth(value) {
+      this.window = value;
+    },
+    setWindowLevel(value) {
+      this.level = value;
+    },
     updateWinLev() {
       this.window = this.autoWindow;
       this.level = this.autoLevel;
@@ -458,6 +464,10 @@ export default {
                       >
                         <v-slider
                           v-model="window"
+                          v-mousetrap="[
+                            { bind: '-', handler: () => setWindowWidth(window - 5) },
+                            { bind: '=', handler: () => setWindowWidth(window + 5) }
+                          ]"
                           :max="winMax"
                           :min="winMin"
                           class="align-center"
@@ -511,6 +521,10 @@ export default {
                       >
                         <v-slider
                           v-model="level"
+                          v-mousetrap="[
+                            { bind: '[', handler: () => setWindowLevel(level - 5) },
+                            { bind: ']', handler: () => setWindowLevel(level + 5) }
+                          ]"
                           :max="levMax"
                           :min="levMin"
                           class="align-center"

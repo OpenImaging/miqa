@@ -120,6 +120,30 @@ export default {
     newComment() {
       this.warnDecision = false;
     },
+    confirmedPresent() {
+      this.warnDecision = false;
+    },
+    confirmedAbsent() {
+      this.warnDecision = false;
+    },
+  },
+  mounted() {
+    const decisionShortcuts = {
+      u: 'U',
+      i: 'UE',
+      o: 'Q?',
+      p: 'UN',
+    };
+    window.addEventListener('keydown', (event) => {
+      if (Object.keys(decisionShortcuts).includes(event.key)) {
+        const code = decisionShortcuts[event.key];
+        if (this.options.map(
+          (option) => option.code,
+        ).includes(code)) {
+          this.handleCommentSave(decisionShortcuts[event.key]);
+        }
+      }
+    });
   },
   methods: {
     ...mapMutations([
@@ -193,7 +217,12 @@ export default {
       this.newComment = value;
     },
     async handleCommentSave(decision) {
-      if (this.newComment.trim().length > 0 || decision === 'U') {
+      if (
+        this.newComment.trim().length > 0
+        || decision === 'U'
+        || this.confirmedPresent.length > 0
+        || this.confirmedAbsent.length > 0
+      ) {
         try {
           const userIdentifiedArtifacts = {
             present: this.confirmedPresent,
@@ -375,7 +404,7 @@ export default {
           height="75px"
           name="input-comment"
           label="Evaluation Comment"
-          placeholder="Write a comment about the scan and submit a decision"
+          placeholder="Write a comment about the scan"
           @input="handleCommentChange"
         />
       </v-col>
@@ -389,7 +418,7 @@ export default {
         class="red--text"
         style="text-align: center"
       >
-        Decisions other than "usable" must have a comment.
+        Decisions other than "usable" must have a comment or artifact selection.
       </v-col>
     </v-row>
     <v-row
