@@ -353,7 +353,7 @@ export default {
           :step="sliceDomain.step"
           class="slice-slider mt-0 mx-4"
           hide-details
-          @change="changeSlice"
+          @input="changeSlice"
         />
         <div class="slice caption px-2">
           {{ roundSlice(slice) }} mm

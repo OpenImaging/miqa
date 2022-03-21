@@ -119,54 +119,66 @@ export default defineComponent({
     ref="form"
     @submit.prevent="save"
   >
-    <v-layout wrap>
-      <v-flex
-        lg6
-        sm8
-        xs12
-      >
-        <v-text-field
-          v-model="importPath"
-          :rules="[
-            v =>
-              !v ||
-              v.endsWith('.json') ||
-              v.endsWith('.csv') ||
-              'Needs to be a json or csv file'
-          ]"
-          :disabled="!userCanEditProject"
-          :error-messages="importPathError"
-          label="Import path"
-          placeholder="Specify a server path to read an import file"
-          autocomplete="on"
-          name="miqa-json-import-path"
-          @input="changed = true"
-        />
-      </v-flex>
-      <v-flex
-        lg6
-        sm8
-        xs12
-      >
-        <v-text-field
-          v-model="exportPath"
-          :rules="[
-            v =>
-              !v ||
-              v.endsWith('.json') ||
-              v.endsWith('.csv') ||
-              'Needs to be a json or csv file'
-          ]"
-          :disabled="!userCanEditProject"
-          :error-messages="exportPathError"
-          label="Export path"
-          placeholder="Specify a server path to write an export file"
-          autocomplete="on"
-          name="miqa-json-export-path"
-          @input="changed = true"
-        />
-      </v-flex>
-    </v-layout>
+    <v-text-field
+      v-model="importPath"
+      :rules="[
+        v =>
+          !v ||
+          v.endsWith('.json') ||
+          v.endsWith('.csv') ||
+          'Needs to be a json or csv file'
+      ]"
+      :disabled="!userCanEditProject"
+      :error-messages="importPathError"
+      label="Import path"
+      placeholder="Specify a server path to read an import file"
+      autocomplete="on"
+      name="miqa-json-import-path"
+      @input="changed = true"
+    >
+      <template #append>
+        <v-tooltip
+          bottom
+        >
+          <template #activator="{ on }">
+            <v-icon v-on="on">
+              mdi-dots-horizontal
+            </v-icon>
+          </template>
+          {{ importPath }}
+        </v-tooltip>
+      </template>
+    </v-text-field>
+    <v-text-field
+      v-model="exportPath"
+      :rules="[
+        v =>
+          !v ||
+          v.endsWith('.json') ||
+          v.endsWith('.csv') ||
+          'Needs to be a json or csv file'
+      ]"
+      :disabled="!userCanEditProject"
+      :error-messages="exportPathError"
+      label="Export path"
+      placeholder="Specify a server path to write an export file"
+      autocomplete="on"
+      name="miqa-json-export-path"
+      @input="changed = true"
+    >
+      <template #append>
+        <v-tooltip
+          bottom
+        >
+          <template #activator="{ on }">
+            <v-icon v-on="on">
+              mdi-dots-horizontal
+            </v-icon>
+          </template>
+          {{ exportPath }}
+        </v-tooltip>
+      </template>
+    </v-text-field>
     <v-flex
       class="d-flex"
       style="flex-direction: row"
