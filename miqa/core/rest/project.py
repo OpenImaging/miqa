@@ -17,9 +17,10 @@ from miqa.core.tasks import export_data, import_data
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['import_path', 'export_path', 'permissions']
+        fields = ['import_path', 'export_path', 'permissions', 'default_email_recipients']
 
     permissions = serializers.SerializerMethodField('get_permissions')
+    default_email_recipients = serializers.SerializerMethodField('get_default_email_recipients')
 
     def get_permissions(self, obj):
         permissions = {
@@ -39,6 +40,11 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
         ]
 
         return permissions
+
+    def get_default_email_recipients(self, obj):
+        if obj.default_email_recipients == '':
+            return []
+        return obj.default_email_recipients.split('\n')
 
 
 class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
@@ -164,6 +170,11 @@ class ProjectViewSet(
                         project.update_group(key, user_list)
                     except ValueError as e:
                         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+            if 'default_email_recipients' in request.data:
+                project.default_email_recipients = "\n".join(
+                    request.data['default_email_recipients']
+                )
 
             project.import_path = request.data['import_path']
             project.export_path = request.data['export_path']

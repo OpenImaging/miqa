@@ -22,6 +22,7 @@ export default defineComponent({
   setup() {
     const screenshots = computed(() => store.state.screenshots);
     const currentViewData = computed(() => store.getters.currentViewData);
+    const currentProject = computed(() => store.state.currentProject);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
     const { removeScreenshot } = store.commit;
@@ -31,6 +32,7 @@ export default defineComponent({
     return {
       screenshots,
       currentViewData,
+      currentProject,
       currentFrame,
       currentScan,
       removeScreenshot,
@@ -80,7 +82,7 @@ export default defineComponent({
       }
       this.selectedScreenshots = [];
       this.toCandidates = [];
-      this.ccCandidates = this.MIQAConfig.DEFAULT_EMAIL_RECIPIENTS.map(
+      this.ccCandidates = this.currentProject.settings.default_email_recipients.map(
         (emailString) => ({
           name: emailString,
         }),

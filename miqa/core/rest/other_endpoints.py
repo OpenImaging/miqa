@@ -20,7 +20,6 @@ class MIQAConfigView(APIView):
                     'UNDEFINED': ArtifactState.UNDEFINED.value,
                 },
                 'S3_SUPPORT': settings.S3_SUPPORT,
-                'DEFAULT_EMAIL_RECIPIENTS': settings.DEFAULT_EMAIL_RECIPIENTS,
                 'NORMAL_USERS_CAN_CREATE_PROJECTS': settings.NORMAL_USERS_CAN_CREATE_PROJECTS,
             }
         )

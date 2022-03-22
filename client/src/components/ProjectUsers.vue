@@ -13,6 +13,7 @@ export default {
     showAddMemberOverlay: false,
     showAddCollaboratorOverlay: false,
     selectedPermissionSet: {},
+    emailList: [],
   }),
   computed: {
     ...mapState(['currentProject', 'allUsers']),
@@ -29,6 +30,18 @@ export default {
     collaborators() {
       return this.currentProject.settings.permissions.collaborator;
     },
+    emailOptions() {
+      return this.members.concat(this.collaborators).map(
+        (user) => user.email,
+      );
+    },
+    emailListChanged() {
+      return (
+        JSON.stringify(this.emailList) !== JSON.stringify(
+          this.currentProject.settings.default_email_recipients,
+        )
+      );
+    },
     changesMade() {
       return JSON.stringify(this.permissions)
         !== JSON.stringify(this.selectedPermissionSet);
@@ -42,6 +55,7 @@ export default {
   mounted() {
     this.$store.dispatch('loadAllUsers');
     this.selectedPermissionSet = { ...this.permissions };
+    this.emailList = this.currentProject.settings.default_email_recipients;
   },
   methods: {
     ...mapActions(['loadAllUsers']),
@@ -50,6 +64,17 @@ export default {
       return Object.entries(this.permissions).filter(
         ([, value]) => value.includes(user),
       )[0][0].replace(/_/g, ' ');
+    },
+    allEmails(inputs) {
+      for (let i = 0; i < inputs.length; i += 1) {
+        const match = String(inputs[i])
+          .toLowerCase()
+          .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+          );
+        if (!(match && match.length > 0)) return `${inputs[i]} is not a valid email address.`;
+      }
+      return true;
     },
     async savePermissions() {
       const newSettings = { ...this.currentProject.settings };
@@ -68,6 +93,22 @@ export default {
       } catch (e) {
         this.$snackbar({
           text: 'Failed to save permissions.',
+          timeout: 6000,
+        });
+      }
+    },
+    async saveEmails() {
+      const newSettings = { ...this.currentProject.settings };
+      newSettings.default_email_recipients = this.emailList;
+      delete newSettings.permissions;
+      try {
+        const resp = await djangoRest.setProjectSettings(this.currentProject.id, newSettings);
+        const changedProject = { ...this.currentProject };
+        changedProject.settings.default_email_recipients = resp.default_email_recipients;
+        this.setCurrentProject(changedProject);
+      } catch (e) {
+        this.$snackbar({
+          text: 'Failed to save email list.',
           timeout: 6000,
         });
       }
@@ -159,6 +200,59 @@ export default {
           {{ user.username }}
         </v-col>
       </v-row>
+      <v-row
+        no-gutters
+        class="pt-5"
+      >
+        <v-col cols="12">
+          Default email recipients
+          <v-tooltip
+            v-if="user.is_superuser || user.username == currentProject.creator"
+            bottom
+            style="display: inline; padding-left: 5px"
+          >
+            <template #activator="{ on, attrs }">
+              <v-icon
+                v-bind="attrs"
+                color="blue darken-2"
+                small
+                v-on="on"
+              >
+                info
+              </v-icon>
+            </template>
+            <span>Emails sent from MIQA about this project
+              will include this list of recipients by default.</span>
+          </v-tooltip>
+        </v-col>
+      </v-row>
+      <v-row
+        no-gutters
+      >
+        <v-col cols="12">
+          <v-combobox
+            v-model="emailList"
+            :items="emailOptions"
+            label="Select or type an email"
+            :rules="[allEmails]"
+            multiple
+            chips
+            deletable-chips
+            hide-selected
+            style="max-width:500px;"
+          >
+            <template #append-outer>
+              <v-icon
+                v-if="emailListChanged"
+                @click="saveEmails"
+              >
+                save
+              </v-icon>
+            </template>
+          </v-combobox>
+        </v-col>
+      </v-row>
+
       <v-overlay
         :value="showAddMemberOverlay"
         :dark="false"

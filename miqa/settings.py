@@ -33,7 +33,6 @@ class MiqaMixin(ConfigMixin):
     # MIQA-specific settings
     ZARR_SUPPORT = False
     S3_SUPPORT = True
-    DEFAULT_EMAIL_RECIPIENTS = []
     NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
 
     @staticmethod

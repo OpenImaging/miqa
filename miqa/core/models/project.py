@@ -38,6 +38,7 @@ class Project(TimeStampedModel, models.Model):
     import_path = models.CharField(max_length=500, blank=True)
     export_path = models.CharField(max_length=500, blank=True)
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
+    default_email_recipients = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
