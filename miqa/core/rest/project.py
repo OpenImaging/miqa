@@ -172,7 +172,7 @@ class ProjectViewSet(
                         return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
             if 'default_email_recipients' in request.data:
-                project.default_email_recipients = "\n".join(
+                project.default_email_recipients = '\n'.join(
                     request.data['default_email_recipients']
                 )
 
