@@ -160,8 +160,10 @@ export default {
     ]),
     async pollForEvaluation() {
       const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
-      this.setFrameEvaluation(frameData.frame_evaluation);
-      clearInterval(this.pollInterval);
+      if (frameData.frame_evaluation) {
+        this.setFrameEvaluation(frameData.frame_evaluation);
+        clearInterval(this.pollInterval);
+      }
     },
     convertValueToLabel(artifactName) {
       return artifactName
