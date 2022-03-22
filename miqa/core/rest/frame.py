@@ -83,8 +83,8 @@ class FrameContentSerializer(serializers.ModelSerializer):
 class FrameViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    GenericViewSet,
     mixins.CreateModelMixin,
+    GenericViewSet,
 ):
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
