@@ -64,7 +64,6 @@ jobs:
       - run: npm run lint -- --no-fix
       - run: npm run build
   publish-docs:
-    name: Publish docs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
