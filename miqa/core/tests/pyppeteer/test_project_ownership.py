@@ -38,9 +38,6 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     collaborator = user_factory()
     tier_1_user = user_factory()
     tier_2_user = user_factory()
-    # assign_perm('collaborator', tier_2_user, project)
-    # assign_perm('tier_1_reviewer', tier_1_user, project)
-    # assign_perm('tier_2_reviewer', tier_2_user, project)
 
     await log_in(admin)
     # Click on the project in the project selector
@@ -54,11 +51,11 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     assert await get_tier_1_reviewers(page) == []
     assert await get_tier_2_reviewers(page) == []
 
+    # Assign the Tier 1 and Tier 2 reviewers
     # Open the Members modal
     await (
         await page.waitForXPath('//div[@class="col col-12"][contains(., "Members")]/button')
     ).click()
-
     # Open the Tier 1 reviewers selection menu
     tier_1_input = await page.waitForXPath(
         '//div[label="Select Tier 1 Reviewers"]/div[@class="v-select__selections"]/input'
@@ -72,7 +69,6 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     # Close the selection menu
     await tier_1_input.press('Escape')
     await page.waitFor(500)
-
     # Open the Tier 2 reviewers selection menu
     tier_2_input = await page.waitForXPath(
         '//div[label="Select Tier 2 Reviewers"]/div[@class="v-select__selections"]/input'
@@ -86,11 +82,11 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     # Close the selection menu
     await tier_2_input.press('Escape')
     await page.waitFor(500)
-
     # Save changes
     await (await page.waitForXPath('//button[contains(., "Save changes")]')).click()
     await page.waitFor(500)
 
+    # Assign the collaborator
     # Open the Collaborators modal
     await (
         await page.waitForXPath('//div[@class="col col-12"][contains(., "Collaborators")]/button')
