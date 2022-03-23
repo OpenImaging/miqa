@@ -24,6 +24,3 @@ services:
     ports:
       - ${DOCKER_MINIO_PORT-9000}:9000
       - ${DOCKER_MINIO_CONSOLE_PORT-9001}:9001
-    # mount data dir to make storage persistent
-    volumes:
-      - ./miqa/uploads:/data
