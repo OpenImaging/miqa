@@ -3,17 +3,17 @@ import pytest
 
 
 async def get_collaborators(page):
-    """Return the list of collaborator emails"""
+    """Return the list of collaborator emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Collaborators")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")]'
+        '//div[contains(@class, "col")][contains(.,"Collaborators")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")]'  # noqa: E501
     )
     return [(await page.evaluate('(element) => element.textContent', row)).strip() for row in rows]
 
 
 async def get_tier_1_reviewers(page):
-    """Return the list of tier 1 reviewer emails"""
+    """Return the list of tier 1 reviewer emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 1 reviewer "]]'
+        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 1 reviewer "]]'  # noqa: E501
     )
     return [
         (await page.evaluate('(element) => element.textContent', row)).strip().split(' ')[0]
@@ -22,9 +22,9 @@ async def get_tier_1_reviewers(page):
 
 
 async def get_tier_2_reviewers(page):
-    """Return the list of tier 2 reviewer emails"""
+    """Return the list of tier 2 reviewer emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 2 reviewer "]]'
+        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 2 reviewer "]]'  # noqa: E501
     )
     return [
         (await page.evaluate('(element) => element.textContent', row)).strip().split(' ')[0]
