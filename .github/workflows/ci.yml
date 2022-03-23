@@ -77,9 +77,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           lfs: true
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
       - name: Run tests
-        uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.8
+        uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
         with:
           install_directory: client
           install_command: npm install
