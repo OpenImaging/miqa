@@ -169,7 +169,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                         last_decision = ScanDecision(
                             decision=last_decision_dict['decision'],
                             creator=creator,
-                            note=last_decision_dict['note'] or "",
+                            note=last_decision_dict['note'] or '',
                             user_identified_artifacts={
                                 artifact_name: (
                                     1
