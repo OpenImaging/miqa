@@ -7,6 +7,7 @@ from typing import Optional
 import boto3
 from celery import shared_task
 from django.conf import settings
+from django.contrib.auth.models import User
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -16,8 +17,17 @@ from miqa.core.conversion.import_export_csvs import (
     validate_import_dict,
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
-from miqa.core.models import Evaluation, Experiment, Frame, GlobalSettings, Project, Scan
+from miqa.core.models import (
+    Evaluation,
+    Experiment,
+    Frame,
+    GlobalSettings,
+    Project,
+    Scan,
+    ScanDecision,
+)
 from miqa.core.models.frame import StorageMode
+from miqa.core.models.scan_decision import default_identified_artifacts
 
 
 def _download_from_s3(path: str) -> bytes:
@@ -126,6 +136,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     new_experiments = []
     new_scans = []
     new_frames = []
+    new_scan_decisions = []
 
     for project_name, project_data in import_dict['projects'].items():
         if project_id is None:
@@ -148,6 +159,30 @@ def perform_import(import_dict, project_id: Optional[str]):
                 scan_object = Scan(
                     name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
                 )
+                if 'last_decision' in scan_data:
+                    last_decision_dict = scan_data['last_decision']
+                    if last_decision_dict:
+                        try:
+                            creator = User.objects.get(username=last_decision_dict['creator'])
+                        except User.DoesNotExist:
+                            creator = None
+                        last_decision = ScanDecision(
+                            decision=last_decision_dict['decision'],
+                            creator=creator,
+                            note=last_decision_dict['note'] or "",
+                            user_identified_artifacts={
+                                artifact_name: (
+                                    1
+                                    if last_decision_dict['user_identified_artifacts']
+                                    and artifact_name
+                                    in last_decision_dict['user_identified_artifacts']
+                                    else 0
+                                )
+                                for artifact_name in default_identified_artifacts().keys()
+                            },
+                            scan=scan_object,
+                        )
+                        new_scan_decisions.append(last_decision)
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
 
@@ -163,6 +198,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
+    ScanDecision.objects.bulk_create(new_scan_decisions)
     Frame.objects.bulk_create(new_frames)
 
     # must use str, not UUID, to get sent to celery task properly
@@ -204,15 +240,28 @@ def perform_export(project_id: Optional[str]):
 
     for project_object in projects:
         for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
-            data.append(
-                [
-                    project_object.name,
-                    frame_object.scan.experiment.name,
-                    frame_object.scan.name,
-                    frame_object.scan.scan_type,
-                    frame_object.frame_number,
-                    frame_object.raw_path,
+            row_data = [
+                project_object.name,
+                frame_object.scan.experiment.name,
+                frame_object.scan.name,
+                frame_object.scan.scan_type,
+                frame_object.frame_number,
+                frame_object.raw_path,
+            ]
+            last_decision = frame_object.scan.decisions.last()
+            if last_decision:
+                row_data += [
+                    last_decision.decision,
+                    last_decision.creator,
+                    last_decision.note.replace(',', ';'),
+                    ';'.join(
+                        [
+                            artifact
+                            for artifact, value in last_decision.user_identified_artifacts.items()
+                            if value == 1
+                        ]
+                    ),
                 ]
-            )
+            data.append(row_data)
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(export_path, index=False)
