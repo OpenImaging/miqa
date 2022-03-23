@@ -1,6 +1,6 @@
 ﻿## Site navigation
 ### Projects homepage
-Projects are the top-level organizational structure in MIQA; as such, the homepage allows users to navigate through projects and view the status of scans within. The figure below shows what this page will look like to a user that has not been added to any projects yet. This user may ask to be added to existing projects or create new ones.
+Projects are the top-level organizational structure in MIQA; as such, the homepage allows users to navigate through projects and view the status of scans within. The screenshot on the right shows a homepage view to a new user who has not been granted access to any existing projects. This user may ask to be added to existing projects or create new projects.
 
 **![](images/site_0.png)**
 #### Creating a project

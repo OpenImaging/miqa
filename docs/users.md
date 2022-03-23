@@ -23,7 +23,7 @@ At the global level, a user is either a normal user or a “superuser” with he
 7.  Approve the accounts of new users once the email for that new account has been confirmed
 
 
-Superusers have the responsibility to upkeep the MIQA instance and resolve any issues that may arise. Normal users may sometimes rely on the action of superusers, so it is important that the identities of the superusers are known to normal users such that superusers may be contacted in case of issues.
+**Superusers have the responsibility to upkeep the MIQA instance and resolve any issues that may arise.** Normal users may sometimes rely on the action of superusers, so it is important that the identities of the superusers are known to normal users such that superusers may be contacted in case of issues.
 
 In addition to a user’s global role, each user may be assigned a role per project. Projects are the basic organizational structure in MIQA that act as buckets for data separation; this is how protected data can stay private to a group of selected users. The data in a project can only be seen by users explicitly added to that project (and superusers, implicitly). A user can be added to a project with read-only permission (as a collaborator) or with read-write permissions (as a member). Collaborators cannot edit notes or submit reviews of scans, but they may view the data in the same manner that members can. Members have the ability and responsibility to submit reviews of scans in the project until a final decision has been made on every scan in the project.
 
