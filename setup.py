@@ -64,7 +64,7 @@ setup(
             'tox',
             'django-click',
             'factory_boy',
-            'girder-pytest-pyppeteer==0.0.7',
+            'girder-pytest-pyppeteer==0.0.8',
             'pytest-asyncio',
         ],
         'learning': [
