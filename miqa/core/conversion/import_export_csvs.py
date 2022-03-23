@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional as TypingOptional
 
 from rest_framework.exceptions import APIException
-from schema import And, Or, Schema, SchemaError
+from schema import And, Optional, Or, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
@@ -40,18 +40,18 @@ def validate_file_locations(input_dict, project, not_found_errors):
     return input_dict, not_found_errors
 
 
-def validate_import_dict(import_dict, project: Optional[Project]):
+def validate_import_dict(import_dict, project: TypingOptional[Project]):
     import_schema = Schema(
         {
             'projects': {
-                And(str): {
+                And(Use(str)): {
                     'experiments': {
-                        And(str): {
+                        And(Use(str)): {
                             'scans': {
-                                And(str): {
-                                    'type': And(str),
-                                    'frames': {And(int): {'file_location': And(str)}},
-                                    'last_decision': Or(
+                                And(Use(str)): {
+                                    'type': And(Use(str)),
+                                    'frames': {And(Use(int)): {'file_location': And(str)}},
+                                    Optional('last_decision'): Or(
                                         {
                                             'decision': And(str),
                                             'creator': Or(str, None),
