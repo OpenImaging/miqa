@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import VueCompositionAPI from '@vue/composition-api';
 import Vuetify from 'vuetify';
+import 'polyfill-object.fromentries';
 
 import AsyncComputed from 'vue-async-computed';
 import config from 'itk/itkConfig';
