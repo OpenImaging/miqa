@@ -68,18 +68,17 @@ export default {
       return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max)) || 0;
     },
     autoWindow() {
-      return this.currentViewData.autoWindow
-        || Math.ceil((this.winMax * 0.3) / 10) * 10;
+      return this.currentViewData.autoWindow || this.winMax;
+    },
+    autoLevel() {
+      return this.currentViewData.autoLevel
+        || Math.ceil((this.levMax * 0.4) / 10) * 10;
     },
     levMin() {
       return (this.representation && this.representation.getPropertyDomainByName('windowLevel').min) || 0;
     },
     levMax() {
       return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max)) || 0;
-    },
-    autoLevel() {
-      return this.currentViewData.autoLevel
-        || Math.ceil((this.levMax * 0.2) / 10) * 10;
     },
   },
   watch: {
@@ -175,6 +174,8 @@ export default {
     updateWinLev() {
       this.window = this.autoWindow;
       this.level = this.autoLevel;
+      this.representation.setWindowWidth(this.window);
+      this.representation.setWindowLevel(this.level);
     },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
@@ -577,6 +578,7 @@ export default {
                     :lock-owner="lockOwner"
                     :loading-lock="loadingLock"
                     @handleKeyPress="handleKeyPress"
+                    @switchLock="switchLock"
                   />
                 </v-col>
               </v-row>
