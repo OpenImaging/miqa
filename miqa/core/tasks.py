@@ -182,7 +182,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['location']:
                             slices = [
-                                axis.split("=")[1]
+                                axis.split('=')[1]
                                 for axis in last_decision_dict['location'].split(';')
                             ]
                             location = {
