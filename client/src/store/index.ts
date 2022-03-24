@@ -369,6 +369,7 @@ const {
         forwardTo: currentFrame.nextFrame,
         upTo,
         downTo,
+        currentFrame,
         currentAutoEvaluation: currentFrame.frame_evaluation,
         autoWindow: experiment.autoWindow,
         autoLevel: experiment.autoLevel,
@@ -466,6 +467,12 @@ const {
     },
     addScanDecision(state, { currentScan, newDecision }) {
       state.scans[currentScan].decisions.push(newDecision);
+    },
+    setFrameEvaluation(state, evaluation) {
+      const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
+      if (currentFrame) {
+        currentFrame.frame_evaluation = evaluation;
+      }
     },
     setCurrentScreenshot(state, screenshot) {
       state.currentScreenshot = screenshot;
