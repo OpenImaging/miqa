@@ -37,6 +37,12 @@ export default {
       newComment: '',
       confirmedPresent: [],
       confirmedAbsent: [],
+      decisionShortcuts: {
+        U: 'u',
+        UE: 'i',
+        'Q?': 'o',
+        UN: 'p',
+      },
     };
   },
   computed: {
@@ -131,25 +137,6 @@ export default {
     if (!this.currentViewData.currentAutoEvaluation) {
       this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
     }
-    const decisionShortcuts = {
-      u: 'U',
-      i: 'UE',
-      o: 'Q?',
-      p: 'UN',
-    };
-    window.addEventListener('keydown', (event) => {
-      if (
-        (this.$refs.commentInput && !this.$refs.commentInput.isFocused)
-          && Object.keys(decisionShortcuts).includes(event.key)
-      ) {
-        const code = decisionShortcuts[event.key];
-        if (this.options.map(
-          (option) => option.code,
-        ).includes(code)) {
-          this.handleCommentSave(decisionShortcuts[event.key]);
-        }
-      }
-    });
   },
   beforeUnmount() {
     clearInterval(this.pollInterval);
@@ -454,6 +441,10 @@ export default {
             style="text-align: center"
           >
             <v-btn
+              v-mousetrap="[
+                { bind: decisionShortcuts[option.code],
+                  handler: () => handleCommentSave(option.code) },
+              ]"
               :color="option.color"
               @click="handleCommentSave(option.code)"
             >
