@@ -1,0 +1,23 @@
+site_name: MIQA Application User Guide
+site_description: Documentation for MIQA
+site_author: Kitware
+
+repo_url: https://github.com/OpenImaging/miqa
+
+theme:
+  name: material
+  logo: images/Kitware-Mark.png
+  highlightjs: true
+  palette:
+    primary: black
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+
+extra_css: [extra.css]
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/kitware/dive
