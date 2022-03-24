@@ -44,9 +44,6 @@ export default defineComponent({
     to: [],
     cc: [],
     bcc: [],
-    toCandidates: [],
-    ccCandidates: [],
-    bccCandidates: [],
     showCC: false,
     showBCC: false,
     subject: '',
@@ -81,22 +78,15 @@ export default defineComponent({
         return;
       }
       this.selectedScreenshots = [];
-      this.toCandidates = [];
-      this.ccCandidates = this.currentProject.settings.default_email_recipients.map(
-        (emailString) => ({
-          name: emailString,
-        }),
-      );
-      this.bccCandidates = [];
-      this.to = this.toCandidates.map((c) => c.name);
-      this.cc = this.ccCandidates.map((c) => c.name);
-      this.bcc = this.bccCandidates.map((c) => c.name);
+      this.to = this.currentProject.settings.default_email_recipients;
+      this.cc = [];
+      this.bcc = [];
       if (this.user) {
-        this.bcc.push(this.user.email);
+        this.cc.push(this.user.email);
       }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      this.subject = `Regarding ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
+      this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
       this.body = `Experiment: ${this.currentViewData.experimentName}\nScan: ${this.currentScan.name}\n`;
       if (this.currentViewData.scanDecisions.length > 0) {
         this.body += `Decisions:\n ${this.currentViewData.scanDecisions.map(
@@ -118,23 +108,11 @@ export default defineComponent({
       if (!this.$refs.form.validate()) {
         return;
       }
-      const toAddresses = this.to.map((recipient) => {
-        const candidate = this.toCandidates.find((c) => c.name === recipient);
-        return candidate ? candidate.email : recipient;
-      });
-      const ccAddresses = this.cc.map((recipient) => {
-        const candidate = this.ccCandidates.find((c) => c.name === recipient);
-        return candidate ? candidate.email : recipient;
-      });
-      const bccAddresses = this.bcc.map((recipient) => {
-        const candidate = this.bccCandidates.find((c) => c.name === recipient);
-        return candidate ? candidate.email : recipient;
-      });
       this.sending = true;
       await djangoRest.sendEmail({
-        to: toAddresses,
-        cc: ccAddresses,
-        bcc: bccAddresses,
+        to: this.to,
+        cc: this.cc,
+        bcc: this.bcc,
         subject: this.subject,
         body: this.body,
         screenshots: this.screenshots.filter(
@@ -193,7 +171,7 @@ export default defineComponent({
             <v-flex>
               <EmailRecipientCombobox
                 v-model="to"
-                :candidates="toCandidates.map(c => c.name)"
+                :candidates="to"
                 :required="true"
                 label="to"
               />
@@ -215,7 +193,7 @@ export default defineComponent({
             <v-flex>
               <EmailRecipientCombobox
                 v-model="cc"
-                :candidates="ccCandidates.map(c => c.name)"
+                :candidates="cc"
                 :required="false"
                 label="cc"
               />
@@ -225,7 +203,7 @@ export default defineComponent({
             <v-flex>
               <EmailRecipientCombobox
                 v-model="bcc"
-                :candidates="bccCandidates.map(c => c.name)"
+                :candidates="bcc"
                 :required="false"
                 label="bcc"
               />
