@@ -128,6 +128,9 @@ export default {
     },
   },
   mounted() {
+    if (!this.currentViewData.currentAutoEvaluation) {
+      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
+    }
     const decisionShortcuts = {
       u: 'U',
       i: 'UE',
@@ -145,10 +148,21 @@ export default {
       }
     });
   },
+  beforeUnmount() {
+    clearInterval(this.pollInterval);
+  },
   methods: {
     ...mapMutations([
       'updateExperiment',
+      'setFrameEvaluation',
     ]),
+    async pollForEvaluation() {
+      const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
+      if (frameData.frame_evaluation) {
+        this.setFrameEvaluation(frameData.frame_evaluation);
+        clearInterval(this.pollInterval);
+      }
+    },
     convertValueToLabel(artifactName) {
       return artifactName
         .replace('susceptibility_metal', 'metal_susceptibility')

@@ -36,14 +36,24 @@ def evaluate_frame_content(frame_id):
     frame = Frame.objects.get(id=frame_id)
     eval_model_name = frame.scan.experiment.project.evaluation_models[[frame.scan.scan_type][0]]
     eval_model = available_evaluation_models[eval_model_name].load()
-    # How can we send the content to the ML evaluation?
-    result = evaluate1(eval_model, frame.content.url)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        # need to send a local version to NN
+        if frame.storage_mode == StorageMode.LOCAL_PATH:
+            dest = Path(frame.raw_path)
+        else:
+            dest = Path(tmpdirname, frame.content.name.split('/')[-1])
+            with open(dest, 'wb') as fd:
+                if frame.storage_mode == StorageMode.S3_PATH:
+                    fd.write(_download_from_s3(frame.content.url))
+                else:
+                    fd.write(frame.content.open().read())
+        result = evaluate1(eval_model, dest)
 
-    Evaluation.objects.create(
-        frame=frame,
-        evaluation_model=eval_model_name,
-        results=result,
-    )
+        Evaluation.objects.create(
+            frame=frame,
+            evaluation_model=eval_model_name,
+            results=result,
+        )
 
 
 @shared_task
