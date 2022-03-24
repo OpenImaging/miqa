@@ -20,6 +20,7 @@ class EmailView(APIView):
             request.data['to'],
             bcc=request.data['bcc'],
             cc=request.data['cc'],
+            reply_to=[request.user.email],
         )
 
         for index, screenshot in enumerate(request.data['screenshots']):
