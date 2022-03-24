@@ -128,6 +128,9 @@ export default {
     },
   },
   mounted() {
+    if (!this.currentViewData.currentAutoEvaluation) {
+      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
+    }
     const decisionShortcuts = {
       u: 'U',
       i: 'UE',
@@ -144,11 +147,6 @@ export default {
         }
       }
     });
-  },
-  mounted() {
-    if (!this.currentViewData.currentAutoEvaluation) {
-      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
-    }
   },
   beforeUnmount() {
     clearInterval(this.pollInterval);
