@@ -1,8 +1,8 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional as TypingOptional
 
 from rest_framework.exceptions import APIException
-from schema import And, Schema, SchemaError, Use
+from schema import And, Optional, Or, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
@@ -13,6 +13,11 @@ IMPORT_CSV_COLUMNS = [
     'scan_type',
     'frame_number',
     'file_location',
+    'last_decision',
+    'last_decision_creator',
+    'last_decision_note',
+    'identified_artifacts',
+    'location_of_interest',
 ]
 
 
@@ -36,7 +41,7 @@ def validate_file_locations(input_dict, project, not_found_errors):
     return input_dict, not_found_errors
 
 
-def validate_import_dict(import_dict, project: Optional[Project]):
+def validate_import_dict(import_dict, project: TypingOptional[Project]):
     import_schema = Schema(
         {
             'projects': {
@@ -46,7 +51,17 @@ def validate_import_dict(import_dict, project: Optional[Project]):
                             'scans': {
                                 And(Use(str)): {
                                     'type': And(Use(str)),
-                                    'frames': {And(Use(int)): {'file_location': And(Use(str))}},
+                                    'frames': {And(Use(int)): {'file_location': And(str)}},
+                                    Optional('last_decision'): Or(
+                                        {
+                                            'decision': And(str),
+                                            'creator': Or(str, None),
+                                            'note': Or(str, None),
+                                            'user_identified_artifacts': Or(str, None),
+                                            'location': Or(str, None),
+                                        },
+                                        None,
+                                    ),
                                 }
                             }
                         }
@@ -72,29 +87,40 @@ def validate_import_dict(import_dict, project: Optional[Project]):
 
 
 def import_dataframe_to_dict(df):
-    if list(df.columns) != IMPORT_CSV_COLUMNS:
+    # The decision columns (the last five) are optional
+    if list(df.columns) != IMPORT_CSV_COLUMNS and list(df.columns) != IMPORT_CSV_COLUMNS[:6]:
         raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
-    return {
-        'projects': {
-            project_name: {
-                'experiments': {
-                    experiment_name: {
-                        'scans': {
-                            scan_name: {
-                                'type': scan_df['scan_type'].mode()[0],
-                                'frames': {
-                                    row[1]['frame_number']: {
-                                        'file_location': row[1]['file_location']
-                                    }
-                                    for row in scan_df.iterrows()
-                                },
-                            }
-                            for scan_name, scan_df in experiment_df.groupby('scan_name')
-                        }
-                    }
-                    for experiment_name, experiment_df in project_df.groupby('experiment_name')
+    ingest_dict = {'projects': {}}
+    for project_name, project_df in df.groupby('project_name'):
+        project_dict = {'experiments': {}}
+        for experiment_name, experiment_df in project_df.groupby('experiment_name'):
+            experiment_dict = {'scans': {}}
+            for scan_name, scan_df in experiment_df.groupby('scan_name'):
+                scan_dict = {
+                    'type': scan_df['scan_type'].iloc[0],
+                    'frames': {
+                        row[1]['frame_number']: {'file_location': row[1]['file_location']}
+                        for row in scan_df.iterrows()
+                    },
                 }
-            }
-            for project_name, project_df in df.groupby('project_name')
-        }
-    }
+                if (
+                    'last_decision' in scan_df.columns
+                    and str(scan_df['last_decision'].iloc[0]) != 'nan'
+                ):
+                    decision_dict = {
+                        'decision': scan_df['last_decision'].iloc[0],
+                        'creator': scan_df['last_decision_creator'].iloc[0],
+                        'note': scan_df['last_decision_note'].iloc[0],
+                        'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0],
+                        'location': scan_df['location_of_interest'].iloc[0],
+                    }
+                    decision_dict = {
+                        k: (v if str(v) != 'nan' else None) for k, v in decision_dict.items()
+                    }
+                    scan_dict['last_decision'] = decision_dict
+                else:
+                    scan_dict['last_decision'] = None
+                experiment_dict['scans'][scan_name] = scan_dict
+            project_dict['experiments'][experiment_name] = experiment_dict
+        ingest_dict['projects'][project_name] = project_dict
+    return ingest_dict

@@ -138,7 +138,10 @@ export default {
       p: 'UN',
     };
     window.addEventListener('keydown', (event) => {
-      if (Object.keys(decisionShortcuts).includes(event.key)) {
+      if (
+        (this.$refs.commentInput && !this.$refs.commentInput.isFocused)
+          && Object.keys(decisionShortcuts).includes(event.key)
+      ) {
         const code = decisionShortcuts[event.key];
         if (this.options.map(
           (option) => option.code,
@@ -410,6 +413,7 @@ export default {
         class="pt-5"
       >
         <v-textarea
+          ref="commentInput"
           v-model="newComment"
           :counter="!warnDecision"
           :hide-details="warnDecision"
