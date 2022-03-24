@@ -166,10 +166,13 @@ def perform_import(import_dict, project_id: Optional[str]):
                             creator = User.objects.get(username=last_decision_dict['creator'])
                         except User.DoesNotExist:
                             creator = None
+                        note = ''
+                        if last_decision_dict['note']:
+                            note = last_decision_dict['note'].replace(';', ',')
                         last_decision = ScanDecision(
                             decision=last_decision_dict['decision'],
                             creator=creator,
-                            note=last_decision_dict['note'] or '',
+                            note=note,
                             user_identified_artifacts={
                                 artifact_name: (
                                     1
@@ -248,11 +251,13 @@ def perform_export(project_id: Optional[str]):
                 frame_object.frame_number,
                 frame_object.raw_path,
             ]
+            # if a last decision exists for the scan, encode that decision on this row; for example,
+            # "... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
             last_decision = frame_object.scan.decisions.last()
             if last_decision:
                 row_data += [
                     last_decision.decision,
-                    last_decision.creator,
+                    last_decision.creator.username,
                     last_decision.note.replace(',', ';'),
                     ';'.join(
                         [
