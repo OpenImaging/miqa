@@ -26,6 +26,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
 
     import_path = factory.Faker('file_path')
     export_path = factory.Faker('file_path')
+    default_email_recipients = factory.Faker('email')
 
 
 class ExperimentFactory(factory.django.DjangoModelFactory):
