@@ -176,6 +176,9 @@ export default {
           (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
         );
     },
+    switchLock() {
+      this.$emit('switchLock', this.currentViewData.experimentId, null, true);
+    },
     getCurrentChipState(artifact) {
       // this function determines the styling of the four chip states.
       // four states of a chip are:
@@ -487,7 +490,7 @@ export default {
             :loading="loadingLock"
             :disabled="loadingLock"
             color="primary"
-            @click="switchLock(experimentId, null, force=true)"
+            @click="switchLock"
           >
             {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
           </v-btn>
