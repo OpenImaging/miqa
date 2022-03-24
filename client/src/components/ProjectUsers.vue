@@ -46,10 +46,14 @@ export default {
       return JSON.stringify(this.permissions)
         !== JSON.stringify(this.selectedPermissionSet);
     },
+    userCanEditProject() {
+      return this.user.is_superuser || this.user.username === this.currentProject.value.creator;
+    },
   },
   watch: {
     currentProject(newProj) {
       this.selectedPermissionSet = { ...newProj.settings.permissions };
+      this.emailList = this.currentProject.settings.default_email_recipients;
     },
   },
   mounted() {
@@ -128,7 +132,7 @@ export default {
         <v-col cols="12">
           Members
           <v-tooltip
-            v-if="user.is_superuser || user.username == currentProject.creator"
+            v-if="userCanEditProject"
             bottom
             style="display: inline; padding-left: 5px"
           >
@@ -169,7 +173,7 @@ export default {
         <v-col cols="12">
           Collaborators <span class="gray-info">(Read only)</span>
           <v-tooltip
-            v-if="user.is_superuser || user.username == currentProject.creator"
+            v-if="userCanEditProject"
             bottom
             style="display: inline; padding-left: 5px"
           >
@@ -207,7 +211,6 @@ export default {
         <v-col cols="12">
           Default email recipients
           <v-tooltip
-            v-if="user.is_superuser || user.username == currentProject.creator"
             bottom
             style="display: inline; padding-left: 5px"
           >
@@ -233,6 +236,7 @@ export default {
           <v-combobox
             v-model="emailList"
             :items="emailOptions"
+            :disabled="!userCanEditProject"
             label="Select or type an email"
             :rules="[allEmails]"
             multiple
@@ -242,12 +246,14 @@ export default {
             style="max-width:500px;"
           >
             <template #append-outer>
-              <v-icon
-                v-if="emailListChanged"
+              <v-btn
+                v-if="userCanEditProject"
+                :disabled="!emailListChanged"
+                color="primary"
                 @click="saveEmails"
               >
-                save
-              </v-icon>
+                Save
+              </v-btn>
             </template>
           </v-combobox>
         </v-col>

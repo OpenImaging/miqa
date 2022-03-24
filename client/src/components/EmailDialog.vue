@@ -81,22 +81,22 @@ export default defineComponent({
         return;
       }
       this.selectedScreenshots = [];
-      this.toCandidates = [];
-      this.ccCandidates = this.currentProject.settings.default_email_recipients.map(
+      this.toCandidates = this.currentProject.settings.default_email_recipients.map(
         (emailString) => ({
           name: emailString,
         }),
       );
+      this.ccCandidates = [];
       this.bccCandidates = [];
       this.to = this.toCandidates.map((c) => c.name);
       this.cc = this.ccCandidates.map((c) => c.name);
       this.bcc = this.bccCandidates.map((c) => c.name);
       if (this.user) {
-        this.bcc.push(this.user.email);
+        this.cc.push(this.user.email);
       }
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
-      this.subject = `Regarding ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
+      this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
       this.body = `Experiment: ${this.currentViewData.experimentName}\nScan: ${this.currentScan.name}\n`;
       if (this.currentViewData.scanDecisions.length > 0) {
         this.body += `Decisions:\n ${this.currentViewData.scanDecisions.map(
