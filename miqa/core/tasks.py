@@ -167,8 +167,19 @@ def perform_import(import_dict, project_id: Optional[str]):
                         except User.DoesNotExist:
                             creator = None
                         note = ''
+                        location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
+                        if last_decision_dict['location']:
+                            slices = [
+                                axis.split("=")[1]
+                                for axis in last_decision_dict['location'].split(';')
+                            ]
+                            location = {
+                                'i': slices[0],
+                                'j': slices[1],
+                                'k': slices[2],
+                            }
                         last_decision = ScanDecision(
                             decision=last_decision_dict['decision'],
                             creator=creator,
@@ -183,6 +194,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                                 )
                                 for artifact_name in default_identified_artifacts().keys()
                             },
+                            location=location,
                             scan=scan_object,
                         )
                         new_scan_decisions.append(last_decision)
@@ -253,8 +265,15 @@ def perform_export(project_id: Optional[str]):
             ]
             # if a last decision exists for the scan, encode that decision on this row; for example,
             # "... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-            last_decision = frame_object.scan.decisions.last()
+            last_decision = frame_object.scan.decisions.order_by('created').last()
             if last_decision:
+                location = ''
+                if last_decision.location:
+                    location = (
+                        f'i={last_decision.location["i"]};'
+                        f'j={last_decision.location["j"]};'
+                        f'k={last_decision.location["k"]}'
+                    )
                 row_data += [
                     last_decision.decision,
                     last_decision.creator.username,
@@ -266,6 +285,7 @@ def perform_export(project_id: Optional[str]):
                             if value == 1
                         ]
                     ),
+                    location,
                 ]
             data.append(row_data)
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)

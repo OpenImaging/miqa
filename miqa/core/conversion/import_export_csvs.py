@@ -17,6 +17,7 @@ IMPORT_CSV_COLUMNS = [
     'last_decision_creator',
     'last_decision_note',
     'identified_artifacts',
+    'location_of_interest',
 ]
 
 
@@ -57,6 +58,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                             'creator': Or(str, None),
                                             'note': Or(str, None),
                                             'user_identified_artifacts': Or(str, None),
+                                            'location': Or(str, None),
                                         },
                                         None,
                                     ),
@@ -85,7 +87,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
 
 
 def import_dataframe_to_dict(df):
-    # The decision columns (the last four) are optional
+    # The decision columns (the last five) are optional
     if list(df.columns) != IMPORT_CSV_COLUMNS and list(df.columns) != IMPORT_CSV_COLUMNS[:6]:
         raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
     ingest_dict = {'projects': {}}
@@ -110,6 +112,7 @@ def import_dataframe_to_dict(df):
                         'creator': scan_df['last_decision_creator'].iloc[0],
                         'note': scan_df['last_decision_note'].iloc[0],
                         'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0],
+                        'location': scan_df['location_of_interest'].iloc[0],
                     }
                     decision_dict = {
                         k: (v if str(v) != 'nan' else None) for k, v in decision_dict.items()
