@@ -77,6 +77,7 @@ def test_project_settings_put(user_api_client, project_factory, user_factory, us
             'import_path': '/new/fake/path',
             'export_path': '/new/fake/path',
             'permissions': expected_perms,
+            'default_email_recipients': project.default_email_recipients.split('\n'),
         }
         my_new_perms = get_perms(user, project)
         if 'collaborator' in my_perms:
