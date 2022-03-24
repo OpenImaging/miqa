@@ -577,6 +577,7 @@ export default {
                     :lock-owner="lockOwner"
                     :loading-lock="loadingLock"
                     @handleKeyPress="handleKeyPress"
+                    @switchLock="switchLock"
                   />
                 </v-col>
               </v-row>
