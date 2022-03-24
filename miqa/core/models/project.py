@@ -113,8 +113,7 @@ class Project(TimeStampedModel, models.Model):
             if previously_permitted_user.username not in user_list:
                 remove_perm(group_name, previously_permitted_user, self)
                 if 'reviewer' in group_name:
-                    Experiment = apps.get_model('core', 'Experiment')
-                    locked_experiments = Experiment.objects.filter(
+                    locked_experiments = apps.get_model('core', 'Experiment').objects.filter(
                         project=self, lock_owner=previously_permitted_user
                     )
                     for locked_experiment in locked_experiments:
