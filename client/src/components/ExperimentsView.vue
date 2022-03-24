@@ -79,7 +79,7 @@ export default {
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
-      const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision;
+      const rating = _.first(_.sortBy(decisions, (dec) => dec.created)).decision;
       let color = 'grey--text';
       if (rating === 'U') {
         color = 'green--text';
