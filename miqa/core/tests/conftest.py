@@ -63,3 +63,22 @@ register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
 register(FrameFactory)
+
+
+@pytest.fixture
+def log_in(webpack_server, page, page_login):
+    """
+    Log the given user into the page.
+
+    This involves setting cookies as if the server has already approved the user. When navigating
+    to the web app, it will see that the user has no session token and redirect to the API server,
+    which thinks the user has already logged in and redirects back to the web app with a fresh
+    session token.
+    """
+
+    async def _log_in(user):
+        await page_login(page, user)
+        await page.goto(webpack_server)
+        return page
+
+    return _log_in
