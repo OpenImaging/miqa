@@ -71,9 +71,9 @@ docker-compose run --rm django ./manage.py createsuperuser
 ## Run the server
 Run the following command in a new shell in the same directory (as this command needs to continue running as the server; use Ctrl+C to stop the server gracefully).
 ```
-docker-compose up
+docker-compose up -d
 ```
-Or, if you do not need to see terminal output from this command, it may be useful to run this as a background task. Add a `-d` flag to the end of the previous command to detach the command from the shell.
+Or, if you need to see terminal output from this command, Remove the `-d` flag to attach the command to the shell.
 
 
 ## Set up OAuth Application
@@ -121,6 +121,6 @@ To non-destructively update your instance at any time:
 2. Run `docker-compose pull`
 3. Run `docker-compose build --pull --no-cache`
 4. Run `docker-compose run --rm django ./manage.py migrate`
-5. Run `docker-compose up`
+5. Run `docker-compose up -d`
 
 Visit `https://miqa.local/admin/` for any admin configuration that needs to be done.
