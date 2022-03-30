@@ -166,9 +166,18 @@ def perform_import(import_dict, project_id: Optional[str]):
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
-                scan_object = Scan(
-                    name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
-                )
+                # added 'if' clause for fields only present on BIDS datasets, add these fields to the 
+                # scan object if they are available
+                if ('subject_ID' in scan_data) and ('session_ID' in scan_data):
+                     scan_object = Scan(
+                        name=scan_name, scan_type=scan_data['type'], experiment=experiment_object,
+                        subject_ID=scan_data['subject_ID'], session_ID=scan_data['session_ID']
+                    )
+                else:
+                    # the scan object did not have any extra BIDS dataset features
+                    scan_object = Scan(
+                        name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
+                    )
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
                     if last_decision_dict:
@@ -219,6 +228,8 @@ def perform_import(import_dict, project_id: Optional[str]):
                     new_frames.append(frame_object)
                     if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
                         nifti_to_zarr_ngff.delay(frame_data['file_location'])
+
+
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
