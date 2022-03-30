@@ -6,6 +6,18 @@ The MIQA login screen has a button in the upper right corner that allows new use
 Once the email verification process has been completed, a second email will be sent to the MIQA administration (all users with “superuser” status) requesting manual account activation on behalf of the new user. A new user of MIQA will not be able to log in until an administrator activates the new account. This process ensures  that the data on any instance of MIQA is only made available to trusted persons.
 
 ### User roles
+All users in MIQA have both a global role and a role on every project to which they are added. Possible roles are as follows:
+
+Global roles
+- Superuser
+- Normal user
+Project Roles
+- Creator
+- Tier 2 reviewer
+- Tier 1 Reviewer
+- Collaborator
+
+
 At the global level, a user is either a normal user or a “superuser” with heightened privileges and additional responsibilities. Superusers should be trusted individuals, as they are given the following privileges:
 
 1.  Edit the import path and export path on projects
