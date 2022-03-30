@@ -21,6 +21,7 @@ SCAN_TYPES = [
     ('ncanda-dti60b1000-v1', 'ncanda-dti60b1000-v1'),
     ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'),
     ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'),
+    ('PET','PET')
 ]
 
 
@@ -32,3 +33,6 @@ class Scan(TimeStampedModel, models.Model):
     name = models.CharField(max_length=127, blank=False)
     experiment = models.ForeignKey('Experiment', related_name='scans', on_delete=models.CASCADE)
     scan_type = models.CharField(max_length=25, choices=SCAN_TYPES, default='T1')
+    # optional subjectID and sessionID used for BIDS import
+    subject_ID = models.TextField(max_length=255, blank=True)
+    session_ID = models.TextField(max_length=255, blank=True)
