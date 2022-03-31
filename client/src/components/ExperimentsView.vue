@@ -21,6 +21,7 @@ export default {
     API_URL,
     showUploadModal: false,
     uploadToExisting: false,
+    uploadError: '',
     experimentNameForUpload: '',
     fileSetForUpload: [],
   }),
@@ -133,19 +134,24 @@ export default {
     },
     async uploadToExperiment() {
       let experimentId;
-      if (!this.uploadToExisting) {
-        const newExperiment = await djangoRest.createExperiment(
-          this.currentProject.id, this.experimentNameForUpload,
-        );
-        experimentId = newExperiment.id;
-      } else {
-        experimentId = Object.values(this.experiments).find(
-          (experiment) => experiment.name === this.experimentNameForUpload,
-        ).id;
+      try {
+        if (!this.uploadToExisting) {
+          const newExperiment = await djangoRest.createExperiment(
+            this.currentProject.id, this.experimentNameForUpload,
+          );
+          experimentId = newExperiment.id;
+        } else {
+          experimentId = Object.values(this.experiments).find(
+            (experiment) => experiment.name === this.experimentNameForUpload,
+          ).id;
+        }
+        await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
+        this.loadProject(this.currentProject);
+        this.showUploadModal = false;
+      } catch (ex) {
+        const text = ex || 'Upload failed due to server error.';
+        this.uploadError = text;
       }
-      await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
-      this.loadProject(this.currentProject);
-      this.showUploadModal = false;
     },
   },
 };
@@ -361,6 +367,12 @@ export default {
           </div>
           <v-divider />
           <v-card-actions>
+            <div
+              v-if="uploadError"
+              style="color: red;"
+            >
+              {{ uploadError }}
+            </div>
             <v-spacer />
             <v-btn
               :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"

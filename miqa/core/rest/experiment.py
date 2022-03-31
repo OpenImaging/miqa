@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
-from django.db import transaction
+from django.db import transaction, utils
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.fields import UUIDField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -79,12 +80,18 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
         project = Project.objects.get(id=serializer.data['project'])
         if not get_perms(request.user, project):
             Response(status=status.HTTP_401_UNAUTHORIZED)
-        experiment = Experiment(
-            project=project,
-            name=serializer.data['name'],
-            lock_owner=None,
-        )
-        experiment.save()
+        try:
+            experiment = Experiment(
+                project=project,
+                name=serializer.data['name'],
+                lock_owner=None,
+            )
+            experiment.save()
+        except utils.IntegrityError:
+            raise APIException('An experiment with the same name already exists in this project.')
+        except Exception as e:
+            print(type(e))
+            raise APIException(e)
         return Response(
             ExperimentSerializer(experiment).data,
             status=status.HTTP_201_CREATED,
