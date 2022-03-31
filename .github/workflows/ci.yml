@@ -50,6 +50,9 @@ jobs:
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
   test-pyppeteer:
     runs-on: ubuntu-latest
     services:
