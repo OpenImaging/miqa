@@ -47,7 +47,7 @@ export default {
         !== JSON.stringify(this.selectedPermissionSet);
     },
     userCanEditProject() {
-      return this.user.is_superuser || this.user.username === this.currentProject.value.creator;
+      return this.user.is_superuser || this.user.username === this.currentProject.value?.creator;
     },
   },
   watch: {
