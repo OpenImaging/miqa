@@ -77,7 +77,7 @@ export default defineComponent({
       if (!this.currentScan) {
         return;
       }
-      this.selectedScreenshots = [];
+      this.selectedScreenshots = this.screenshots;
       this.to = this.currentProject.settings.default_email_recipients;
       this.cc = [];
       this.bcc = [];
@@ -89,10 +89,10 @@ export default defineComponent({
       this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
       this.body = `Experiment: ${this.currentViewData.experimentName}\nScan: ${this.currentScan.name}\n`;
       if (this.currentViewData.scanDecisions.length > 0) {
-        this.body += `Decisions:\n ${this.currentViewData.scanDecisions.map(
+        this.body += `Decisions:\n${this.currentViewData.scanDecisions.map(
           (decision) => `    ${decision.creator.email} (${decision.created}): `
           + `${decision.decision.toUpperCase()} ${decision.note.length > 0 ? `, ${decision.note}` : ''}`,
-        )}`;
+        ).join('\n')}`;
       }
       this.initialized = true;
     },
