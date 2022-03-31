@@ -105,13 +105,6 @@ export default defineComponent({
     persistent
   >
     <v-card>
-      <v-btn
-        icon
-        style="float:right"
-        @click="show=false"
-      >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
       <v-card-title class="text-h5 grey lighten-2">
         Warning
       </v-card-title>
