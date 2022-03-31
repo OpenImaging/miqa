@@ -286,6 +286,13 @@ export default {
         </template>
 
         <v-card>
+          <v-btn
+            icon
+            style="float:right"
+            @click="showUploadModal=false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
           <v-card-title class="text-h6">
             Upload Image Files to Experiment
           </v-card-title>

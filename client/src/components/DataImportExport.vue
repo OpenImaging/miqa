@@ -157,6 +157,13 @@ export default defineComponent({
       width="500"
     >
       <v-card>
+        <v-btn
+          icon
+          style="float:right"
+          @click="importDialog=false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
         <v-card-title class="title">
           Import
         </v-card-title>
@@ -195,6 +202,13 @@ export default defineComponent({
         class="pa-5"
         style="overflow: auto"
       >
+        <v-spacer />
+        <v-btn
+          icon
+          @click="importErrors=false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
         <v-card-title class="title">
           Import Errors Encountered
         </v-card-title>
