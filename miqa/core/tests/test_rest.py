@@ -174,6 +174,9 @@ def test_scans_list(user_api_client, scan, user):
                 'decisions': [],
                 'frames': [],
                 'scan_type': scan.scan_type,
+                'subject_id': scan.subject_id,
+                'session_id': scan.session_id,
+                'scan_link': scan.scan_link,
             }
         ]
         assert resp.data == {
