@@ -17,7 +17,7 @@ def custom_exception_handler(exc, context):
     # If an excpetion is unexpected, it will not be an APIException
     if not isinstance(exc, APIException):
         exception_identifier = uuid.uuid4()
-        logger.exception(f'Error {exception_identifier}: {exc} / {context}')
+        logger.exception(f'Unexpected REST API error: {exception_identifier}')
         return Response(
             data={
                 'detail': 'Unexpected server error. '
