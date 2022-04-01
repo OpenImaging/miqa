@@ -166,18 +166,17 @@ def perform_import(import_dict, project_id: Optional[str]):
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
-                # added 'if' clause for fields only present on BIDS datasets, add these fields to the 
-                # scan object if they are available
-                if ('subject_ID' in scan_data) and ('session_ID' in scan_data):
-                     scan_object = Scan(
-                        name=scan_name, scan_type=scan_data['type'], experiment=experiment_object,
-                        subject_ID=scan_data['subject_ID'], session_ID=scan_data['session_ID']
-                    )
-                else:
-                    # the scan object did not have any extra BIDS dataset features
-                    scan_object = Scan(
-                        name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
-                    )
+                subject_id = scan_data['subject_id'] if 'subject_id' in scan_data else None
+                session_id = scan_data['session_id'] if 'session_id' in scan_data else None
+                scan_link = scan_data['scan_link'] if 'scan_link' in scan_data else None
+                scan_object = Scan(
+                    name=scan_name,
+                    scan_type=scan_data['type'],
+                    experiment=experiment_object,
+                    subject_id=subject_id,
+                    session_id=session_id,
+                    scan_link=scan_link,
+                )
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
                     if last_decision_dict:
@@ -229,15 +228,13 @@ def perform_import(import_dict, project_id: Optional[str]):
                     if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
                         nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
-
-
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
     ScanDecision.objects.bulk_create(new_scan_decisions)
     Frame.objects.bulk_create(new_frames)
 
-    # must use str, not UUID, to get sent to celery task properly
+    # must use str, not UUid, to get sent to celery task properly
     frames_by_project = {}
     for frame in new_frames:
         project_id = str(frame.scan.experiment.project.id)
