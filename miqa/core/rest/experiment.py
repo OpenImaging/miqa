@@ -51,7 +51,7 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
         fields = ['name', 'project']
 
     def validate(self, data):
-        if Experiment.objects.filter(name=data['name'], project=data['project']).count() > 0:
+        if Experiment.objects.filter(name=data['name'], project=data['project']).exists():
             raise APIException('An experiment with this name already exists in this project.')
         return data
 
