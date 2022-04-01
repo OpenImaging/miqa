@@ -41,6 +41,9 @@ interface Scan {
   experiment: string,
   decisions: ScanDecision[],
   frames: Frame[],
+  subject_id: string,
+  session_id: string,
+  scan_link: string,
 }
 
 interface Experiment {

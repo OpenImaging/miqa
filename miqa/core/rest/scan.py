@@ -13,7 +13,16 @@ from miqa.core.rest.scan_decision import ScanDecisionSerializer
 class ScanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scan
-        fields = ['id', 'name', 'decisions', 'frames', 'scan_type']
+        fields = [
+            'id',
+            'name',
+            'decisions',
+            'frames',
+            'scan_type',
+            'subject_id',
+            'session_id',
+            'scan_link',
+        ]
         ref_name = 'experiment_scan'
 
     frames = FrameSerializer(many=True)
