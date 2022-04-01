@@ -1,6 +1,7 @@
 import logging
 import uuid
 
+from django.http.response import Http404
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
@@ -14,8 +15,7 @@ def custom_exception_handler(exc, context):
     # to get the standard error response.
     response = exception_handler(exc, context)
 
-    # If an excpetion is unexpected, it will not be an APIException
-    if not isinstance(exc, APIException):
+    if not isinstance(exc, APIException) and not isinstance(exc, Http404):
         exception_identifier = uuid.uuid4()
         logger.exception(f'Error {exception_identifier}: {exc} / {context}')
         return Response(
