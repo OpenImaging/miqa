@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db import transaction, utils
+from django.db import transaction
 from django.utils import timezone
 from django_filters import rest_framework as filters
 from drf_yasg.utils import no_body, swagger_auto_schema
@@ -50,6 +50,11 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
         model = Experiment
         fields = ['name', 'project']
 
+    def validate(self, data):
+        if Experiment.objects.filter(name=data['name'], project=data['project']).count() > 0:
+            raise APIException('An experiment with this name already exists in this project.')
+        return data
+
     project = serializers.PrimaryKeyRelatedField(
         queryset=Project.objects.all(), pk_field=UUIDField()
     )
@@ -80,18 +85,12 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
         project = Project.objects.get(id=serializer.data['project'])
         if not get_perms(request.user, project):
             Response(status=status.HTTP_401_UNAUTHORIZED)
-        try:
-            experiment = Experiment(
-                project=project,
-                name=serializer.data['name'],
-                lock_owner=None,
-            )
-            experiment.save()
-        except utils.IntegrityError:
-            raise APIException('An experiment with the same name already exists in this project.')
-        except Exception as e:
-            print(type(e))
-            raise APIException(e)
+        experiment = Experiment(
+            project=project,
+            name=serializer.data['name'],
+            lock_owner=None,
+        )
+        experiment.save()
         return Response(
             ExperimentSerializer(experiment).data,
             status=status.HTTP_201_CREATED,
