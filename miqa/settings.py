@@ -67,6 +67,9 @@ class MiqaMixin(ConfigMixin):
         configuration.REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
             'rest_framework.permissions.IsAuthenticated'
         ]
+        configuration.REST_FRAMEWORK[
+            'EXCEPTION_HANDLER'
+        ] = 'miqa.core.rest.exceptions.custom_exception_handler'
 
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
