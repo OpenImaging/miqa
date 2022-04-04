@@ -234,7 +234,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     ScanDecision.objects.bulk_create(new_scan_decisions)
     Frame.objects.bulk_create(new_frames)
 
-    # must use str, not UUid, to get sent to celery task properly
+    # must use str, not UUID, to get sent to celery task properly
     frames_by_project = {}
     for frame in new_frames:
         project_id = str(frame.scan.experiment.project.id)
@@ -305,6 +305,11 @@ def perform_export(project_id: Optional[str]):
                     ),
                     location,
                 ]
+            row_data += [
+                frame_object.scan.subject_id,
+                frame_object.scan.session_id,
+                frame_object.scan.scan_link,
+            ]
             data.append(row_data)
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(export_path, index=False)

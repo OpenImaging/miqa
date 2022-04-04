@@ -94,8 +94,11 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
 
 
 def import_dataframe_to_dict(df):
-    # The decision columns (the last five) are optional
-    if list(df.columns) != IMPORT_CSV_COLUMNS and list(df.columns) != IMPORT_CSV_COLUMNS[:6]:
+    df_columns = list(df.columns)
+    # The columns after the first 6 are optional
+    if df_columns != IMPORT_CSV_COLUMNS and (
+        len(df_columns) < 6 or df_columns != IMPORT_CSV_COLUMNS[: len(df_columns)]
+    ):
         raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
     ingest_dict = {'projects': {}}
     for project_name, project_df in df.groupby('project_name'):
