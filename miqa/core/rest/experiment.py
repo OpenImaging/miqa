@@ -6,6 +6,7 @@ from drf_yasg.utils import no_body, swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.fields import UUIDField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -48,6 +49,11 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experiment
         fields = ['name', 'project']
+
+    def validate(self, data):
+        if Experiment.objects.filter(name=data['name'], project=data['project']).exists():
+            raise APIException('An experiment with this name already exists in this project.')
+        return data
 
     project = serializers.PrimaryKeyRelatedField(
         queryset=Project.objects.all(), pk_field=UUIDField()
