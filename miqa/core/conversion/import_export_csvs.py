@@ -14,14 +14,14 @@ IMPORT_CSV_COLUMNS = [
     'scan_type',
     'frame_number',
     'file_location',
+    'subject_id',
+    'session_id',
+    'scan_link',
     'last_decision',
     'last_decision_creator',
     'last_decision_note',
     'identified_artifacts',
     'location_of_interest',
-    'subject_id',
-    'session_id',
-    'scan_link',
 ]
 
 
@@ -113,6 +113,12 @@ def import_dataframe_to_dict(df):
                         for row in scan_df.iterrows()
                     },
                 }
+                if 'subject_id' in scan_df.columns:
+                    scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
+                if 'session_id' in scan_df.columns:
+                    scan_dict['session_id'] = scan_df['session_id'].iloc[0]
+                if 'scan_link' in scan_df.columns:
+                    scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
                 if (
                     'last_decision' in scan_df.columns
                     and str(scan_df['last_decision'].iloc[0]) != 'nan'
@@ -130,13 +136,6 @@ def import_dataframe_to_dict(df):
                     scan_dict['last_decision'] = decision_dict
                 else:
                     scan_dict['last_decision'] = None
-
-                if 'subject_id' in scan_df.columns:
-                    scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
-                if 'session_id' in scan_df.columns:
-                    scan_dict['session_id'] = scan_df['session_id'].iloc[0]
-                if 'scan_link' in scan_df.columns:
-                    scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
 
                 experiment_dict['scans'][scan_name] = scan_dict
             project_dict['experiments'][experiment_name] = experiment_dict

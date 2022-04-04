@@ -280,6 +280,9 @@ def perform_export(project_id: Optional[str]):
                 frame_object.scan.scan_type,
                 frame_object.frame_number,
                 frame_object.raw_path,
+                frame_object.scan.subject_id,
+                frame_object.scan.session_id,
+                frame_object.scan.scan_link,
             ]
             # if a last decision exists for the scan, encode that decision on this row; for example,
             # "... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
@@ -305,11 +308,6 @@ def perform_export(project_id: Optional[str]):
                     ),
                     location,
                 ]
-            row_data += [
-                frame_object.scan.subject_id,
-                frame_object.scan.session_id,
-                frame_object.scan.scan_link,
-            ]
             data.append(row_data)
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(export_path, index=False)
