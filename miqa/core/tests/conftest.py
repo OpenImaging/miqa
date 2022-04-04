@@ -7,6 +7,7 @@ from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
 from miqa.core.models import Project
+from miqa.core.tasks import import_data
 
 from .factories import (
     ExperimentFactory,
@@ -16,6 +17,7 @@ from .factories import (
     ScanFactory,
     UserFactory,
 )
+from .helpers import generate_import_csv
 
 
 @pytest.fixture
@@ -63,6 +65,17 @@ register(ProjectFactory)
 register(ExperimentFactory)
 register(ScanFactory)
 register(FrameFactory)
+
+
+@pytest.fixture
+def samples_project(tmp_path, sample_scans, project_factory):
+    csv_file = str(tmp_path / 'import.csv')
+    with open(csv_file, 'w') as fd:
+        output, _writer = generate_import_csv(sample_scans)
+        fd.write(output.getvalue())
+    project = project_factory(import_path=csv_file)
+    import_data(project_id=project.id)
+    return project
 
 
 @pytest.fixture
