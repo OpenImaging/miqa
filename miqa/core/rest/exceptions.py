@@ -15,7 +15,7 @@ def custom_exception_handler(exc, context):
     # to get the standard error response.
     response = exception_handler(exc, context)
 
-    if not isinstance(exc, APIException) and not isinstance(exc, Http404):
+    if response is None:
         exception_identifier = uuid.uuid4()
         logger.exception(f'Unexpected REST API error: {exception_identifier}')
         return Response(
