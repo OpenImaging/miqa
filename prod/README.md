@@ -118,9 +118,10 @@ Now that data is ingested into your Project, you may now also click the "Export"
 # Updating the deployment
 To non-destructively update your instance at any time:
 1. Pull changes from github.
-2. Run `docker-compose pull`
-3. Run `docker-compose build --pull --no-cache`
-4. Run `docker-compose run --rm django ./manage.py migrate`
-5. Run `docker-compose up -d`
+2. Run `git lfs fetch && git lfs pull`
+3. Run `docker-compose pull`
+4. Run `docker-compose build --pull --no-cache`
+5. Run `docker-compose run --rm django ./manage.py migrate`
+6. Run `docker-compose up -d`
 
 Visit `https://miqa.local/admin/` for any admin configuration that needs to be done.
