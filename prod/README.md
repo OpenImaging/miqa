@@ -117,7 +117,7 @@ Now that data is ingested into your Project, you may now also click the "Export"
 
 # Updating the deployment
 To non-destructively update your instance at any time:
-1. Pull changes from github.
+1. Run `git lfs checkout <release_tag>`
 2. Run `docker-compose pull`
 3. Run `docker-compose build --pull --no-cache`
 4. Run `docker-compose run --rm django ./manage.py migrate`
