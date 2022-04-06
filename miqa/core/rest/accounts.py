@@ -92,12 +92,12 @@ class AccountSignupForm(SignupForm):
     def __init__(self, *args, **kwargs):
         super(AccountSignupForm, self).__init__(*args, **kwargs)
         self.fields['first_name'] = forms.CharField(
-            label=("First Name"),
+            label=('First Name'),
             min_length=1,
-            widget=forms.TextInput(attrs={"placeholder": ("First name")}),
+            widget=forms.TextInput(attrs={'placeholder': ('First name')}),
         )
         self.fields['last_name'] = forms.CharField(
-            label=("Last Name"),
+            label=('Last Name'),
             min_length=1,
-            widget=forms.TextInput(attrs={"placeholder": ("Last name")}),
+            widget=forms.TextInput(attrs={'placeholder': ('Last name')}),
         )
