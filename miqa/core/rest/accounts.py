@@ -1,3 +1,5 @@
+from allauth.account.forms import SignupForm
+from django import forms
 from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
@@ -82,3 +84,18 @@ class LogoutView(APIView):
         if request.user.is_authenticated:
             logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AccountSignupForm(SignupForm):
+    def __init__(self, *args, **kwargs):
+        super(AccountSignupForm, self).__init__(*args, **kwargs)
+        self.fields['first_name'] = forms.CharField(
+            label=("First Name"),
+            min_length=1,
+            widget=forms.TextInput(attrs={"placeholder": ("First name")}),
+        )
+        self.fields['last_name'] = forms.CharField(
+            label=("Last Name"),
+            min_length=1,
+            widget=forms.TextInput(attrs={"placeholder": ("Last name")}),
+        )

@@ -35,6 +35,9 @@ class MiqaMixin(ConfigMixin):
     S3_SUPPORT = True
     NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
 
+    # Override default signup sheet to ask new users for first and last name
+    ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first
