@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.core.mail import EmailMultiAlternatives
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.views.generic.base import TemplateView
 from rest_framework import status
 from rest_framework.response import Response
@@ -16,9 +16,11 @@ class AccountInactiveView(TemplateView):
 
 
 class AccountActivateView(TemplateView):
+    template_name = 'account_activate.html'
+
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_authenticated and request.user.is_superuser):
-            return redirect('home')
+        if not request.user.is_authenticated:
+            self.template_name = 'login_before_activating.html'
         return super(AccountActivateView, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
@@ -27,7 +29,7 @@ class AccountActivateView(TemplateView):
 
         return render(
             request,
-            'account_activate.html',
+            self.template_name,
             {'user': user},
         )
 
