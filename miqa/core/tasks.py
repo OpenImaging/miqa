@@ -8,7 +8,6 @@ import boto3
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Q
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -174,10 +173,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                     last_decision_dict = scan_data['last_decision']
                     if last_decision_dict:
                         try:
-                            creator = User.objects.get(
-                                Q(username=last_decision_dict['creator'])
-                                | Q(email=last_decision_dict['creator'])
-                            )
+                            creator = User.objects.get(email=last_decision_dict['creator'])
                         except User.DoesNotExist:
                             creator = None
                         note = ''
@@ -293,7 +289,7 @@ def perform_export(project_id: Optional[str]):
                     artifacts = last_decision.user_identified_artifacts.items()
                     row_data += [
                         last_decision.decision,
-                        last_decision.creator.username or last_decision.creator.email,
+                        last_decision.creator.email,
                         last_decision.note.replace(',', ';'),
                         ';'.join([artifact for artifact, value in artifacts if value == 1]),
                         location,
