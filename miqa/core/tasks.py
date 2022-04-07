@@ -290,17 +290,12 @@ def perform_export(project_id: Optional[str]):
                             f'j={last_decision.location["j"]};'
                             f'k={last_decision.location["k"]}'
                         )
+                    artifacts = last_decision.user_identified_artifacts.items()
                     row_data += [
                         last_decision.decision,
                         last_decision.creator.username or last_decision.creator.email,
                         last_decision.note.replace(',', ';'),
-                        ';'.join(
-                            [
-                                artifact
-                                for artifact, value in last_decision.user_identified_artifacts.items()
-                                if value == 1
-                            ]
-                        ),
+                        ';'.join([artifact for artifact, value in artifacts if value == 1]),
                         location,
                     ]
                 data.append(row_data)
