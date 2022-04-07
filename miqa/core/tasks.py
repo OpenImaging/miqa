@@ -250,12 +250,13 @@ def export_data(project_id: Optional[str]):
     if not parent_location.exists():
         raise APIException(f'No such location {parent_location} to create export file.')
 
-    perform_export.delay(project_id)
+    return perform_export(project_id)
 
 
 @shared_task
 def perform_export(project_id: Optional[str]):
     data = []
+    export_warnings = []
 
     if project_id is None:
         # A global export should export all projects
@@ -269,38 +270,44 @@ def perform_export(project_id: Optional[str]):
 
     for project_object in projects:
         for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
-            row_data = [
-                project_object.name,
-                frame_object.scan.experiment.name,
-                frame_object.scan.name,
-                frame_object.scan.scan_type,
-                frame_object.frame_number,
-                frame_object.raw_path,
-            ]
-            # if a last decision exists for the scan, encode that decision on this row; for example,
-            # "... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-            last_decision = frame_object.scan.decisions.order_by('created').last()
-            if last_decision:
-                location = ''
-                if last_decision.location:
-                    location = (
-                        f'i={last_decision.location["i"]};'
-                        f'j={last_decision.location["j"]};'
-                        f'k={last_decision.location["k"]}'
-                    )
-                row_data += [
-                    last_decision.decision,
-                    last_decision.creator.username or last_decision.creator.email,
-                    last_decision.note.replace(',', ';'),
-                    ';'.join(
-                        [
-                            artifact
-                            for artifact, value in last_decision.user_identified_artifacts.items()
-                            if value == 1
-                        ]
-                    ),
-                    location,
+            if frame_object.storage_mode == StorageMode.LOCAL_PATH:
+                row_data = [
+                    project_object.name,
+                    frame_object.scan.experiment.name,
+                    frame_object.scan.name,
+                    frame_object.scan.scan_type,
+                    frame_object.frame_number,
+                    frame_object.raw_path,
                 ]
-            data.append(row_data)
+                # if a last decision exists for the scan, encode that decision on this row;
+                # for example, "... U, rev@miqa.dev, note; without; commas, artifact_1;artifact_2
+                last_decision = frame_object.scan.decisions.order_by('created').last()
+                if last_decision:
+                    location = ''
+                    if last_decision.location:
+                        location = (
+                            f'i={last_decision.location["i"]};'
+                            f'j={last_decision.location["j"]};'
+                            f'k={last_decision.location["k"]}'
+                        )
+                    row_data += [
+                        last_decision.decision,
+                        last_decision.creator.username or last_decision.creator.email,
+                        last_decision.note.replace(',', ';'),
+                        ';'.join(
+                            [
+                                artifact
+                                for artifact, value in last_decision.user_identified_artifacts.items()
+                                if value == 1
+                            ]
+                        ),
+                        location,
+                    ]
+                data.append(row_data)
+            else:
+                export_warnings.append(
+                    f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
+                )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(export_path, index=False)
+    return export_warnings
