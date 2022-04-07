@@ -16,6 +16,7 @@ IMPORT_CSV_COLUMNS = [
     'last_decision',
     'last_decision_creator',
     'last_decision_note',
+    'last_decision_created',
     'identified_artifacts',
     'location_of_interest',
 ]
@@ -57,6 +58,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                             'decision': And(str),
                                             'creator': Or(str, None),
                                             'note': Or(str, None),
+                                            'created': Or(str, None),
                                             'user_identified_artifacts': Or(str, None),
                                             'location': Or(str, None),
                                         },
@@ -111,6 +113,7 @@ def import_dataframe_to_dict(df):
                         'decision': scan_df['last_decision'].iloc[0],
                         'creator': scan_df['last_decision_creator'].iloc[0],
                         'note': scan_df['last_decision_note'].iloc[0],
+                        'created': scan_df['last_decision_created'].iloc[0],
                         'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0],
                         'location': scan_df['location_of_interest'].iloc[0],
                     }
