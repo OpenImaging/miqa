@@ -24,9 +24,9 @@ export SAMPLES_DIR=/absolute/path/to/sample_images_parent_directory/
 
 **IMPORTANT**: For the next command, the trailing slash in the `uri` argument is important! Type this argument exactly as OAuth should redirect to in order to reach the npm service. In this case, npm is running on port 8081, so OAuth should redirect there after a successful login.
 ```
-docker-compose run --rm django ./manage.py makeclient --username your.super.user@email.address --uri https://localhost:8081/
+docker-compose run --rm django ./manage.py makeclient --username your.super.user@email.address --uri http://localhost:8081/
 ```
-> Note that this command is the most important for being able to access the frontend application correctly. This command creates an OAuth Application object in your Django database. If you later find that your login procedure is not working as expected, it may be the way the Application object is configured. This is okay, because you can edit the Application object in the Django admin console. Navigate to https://localhost:8000/admin/. Click on "Applications" under "Django OAuth Toolkit". Edit the one Application object there by clicking on its row.
+> Note that this command is the most important for being able to access the frontend application correctly. This command creates an OAuth Application object in your Django database. If you later find that your login procedure is not working as expected, it may be the way the Application object is configured. This is okay, because you can edit the Application object in the Django admin console. Navigate to http://localhost:8000/admin/. Click on "Applications" under "Django OAuth Toolkit". Edit the one Application object there by clicking on its row.
 
    **Only do the following if your login procedure is not working properly**
    1. Client id: Set this to the value of `VUE_APP_OAUTH_CLIENT_ID` located in `client/.env`.
@@ -44,7 +44,7 @@ docker-compose up
 ```
 Or, if you do not need to see terminal output from this command, it may be useful to run this as a background task. Add a `-d` flag to the end of the previous command to detach the command from the shell.
 
-Navigate to https://localhost:8000/ to log into MIQA with the credentials you supplied to the `createsuperuser` command. If your login procedure does not work as expected, be sure you check your OAuth Application object in the Django admin console.
+Navigate to http://localhost:8000/ to log into MIQA with the credentials you supplied to the `createsuperuser` command. If your login procedure does not work as expected, be sure you check your OAuth Application object in the Django admin console.
 
 
 ## Adding data to MIQA
