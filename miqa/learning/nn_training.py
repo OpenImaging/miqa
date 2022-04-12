@@ -485,7 +485,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             logger.debug(f'{step}:{loss.item():.4f}')
             print('.', end='', flush=True)
             if step % 100 == 0:
-                print('', flush=True)  # new line
+                print(step, flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
         epoch_loss /= step
