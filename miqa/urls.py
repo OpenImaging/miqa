@@ -6,7 +6,6 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-
 from miqa.core.rest import (
     AccountActivateView,
     AccountInactiveView,
