@@ -4,6 +4,8 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions, routers
+from rest_framework.authtoken.views import obtain_auth_token
+
 
 from miqa.core.rest import (
     AccountActivateView,
@@ -43,6 +45,7 @@ urlpatterns = [
     path('accounts/inactive/', AccountInactiveView.as_view()),
     path('accounts/', include('allauth.urls')),
     path('oauth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('api-token-auth/', obtain_auth_token),
     path('admin/', admin.site.urls),
     path('api/v1/s3-upload/', include('s3_file_field.urls')),
     path('api/v1/', include(router.urls)),
