@@ -17,12 +17,12 @@ def test_api_token_access(user, api_client):
     resp_1 = api_client.post(
         '/api-token-auth/',
         data={
-            "username": user.username,
-            "password": password,
+            'username': user.username,
+            'password': password,
         },
     )
     assert resp_1.status_code == 200
-    token = resp_1.json()["token"]
+    token = resp_1.json()['token']
 
     resp_2 = api_client.get('/api/v1/users', HTTP_AUTHORIZATION=f'Token {token}')
     assert resp_2.status_code == 200
