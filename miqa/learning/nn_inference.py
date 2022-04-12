@@ -107,10 +107,14 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
     y_pred_continuous = []
     y_all = []
     y_true = []
+    y_info = np.empty([0, 10])
+    y_artifacts = np.empty([0, 10])
     with torch.no_grad():
         metric_count = 0
         for val_data in data_loader:
             inputs = val_data['img'][torchio.DATA].to(device)
+            y_info1 = val_data['info'].numpy()[:, 1:]  # skip the overall QA
+            y_info = np.concatenate((y_info, y_info1), axis=0)
             info = val_data['info'].to(device)
             outputs = model(inputs)
 
@@ -122,6 +126,12 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             y = [clamp(y[t], 0, 10) for t in range(len(y))]
             y_pred.extend(y)
 
+            output_artifact = outputs[..., 1:].detach().cpu()
+            y_a = output_artifact.numpy()
+            y_a = np.rint(y_a)
+            y_a = np.clip(y_a, 0, 1)
+            y_artifacts = np.concatenate((y_artifacts, y_a), axis=0)
+
             metric_count += len(info)
             print('.', end='', flush=True)
             if metric_count % 100 == 0:
@@ -131,6 +141,22 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             logger.info(run_name + '_confusion_matrix:')
             logger.info(confusion_matrix(y_true, y_pred))
             logger.info(classification_report(y_true, y_pred))
+
+            logger.info(run_name + '_artifact_confusions [TN, FP, FN, TP]:')
+            confusions = {}
+            for a in range(len(artifacts)):
+                y_a_true = y_info[:, a].tolist()
+                y_a_out = y_artifacts[:, a].tolist()
+                assert len(y_a_true) == len(y_a_out)
+
+                for i in reversed(range(len(y_a_true))):
+                    if y_a_true[i] == -1:  # ground truth was not provided
+                        y_a_true.pop(i)
+                        y_a_out.pop(i)
+                cm = confusion_matrix(y_a_true, y_a_out)
+                cm_list = list(np.concatenate(cm).flat)  # flatten into a list
+                confusions[artifacts[a]] = cm_list
+                logger.info(f'{artifacts[a]}: {cm_list}')
 
             metric = mean_squared_error(y_true, y_pred_continuous, squared=False)
             writer.add_scalar(run_name + '_RMSE', metric, epoch + 1)
