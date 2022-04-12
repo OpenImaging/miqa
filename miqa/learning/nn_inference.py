@@ -125,7 +125,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
             metric_count += len(info)
             print('.', end='', flush=True)
             if metric_count % 100 == 0:
-                print('', flush=True)
+                print(metric_count, flush=True)
 
         if writer is not None:  # this is not a one-off case
             logger.info(run_name + '_confusion_matrix:')
