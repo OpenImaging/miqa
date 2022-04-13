@@ -44,7 +44,6 @@ def _download_from_s3(path: str, public: bool) -> bytes:
     bucket, key = path.strip()[5:].split('/', maxsplit=1)
     client = _get_s3_client(public)
     buf = BytesIO()
-    print(bucket, key, public)
     client.download_fileobj(bucket, key, buf)
     return buf.getvalue()
 
