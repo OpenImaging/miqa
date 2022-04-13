@@ -72,7 +72,7 @@ export default defineComponent({
         } else {
           response = await djangoRest.projectExport(currentProject.value.id);
         }
-        if (response.warnings) {
+        if (!response || response.warnings) {
           importErrors.value = true;
           importErrorText.value = response.detail;
           importErrorList.value = response.warnings;
