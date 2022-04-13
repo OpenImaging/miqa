@@ -138,12 +138,12 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
                 print(metric_count, flush=True)
 
         if writer is not None:  # this is not a one-off case
-            logger.info(run_name + '_confusion_matrix:')
-            logger.info(confusion_matrix(y_true, y_pred))
-            logger.info(classification_report(y_true, y_pred))
+            logger.info(f'{run_name}_confusion_matrix:\n{confusion_matrix(y_true, y_pred)}')
+            logger.info(f'\n{classification_report(y_true, y_pred)}')
 
             logger.info(run_name + '_artifact_confusions [TN, FP, FN, TP]:')
             confusions = {}
+            artifact_cm = []
             for a in range(len(artifacts)):
                 y_a_true = y_info[:, a].tolist()
                 y_a_out = y_artifacts[:, a].tolist()
@@ -156,7 +156,9 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
                 cm = confusion_matrix(y_a_true, y_a_out)
                 cm_list = list(np.concatenate(cm).flat)  # flatten into a list
                 confusions[artifacts[a]] = cm_list
+                artifact_cm.append(cm_list)
                 logger.info(f'{artifacts[a]}: {cm_list}')
+            logger.info(f'artifact_cm:\n{np.array(artifact_cm)}')
 
             metric = mean_squared_error(y_true, y_pred_continuous, squared=False)
             writer.add_scalar(run_name + '_RMSE', metric, epoch + 1)
