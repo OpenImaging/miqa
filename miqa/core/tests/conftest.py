@@ -23,9 +23,9 @@ def api_client() -> APIClient:
     return APIClient()
 
 
-@pytest.fixture(params=[None, 'superuser'] + Project.get_read_permission_groups())
-def user_api_client(request, api_client, user, project) -> APIClient:
-    def _method(**kwargs):
+@pytest.fixture(params=[None, 'superuser'] + Project().get_read_permission_groups())
+def user_api_client(request, api_client, user, project):
+    def _method(**kwargs) -> APIClient:
         api_client.force_authenticate(user=user)
         if request.param:
             if request.param == 'superuser':

@@ -2,7 +2,7 @@ from io import BytesIO, StringIO
 import json
 from pathlib import Path
 import tempfile
-from typing import Optional
+from typing import Dict, List, Optional
 
 import boto3
 from botocore import UNSIGNED
@@ -157,11 +157,11 @@ def import_data(project_id: Optional[str]):
 
 @shared_task
 def perform_import(import_dict, project_id: Optional[str]):
-    new_projects = []
-    new_experiments = []
-    new_scans = []
-    new_frames = []
-    new_scan_decisions = []
+    new_projects: List[Project] = []
+    new_experiments: List[Experiment] = []
+    new_scans: List[Scan] = []
+    new_frames: List[Frame] = []
+    new_scan_decisions: List[ScanDecision] = []
 
     for project_name, project_data in import_dict['projects'].items():
         if project_id is None:
@@ -245,7 +245,7 @@ def perform_import(import_dict, project_id: Optional[str]):
     Frame.objects.bulk_create(new_frames)
 
     # must use str, not UUID, to get sent to celery task properly
-    frames_by_project = {}
+    frames_by_project: Dict[str, List[str]] = {}
     for frame in new_frames:
         project_id = str(frame.scan.experiment.project.id)
         if project_id not in frames_by_project:
@@ -273,7 +273,7 @@ def perform_export(project_id: Optional[str]):
 
     if project_id is None:
         # A global export should export all projects
-        projects = Project.objects.all()
+        projects = list(Project.objects.all())
         export_path = GlobalSettings.load().export_path
     else:
         # A normal export should only export the current project
@@ -302,9 +302,12 @@ def perform_export(project_id: Optional[str]):
                         f'j={last_decision.location["j"]};'
                         f'k={last_decision.location["k"]}'
                     )
+                creator = ''
+                if last_decision.creator:
+                    creator = last_decision.creator.email
                 row_data += [
                     last_decision.decision,
-                    last_decision.creator.username or last_decision.creator.email,
+                    creator,
                     last_decision.note.replace(',', ';'),
                     ';'.join(
                         [
