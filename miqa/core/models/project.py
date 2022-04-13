@@ -38,6 +38,9 @@ class Project(TimeStampedModel, models.Model):
     archived = models.BooleanField(default=False)
     import_path = models.CharField(max_length=500, blank=True)
     export_path = models.CharField(max_length=500, blank=True)
+    s3_public = models.BooleanField(
+        default=False, help_text='Whether the S3 bucket is publicly readable.'
+    )
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
     default_email_recipients = models.TextField(blank=True)
 
