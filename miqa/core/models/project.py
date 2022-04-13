@@ -76,7 +76,7 @@ class Project(TimeStampedModel, models.Model):
         return ['tier_1_reviewer', 'tier_2_reviewer']
 
     def get_user_role(self, user):
-        perm_order = Project().get_read_permission_groups()
+        perm_order = self.get_read_permission_groups()
         return sorted(
             get_perms(user, self),
             key=lambda perm: perm_order.index(perm) if perm in perm_order else -1,
@@ -108,7 +108,7 @@ class Project(TimeStampedModel, models.Model):
         }
 
     def update_group(self, group_name, user_list):
-        if group_name not in Project().get_read_permission_groups():
+        if group_name not in self.get_read_permission_groups():
             raise ValueError(f'Error: {group_name} is not a valid group on this Project.')
 
         old_list = get_users_with_perms(self, only_with_perms_in=[group_name])
