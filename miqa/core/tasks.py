@@ -5,6 +5,8 @@ import tempfile
 from typing import Optional
 
 import boto3
+from botocore import UNSIGNED
+from botocore.client import Config
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -31,10 +33,18 @@ from miqa.core.models.frame import StorageMode
 from miqa.core.models.scan_decision import default_identified_artifacts
 
 
-def _download_from_s3(path: str) -> bytes:
+def _get_s3_client(public: bool):
+    if public:
+        return boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    else:
+        return boto3.client('s3')
+
+
+def _download_from_s3(path: str, public: bool) -> bytes:
     bucket, key = path.strip()[5:].split('/', maxsplit=1)
-    client = boto3.client('s3')
+    client = _get_s3_client(public)
     buf = BytesIO()
+    print(bucket, key, public)
     client.download_fileobj(bucket, key, buf)
     return buf.getvalue()
 
@@ -46,6 +56,7 @@ def evaluate_frame_content(frame_id):
 
     frame = Frame.objects.get(id=frame_id)
     eval_model_name = frame.scan.experiment.project.evaluation_models[[frame.scan.scan_type][0]]
+    s3_public = frame.scan.experiment.project.s3_public
     eval_model = available_evaluation_models[eval_model_name].load()
     with tempfile.TemporaryDirectory() as tmpdirname:
         # need to send a local version to NN
@@ -55,7 +66,7 @@ def evaluate_frame_content(frame_id):
             dest = Path(tmpdirname, frame.content.name.split('/')[-1])
             with open(dest, 'wb') as fd:
                 if frame.storage_mode == StorageMode.S3_PATH:
-                    fd.write(_download_from_s3(frame.content.url))
+                    fd.write(_download_from_s3(frame.content.url, s3_public))
                 else:
                     fd.write(frame.content.open().read())
         result = evaluate1(eval_model, dest)
@@ -91,9 +102,10 @@ def evaluate_data(frames_by_project):
             file_paths = {frame: frame.raw_path for frame in frame_set}
             for frame, file_path in file_paths.items():
                 if frame.storage_mode == StorageMode.S3_PATH:
+                    s3_public = frame.scan.experiment.project.s3_public
                     dest = tmpdir / frame.path.name
                     with open(dest, 'wb') as fd:
-                        fd.write(_download_from_s3(file_path))
+                        fd.write(_download_from_s3(file_path, s3_public))
                     file_paths[frame] = dest
             results = evaluate_many(current_model, list(file_paths.values()))
 
@@ -113,21 +125,23 @@ def import_data(project_id: Optional[str]):
     if project_id is None:
         project = None
         import_path = GlobalSettings.load().import_path
+        s3_public = False  # TODO we don't support this for global imports yet
     else:
         project = Project.objects.get(id=project_id)
         import_path = project.import_path
+        s3_public = project.s3_public
 
     try:
         if import_path.endswith('.csv'):
             if import_path.startswith('s3://'):
-                buf = _download_from_s3(import_path).decode('utf-8')
+                buf = _download_from_s3(import_path, s3_public).decode('utf-8')
             else:
                 with open(import_path) as fd:
                     buf = fd.read()
             import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
         elif import_path.endswith('.json'):
             if import_path.startswith('s3://'):
-                import_dict = json.loads(_download_from_s3(import_path))
+                import_dict = json.loads(_download_from_s3(import_path, s3_public))
             else:
                 with open(import_path) as fd:
                     import_dict = json.load(fd)
