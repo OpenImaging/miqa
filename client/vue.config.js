@@ -25,6 +25,11 @@ module.exports = {
         },
       }),
     ],
+    performance: {
+      maxEntrypointSize: 4000000,
+      maxAssetSize: 40000000,
+
+    },
   },
   chainWebpack: (config) => {
     vtkChainWebpack(config);
