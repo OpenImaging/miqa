@@ -9,6 +9,12 @@ interface User {
   is_superuser: boolean
 }
 
+interface ResponseData {
+  detail: string,
+  errors: string[],
+  warnings: string[],
+}
+
 interface Frame {
   id: string,
   name: string,
@@ -44,6 +50,7 @@ interface Scan {
   subject_id: string,
   session_id: string,
   scan_link: string,
+  notes: string,
 }
 
 interface Experiment {
@@ -101,6 +108,6 @@ interface Email {
 }
 
 export {
-  User, Project, ProjectTaskOverview, ProjectSettings,
-  ScanDecision, Frame, ScanState, Email,
+  User, ResponseData, Project, ProjectTaskOverview, ProjectSettings,
+  Scan, ScanDecision, Frame, ScanState, Email, Experiment,
 };

@@ -35,6 +35,9 @@ class MiqaMixin(ConfigMixin):
     S3_SUPPORT = True
     NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
 
+    # Override default signup sheet to ask new users for first and last name
+    ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first
@@ -67,6 +70,12 @@ class MiqaMixin(ConfigMixin):
         configuration.REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = [
             'rest_framework.permissions.IsAuthenticated'
         ]
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
+            'rest_framework.authentication.TokenAuthentication',
+        ]
+        configuration.REST_FRAMEWORK[
+            'EXCEPTION_HANDLER'
+        ] = 'miqa.core.rest.exceptions.custom_exception_handler'
 
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):

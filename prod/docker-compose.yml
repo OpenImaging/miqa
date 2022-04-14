@@ -41,7 +41,7 @@ services:
     #           capabilities: [gpu]
     env_file: ./.env
     volumes:
-      - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
+      - ${SAMPLES_DIR}:${SAMPLES_DIR}
     ports:
       - ${MIQA_SERVER_PORT}:8000
     depends_on:
@@ -72,7 +72,7 @@ services:
     tty: false
     env_file: ./.env
     volumes:
-      - "${MIQA_MOUNT_DIR}:${MIQA_MOUNT_DIR}"
+      - ${SAMPLES_DIR}:${SAMPLES_DIR}
     depends_on:
       - postgres
       - rabbitmq
