@@ -136,6 +136,9 @@ export default {
       'setShowCrosshairs',
       'setStoreCrosshairs',
     ]),
+    openScanLink() {
+      window.open(this.currentViewData.scanLink, '_blank');
+    },
     async switchLock(newExp, oldExp = null, force = false) {
       if (!this.navigateToNextIfCurrentScanNull()) {
         if (this.editRights) {
@@ -357,6 +360,16 @@ export default {
                     fill-height
                     fluid
                   >
+                    <v-row
+                      v-if="currentViewData.scanSession || currentViewData.scanSubject"
+                    >
+                      <v-col cols="6">
+                        Scan Subject: <b>{{ currentViewData.scanSubject || 'None' }}</b>
+                      </v-col>
+                      <v-col cols="6">
+                        Scan Session: <b>{{ currentViewData.scanSession || 'None' }}</b>
+                      </v-col>
+                    </v-row>
                     <v-row no-gutters>
                       <v-col cols="3">
                         Scan
@@ -367,10 +380,11 @@ export default {
                         style="text-align: center"
                       >
                         <div
-                          class="font-weight-bold"
+                          :class="currentViewData.scanLink ? 'link' : ''"
                           style="display:inline"
+                          @click="openScanLink"
                         >
-                          {{ currentViewData.scanName }}
+                          <b>{{ currentViewData.scanName }}</b>
                         </div>
                         {{ currentViewData.scanPositionString }}
                       </v-col>
@@ -613,5 +627,10 @@ export default {
   100% {
     transform: scale(1);
   }
+}
+
+.link {
+  color: #1976d2;
+  text-decoration: underline;
 }
 </style>

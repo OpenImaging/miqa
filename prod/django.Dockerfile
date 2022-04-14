@@ -26,10 +26,10 @@ ARG DJANGO_MIQA_URL_PREFIX
 ARG DJANGO_SECRET_KEY
 COPY ./setup.py /opt/django-project/setup.py
 COPY ./manage.py /opt/django-project/manage.py
-COPY ./miqa /opt/django-project/miqa
 WORKDIR /opt/django-project/
 RUN pip install .[learning] && \
     ./manage.py collectstatic
+COPY ./miqa /opt/django-project/miqa
 
 # Web client:
 # * Build
