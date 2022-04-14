@@ -9,6 +9,26 @@ from miqa.core.rest.user import UserSerializer
 
 
 @pytest.mark.django_db
+def test_api_token_access(user, api_client):
+    password = 'letmein'
+    user.set_password(password)
+    user.save()
+
+    resp_1 = api_client.post(
+        '/api-token-auth/',
+        data={
+            'username': user.username,
+            'password': password,
+        },
+    )
+    assert resp_1.status_code == 200
+    token = resp_1.json()['token']
+
+    resp_2 = api_client.get('/api/v1/users', HTTP_AUTHORIZATION=f'Token {token}')
+    assert resp_2.status_code == 200
+
+
+@pytest.mark.django_db
 def test_projects_list(user_api_client, project, user):
     user_api_client = user_api_client()
     resp = user_api_client.get('/api/v1/projects')
@@ -174,6 +194,9 @@ def test_scans_list(user_api_client, scan, user):
                 'decisions': [],
                 'frames': [],
                 'scan_type': scan.scan_type,
+                'subject_id': scan.subject_id,
+                'session_id': scan.session_id,
+                'scan_link': scan.scan_link,
             }
         ]
         assert resp.data == {

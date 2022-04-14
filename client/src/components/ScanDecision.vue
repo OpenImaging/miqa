@@ -1,7 +1,5 @@
 <script>
 import { mapMutations } from 'vuex';
-
-import { ScanDecision } from '@/types';
 import UserAvatar from './UserAvatar.vue';
 
 export default {
@@ -11,7 +9,7 @@ export default {
   },
   props: {
     decision: {
-      type: ScanDecision,
+      type: Object,
       required: true,
     },
   },
