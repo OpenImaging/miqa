@@ -87,6 +87,11 @@ class TestingConfiguration(MiqaMixin, TestingBaseConfiguration):
     CELERY_TASK_ALWAYS_EAGER = True
 
 
+class PyppeteerTestingConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
+    # We would like to test that the celery tasks work correctly when triggered from the API
+    CELERY_TASK_ALWAYS_EAGER = True
+
+
 class ProductionConfiguration(MiqaMixin, ProductionBaseConfiguration):
     pass
 

@@ -10,7 +10,7 @@ from botocore.client import Config
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.utils import timezone
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -44,7 +44,6 @@ def _download_from_s3(path: str, public: bool) -> bytes:
     bucket, key = path.strip()[5:].split('/', maxsplit=1)
     client = _get_s3_client(public)
     buf = BytesIO()
-    print(bucket, key, public)
     client.download_fileobj(bucket, key, buf)
     return buf.getvalue()
 
@@ -181,23 +180,31 @@ def perform_import(import_dict, project_id: Optional[str]):
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
+                subject_id = scan_data.get('subject_id', None)
+                session_id = scan_data.get('session_id', None)
+                scan_link = scan_data.get('scan_link', None)
                 scan_object = Scan(
-                    name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
+                    name=scan_name,
+                    scan_type=scan_data['type'],
+                    experiment=experiment_object,
+                    subject_id=subject_id,
+                    session_id=session_id,
+                    scan_link=scan_link,
                 )
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
                     if last_decision_dict:
                         try:
-                            creator = User.objects.get(
-                                Q(username=last_decision_dict['creator'])
-                                | Q(email=last_decision_dict['creator'])
-                            )
+                            creator = User.objects.get(email=last_decision_dict['creator'])
                         except User.DoesNotExist:
                             creator = None
                         note = ''
+                        created = timezone.now()
                         location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
+                        if last_decision_dict['created']:
+                            created = last_decision_dict['created']
                         if last_decision_dict['location']:
                             slices = [
                                 axis.split('=')[1]
@@ -211,6 +218,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                         last_decision = ScanDecision(
                             decision=last_decision_dict['decision'],
                             creator=creator,
+                            created=created,
                             note=note,
                             user_identified_artifacts={
                                 artifact_name: (
@@ -264,12 +272,13 @@ def export_data(project_id: Optional[str]):
     if not parent_location.exists():
         raise APIException(f'No such location {parent_location} to create export file.')
 
-    perform_export.delay(project_id)
+    return perform_export(project_id)
 
 
 @shared_task
 def perform_export(project_id: Optional[str]):
     data = []
+    export_warnings = []
 
     if project_id is None:
         # A global export should export all projects
@@ -283,41 +292,47 @@ def perform_export(project_id: Optional[str]):
 
     for project_object in projects:
         for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
-            row_data = [
-                project_object.name,
-                frame_object.scan.experiment.name,
-                frame_object.scan.name,
-                frame_object.scan.scan_type,
-                frame_object.frame_number,
-                frame_object.raw_path,
-            ]
-            # if a last decision exists for the scan, encode that decision on this row; for example,
-            # "... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-            last_decision = frame_object.scan.decisions.order_by('created').last()
-            if last_decision:
-                location = ''
-                if last_decision.location:
-                    location = (
-                        f'i={last_decision.location["i"]};'
-                        f'j={last_decision.location["j"]};'
-                        f'k={last_decision.location["k"]}'
-                    )
-                creator = ''
-                if last_decision.creator:
-                    creator = last_decision.creator.email
-                row_data += [
-                    last_decision.decision,
-                    creator,
-                    last_decision.note.replace(',', ';'),
-                    ';'.join(
-                        [
-                            artifact
-                            for artifact, value in last_decision.user_identified_artifacts.items()
-                            if value == 1
-                        ]
-                    ),
-                    location,
+            if frame_object.storage_mode == StorageMode.LOCAL_PATH:
+                row_data = [
+                    project_object.name,
+                    frame_object.scan.experiment.name,
+                    frame_object.scan.name,
+                    frame_object.scan.scan_type,
+                    frame_object.frame_number,
+                    frame_object.raw_path,
+                    frame_object.scan.subject_id,
+                    frame_object.scan.session_id,
+                    frame_object.scan.scan_link,
                 ]
-            data.append(row_data)
+
+                # if a last decision exists for the scan, encode that decision on this row;
+                # for example, "... U, rev@miqa.dev, note; without; commas, artifact_1;artifact_2
+                last_decision = frame_object.scan.decisions.order_by('created').last()
+                if last_decision:
+                    location = ''
+                    if last_decision.location:
+                        location = (
+                            f'i={last_decision.location["i"]};'
+                            f'j={last_decision.location["j"]};'
+                            f'k={last_decision.location["k"]}'
+                        )
+                    artifacts = last_decision.user_identified_artifacts.items()
+                    creator = ''
+                    if last_decision.creator:
+                        creator = last_decision.creator.email
+                    row_data += [
+                        last_decision.decision,
+                        creator,
+                        last_decision.note.replace(',', ';'),
+                        last_decision.created,
+                        ';'.join([artifact for artifact, value in artifacts if value == 1]),
+                        location,
+                    ]
+                data.append(row_data)
+            else:
+                export_warnings.append(
+                    f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
+                )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     export_df.to_csv(export_path, index=False)
+    return export_warnings

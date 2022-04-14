@@ -362,6 +362,9 @@ const {
         lockOwner: experiment.lock_owner || experiment.lockOwner,
         scanId: scan.id,
         scanName: scan.name,
+        scanSession: scan.sessionID,
+        scanSubject: scan.subjectID,
+        scanLink: scan.link,
         scanDecisions: scan.decisions,
         scanPositionString: `(${experimentScansList.indexOf(scan.id) + 1}/${experimentScansList.length})`,
         framePositionString: `(${scanFramesList.indexOf(currentFrame.id) + 1}/${scanFramesList.length})`,
@@ -654,6 +657,9 @@ const {
               // Just set notes to [] and let reloadScan set the complete values later.
               notes: [],
               decisions: scan.decisions,
+              sessionID: scan.session_id,
+              subjectID: scan.subject_id,
+              link: scan.scan_link,
             },
           });
 
@@ -712,6 +718,9 @@ const {
           numFrames: frames.length,
           notes: scan.notes,
           decisions: scan.decisions,
+          sessionID: scan.session_id,
+          subjectID: scan.subject_id,
+          link: scan.scan_link,
         },
       });
     },

@@ -216,7 +216,15 @@ class ProjectViewSet(
         project: Project = self.get_object()
 
         # tasks sent to celery must use serializable arguments
-        export_data(project.id)
+        warning_list = export_data(project.id)
+        if len(warning_list) > 0:
+            return Response(
+                {
+                    'detail': 'The following warnings were raised during import. \
+                        Exports of uploaded scans are not yet supported.',
+                    'warnings': warning_list,
+                }
+            )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
