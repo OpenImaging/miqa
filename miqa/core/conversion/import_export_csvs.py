@@ -6,6 +6,7 @@ from schema import And, Optional, Or, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
+# subjectid and sessionid are for compatibility with PREDICT and other BidS datasets
 IMPORT_CSV_COLUMNS = [
     'project_name',
     'experiment_name',
@@ -13,6 +14,9 @@ IMPORT_CSV_COLUMNS = [
     'scan_type',
     'frame_number',
     'file_location',
+    'subject_id',
+    'session_id',
+    'scan_link',
     'last_decision',
     'last_decision_creator',
     'last_decision_note',
@@ -52,6 +56,9 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                             'scans': {
                                 And(Use(str)): {
                                     'type': And(Use(str)),
+                                    Optional('subject_id'): Or(str, None),
+                                    Optional('session_id'): Or(str, None),
+                                    Optional('scan_link'): Or(str, None),
                                     'frames': {And(Use(int)): {'file_location': And(str)}},
                                     Optional('last_decision'): Or(
                                         {
@@ -89,8 +96,11 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
 
 
 def import_dataframe_to_dict(df):
-    # The decision columns (the last five) are optional
-    if list(df.columns) != IMPORT_CSV_COLUMNS and list(df.columns) != IMPORT_CSV_COLUMNS[:6]:
+    df_columns = list(df.columns)
+    # The columns after the first 6 are optional
+    if df_columns != IMPORT_CSV_COLUMNS and (
+        len(df_columns) < 6 or df_columns != IMPORT_CSV_COLUMNS[: len(df_columns)]
+    ):
         raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
     ingest_dict = {'projects': {}}
     for project_name, project_df in df.groupby('project_name'):
@@ -105,6 +115,12 @@ def import_dataframe_to_dict(df):
                         for row in scan_df.iterrows()
                     },
                 }
+                if 'subject_id' in scan_df.columns:
+                    scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
+                if 'session_id' in scan_df.columns:
+                    scan_dict['session_id'] = scan_df['session_id'].iloc[0]
+                if 'scan_link' in scan_df.columns:
+                    scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
                 if (
                     'last_decision' in scan_df.columns
                     and str(scan_df['last_decision'].iloc[0]) != 'nan'
@@ -123,6 +139,7 @@ def import_dataframe_to_dict(df):
                     scan_dict['last_decision'] = decision_dict
                 else:
                     scan_dict['last_decision'] = None
+
                 experiment_dict['scans'][scan_name] = scan_dict
             project_dict['experiments'][experiment_name] = experiment_dict
         ingest_dict['projects'][project_name] = project_dict

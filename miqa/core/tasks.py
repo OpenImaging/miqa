@@ -180,8 +180,16 @@ def perform_import(import_dict, project_id: Optional[str]):
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
+                subject_id = scan_data.get('subject_id', None)
+                session_id = scan_data.get('session_id', None)
+                scan_link = scan_data.get('scan_link', None)
                 scan_object = Scan(
-                    name=scan_name, scan_type=scan_data['type'], experiment=experiment_object
+                    name=scan_name,
+                    scan_type=scan_data['type'],
+                    experiment=experiment_object,
+                    subject_id=subject_id,
+                    session_id=session_id,
+                    scan_link=scan_link,
                 )
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
@@ -292,7 +300,34 @@ def perform_export(project_id: Optional[str]):
                     frame_object.scan.scan_type,
                     frame_object.frame_number,
                     frame_object.raw_path,
+                    frame_object.scan.subject_id,
+                    frame_object.scan.session_id,
+                    frame_object.scan.scan_link,
                 ]
+                # if a last decision exists for the scan, encode that decision on this row
+                # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
+                last_decision = frame_object.scan.decisions.order_by('created').last()
+                if last_decision:
+                    location = ''
+                    if last_decision.location:
+                        location = (
+                            f'i={last_decision.location["i"]};'
+                            f'j={last_decision.location["j"]};'
+                            f'k={last_decision.location["k"]}'
+                        )
+                    artifacts = [
+                        artifact
+                        for artifact, value in last_decision.user_identified_artifacts.items()
+                        if value == 1
+                    ]
+                    row_data += [
+                        last_decision.decision,
+                        last_decision.creator.username,
+                        last_decision.note.replace(',', ';'),
+                        ';'.join(artifacts),
+                        location,
+                    ]
+
                 # if a last decision exists for the scan, encode that decision on this row;
                 # for example, "... U, rev@miqa.dev, note; without; commas, artifact_1;artifact_2
                 last_decision = frame_object.scan.decisions.order_by('created').last()
