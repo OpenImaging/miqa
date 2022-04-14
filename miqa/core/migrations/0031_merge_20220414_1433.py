@@ -10,5 +10,4 @@ class Migration(migrations.Migration):
         ('core', '0030_project_s3_public'),
     ]
 
-    operations = [
-    ]
+    operations = []
