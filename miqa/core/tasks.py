@@ -166,9 +166,9 @@ def perform_import(import_dict, project_id: Optional[str]):
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
-                subject_id = scan_data['subject_id'] if 'subject_id' in scan_data else None
-                session_id = scan_data['session_id'] if 'session_id' in scan_data else None
-                scan_link = scan_data['scan_link'] if 'scan_link' in scan_data else None
+                subject_id = scan_data.get('subject_id', None)
+                session_id = scan_data.get('session_id', None)
+                scan_link = scan_data.get('scan_link', None)
                 scan_object = Scan(
                     name=scan_name,
                     scan_type=scan_data['type'],
