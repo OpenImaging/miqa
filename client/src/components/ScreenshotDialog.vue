@@ -74,7 +74,14 @@ export default {
     max-width="500px"
   >
     <v-card v-if="currentScreenshot">
-      <v-card-title class="headline grey lighten-4">
+      <v-btn
+        icon
+        style="float:right"
+        @click="show=false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <v-card-title>
         Save screenshot
       </v-card-title>
       <v-container

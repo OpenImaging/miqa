@@ -66,10 +66,16 @@ export default defineComponent({
     async function exportData() {
       exporting.value = true;
       try {
+        let response;
         if (isGlobal.value) {
-          await djangoRest.globalExport();
+          response = await djangoRest.globalExport();
         } else {
-          await djangoRest.projectExport(currentProject.value.id);
+          response = await djangoRest.projectExport(currentProject.value.id);
+        }
+        if (!response || response.warnings) {
+          importErrors.value = true;
+          importErrorText.value = response.detail;
+          importErrorList.value = response.warnings;
         }
         this.$snackbar({
           text: 'Saved data to file successfully.',
@@ -157,6 +163,13 @@ export default defineComponent({
       width="500"
     >
       <v-card>
+        <v-btn
+          icon
+          style="float:right"
+          @click="importDialog=false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
         <v-card-title class="title">
           Import
         </v-card-title>
@@ -195,10 +208,19 @@ export default defineComponent({
         class="pa-5"
         style="overflow: auto"
       >
+        <v-spacer />
+        <v-btn
+          icon
+          @click="importErrors=false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
         <v-card-title class="title">
-          Import Errors Encountered
+          Messages Encountered
         </v-card-title>
-        {{ importErrorText }}
+        <div class="px-5">
+          {{ importErrorText }}
+        </div>
         <v-divider class="my-3" />
 
         <v-card-text
