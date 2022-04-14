@@ -39,21 +39,6 @@ np.random.seed(30101983)
 torch.manual_seed(30101983)
 torch.use_deterministic_algorithms(True)
 
-# counts of different QA results is used to calculate class weights
-qa_sample_counts = [
-    374,  # number of samples with qa==0
-    19,
-    25,
-    7,
-    19,
-    11,
-    2903,
-    521,
-    2398,
-    1908,
-    1290,  # number of samples with qa==10
-]
-
 ghosting_motion_index = regression_count + artifacts.index('ghosting_motion')
 inhomogeneity_index = regression_count + artifacts.index('inhomogeneity')
 
