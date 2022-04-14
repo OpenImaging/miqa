@@ -94,24 +94,7 @@ async def test_send_email_screenshot(page, log_in, user, samples_project):
     await (await page.waitForXPath('//button//i[.="email"]')).click()
     # Wait a second for the modal to open
     await page.waitFor(1_000)
-    # Attach the first screenshot to the email
-    await (
-        await page.waitForXPath(
-            f'//div[contains(@class,"v-card__text")]/span[.="{experiment.name}/{scan.name}/0/Axial"]'  # noqa: E501
-        )
-    ).click()
-    # Attach the second screenshot to the email
-    await (
-        await page.waitForXPath(
-            f'//div[contains(@class,"v-card__text")]/span[.="{experiment.name}/{scan.name}/0/Sagittal"]'  # noqa: E501
-        )
-    ).click()
-    # Attach the third screenshot to the email
-    await (
-        await page.waitForXPath(
-            f'//div[contains(@class,"v-card__text")]/span[.="{experiment.name}/{scan.name}/0/Coronal"]'  # noqa: E501
-        )
-    ).click()
+    # The screenshots are all attached by default, so no manual action necessary
     # Click send
     await (await page.waitForXPath('//button[span[.=" Send "]]')).click()
     # Wait a second for the email to send
