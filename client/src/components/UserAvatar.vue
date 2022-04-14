@@ -1,12 +1,11 @@
 <script>
-import { User } from '@/types';
 
 export default {
   name: 'UserAvatar',
   inject: ['user'],
   props: {
     targetUser: {
-      type: User,
+      type: Object,
       required: true,
     },
     asEditor: {
