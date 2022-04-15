@@ -189,10 +189,10 @@ class CombinedLoss(torch.nn.Module):
                 i_output2 = i_output.unsqueeze(0)
                 i_target2 = i_target.unsqueeze(0)
                 raw_loss = self.focal_loss(i_output2, i_target2)
-                if i_target == 1:
-                    loss += raw_loss * self.binary_class_weights[i]
+                if i_target == 0:
+                    loss += raw_loss / self.binary_class_weights[i]
                 else:
-                    loss += raw_loss * (1 - self.binary_class_weights[i])
+                    loss += raw_loss / (1 - self.binary_class_weights[i])
             # if target is -1 then ignore difference because ground truth was missing
 
         return loss
