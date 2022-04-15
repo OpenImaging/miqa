@@ -126,6 +126,7 @@ export default defineComponent({
 
     <v-btn
       elevation="0"
+      class="mx-2"
       @click="openDocumentation"
     >
       Help
