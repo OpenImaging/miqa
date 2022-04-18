@@ -182,10 +182,10 @@ def verify_images(data_frame):
         try:
             dim, _ = get_image_dimension(row.file_path, print_non_lps=False)
             if dim == (0, 0, 0):
-                logger.info(f'{index}: size of {row.file_path} is zero')
+                logger.warning(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
         except Exception as e:
-            logger.info(f'{index}: there is some problem with: {row.file_path}:\n{e}')
+            logger.warning(f'{index}: there is some problem with: {row.file_path}:\n{e}')
             all_ok = False
     return all_ok
 
@@ -665,7 +665,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
         fold = pd.read_csv(csv_name)
         logger.info(f'Verifying input data integrity of {csv_name}')
         if not verify_images(fold):
-            logger.info('Data verification failed. Exiting...')
+            logger.error('Data verification failed. Exiting...')
             return
         folds.append(fold)
 
