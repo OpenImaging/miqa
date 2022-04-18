@@ -57,13 +57,13 @@ def index_of_abs_max(my_list):
 def get_image_dimension(path, print_non_lps=False):
     image_io = itk.ImageIOFactory.CreateImageIO(path, itk.CommonEnums.IOFileMode_ReadMode)
     dim = (0, 0, 0)
+    identity = True
     if image_io is not None:
         try:
             image_io.SetFileName(path)
             image_io.ReadImageInformation()
             assert image_io.GetNumberOfDimensions() == 3
             dim = (image_io.GetDimensions(0), image_io.GetDimensions(1), image_io.GetDimensions(2))
-            identity = True
             for d in range(2):
                 if index_of_abs_max(image_io.GetDirection(d)) != d:
                     identity = False
@@ -71,7 +71,7 @@ def get_image_dimension(path, print_non_lps=False):
                 print(f'Non-identity direction matrix: {path}')
         except RuntimeError:
             pass
-    return dim
+    return dim, identity
 
 
 def ncanda_construct_data_frame(ncanda_root_dir):
@@ -82,6 +82,7 @@ def ncanda_construct_data_frame(ncanda_root_dir):
         'file_path',
         'exists',
         'dimensions',
+        'lps',
     ])
 
     root = Path(ncanda_root_dir)
@@ -91,9 +92,9 @@ def ncanda_construct_data_frame(ncanda_root_dir):
         participant_id = path.parts[root_len + 1]
         series_type = path.parts[-1][0:-7]
         qa = 0 if path.parts[root_len] == 'unusable' else 10
-        dimensions = get_image_dimension(file_path, False)
+        dimensions, lps = get_image_dimension(file_path, False)
 
-        df.loc[len(df.index)] = [participant_id, series_type, qa, file_path, True, dimensions]
+        df.loc[len(df.index)] = [participant_id, series_type, qa, file_path, True, dimensions, lps]
 
     logger.info(f'Found {df.shape[0]} files.')
     return df
@@ -157,7 +158,7 @@ def read_and_normalize_data_frame(tsv_path):
     existing_count = 0
     missing_count = 0
     df['exists'] = df.apply(lambda row: does_file_exist(row['file_path']), axis=1)
-    df['dimensions'] = df.apply(lambda row: get_image_dimension(row['file_path']), axis=1)
+    df['dimensions'], df['lps'] = zip(*df['file_path'].map(get_image_dimension))
     logger.info(f'Existing files: {existing_count}, non-existent files: {missing_count}')
     return df
 
@@ -166,7 +167,7 @@ def verify_images(data_frame):
     all_ok = True
     for index, row in data_frame.iterrows():
         try:
-            dim = get_image_dimension(row.file_path, print_non_lps=True)
+            dim, _ = get_image_dimension(row.file_path, print_non_lps=True)
             if dim == (0, 0, 0):
                 logger.info(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
