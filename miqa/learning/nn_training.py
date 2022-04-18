@@ -177,17 +177,19 @@ def read_and_normalize_data_frame(tsv_path):
 
 
 def verify_images(data_frame):
-    all_ok = True
+    problem_count = 0
     for index, row in data_frame.iterrows():
         try:
             dim, _ = get_image_dimension(row.file_path, print_non_lps=False)
             if dim == (0, 0, 0):
                 logger.warning(f'{index}: size of {row.file_path} is zero')
-                all_ok = False
+                data_frame.drop(data_frame.index[index], inplace=True)
+                problem_count += 1
         except Exception as e:
             logger.warning(f'{index}: there is some problem with: {row.file_path}:\n{e}')
-            all_ok = False
-    return all_ok
+            data_frame.drop(data_frame.index[index], inplace=True)
+            problem_count += 1
+    return problem_count
 
 
 class CombinedLoss(torch.nn.Module):
@@ -663,10 +665,12 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     for f in range(fold_count):
         csv_name = folds_prefix + f'{f}.csv'
         fold = pd.read_csv(csv_name)
-        logger.info(f'Verifying input data integrity of {csv_name}')
-        if not verify_images(fold):
-            logger.error('Data verification failed. Exiting...')
-            return
+        print(f'Verifying input data integrity of {csv_name}')
+        problem_count = verify_images(fold)
+        if problem_count > 0:
+            logger.error(
+                f'Data verification failed. {problem_count} non-existing images were dropped'
+            )
         folds.append(fold)
 
     df = pd.concat(folds, ignore_index=True)
