@@ -189,10 +189,7 @@ class CombinedLoss(torch.nn.Module):
                 i_output2 = i_output.unsqueeze(0)
                 i_target2 = i_target.unsqueeze(0)
                 raw_loss = self.focal_loss(i_output2, i_target2)
-                if i_target == 0:
-                    loss += raw_loss / self.binary_class_weights[i]
-                else:
-                    loss += raw_loss / (1 - self.binary_class_weights[i])
+                loss += raw_loss / self.binary_class_weights[int(i_target), i]
             # if target is -1 then ignore difference because ground truth was missing
 
         return loss
@@ -464,9 +461,10 @@ def create_train_and_test_data_loaders(df, count_train):
                 count1[i] += 1
             # else ignore the missing data
 
-    weights_array = np.zeros(class_count)
+    weights_array = np.empty((2, class_count))
     for i in range(class_count):
-        weights_array[i] = count0[i] / (count0[i] + count1[i])
+        weights_array[0, i] = count0[i] / count_train
+        weights_array[1, i] = count1[i] / count_train
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
