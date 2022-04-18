@@ -566,8 +566,10 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 print(step, flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
+        print('')  # newline
+
         epoch_loss /= step
-        logger.info(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
+        logger.info(f'epoch {epoch + 1} average loss: {epoch_loss:.4f}')
         wandb.log({'epoch average loss': epoch_loss})
         epoch_cm = confusion_matrix(y_true, y_pred)
         logger.info(f'confusion matrix:\n{epoch_cm}')
