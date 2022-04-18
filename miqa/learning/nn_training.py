@@ -75,15 +75,19 @@ def get_image_dimension(path, print_non_lps=False):
 
 
 def ncanda_construct_data_frame(ncanda_root_dir):
-    df = pd.DataFrame([], columns=[
-        'participant_id',
-        'series_type',
-        'overall_qa_assessment',
-        'file_path',
-        'exists',
-        'dimensions',
-        'lps',
-    ])
+    df = pd.DataFrame(
+        [],
+        columns=[
+            'participant_id',
+            'series_type',
+            'overall_qa_assessment',
+            'file_path',
+            'exists',
+            'dimensions',
+            'lps',
+            'absent',
+        ],
+    )
 
     root = Path(ncanda_root_dir)
     root_len = len(root.parts)
@@ -94,7 +98,16 @@ def ncanda_construct_data_frame(ncanda_root_dir):
         qa = 0 if path.parts[root_len] == 'unusable' else 10
         dimensions, lps = get_image_dimension(file_path, False)
 
-        df.loc[len(df.index)] = [participant_id, series_type, qa, file_path, True, dimensions, lps]
+        df.loc[len(df.index)] = [
+            participant_id,
+            series_type,
+            qa,
+            file_path,
+            True,
+            dimensions,
+            lps,
+            -1,
+        ]
 
     logger.info(f'Found {df.shape[0]} files.')
     return df
@@ -167,7 +180,7 @@ def verify_images(data_frame):
     all_ok = True
     for index, row in data_frame.iterrows():
         try:
-            dim, _ = get_image_dimension(row.file_path, print_non_lps=True)
+            dim, _ = get_image_dimension(row.file_path, print_non_lps=False)
             if dim == (0, 0, 0):
                 logger.info(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
@@ -428,7 +441,13 @@ def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
     sizes = {}
-    artifact_column_indices = [df.columns.get_loc(c) + 1 for c in artifacts if c in df]
+    artifact_column_indices = []
+    for c in artifacts:
+        if c in df:
+            artifact_column_indices.append(1 + df.columns.get_loc(c))
+        else:
+            artifact_column_indices.append(1 + df.columns.get_loc('absent'))  # use dummy column
+
     for row in df.itertuples():
         try:
             exists = row.exists
@@ -478,10 +497,14 @@ def create_train_and_test_data_loaders(df, count_train):
                 count1[i] += 1
             # else ignore the missing data
 
-    weights_array = np.empty((2, class_count))
-    for i in range(class_count):
-        weights_array[0, i] = count0[i] / count_train
-        weights_array[1, i] = count1[i] / count_train
+    if count_train > 0:
+        weights_array = np.empty((2, class_count))
+        for i in range(class_count):
+            weights_array[0, i] = count0[i] / count_train
+            weights_array[1, i] = count1[i] / count_train
+    else:
+        weights_array = np.ones((2, class_count))
+
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
@@ -500,16 +523,24 @@ def create_train_and_test_data_loaders(df, count_train):
     )
 
     # create a training data loader
-    train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
-    train_loader = DataLoader(
-        train_ds, batch_size=1, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available()
-    )
+    train_loader = None
+    if count_train > 0:
+        train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=1,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=torch.cuda.is_available(),
+        )
 
     # create a validation data loader
-    val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
-    val_loader = DataLoader(
-        val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
-    )
+    val_loader = None
+    if count_val > 0:
+        val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
+        val_loader = DataLoader(
+            val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
+        )
 
     return train_loader, val_loader, class_weights, sizes
 
@@ -543,8 +574,9 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     if only_evaluate:
         logger.info('Evaluating NN model on validation data')
         evaluate_model(model, val_loader, device, writer, 0, 'val')
-        logger.info('Evaluating NN model on training data')
-        evaluate_model(model, train_loader, device, writer, 0, 'train')
+        if train_loader is not None:
+            logger.info('Evaluating NN model on training data')
+            evaluate_model(model, train_loader, device, writer, 0, 'train')
         return sizes
 
     _, file_name = os.path.split(save_path)
@@ -638,7 +670,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
         folds.append(fold)
 
     df = pd.concat(folds, ignore_index=True)
-    logger.info(df)
+    logger.info(f'\n{df}')
 
     logger.info(f'Using fold {validation_fold} for validation')
     vf = folds.pop(validation_fold)
@@ -718,7 +750,7 @@ if __name__ == '__main__':
         args.ncanda
         df = ncanda_construct_data_frame(args.ncanda)
         logger.info(f'\n{df}')
-        full_path = Path('ncanda.csv').absolute()
+        full_path = Path('ncanda0.csv').absolute()
         df.to_csv(full_path, index=False)
         logger.info(f'CSV file written: {full_path}')
     else:

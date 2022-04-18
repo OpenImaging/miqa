@@ -250,7 +250,7 @@ def evaluate_model(model, data_loader, device, writer, epoch, run_name):
                         y_a_true.pop(i)
                         y_a_out.pop(i)
                 cm = confusion_matrix(y_a_true, y_a_out)
-                cm_list = list(np.concatenate(cm).flat)  # flatten into a list
+                cm_list = list(cm.flat)  # flatten into a list
                 confusions[artifacts[a]] = cm_list
                 artifact_cm.append(cm_list)
                 logger.info(f'{artifacts[a]}: {cm_list}')
