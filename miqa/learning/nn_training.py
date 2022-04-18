@@ -74,13 +74,29 @@ def get_image_dimension(path, print_non_lps=False):
     return dim
 
 
-def recursively_search_images(images, decisions, path_prefix, kind):
-    count = 0
-    for path in Path(path_prefix).rglob('*.nii.gz'):
-        images.append(str(path))
-        decisions.append(kind)
-        count += 1
-    logger.info(f'{count} images in prefix {path_prefix}')
+def ncanda_construct_data_frame(ncanda_root_dir):
+    df = pd.DataFrame([], columns=[
+        'participant_id',
+        'series_type',
+        'overall_qa_assessment',
+        'file_path',
+        'exists',
+        'dimensions',
+    ])
+
+    root = Path(ncanda_root_dir)
+    root_len = len(root.parts)
+    for path in root.rglob('*.nii.gz'):
+        file_path = str(path)
+        participant_id = path.parts[root_len + 1]
+        series_type = path.parts[-1][0:-7]
+        qa = 0 if path.parts[root_len] == 'unusable' else 10
+        dimensions = get_image_dimension(file_path, False)
+
+        df.loc[len(df.index)] = [participant_id, series_type, qa, file_path, True, dimensions]
+
+    logger.info(f'Found {df.shape[0]} files.')
+    return df
 
 
 def construct_path_from_csv_fields(
@@ -693,12 +709,17 @@ if __name__ == '__main__':
         df = read_and_normalize_data_frame(
             predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv'
         )
-        logger.info(df)
+        logger.info(f'\n{df}')
         full_path = Path('bids_image_qc_information-customized.csv').absolute()
         df.to_csv(full_path, index=False)
         logger.info(f'CSV file written: {full_path}')
     elif args.ncanda is not None:
-        logger.info('Adding support for NCANDA data is a TODO')
+        args.ncanda
+        df = ncanda_construct_data_frame(args.ncanda)
+        logger.info(f'\n{df}')
+        full_path = Path('ncanda.csv').absolute()
+        df.to_csv(full_path, index=False)
+        logger.info(f'CSV file written: {full_path}')
     else:
         logger.info('Not enough arguments specified')
         logger.info(parser.format_help())
