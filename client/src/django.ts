@@ -21,7 +21,11 @@ apiClient.interceptors.response.use(null, (error) => {
   const msg = error?.response?.data?.detail || 'No response from server';
   throw new Error(msg);
 });
-const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
+
+const redirectUrl = new URL(
+  (process.env.VUE_APP_LOGIN_REDIRECT || window.location.origin) as string,
+);
+const oauthClient = new OAuthClient(new URL(OAUTH_API_ROOT), OAUTH_CLIENT_ID, { redirectUrl });
 const djangoClient = {
   // TODO importing the actual AppStore type results in a dependency cycle
   async restoreLogin(store: any) {
