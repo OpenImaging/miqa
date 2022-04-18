@@ -34,6 +34,7 @@ export default defineComponent({
     emailDialog: false,
     keyboardShortcutDialog: false,
     advanceTimeoutId: null,
+    documentationURL: 'https://openimaging.github.io/miqa/',
   }),
   computed: {
     ...mapState([
@@ -54,6 +55,9 @@ export default defineComponent({
     async logoutUser() {
       await this.logout();
       this.$router.go('/'); // trigger re-render into oauth flow
+    },
+    openDocumentation() {
+      window.open(this.documentationURL, '_blank');
     },
   },
 });
@@ -119,6 +123,15 @@ export default defineComponent({
         :notes="notes"
       />
     </div>
+
+    <v-btn
+      elevation="0"
+      class="mx-2"
+      @click="openDocumentation"
+    >
+      Help
+      <v-icon>mdi-open-in-new</v-icon>
+    </v-btn>
 
     <UserAvatar :target-user="user" />
     <UserButton
