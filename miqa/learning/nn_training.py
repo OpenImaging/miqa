@@ -95,7 +95,7 @@ def ncanda_construct_data_frame(ncanda_root_dir):
         file_path = str(path)
         participant_id = path.parts[root_len + 1]
         series_type = path.parts[-1][0:-7]
-        qa = 0 if path.parts[root_len] == 'unusable' else 10
+        qa = 3 if path.parts[root_len] == 'unusable' else 8
         dimensions, lps = get_image_dimension(file_path, False)
 
         df.loc[len(df.index)] = [
