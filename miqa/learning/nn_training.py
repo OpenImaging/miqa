@@ -211,7 +211,7 @@ class CombinedLoss(torch.nn.Module):
 
         # if we make overall QA a lot more important than individual artifacts,
         # then accuracy of the artifact predictions is very low
-        loss = 1.0 * qa_loss
+        loss = 0.1 * qa_loss  # overallQA has 0-10, individual artifacts 0-1 range
 
         for i in range(self.presence_count):
             i_target = target[..., i + regression_count]
