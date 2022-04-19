@@ -34,6 +34,25 @@ def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_clie
         assert resp.status_code == 401
 
 
+@pytest.mark.django_db
+def test_import_csv_optional_columns(user, project_factory, sample_scans, user_api_client):
+    csv_file = Path('samples', 'scans_to_review_optional_columns.csv')
+
+    project = project_factory(import_path=str(csv_file))
+    user_api_client = user_api_client(project=project)
+
+    resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
+    if get_perms(user, project):
+        assert resp.status_code == 204
+        # The import should update the project, even though the names do not match
+        project.refresh_from_db()
+        assert project.experiments.count() == 2
+        assert project.experiments.all()[0].scans.count() == 1
+        assert project.experiments.all()[1].scans.count() == 1
+    else:
+        assert resp.status_code == 401
+
+
 @pytest.mark.django_db(transaction=True)
 def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
     # Generate an import CSV for two projects with the same data
