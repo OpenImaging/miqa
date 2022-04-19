@@ -177,19 +177,19 @@ def read_and_normalize_data_frame(tsv_path):
 
 
 def verify_images(data_frame):
-    problem_count = 0
+    problem_indices = []
     for index, row in data_frame.iterrows():
         try:
             dim, _ = get_image_dimension(row.file_path, print_non_lps=False)
             if dim == (0, 0, 0):
                 logger.warning(f'{index}: size of {row.file_path} is zero')
-                data_frame.drop(data_frame.index[index], inplace=True)
-                problem_count += 1
+                problem_indices.append(index)
         except Exception as e:
             logger.warning(f'{index}: there is some problem with: {row.file_path}:\n{e}')
-            data_frame.drop(data_frame.index[index], inplace=True)
-            problem_count += 1
-    return problem_count
+            problem_indices.append(index)
+
+    data_frame.drop(problem_indices, inplace=True)
+    return len(problem_indices)
 
 
 class CombinedLoss(torch.nn.Module):
