@@ -333,6 +333,8 @@ def perform_export(project_id: Optional[str]):
                         ';'.join(artifacts),
                         location,
                     ]
+                else:
+                    row_data += ['' for i in range(6)]
                 data.append(row_data)
             else:
                 export_warnings.append(
