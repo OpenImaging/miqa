@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
-from guardian.shortcuts import assign_perm
 from allauth.account.admin import EmailAddress
+from django.contrib.auth.models import User
 import djclick as click
+from guardian.shortcuts import assign_perm
 
 from miqa.core.models import Project
 from miqa.core.tasks import import_data
