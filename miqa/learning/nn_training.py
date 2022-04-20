@@ -207,7 +207,7 @@ class CombinedLoss(torch.nn.Module):
 
         qa_out = output[..., 0]
         qa_target = target[..., 0]
-        qa_loss = torch.mean((qa_out - qa_target) ** 2)
+        qa_loss = torch.sqrt(torch.mean((qa_out - qa_target) ** 2))
 
         # if we make overall QA a lot more important than individual artifacts,
         # then accuracy of the artifact predictions is very low
