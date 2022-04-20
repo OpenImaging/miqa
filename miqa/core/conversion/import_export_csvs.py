@@ -14,6 +14,7 @@ IMPORT_CSV_COLUMNS = [
     'scan_type',
     'frame_number',
     'file_location',
+    'experiment_notes',
     'subject_id',
     'session_id',
     'scan_link',
@@ -53,6 +54,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                 And(Use(str)): {
                     'experiments': {
                         And(Use(str)): {
+                            Optional('notes'): Optional(str, None),
                             'scans': {
                                 And(Use(str)): {
                                     'type': And(Use(str)),
@@ -72,7 +74,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                         None,
                                     ),
                                 }
-                            }
+                            },
                         }
                     }
                 }
@@ -107,6 +109,8 @@ def import_dataframe_to_dict(df):
         project_dict = {'experiments': {}}
         for experiment_name, experiment_df in project_df.groupby('experiment_name'):
             experiment_dict = {'scans': {}}
+            if 'experiment_notes' in experiment_df.columns:
+                experiment_dict['notes'] = experiment_df['experiment_notes'].iloc[0]
             for scan_name, scan_df in experiment_df.groupby('scan_name'):
                 scan_dict = {
                     'type': scan_df['scan_type'].iloc[0],
