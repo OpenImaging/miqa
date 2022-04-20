@@ -30,7 +30,7 @@ The import and export files must be in either a CSV or JSON format. Below are ex
 
 If your project’s import file is written in a CSV format, it should contain a header row; any following rows will represent Frame objects within the Project. Each Frame object in the Project represents a single image file. A Scan is a collection of associated Frames, and an Experiment is a collection of associated Scans. The import CSV format contains fourteen possible columns to specify things about the Frame or the Scan to which it belongs. Only the first six columns are required. Below is a list of the columns and the explanations for each.
 
- 1. 1.  Project name. Required. In a CSV for just one project, this value should be the same for all rows in the file below the header row. This should specify the name of the project to which the Frame in this row belongs. In most cases, this is an assurance that the file is being used by the proper project. However, it is also possible to use this format to specify the objects to create in multiple projects at once, in which case the rows may have different values for `project_name` (see Global imports and exports).
+ 1. Project name. Required. In a CSV for just one project, this value should be the same for all rows in the file below the header row. This should specify the name of the project to which the Frame in this row belongs. In most cases, this is an assurance that the file is being used by the proper project. However, it is also possible to use this format to specify the objects to create in multiple projects at once, in which case the rows may have different values for `project_name` (see Global imports and exports).
 
 2.  Experiment name. Required. Each row specifies a Frame that belongs to a Scan, which belongs to an Experiment. This column allows you to specify the experiment-level organization by specifying an experiment name for each Frame. You will likely have the same value repeated often in this column, since multiple scans are often organized into a single experiment..
 
@@ -42,26 +42,25 @@ If your project’s import file is written in a CSV format, it should contain a 
 
 6.  File location. Required. This column’s value should contain the file path of the image file to associate with this row’s Frame object. An image file should be of the types `.nii.gz`, `.nii`, `.mgz`, or `.nrrd`. This value can be an absolute file path (with the same location restrictions as for the import file itself) or a path that is relative to the parent of the import file itself.
 
-7.  Subject ID. This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for scan subjects, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.
+7. Experiment Notes. This is an optional additional attribute of an Experiment which may be specified in the CSV. This field should contain any additional text you would like to associate with an experiment.
 
-8.  Session ID. This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for session IDs, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.
+8.  Subject ID. This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for scan subjects, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.
 
+9.  Session ID. This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for session IDs, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.
 
+10.  Scan link. This is an optional additional attribute of a Scan which may be specified in the CSV. As such, for each unique value in the `scan_name` column, a new value may be supplied in this column. This value should be a URL that directs to an external site where more information about that scan can be found. This link will be used in the MIQA control panel as a hyperlink on the text of the scan’s name.
 
+11.  Last decision. As MIQA is a tool to make decisions about the usability of scans, the import/export file formats include the ability to record the last decision made on a scan. This is to enable import/export cycles where the state of a project may be saved to an export file and later redigested by the system as an import file. It is not likely that you will be writing these column values yourself, rather reading these values as the result of what the export writes. These values will be one of the following: `U` for “usable”, `UN` for “unusable”, `Q?` for “questionable”, or `UE` for “usable-extra”. If this column does not have a value for a given row, columns 12-16 will have no value either.
 
-9.  Scan link. This is an optional additional attribute of a Scan which may be specified in the CSV. As such, for each unique value in the `scan_name` column, a new value may be supplied in this column. This value should be a URL that directs to an external site where more information about that scan can be found. This link will be used in the MIQA control panel as a hyperlink on the text of the scan’s name.
+12.  Last decision creator. This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 12 specifies the user that submitted that decision.
 
-10.  Last decision. As MIQA is a tool to make decisions about the usability of scans, the import/export file formats include the ability to record the last decision made on a scan. This is to enable import/export cycles where the state of a project may be saved to an export file and later redigested by the system as an import file. It is not likely that you will be writing these column values yourself, rather reading these values as the result of what the export writes. These values will be one of the following: `U` for “usable”, `UN` for “unusable”, `Q?` for “questionable”, or `UE` for “usable-extra”. If this column does not have a value for a given row, columns 11-15 will have no value either.
+13.  Last decision note. This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 13 supplies any note that the user submitted alongside the decision.
 
-11.  Last decision creator. This column value will only exist when column 10 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 11 specifies the user that submitted that decision.
+14.  Last decision creation datetime. This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 14 supplies the datetime on the server when the decision was submitted.
 
-12.  Last decision note. This column value will only exist when column 10 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 12 supplies any note that the user submitted alongside the decision.
+15.  Identified artifacts. This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 15 supplies the list of artifacts identified as present in the scan when the decision was submitted. This list will be separated by semicolons to differentiate between the column separator `,`.
 
-13.  Last decision creation datetime. This column value will only exist when column 10 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 13 supplies the datetime on the server when the decision was submitted.
-
-14.  Identified artifacts. This column value will only exist when column 10 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 14 supplies the list of artifacts identified as present in the scan when the decision was submitted. This list will be separated by semicolons to differentiate between the column separator `,`.
-
-15.  Location of interest. This column value will only exist when column 10 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 15 supplies a three-dimensional coordinate which specifies a location of interest when the decision was submitted (or at least, what the user was looking at when they made the decision). These coordinates are slices within the three dimensional image and may be read by the MIQA webapp to bring another user to that location in the image. If a decision has a saved location of interest, a crosshair pointer icon will appear next to it in the control panel. Clicking this icon will snap the current user’s viewer to that slice location in the image.
+16.  Location of interest. This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 16 supplies a three-dimensional coordinate which specifies a location of interest when the decision was submitted (or at least, what the user was looking at when they made the decision). These coordinates are slices within the three dimensional image and may be read by the MIQA webapp to bring another user to that location in the image. If a decision has a saved location of interest, a crosshair pointer icon will appear next to it in the control panel. Clicking this icon will snap the current user’s viewer to that slice location in the image.
 ![](images/imports_0.png)
 
 ### Examples
@@ -73,16 +72,16 @@ In the case that you only specify the required columns in your import CSV, your 
 |My Project  |Experiment 1  |Scan B  |T1  |0  |my_project/experiment_1/scan_b/file_0.nii.gz  |
 |My Project  |Experiment 2  |Scan C  |T2  |0  |my_project/experiment_2/scan_c/file_0.nii.gz  |
 
-In the case that you provide optional columns 7-9, those columns would look something like this (for the same rows as the above table).
+In the case that you provide optional columns 7-10, those columns would look something like this (for the same rows as the above table).
 
-|**…**  | **subject_id** |**session_id**  | **scan_link** |
-|--|--|--|--|
-|…  | sub_one | ses_one |https://my-org.org/scans/1  |
-|…  | sub_one | ses_one |https://my-org.org/scans/1  |
-|…  | sub_one | ses_two |https://my-org.org/scans/2  |
-|…  | sub_two | ses_one |https://my-org.org/scans/3  |
+|**…**  | **experiment_notes** | **subject_id** |**session_id**  | **scan_link** |
+|--|--|--|--|--|
+|…  | Experiment 1 Notes! | sub_one | ses_one |https://my-org.org/scans/1  |
+|…  | Experiment 1 Notes! | sub_one | ses_one |https://my-org.org/scans/1  |
+|…  | Experiment 1 Notes! | sub_one | ses_two |https://my-org.org/scans/2  |
+|…  | Experiment 2 Notes! | sub_two | ses_one |https://my-org.org/scans/3  |
 
-After importing this version and making some decisions on these scans in MIQA, you may export the project and see optional columns 10-15 added to what you supplied. Those newly added columns would look something like this (for the same rows as the tables above).
+After importing this version and making some decisions on these scans in MIQA, you may export the project and see optional columns 11-16 added to what you supplied. Those newly added columns would look something like this (for the same rows as the tables above).
 
 |**…**  |**last_decision**  |**last_decision_creator**  |**last_decision_note**  |**last_decision_created**  |**identified_artifacts**  |**location_of_interest**  |
 |--|--|--|--|--|--|--|
@@ -106,6 +105,7 @@ The example JSON below is a translation of the example CSV in the above tables t
         "My Project": {
             "experiments": {
                 "Experiment One": {
+                    "notes": "Experiment 1 Notes!",
                     "scans": {
                         "Scan A": {
                             "type": "T1",
@@ -151,6 +151,7 @@ The example JSON below is a translation of the example CSV in the above tables t
                     }
                 },
                 "Experiment Two": {
+                    "notes": "Experiment 2 Notes!",
                     "scans": {
                         "Scan C": {
                             "type": "T2",
