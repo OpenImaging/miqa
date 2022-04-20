@@ -176,7 +176,12 @@ def perform_import(import_dict, project_id: Optional[str]):
         ).delete()  # cascades to scans -> frames, scan_notes
 
         for experiment_name, experiment_data in project_data['experiments'].items():
-            experiment_object = Experiment(name=experiment_name, project=project_object)
+            notes = experiment_data.get('notes', '')
+            experiment_object = Experiment(
+                name=experiment_name,
+                project=project_object,
+                note=notes,
+            )
             new_experiments.append(experiment_object)
 
             for scan_name, scan_data in experiment_data['scans'].items():
@@ -300,13 +305,13 @@ def perform_export(project_id: Optional[str]):
                     frame_object.scan.scan_type,
                     frame_object.frame_number,
                     frame_object.raw_path,
+                    frame_object.scan.experiment.note,
                     frame_object.scan.subject_id,
                     frame_object.scan.session_id,
                     frame_object.scan.scan_link,
                 ]
-
-                # if a last decision exists for the scan, encode that decision on this row;
-                # for example, "... U, rev@miqa.dev, note; without; commas, artifact_1;artifact_2
+                # if a last decision exists for the scan, encode that decision on this row
+                # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
                 last_decision = frame_object.scan.decisions.order_by('created').last()
                 if last_decision:
                     location = ''
@@ -316,7 +321,11 @@ def perform_export(project_id: Optional[str]):
                             f'j={last_decision.location["j"]};'
                             f'k={last_decision.location["k"]}'
                         )
-                    artifacts = last_decision.user_identified_artifacts.items()
+                    artifacts = [
+                        artifact
+                        for artifact, value in last_decision.user_identified_artifacts.items()
+                        if value == 1
+                    ]
                     creator = ''
                     if last_decision.creator:
                         creator = last_decision.creator.email
@@ -325,9 +334,11 @@ def perform_export(project_id: Optional[str]):
                         creator,
                         last_decision.note.replace(',', ';'),
                         last_decision.created,
-                        ';'.join([artifact for artifact, value in artifacts if value == 1]),
+                        ';'.join(artifacts),
                         location,
                     ]
+                else:
+                    row_data += ['' for i in range(6)]
                 data.append(row_data)
             else:
                 export_warnings.append(

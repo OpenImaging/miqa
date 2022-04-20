@@ -1,5 +1,5 @@
 numpy>=1.21.1
-itk>=5.2.0.post2
+itk>=5.3rc4
 torch
 torchio
 tensorboard

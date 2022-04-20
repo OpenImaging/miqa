@@ -9,7 +9,16 @@ import sys
 
 import itk
 import monai
-from nn_inference import artifacts, clamp, evaluate1, evaluate_model, get_model, regression_count
+from nn_inference import (
+    artifacts,
+    clamp,
+    evaluate1,
+    evaluate_model,
+    get_itk_image_view_from_torchio_image,
+    get_model,
+    get_torchio_image_from_itk_image,
+    regression_count,
+)
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -49,7 +58,18 @@ ghosting_motion_index = regression_count + artifacts.index('ghosting_motion')
 inhomogeneity_index = regression_count + artifacts.index('inhomogeneity')
 
 
-def get_image_dimension(path):
+def index_of_abs_max(my_list):
+    max_val = abs(my_list[0])
+    max_index = 0
+    for index, item in enumerate(my_list):
+        abs_item = abs(item)
+        if abs_item > max_val:
+            max_val = abs_item
+            max_index = index
+    return max_index
+
+
+def get_image_dimension(path, print_non_lps=False):
     image_io = itk.ImageIOFactory.CreateImageIO(path, itk.CommonEnums.IOFileMode_ReadMode)
     dim = (0, 0, 0)
     if image_io is not None:
@@ -58,6 +78,12 @@ def get_image_dimension(path):
             image_io.ReadImageInformation()
             assert image_io.GetNumberOfDimensions() == 3
             dim = (image_io.GetDimensions(0), image_io.GetDimensions(1), image_io.GetDimensions(2))
+            identity = True
+            for d in range(2):
+                if index_of_abs_max(image_io.GetDirection(d)) != d:
+                    identity = False
+            if not identity and print_non_lps:
+                print(f'Non-identity direction matrix: {path}')
         except RuntimeError:
             pass
     return dim
@@ -139,7 +165,7 @@ def verify_images(data_frame):
     all_ok = True
     for index, row in data_frame.iterrows():
         try:
-            dim = get_image_dimension(row.file_path)
+            dim = get_image_dimension(row.file_path, print_non_lps=True)
             if dim == (0, 0, 0):
                 logger.info(f'{index}: size of {row.file_path} is zero')
                 all_ok = False
@@ -334,6 +360,70 @@ class CustomNoise(torchio.transforms.RandomNoise):
             return transformed_subject
 
 
+def remove_axis_code_and_its_opposite(axis_list, index):
+    axis_list.pop(index)
+    if index % 2 == 0:
+        axis_list.pop(index)  # the next one is here now
+    else:
+        axis_list.pop(index - 1)  # otherwise it is the previous
+    return axis_list
+
+
+class CustomReorient(
+    torchio.transforms.augmentation.RandomTransform, torchio.transforms.SpatialTransform
+):
+    def apply_transform(self, subject: torchio.Subject) -> torchio.Subject:
+        transformed_subject = subject
+        itk_np_view = get_itk_image_view_from_torchio_image(transformed_subject.img)
+
+        itk_so_enums = itk.SpatialOrientationEnums  # makes other lines shorter
+
+        # the usual way of specifying the orientation is:
+        # dicom_lps = itk_so_enums.ValidCoordinateOrientations_ITK_COORDINATE_ORIENTATION_RAI
+        # but here we construct an axis code computationally, based on random orientation
+
+        # make a list of 6 axis ends (orientations) and randomly choose 3
+        axis_ends = [
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Right,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Left,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Posterior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Anterior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Inferior,
+            itk_so_enums.CoordinateTerms_ITK_COORDINATE_Superior,
+        ]
+
+        index = random.randrange(6)
+        first = axis_ends[index]
+        axis_ends = remove_axis_code_and_its_opposite(axis_ends, index)
+        index = random.randrange(4)
+        second = axis_ends[index]
+        axis_ends = remove_axis_code_and_its_opposite(axis_ends, index)
+        index = random.randrange(2)
+        third = axis_ends[index]
+
+        # make local constants with humanely short names
+        primary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_PrimaryMinor
+        secondary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_SecondaryMinor
+        tertiary = itk_so_enums.CoordinateMajornessTerms_ITK_COORDINATE_TertiaryMinor
+
+        chosen_orientation = (first << primary) + (second << secondary) + (third << tertiary)
+
+        orient_filter = itk.OrientImageFilter.New(
+            itk_np_view,
+            use_image_direction=True,
+            desired_coordinate_orientation=chosen_orientation,
+        )
+        orient_filter.UpdateOutputInformation()  # computes output direction, among others
+
+        # check whether we need to run the filter and update the pixel data
+        if np.any(orient_filter.GetOutput().GetDirection() != itk_np_view.GetDirection()):
+            orient_filter.Update()
+            reoriented = orient_filter.GetOutput()
+            transformed_subject['img'] = get_torchio_image_from_itk_image(reoriented)
+
+        return transformed_subject
+
+
 def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
@@ -394,7 +484,9 @@ def create_train_and_test_data_loaders(df, count_train):
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
-    rescale = torchio.RescaleIntensity(out_min_max=(0, 1))
+    rescale = torchio.transforms.RescaleIntensity(out_min_max=(0, 1))
+    # axis_flip = torchio.transforms.RandomFlip(p=0.5, axes=(0, 1, 2))
+    axis_orient = CustomReorient(p=0.5)
     ghosting = CustomGhosting(p=0.3, intensity=(0.2, 0.8))
     motion = CustomMotion(p=0.2, degrees=5.0, translation=5.0, num_transforms=1)
     inhomogeneity = CustomBiasField(p=0.1)
@@ -402,7 +494,9 @@ def create_train_and_test_data_loaders(df, count_train):
     # gamma = CustomGamma(p=0.1)  # after quick experimentation: gamma does not appear to help
     noise = CustomNoise(p=0.1)
 
-    transforms = torchio.Compose([rescale, ghosting, motion, inhomogeneity, spike, noise])
+    transforms = torchio.Compose(
+        [rescale, axis_orient, ghosting, motion, inhomogeneity, spike, noise]
+    )
 
     # create a training data loader
     train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
@@ -485,7 +579,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
             logger.debug(f'{step}:{loss.item():.4f}')
             print('.', end='', flush=True)
             if step % 100 == 0:
-                print('', flush=True)  # new line
+                print(step, flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
         epoch_loss /= step
@@ -550,7 +644,7 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
 
     # establish minimum number of optimization steps and epochs
     val_count = max(1, int(600 / df.shape[0]))
-    epoch_count = max(25, int(30000 / df.shape[0]))
+    epoch_count = max(35, int(30000 / df.shape[0]))
     epoch_count = math.ceil(epoch_count / val_count) * val_count
 
     count_train = df.shape[0] - vf.shape[0]
