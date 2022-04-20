@@ -31,6 +31,7 @@ class MiqaMixin(ConfigMixin):
     CORS_ALLOW_CREDENTIALS = True
 
     # MIQA-specific settings
+    DEMO_MODE = False
     ZARR_SUPPORT = False
     S3_SUPPORT = True
     NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
