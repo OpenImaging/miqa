@@ -196,6 +196,7 @@ def perform_import(import_dict, project_id: Optional[str]):
                     session_id=session_id,
                     scan_link=scan_link,
                 )
+
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
                     if last_decision_dict:
@@ -250,6 +251,8 @@ def perform_import(import_dict, project_id: Optional[str]):
                     new_frames.append(frame_object)
                     if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
                         nifti_to_zarr_ngff.delay(frame_data['file_location'])
+
+
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
