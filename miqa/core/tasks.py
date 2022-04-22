@@ -137,7 +137,7 @@ def import_data(project_id: Optional[str]):
             else:
                 with open(import_path) as fd:
                     buf = fd.read()
-            import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf)))
+            import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf), na_filter=False))
         elif import_path.endswith('.json'):
             if import_path.startswith('s3://'):
                 import_dict = json.loads(_download_from_s3(import_path, s3_public))
