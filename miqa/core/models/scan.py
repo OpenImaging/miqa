@@ -22,7 +22,6 @@ SCAN_TYPES = [
     ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'),
     ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'),
     ('PET', 'PET'),
-
 ]
 
 
@@ -37,4 +36,3 @@ class Scan(TimeStampedModel, models.Model):
     subject_id = models.TextField(max_length=255, null=True)
     session_id = models.TextField(max_length=255, null=True)
     scan_link = models.TextField(max_length=1000, null=True)
-
