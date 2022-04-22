@@ -1,24 +1,25 @@
+from typing import Union
+
 from django.contrib.auth.models import User
-from django.db.models import Model
 from django.shortcuts import get_object_or_404
 from django.utils.functional import wraps
+from django.views.generic import View
 from guardian.shortcuts import get_perms
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import View
 
-from miqa.core.models import Experiment, Project
+from miqa.core.models import Experiment, Project, Scan
 
 
 def has_review_perm(user_perms_on_project):
-    return any(perm in user_perms_on_project for perm in Project.get_review_permission_groups())
+    return any(perm in user_perms_on_project for perm in Project().get_review_permission_groups())
 
 
 def has_read_perm(user_perms_on_project):
-    return any(perm in user_perms_on_project for perm in Project.get_read_permission_groups())
+    return any(perm in user_perms_on_project for perm in Project().get_read_permission_groups())
 
 
 def project_permission_required(review_access=False, superuser_access=False, **decorator_kwargs):
@@ -80,7 +81,7 @@ class UserHoldsExperimentLock(BasePermission):
     that it can provide a more specific error message and status code (HTTP 409 Conflict).
     """
 
-    def has_object_permission(self, request: Request, view: View, obj: Model):
+    def has_object_permission(self, request: Request, view: View, obj: Union[Experiment, Scan]):
         if request.method in SAFE_METHODS:
             return True
 
@@ -93,7 +94,7 @@ class UserHoldsExperimentLock(BasePermission):
         return True
 
 
-def ensure_experiment_lock(obj: Model, user: User) -> None:
+def ensure_experiment_lock(obj: Union[Experiment, Scan], user: User) -> None:
     """
     Raise an exception if the given user does not possess the experiment lock.
 

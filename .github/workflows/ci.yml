@@ -46,10 +46,12 @@ jobs:
         run: |
           tox
         env:
+          DJANGO_CONFIGURATION: DevelopmentConfiguration
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
+          DJANGO_STORAGE_BUCKET_NAME: django-storage
       - uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
