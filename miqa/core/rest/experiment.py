@@ -31,7 +31,7 @@ class DecisionSerializer(serializers.ModelSerializer):
         model = ScanDecision
         fields = ['id', 'decision']
 
-    decision = serializers.ChoiceField(choices=ScanDecision.decision.field.choices)
+    decision = serializers.ChoiceField(choices=ScanDecision.decision.field.choices)  # type: ignore
 
 
 class ExperimentSerializer(serializers.ModelSerializer):
@@ -42,7 +42,9 @@ class ExperimentSerializer(serializers.ModelSerializer):
 
     scans = ScanSerializer(many=True)
     lock_owner = LockOwnerSerializer()
-    project = serializers.PrimaryKeyRelatedField(read_only=True, pk_field=UUIDField())
+    project = serializers.PrimaryKeyRelatedField(  # type: ignore
+        read_only=True, pk_field=UUIDField()
+    )
 
 
 class ExperimentCreateSerializer(serializers.ModelSerializer):
@@ -70,7 +72,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            [f'core.{perm}' for perm in Project().get_read_permission_groups()],
             any_perm=True,
         )
         return Experiment.objects.filter(project__in=projects)

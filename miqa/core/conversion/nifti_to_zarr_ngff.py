@@ -26,7 +26,7 @@ def nifti_to_zarr_ngff(nifti_file: str) -> str:
 
     store_path = convert_to_store_path(nifti_file)
     if store_path.exists():
-        return store_path
+        return str(store_path)
     image = itk.imread(str(nifti_file))
     da = itk.xarray_from_image(image)
     da.name = 'image'
