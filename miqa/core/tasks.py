@@ -252,8 +252,6 @@ def perform_import(import_dict, project_id: Optional[str]):
                     if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
                         nifti_to_zarr_ngff.delay(frame_data['file_location'])
 
-
-
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)

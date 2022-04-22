@@ -6,7 +6,6 @@ from schema import And, Optional, Or, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
-
 # subjectid and sessionid are for compatibility with PREDICT and other BidS datasets
 
 IMPORT_CSV_COLUMNS = [
@@ -27,7 +26,7 @@ IMPORT_CSV_COLUMNS = [
     'identified_artifacts',
     'location_of_interest',
     'subject_ID',
-    'session_ID'
+    'session_ID',
 ]
 
 
@@ -62,11 +61,9 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                             'scans': {
                                 And(Use(str)): {
                                     'type': And(Use(str)),
-
                                     Optional('subject_id'): Or(str, None),
                                     Optional('session_id'): Or(str, None),
                                     Optional('scan_link'): Or(str, None),
-
                                     'frames': {And(Use(int)): {'file_location': And(str)}},
                                     Optional('last_decision'): Or(
                                         {
@@ -76,7 +73,6 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                             'created': Or(str, None),
                                             'user_identified_artifacts': Or(str, None),
                                             'location': Or(str, None),
-
                                         },
                                         None,
                                     ),
@@ -148,16 +144,11 @@ def import_dataframe_to_dict(df):
                     scan_dict['last_decision'] = None
 
                 # added for BIDS import
-                if (
-                    'subject_ID' in scan_df.columns
-                ):
+                if 'subject_ID' in scan_df.columns:
                     scan_dict['subject_ID'] = scan_df['subject_ID'].iloc[0]
-                if (
-                    'session_ID' in scan_df.columns
-                ):
+                if 'session_ID' in scan_df.columns:
                     scan_dict['session_ID'] = scan_df['session_ID'].iloc[0]
                 # ---- end of BIDS support addition
-
 
                 experiment_dict['scans'][scan_name] = scan_dict
             project_dict['experiments'][experiment_name] = experiment_dict
