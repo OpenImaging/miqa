@@ -28,7 +28,7 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
                 UserSerializer(user).data
                 for user in get_users_with_perms(obj, only_with_perms_in=[perm_group])
             ]
-            for perm_group in Project.get_read_permission_groups()
+            for perm_group in Project().get_read_permission_groups()
         }
         permissions['collaborator'] = [
             x
@@ -118,7 +118,7 @@ class ProjectViewSet(
     def get_queryset(self):
         projects = get_objects_for_user(
             self.request.user,
-            [f'core.{perm}' for perm in Project.get_read_permission_groups()],
+            [f'core.{perm}' for perm in Project().get_read_permission_groups()],
             any_perm=True,
         )
         if self.action == 'retrieve':

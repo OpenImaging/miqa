@@ -42,7 +42,7 @@ class Frame(TimeStampedModel, models.Model):
 
     @property
     def zarr_path(self: Frame) -> Path:
-        return convert_to_store_path(self.path)
+        return convert_to_store_path(str(self.path))
 
     @property
     def size(self) -> int:
@@ -53,7 +53,7 @@ class Frame(TimeStampedModel, models.Model):
         return self.scan.experiment
 
     @property
-    def storage_mode(self) -> bool:
+    def storage_mode(self) -> StorageMode:
         if settings.S3_SUPPORT:
             if self.content:
                 return StorageMode.CONTENT_STORAGE
@@ -69,6 +69,7 @@ class Frame(TimeStampedModel, models.Model):
             return client.generate_presigned_url(
                 'get_object', Params={'Bucket': bucket, 'Key': key}
             )
+        return None
 
 
 # Remove content from storage before deleting frame object

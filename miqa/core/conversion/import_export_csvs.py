@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional as TypingOptional
+from typing import List, Optional as TypingOptional
 
 from rest_framework.exceptions import APIException
 from schema import And, Optional, Or, Schema, SchemaError, Use
@@ -88,7 +88,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
             }
         }
     )
-    not_found_errors = []
+    not_found_errors: List[str] = []
     try:
         import_schema.validate(import_dict)
         import_dict, not_found_errors = validate_file_locations(
