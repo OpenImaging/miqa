@@ -23,6 +23,27 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='scan',
             name='scan_type',
-            field=models.CharField(choices=[('T1', 'T1'), ('T2', 'T2'), ('FMRI', 'FMRI'), ('MRA', 'MRA'), ('PD', 'PD'), ('DTI', 'DTI'), ('DWI', 'DWI'), ('ncanda-t1spgr-v1', 'ncanda-t1spgr-v1'), ('ncanda-mprage-v1', 'ncanda-mprage-v1'), ('ncanda-t2fse-v1', 'ncanda-t2fse-v1'), ('ncanda-dti6b500pepolar-v1', 'ncanda-dti6b500pepolar-v1'), ('ncanda-dti30b400-v1', 'ncanda-dti30b400-v1'), ('ncanda-dti60b1000-v1', 'ncanda-dti60b1000-v1'), ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'), ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'), ('PET', 'PET')], default='T1', max_length=25),
+            field=models.CharField(
+                choices=[
+                    ('T1', 'T1'),
+                    ('T2', 'T2'),
+                    ('FMRI', 'FMRI'),
+                    ('MRA', 'MRA'),
+                    ('PD', 'PD'),
+                    ('DTI', 'DTI'),
+                    ('DWI', 'DWI'),
+                    ('ncanda-t1spgr-v1', 'ncanda-t1spgr-v1'),
+                    ('ncanda-mprage-v1', 'ncanda-mprage-v1'),
+                    ('ncanda-t2fse-v1', 'ncanda-t2fse-v1'),
+                    ('ncanda-dti6b500pepolar-v1', 'ncanda-dti6b500pepolar-v1'),
+                    ('ncanda-dti30b400-v1', 'ncanda-dti30b400-v1'),
+                    ('ncanda-dti60b1000-v1', 'ncanda-dti60b1000-v1'),
+                    ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'),
+                    ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'),
+                    ('PET', 'PET'),
+                ],
+                default='T1',
+                max_length=25,
+            ),
         ),
     ]
