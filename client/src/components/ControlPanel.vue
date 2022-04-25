@@ -286,6 +286,7 @@ export default {
                   <span>{{ currentViewData.projectName }}</span>
                   <div>
                     <UserAvatar
+                      v-if="lockOwner"
                       :target-user="lockOwner"
                       as-editor
                     />

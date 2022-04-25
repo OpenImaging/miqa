@@ -90,7 +90,6 @@ export default {
   methods: {
     ...mapActions([
       'loadProject',
-      'reloadScan',
       'logout',
       'swapToFrame',
       'getFrame',
