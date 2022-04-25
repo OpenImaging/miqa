@@ -41,7 +41,6 @@ export default {
   computed: {
     ...mapState([
       'vtkViews',
-      'scanCachedPercentage',
       'scanFrames',
       'loadingFrame',
       'errorLoadingFrame',
