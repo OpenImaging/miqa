@@ -25,8 +25,6 @@ IMPORT_CSV_COLUMNS = [
     'last_decision_created',
     'identified_artifacts',
     'location_of_interest',
-    'subject_ID',
-    'session_ID',
 ]
 
 
