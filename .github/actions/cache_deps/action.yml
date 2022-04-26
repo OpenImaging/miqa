@@ -24,7 +24,7 @@ runs:
         key: ${{ runner.os }}-lfs-${{ hashFiles('**/*.pth') }}
         restore-keys: ${{ runner.os }}-lfs-
     - name: fetch-lfs
-      if: steps.cache-lfs.outputs.cache-hit != 'true' && inputs.fetch-lfs == 'true'
+      if: inputs.fetch-lfs == 'true'
       continue-on-error: true
       shell: bash
       run: git lfs fetch && git lfs pull
@@ -39,7 +39,6 @@ runs:
         key: ${{ runner.os }}-tox-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: ${{ runner.os }}-tox-
     - name: install-tox
-      if: steps.cache-tox.outputs.cache-hit != 'true'
       shell: bash
       run: |
           pip install --upgrade pip &&
@@ -55,6 +54,6 @@ runs:
         key: ${{ runner.os }}-npm-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: ${{ runner.os }}-npm-
     - name: install-node-modules
-      if: steps.cache-node-modules.outputs.cache-hit != 'true' && inputs.download-node-deps == 'true'
+      if: inputs.download-node-deps == 'true'
       shell: bash
       run: cd client && npm install
