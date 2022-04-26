@@ -44,7 +44,7 @@ jobs:
       - uses: ./.github/actions/cache_deps
         with:
           fetch-lfs: true
-      - run: tox -e type && tox -e test
+      - run: tox
         env:
           DJANGO_CONFIGURATION: DevelopmentConfiguration
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
