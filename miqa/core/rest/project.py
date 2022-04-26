@@ -126,7 +126,7 @@ class ProjectViewSet(
                 'experiments__scans__frames', 'experiments__scans__decisions'
             )
         else:
-            return projects.all()
+            return projects.all().order_by('name')
 
     def create(self, request, *args, **kwargs):
         if not settings.NORMAL_USERS_CAN_CREATE_PROJECTS and not request.user.is_superuser:
@@ -161,8 +161,6 @@ class ProjectViewSet(
         if request.method == 'PUT':
             if not (request.user.is_superuser or request.user == project.creator):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-            # TODO: need help changing the auto schema to expect permissions object
 
             if 'permissions' in request.data:
                 for key, user_list in request.data['permissions'].items():
