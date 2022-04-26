@@ -52,6 +52,36 @@ jobs:
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+
+  pyppeteer:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: django
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ACCESS_KEY: minioAccesskey
+          MINIO_SECRET_KEY: minioSecretkey
+        ports:
+          - 9000:9000
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/cache_deps
+        with:
+          download-node-deps: true
       - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
         with:
           install_directory: client
@@ -64,6 +94,3 @@ jobs:
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: integration-test-bucket
-      - uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
