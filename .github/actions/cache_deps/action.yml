@@ -1,0 +1,57 @@
+name: Cache dependencies
+inputs:
+  fetch-lfs:
+    default: false
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - uses: actions/setup-node@v2
+      with:
+        node-version: "16"
+
+    - name: cache-lfs
+      id: cache-lfs
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-lfs
+      with:
+        path: .git/lfs
+        key: ${{ runner.os }}-lfs-${{ hashFiles('**/*.pth') }}
+        restore-keys: ${{ runner.os }}-lfs-
+    - name: fetch-lfs
+      if: steps.cache-lfs.outputs.cache-hit != 'true' && inputs.fetch-lfs
+      shell: bash
+      run: git lfs fetch && git lfs pull
+
+    - name: cache-venv
+      id: cache-venv
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-venv
+      with:
+        path: ./.venv/
+        key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: ${{ runner.os }}-venv-
+    - name: install-venv
+      if: steps.cache-venv.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+          pip install --upgrade pip &&
+          pip install tox
+
+    - name: cache-node-modules
+      id: cache-node-modules
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-npm-
+    - name: install-node-modules
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      run: cd client && npm install

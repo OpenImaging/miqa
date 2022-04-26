@@ -7,91 +7,61 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
-image: ubuntu-latest
-
-# Use one cached image as the base for all job containers
-.cache-deps:
-  if: steps.cache-deps.outputs.cache-hit != 'true'
-  uses:
-    - actions/cache@v3
-    - codecov/codecov-action@v2
-    - actions/setup-python@v2
-    - actions/setup-node@v2
-    - docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
-  env:
-    - cache-name: cache-deps
-    - DJANGO_CONFIGURATION: DevelopmentConfiguration
-    - DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-    - DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-    - DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
-    - DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
-    - DJANGO_STORAGE_BUCKET_NAME: django-storage
-
-  services:
-    postgres:
-      image: postgres:latest
-      env:
-        POSTGRES_DB: django
-        POSTGRES_PASSWORD: postgres
-      ports:
-        - 5432:5432
-    rabbitmq:
-      image: rabbitmq:management
-      ports:
-        - 5672:5672
-    minio:
-      image: bitnami/minio:latest
-      env:
-        MINIO_ACCESS_KEY: minioAccesskey
-        MINIO_SECRET_KEY: minioSecretkey
-      ports:
-        - 9000:9000
-
-  with:
-    fail_ci_if_error: true
-
-  with:
-    lfs: true
-    path: .git/lfs
-    key: ${{ runner.os }}-lfs-${{ hashFiles('**/*.pth') }}
-    restore-keys: ${{ runner.os }}-lfs-
-    run: git lfs fetch && git lfs pull
-  with:
-    python-version: "3.8"
-    path: ./.venv/
-    key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-    restore-keys: ${{ runner.os }}-venv-
-    run: |
-      python -m venv ./.venv &&
-      . ./.venv/bin/activate &&
-      pip install --upgrade pip &&
-      pip install tox &&
-      pip install -r requirements.txt
-  with:
-    node-version: "16"
-    install_directory: client
-    path: ~/.npm
-    key: ${{ runner.os }}-npm-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-    restore-keys: ${{ runner.os }}-npm-
-    run: npm install
-
 jobs:
-  test-server-api:
-    extends: .cache-deps
-    run: tox -e test
-  test-server-lint:
-    extends: .cache-deps
-    run:
-      - tox -e lint
-      - tox -e type
-  test-client-pyppeteer:
-    extends: .cache-deps
-    run: tox -e test-pyppeteer
-  test-client-lint:
-    extends: .cache-deps
-    defaults:
-      run:
-        working-directory: client
-    run:
-      - npm run lint -- --no-fix
-      - npm run build
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/cache_deps
+      - run: tox -e lint
+      - run: cd client && npm run lint -- --no-fix
+
+  pytests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: django
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ACCESS_KEY: minioAccesskey
+          MINIO_SECRET_KEY: minioSecretkey
+        ports:
+          - 9000:9000
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/cache_deps
+        with:
+          fetch-lfs: true
+      - run: tox -e type && tox -e test
+        env:
+          DJANGO_CONFIGURATION: DevelopmentConfiguration
+          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
+          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
+          DJANGO_STORAGE_BUCKET_NAME: django-storage
+      - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
+        with:
+          install_directory: client
+          install_command: npm install
+          test_directory: .
+          test_command: tox -e test-pyppeteer
+        env:
+          DJANGO_DATABASE_URL: postgres://postgres:postgres@postgres:5432/django
+          DJANGO_MINIO_STORAGE_ENDPOINT: minio:9000
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
+          DJANGO_STORAGE_BUCKET_NAME: integration-test-bucket
+      - uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
