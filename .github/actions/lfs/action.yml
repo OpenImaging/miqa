@@ -12,7 +12,6 @@ runs:
         key: ${{ runner.os }}-lfs-${{ hashFiles('**/*.pth') }}
         restore-keys: ${{ runner.os }}-lfs-
     - name: fetch-lfs
-      if: inputs.fetch-lfs == 'true'
       continue-on-error: true
       shell: bash
       run: git lfs fetch && git lfs pull

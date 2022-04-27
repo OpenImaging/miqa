@@ -16,6 +16,5 @@ runs:
         key: ${{ runner.os }}-npm-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
         restore-keys: ${{ runner.os }}-npm-
     - name: install-node-modules
-      if: inputs.download-node-deps == 'true'
       shell: bash
       run: cd client && npm install
