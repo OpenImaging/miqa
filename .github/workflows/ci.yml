@@ -12,9 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/cache_deps
-        with:
-          download-node-deps: true
+      - uses: ./.github/actions/tox
+      - uses: ./.github/actions/npm
       - run: tox -e lint
       - run: cd client && npm run lint -- --no-fix
 
@@ -42,9 +41,8 @@ jobs:
           - 9000:9000
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/cache_deps
-        with:
-          fetch-lfs: true
+      - uses: ./.github/actions/lfs
+      - uses: ./.github/actions/tox
       - run: tox
         env:
           DJANGO_CONFIGURATION: DevelopmentConfiguration
@@ -80,9 +78,8 @@ jobs:
           - 9000:9000
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/cache_deps
-        with:
-          download-node-deps: true
+      - uses: ./.github/actions/tox
+      - uses: ./.github/actions/npm
       - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
         with:
           install_directory: client

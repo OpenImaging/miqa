@@ -1,0 +1,21 @@
+name: Cache node modules
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v2
+      with:
+        node-version: "16"
+
+    - name: cache-node-modules
+      id: cache-node-modules
+      uses: actions/cache@v3
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-npm-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-npm-
+    - name: install-node-modules
+      if: inputs.download-node-deps == 'true'
+      shell: bash
+      run: cd client && npm install
