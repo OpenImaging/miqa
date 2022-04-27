@@ -33,6 +33,7 @@ jobs:
         ports:
           - 5672:5672
       minio:
+        # TODO at the time this was pinned, latest bitnami/minio was broken
         image: bitnami/minio:2022.2.18
         env:
           MINIO_ACCESS_KEY: minioAccesskey
