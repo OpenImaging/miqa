@@ -28,7 +28,7 @@ Vue.use(Vuex);
 const fileCache = new Map();
 const frameCache = new Map();
 let readDataQueue = [];
-const pendingFrameDownloads = new Set();
+const pendingFrameDownloads = new Set<any>();
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
@@ -465,13 +465,13 @@ const {
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
       state.projects.find(
-        (project) => project.id == state.currentProject.id
+        (project) => project.id === state.currentProject.id,
       ).status = {
-        'total_scans': taskOverview.total_scans,
-        'total_complete': Object.values(taskOverview.scan_states).filter(
-          (state) => state === 'complete'
-        ).length
-      }
+        total_scans: taskOverview.total_scans,
+        total_complete: Object.values(taskOverview.scan_states).filter(
+          (scanState) => scanState === 'complete',
+        ).length,
+      };
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -731,7 +731,7 @@ const {
       }
       return state.frames[frameId];
     },
-    async setCurrentFrame({ commit, dispatch }, frameId) {
+    async setCurrentFrame({ commit }, frameId) {
       commit('setCurrentFrameId', frameId);
     },
     async swapToFrame({
