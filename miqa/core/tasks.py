@@ -151,6 +151,7 @@ def import_data(project_id: Optional[str]):
         raise APIException(f'Could not locate import file at {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
+    print(import_dict)
     perform_import.delay(import_dict)
     return not_found_errors
 
@@ -164,8 +165,10 @@ def perform_import(import_dict):
     new_scan_decisions: List[ScanDecision] = []
 
     for project_name, project_data in import_dict['projects'].items():
-        # project name checking is done previously in validation step
-        project_object = Project.objects.get(name=project_name)
+        try:
+            project_object = Project.objects.get(name=project_name)
+        except Project.DoesNotExist:
+            raise APIException(f'Project {project_name} does not exist.')
 
         # delete old imports of these projects
         Experiment.objects.filter(
