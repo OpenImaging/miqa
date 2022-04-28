@@ -97,8 +97,10 @@ class DemoModeLoginView(LoginView):
                 'messages': [
                     'Welcome to the MIQA demo. You may login as the demo user with \
                         the following credentials: test@miqa.dev / demoMe',
-                    'Please note that the projects in this demo are regularly reset to a \
-                        start state. Any changes you make will be lost.',
+                    'Please note that the projects in this demo are public and regularly deleted. \
+                        Any changes you make will be lost.',
+                    'To schedule a detailed walkthrough, \
+                        contact us at https://kitware.com/contact/.',
                 ]
             }
         )
