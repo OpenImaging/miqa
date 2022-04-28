@@ -1,4 +1,5 @@
 import djclick as click
+
 from miqa.core.management.populate_demo import populate_demo
 
 
