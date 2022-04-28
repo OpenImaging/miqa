@@ -10,7 +10,7 @@ from miqa.core.tasks import import_data
 def populate_demo():
     if settings.DEMO_MODE:
         # Delete extra projects in the system that users may have created
-        Project.objects.all().delete()
+        Project.objects.filter(creator__email='test@miqa.dev').delete()
 
         # Ensure that the demo user exists
         demo_user, created = User.objects.get_or_create(
