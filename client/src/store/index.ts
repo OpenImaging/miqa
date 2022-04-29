@@ -464,14 +464,16 @@ const {
     },
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
-      state.projects.find(
-        (project) => project.id === state.currentProject.id,
-      ).status = {
-        total_scans: taskOverview.total_scans,
-        total_complete: Object.values(taskOverview.scan_states).filter(
-          (scanState) => scanState === 'complete',
-        ).length,
-      };
+      if(taskOverview.scan_states){
+        state.projects.find(
+          (project) => project.id === state.currentProject.id,
+        ).status = {
+          total_scans: taskOverview.total_scans,
+          total_complete: Object.values(taskOverview.scan_states).filter(
+            (scanState) => scanState === 'complete',
+          ).length,
+        };
+      }
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
