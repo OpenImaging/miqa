@@ -464,7 +464,7 @@ const {
     },
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
-      if(taskOverview.scan_states){
+      if (taskOverview.scan_states) {
         state.projects.find(
           (project) => project.id === state.currentProject.id,
         ).status = {
