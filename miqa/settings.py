@@ -45,6 +45,7 @@ class MiqaMixin(ConfigMixin):
         # Install local apps first, to ensure any overridden resources are found first
         configuration.INSTALLED_APPS = [
             'miqa.core.apps.CoreConfig',
+            'auth_style',
         ] + configuration.INSTALLED_APPS
 
         # Install additional apps
