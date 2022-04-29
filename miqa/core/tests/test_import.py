@@ -83,16 +83,13 @@ def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_a
     project_ucsd = project_factory(name='ucsd')
 
     resp = user_api_client().post('/api/v1/global/import')
-    if user.is_superuser:
-        assert resp.status_code == 204
-        project_ohsu.refresh_from_db()
-        project_ucsd.refresh_from_db()
-        assert project_ohsu.experiments.count() == 1
-        assert project_ohsu.experiments.get().scans.count() == 1
-        assert project_ucsd.experiments.count() == 1
-        assert project_ucsd.experiments.get().scans.count() == 1
-    else:
-        assert resp.status_code == 403
+    assert resp.status_code == 204
+    project_ohsu.refresh_from_db()
+    project_ucsd.refresh_from_db()
+    assert project_ohsu.experiments.count() == 1
+    assert project_ohsu.experiments.get().scans.count() == 1
+    assert project_ucsd.experiments.count() == 1
+    assert project_ucsd.experiments.get().scans.count() == 1
 
 
 @pytest.mark.django_db
@@ -142,17 +139,14 @@ def test_import_global_json(
     project_ucsd = project_factory(import_path=json_file, name='ucsd')
 
     resp = user_api_client().post('/api/v1/global/import')
-    if user.is_superuser:
-        assert resp.status_code == 204
-        # The import should update the correctly named projects, but not the original import project
-        project_ohsu.refresh_from_db()
-        project_ucsd.refresh_from_db()
-        assert project_ohsu.experiments.count() == 1
-        assert project_ohsu.experiments.get().scans.count() == 1
-        assert project_ucsd.experiments.count() == 1
-        assert project_ucsd.experiments.get().scans.count() == 1
-    else:
-        assert resp.status_code == 403
+    assert resp.status_code == 204
+    # The import should update the correctly named projects, but not the original import project
+    project_ohsu.refresh_from_db()
+    project_ucsd.refresh_from_db()
+    assert project_ohsu.experiments.count() == 1
+    assert project_ohsu.experiments.get().scans.count() == 1
+    assert project_ucsd.experiments.count() == 1
+    assert project_ucsd.experiments.get().scans.count() == 1
 
 
 @pytest.mark.django_db
