@@ -90,14 +90,15 @@ class LogoutView(APIView):
 
 
 class DemoModeLoginView(LoginView):
+    template_name = 'demo_mode_login.html'
+
     def get_context_data(self, **kwargs):
         ret = super(LoginView, self).get_context_data(**kwargs)
         ret.update(
             {
                 'messages': [
-                    'Welcome to the MIQA demo. You may login as the demo user with \
-                        the following credentials: test@miqa.dev / demoMe',
-                    'Please note that the projects in this demo are public and regularly deleted. \
+                    'Welcome to the MIQA demo. Please note that the projects in this demo \
+                        are public and regularly deleted. \
                         Any changes you make will be lost.',
                     'To schedule a detailed walkthrough, \
                         contact us at https://kitware.com/contact/.',
