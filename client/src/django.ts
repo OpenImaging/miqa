@@ -53,8 +53,10 @@ const djangoClient = {
     await oauthClient.redirectToLogin();
   },
   async logout() {
-    await apiClient.post('/logout/', undefined, { withCredentials: true });
-    await oauthClient.logout();
+    await Promise.all([
+      apiClient.post('/logout/', undefined, { withCredentials: true }),
+      oauthClient.logout(),
+    ]);
   },
   async MIQAConfig() {
     const { data } = await apiClient.get('/configuration/');
