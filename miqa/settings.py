@@ -35,9 +35,9 @@ class MiqaMixin(ConfigMixin):
     S3_SUPPORT = True
 
     # Demo mode is for app.miqaweb.io (Do not enable for normal instances)
-    DEMO_MODE = False
+    DEMO_MODE = values.BooleanValue(environ=True, default=False)
     # It is recommended to enable the following for demo mode:
-    NORMAL_USERS_CAN_CREATE_PROJECTS = values.Value(environ=True, default=False)
+    NORMAL_USERS_CAN_CREATE_PROJECTS = values.BooleanValue(environ=True, default=False)
 
     # Override default signup sheet to ask new users for first and last name
     ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
