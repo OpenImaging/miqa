@@ -146,9 +146,6 @@ def test_experiments_list(user_api_client, experiment, user):
                 'note': experiment.note,
             }
         ]
-        print(resp.data['results'])
-        print()
-        print(expected_result)
         assert resp.data == {
             'count': 1,
             'next': None,

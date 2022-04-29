@@ -70,7 +70,6 @@ def test_import_csv_optional_columns(user, project_factory, user_api_client):
 @pytest.mark.django_db(transaction=True)
 def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
     csv_file = str(tmp_path / 'import.csv')
-    print(sample_scans)
     with open(csv_file, 'w') as fd:
         output, _writer = generate_import_csv(sample_scans)
         fd.write(output.getvalue())
