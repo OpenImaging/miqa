@@ -1,4 +1,5 @@
 from allauth.account.forms import SignupForm
+from allauth.account.views import LoginView
 from django import forms
 from django.conf import settings
 from django.contrib.auth import logout
@@ -86,6 +87,25 @@ class LogoutView(APIView):
         if request.user.is_authenticated:
             logout(request)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DemoModeLoginView(LoginView):
+    template_name = 'demo_mode_login.html'
+
+    def get_context_data(self, **kwargs):
+        ret = super(LoginView, self).get_context_data(**kwargs)
+        ret.update(
+            {
+                'messages': [
+                    'Welcome to the MIQA demo. Please note that the projects in this demo \
+                        are public and regularly deleted. \
+                        Any changes you make will be lost.',
+                    'To schedule a detailed walkthrough, \
+                        contact us at https://kitware.com/contact/.',
+                ]
+            }
+        )
+        return ret
 
 
 class AccountSignupForm(SignupForm):

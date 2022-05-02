@@ -199,7 +199,11 @@ def perform_import(import_dict, project_id: Optional[str]):
 
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
-                    if last_decision_dict:
+                    if (
+                        last_decision_dict
+                        and 'decision' in last_decision_dict
+                        and len(last_decision_dict['decision']) > 0
+                    ):
                         try:
                             creator = User.objects.get(email=last_decision_dict['creator'])
                         except User.DoesNotExist:
