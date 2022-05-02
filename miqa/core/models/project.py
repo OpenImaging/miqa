@@ -4,6 +4,7 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.dispatch import receiver
 from django_extensions.db.models import TimeStampedModel
 from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
@@ -134,3 +135,14 @@ class Project(TimeStampedModel, models.Model):
             ('tier_1_reviewer', 'Tier 1 Reviewer'),
             ('tier_2_reviewer', 'Tier 2 Reviewer'),
         )
+
+
+@receiver(models.signals.post_delete, sender=Project)
+def delete_objects(sender, instance, *args, **kwargs):
+    from miqa.core import models
+
+    models.Evaluation.objects.filter(frame__scan__experiment__project=instance).delete()
+    models.ScanDecision.objects.filter(scan__experiment__project=instance).delete()
+    models.Frame.objects.filter(scan__experiment__project=instance).delete()
+    models.Scan.objects.filter(experiment__project=instance).delete()
+    models.Experiment.objects.filter(project=instance).delete()

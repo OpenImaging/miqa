@@ -9,6 +9,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from miqa.core.rest import (
     AccountActivateView,
     AccountInactiveView,
+    DemoModeLoginView,
     EmailView,
     ExperimentViewSet,
     FrameViewSet,
@@ -54,6 +55,11 @@ urlpatterns = [
     path('api/docs/redoc/', schema_view.with_ui('redoc'), name='docs-redoc'),
     path('api/docs/swagger/', schema_view.with_ui('swagger'), name='docs-swagger'),
 ]
+
+if settings.DEMO_MODE:
+    urlpatterns = [
+        path('accounts/login/', DemoModeLoginView.as_view()),
+    ] + urlpatterns
 
 if settings.DEBUG:
     import debug_toolbar
