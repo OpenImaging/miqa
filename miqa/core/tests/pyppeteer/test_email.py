@@ -26,7 +26,7 @@ async def test_send_email(page, log_in, user, samples_project):
     # Click on the email icon to open the email modal
     await (await page.waitForXPath('//button//i[.="email"]')).click()
     # Wait a second for the modal to open
-    await page.waitFor(1_000)
+    await page.waitFor(3_000)
     # Ensure that the default email recipient is present in the To field
     await page.waitForXPath(
         f'//div[label[.="to"]]/div/span[.=" {samples_project.default_email_recipients} "]//button'
