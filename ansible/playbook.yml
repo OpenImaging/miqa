@@ -1,0 +1,41 @@
+# Run: ansible-playbook --vault-password-file ./vault-password -i hosts playbook.yml
+
+- name: Deploy Celery worker
+  hosts: all
+  vars:
+    ansible_python_interpreter: auto
+  vars_files:
+    - ./vaultvars.yml
+  roles:
+    - role: girder.celery
+      vars:
+        celery_app: miqa.celery
+        celery_repository_url: https://github.com/OpenImaging/miqa.git
+        celery_environment:
+          AWS_ACCESS_KEY_ID:                       AKIAT4NQES3ZKUKTDLIU
+          AWS_DEFAULT_REGION:                      us-east-1
+          AWS_SECRET_ACCESS_KEY:                   "{{ aws_secret_access_key }}"
+          CLOUDAMQP_APIKEY:                        "{{ cloudamqp_api_key }}"
+          CLOUDAMQP_URL:                           "{{ cloudamqp_url }}"
+          DATABASE_URL:                            "{{ database_url }}"
+          DJANGO_ALLOWED_HOSTS:                    app.miqaweb.io
+          DJANGO_CONFIGURATION:                    HerokuProductionConfiguration
+          DJANGO_CORS_ORIGIN_REGEX_WHITELIST:      ""
+          DJANGO_CORS_ORIGIN_WHITELIST:            ""
+          DJANGO_DEMO_MODE:                        "true"
+          DJANGO_NORMAL_USERS_CAN_CREATE_PROJECTS: "true"
+          DJANGO_DEFAULT_FROM_EMAIL:               admin@app.miqaweb.io
+          DJANGO_EMAIL_URL:                        "{{ email_url }}"
+          DJANGO_SECRET_KEY:                       "{{ django_secret_key }}"
+          DJANGO_SENTRY_DSN:                       https://5f3cb898f0164c34ab13c90dfcee4ad4@o267860.ingest.sentry.io/6196580
+          DJANGO_STORAGE_BUCKET_NAME:              miqa-storage
+          PAPERTRAIL_API_TOKEN:                    "{{ papertrail_api_token }}"
+  tasks:
+    - name: Setup authorized keys for developers
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ item }}"
+      with_items:
+        - "{{ lookup('file', 'anne.pub') }}"
+        - "{{ lookup('file', 'daniel.pub') }}"

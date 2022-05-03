@@ -137,8 +137,10 @@ def import_data(project_id: Optional[str]):
             else:
                 with open(import_path) as fd:
                     buf = fd.read()
-            df = pandas.read_csv(StringIO(buf), index_col=False, na_filter=False).astype('string')
-            import_dict = import_dataframe_to_dict(df, project)
+            import_dict = import_dataframe_to_dict(
+                pandas.read_csv(StringIO(buf), index_col=False, na_filter=False),
+                project,
+            )
         elif import_path.endswith('.json'):
             if import_path.startswith('s3://'):
                 import_dict = json.loads(_download_from_s3(import_path, s3_public))
@@ -199,7 +201,11 @@ def perform_import(import_dict):
 
                 if 'last_decision' in scan_data:
                     last_decision_dict = scan_data['last_decision']
-                    if last_decision_dict:
+                    if (
+                        last_decision_dict
+                        and 'decision' in last_decision_dict
+                        and len(last_decision_dict['decision']) > 0
+                    ):
                         try:
                             creator = User.objects.get(email=last_decision_dict['creator'])
                         except User.DoesNotExist:

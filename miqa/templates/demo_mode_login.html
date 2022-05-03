@@ -1,0 +1,21 @@
+{% extends "account/login.html" %}
+
+{% block extra_body %}
+<div style="display: flex; justify-content: space-around; padding: 20px;">
+  <form class="login" method="POST" action="{% url 'account_login' %}">
+
+    {% csrf_token %}
+
+    <input type="hidden" name="login" value="test@miqa.dev" />
+    <input type="hidden" name="password" value="demoMe" />
+
+    <button class="btn btn-primary" type="submit">
+      Sign in as the Demo User
+      <i class="ri-shield-user-line ml-3 text-xl"></i>
+    </button>
+
+  </form>
+</div>
+
+
+{% endblock %}

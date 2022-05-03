@@ -206,7 +206,10 @@ export default {
               flat
               class="d-flex pr-2"
             >
-              <v-card flat>
+              <v-card
+                v-if="experiment.lock_owner"
+                flat
+              >
                 {{ experiment.name }}
                 <UserAvatar
                   v-if="experiment.lock_owner"

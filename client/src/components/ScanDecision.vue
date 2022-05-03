@@ -49,6 +49,7 @@ export default {
       style="flex-direction:row; column-gap: 2px"
     >
       <UserAvatar
+        v-if="decision.creator"
         :target-user="decision.creator"
       />
       <div :class="convertDecisionToColor(decision.decision)">

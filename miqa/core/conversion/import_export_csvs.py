@@ -138,21 +138,17 @@ def import_dataframe_to_dict(df, project):
                     scan_dict['session_id'] = scan_df['session_id'].iloc[0]
                 if 'scan_link' in scan_df.columns:
                     scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
-                if (
-                    'last_decision' in scan_df.columns
-                    and str(scan_df['last_decision'].iloc[0]) != 'nan'
-                ):
+                if 'last_decision' in scan_df.columns and scan_df['last_decision'].iloc[0]:
                     decision_dict = {
                         'decision': scan_df['last_decision'].iloc[0],
                         'creator': scan_df['last_decision_creator'].iloc[0],
                         'note': scan_df['last_decision_note'].iloc[0],
                         'created': scan_df['last_decision_created'].iloc[0],
-                        'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0],
-                        'location': scan_df['location_of_interest'].iloc[0],
+                        'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0]
+                        or None,
+                        'location': scan_df['location_of_interest'].iloc[0] or None,
                     }
-                    decision_dict = {
-                        k: (v if str(v) != 'nan' else None) for k, v in decision_dict.items()
-                    }
+                    decision_dict = {k: (v or None) for k, v in decision_dict.items()}
                     scan_dict['last_decision'] = decision_dict
                 else:
                     scan_dict['last_decision'] = None

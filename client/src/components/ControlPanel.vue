@@ -280,6 +280,7 @@ export default {
                   </div>
                 </div>
                 <div
+                  v-if="lockOwner"
                   class="grey--text d-flex"
                   style="text-align: right; flex-direction:column; row-gap: 5px;"
                 >
