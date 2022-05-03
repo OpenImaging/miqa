@@ -6,8 +6,18 @@ on:
       - master
   schedule:
     - cron: "0 0 * * *"
+
 jobs:
-  test:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/tox
+      - uses: ./.github/actions/npm
+      - run: tox -e lint
+      - run: cd client && npm run lint -- --no-fix
+
+  pytests:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -22,7 +32,6 @@ jobs:
         ports:
           - 5672:5672
       minio:
-        # This image does not require any command arguments (which GitHub Actions don't support)
         # TODO at the time this was pinned, latest bitnami/minio was broken
         image: bitnami/minio:2022.2.18
         env:
@@ -32,19 +41,9 @@ jobs:
           - 9000:9000
     steps:
       - uses: actions/checkout@v2
-        with:
-          lfs: true
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.8"
-      - name: Install tox
-        run: |
-          pip install --upgrade pip
-          pip install tox
-      - name: Run tests
-        run: |
-          tox
+      - uses: ./.github/actions/lfs
+      - uses: ./.github/actions/tox
+      - run: tox
         env:
           DJANGO_CONFIGURATION: DevelopmentConfiguration
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
@@ -55,7 +54,8 @@ jobs:
       - uses: codecov/codecov-action@v2
         with:
           fail_ci_if_error: true
-  test-pyppeteer:
+
+  pyppeteer:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -70,20 +70,18 @@ jobs:
         ports:
           - 5672:5672
       minio:
-        # This image does not require any command arguments (which GitHub Actions don't support)
-        # TODO at the time this was pinned, latest bitnami/minio was broken
-        image: bitnami/minio:2022.2.18
+        image: bitnami/minio:latest
         env:
-          MINIO_ACCESS_KEY: minioAccessKey
-          MINIO_SECRET_KEY: minioSecretKey
+          MINIO_ACCESS_KEY: minioAccesskey
+          MINIO_SECRET_KEY: minioSecretkey
         ports:
           - 9000:9000
     steps:
       - uses: actions/checkout@v2
-        with:
-          lfs: true
-      - name: Run tests
-        uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.9
+      - uses: ./.github/actions/tox
+      - uses: ./.github/actions/lfs
+      - uses: ./.github/actions/npm
+      - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.11
         with:
           install_directory: client
           install_command: npm install
@@ -95,16 +93,3 @@ jobs:
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: integration-test-bucket
-  test-client:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "16"
-      - run: npm ci
-      - run: npm run lint -- --no-fix
-      - run: npm run build

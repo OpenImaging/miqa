@@ -133,7 +133,10 @@ export default defineComponent({
       <v-icon>mdi-open-in-new</v-icon>
     </v-btn>
 
-    <UserAvatar :target-user="user" />
+    <UserAvatar
+      v-if="user"
+      :target-user="user"
+    />
     <UserButton
       @user="logoutUser()"
       @login="djangoRest.login()"
