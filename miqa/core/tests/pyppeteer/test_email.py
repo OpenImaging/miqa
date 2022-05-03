@@ -29,10 +29,14 @@ async def test_send_email(page, log_in, user, samples_project):
     await page.waitFor(1_000)
     # Ensure that the default email recipient is present in the To field
     await page.waitForXPath(
-        f'//div[label[.="to"]]/div/span[.=" {samples_project.default_email_recipients} "]//button'
+        f'//div[label[.="to"]]/div[@class="v-select__selections"]'
+        f'/span[.=" {samples_project.default_email_recipients} "]'
     )
     # Ensure that the current user is present in the CC field
-    await page.waitForXPath(f'//div[label[.="cc"]]/div/span[.=" {user.email} "]//button')
+    await page.waitForXPath(
+        f'//div[label[.="cc"]]/div[@class="v-select__selections"]'
+        f'/span[.=" {user.email} "]//button'
+    )
     # Add a user in the To field
     await (await page.waitForXPath('//div[label[.="to"]]/div/input')).type('foo_bar@kitware.com')
     # Click on a different field so that the new recipient chip saves
