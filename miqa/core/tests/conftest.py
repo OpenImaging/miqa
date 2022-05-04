@@ -71,9 +71,9 @@ register(FrameFactory)
 def samples_project(tmp_path, sample_scans, project_factory):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
-        output, _writer = generate_import_csv(sample_scans)
+        output, _writer = generate_import_csv([sample_scans[0]])
         fd.write(output.getvalue())
-    project = project_factory(import_path=csv_file)
+    project = project_factory(import_path=csv_file, name='ucsd')
     import_data(project_id=project.id)
     return project
 

@@ -82,7 +82,7 @@ interface ProjectTaskOverview {
   total_scans: number,
   my_project_role: string,
   scan_states: {
-    string: ScanState,
+    string: string,
   },
 }
 

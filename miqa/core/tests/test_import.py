@@ -6,45 +6,59 @@ from guardian.shortcuts import get_perms
 import pytest
 from rest_framework.exceptions import APIException
 
+from miqa.core.conversion.import_export_csvs import IMPORT_CSV_COLUMNS
 from miqa.core.models import Frame, GlobalSettings
 from miqa.core.tasks import import_data
 from miqa.core.tests.helpers import generate_import_csv, generate_import_json
 
 
 @pytest.mark.django_db
-def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
+def test_import_empty_csv(tmp_path, user, project_factory, user_api_client):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
-        output, _writer = generate_import_csv(sample_scans)
-        fd.write(output.getvalue())
+        fd.write(', '.join(IMPORT_CSV_COLUMNS))
 
-    # The default project will have a name which does not match the import CSV column
-    project = project_factory(import_path=csv_file)
+    project = project_factory(name='ucsd', import_path=csv_file)
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
     if get_perms(user, project):
-        assert resp.status_code == 204
-        # The import should update the project, even though the names do not match
-        project.refresh_from_db()
-        assert project.experiments.count() == 2
-        assert project.experiments.all()[0].scans.count() == 1
-        assert project.experiments.all()[1].scans.count() == 1
+        assert resp.status_code == 500
+        assert resp.data['detail'] == 'Import CSV has no data.'
     else:
         assert resp.status_code == 401
 
 
 @pytest.mark.django_db
-def test_import_csv_optional_columns(user, project_factory, sample_scans, user_api_client):
-    csv_file = Path('samples', 'scans_to_review_optional_columns.csv')
+def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
+    csv_file = str(tmp_path / 'import.csv')
+    with open(csv_file, 'w') as fd:
+        output, _writer = generate_import_csv([sample_scans[0]])
+        fd.write(output.getvalue())
 
-    project = project_factory(import_path=str(csv_file))
+    project = project_factory(name='ucsd', import_path=csv_file)
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
     if get_perms(user, project):
         assert resp.status_code == 204
-        # The import should update the project, even though the names do not match
+        project.refresh_from_db()
+        assert project.experiments.count() == 1
+        assert project.experiments.all()[0].scans.count() == 1
+    else:
+        assert resp.status_code == 401
+
+
+@pytest.mark.django_db
+def test_import_csv_optional_columns(user, project_factory, user_api_client):
+    csv_file = Path('samples', 'scans_to_review_optional_columns.csv')
+
+    project = project_factory(name='simple-scans', import_path=str(csv_file))
+    user_api_client = user_api_client(project=project)
+
+    resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
+    if get_perms(user, project):
+        assert resp.status_code == 204
         project.refresh_from_db()
         assert project.experiments.count() == 2
         assert project.experiments.all()[0].scans.count() == 1
@@ -55,8 +69,8 @@ def test_import_csv_optional_columns(user, project_factory, sample_scans, user_a
 
 @pytest.mark.django_db(transaction=True)
 def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
-    # Generate an import CSV for two projects with the same data
     csv_file = str(tmp_path / 'import.csv')
+    print(sample_scans)
     with open(csv_file, 'w') as fd:
         output, _writer = generate_import_csv(sample_scans)
         fd.write(output.getvalue())
@@ -66,13 +80,12 @@ def test_import_global_csv(tmp_path, user, project_factory, sample_scans, user_a
     global_settings.save()
 
     # Create projects targeted by the import
-    project_ohsu = project_factory(import_path=csv_file, name='ohsu')
-    project_ucsd = project_factory(import_path=csv_file, name='ucsd')
+    project_ohsu = project_factory(name='ohsu')
+    project_ucsd = project_factory(name='ucsd')
 
     resp = user_api_client().post('/api/v1/global/import')
     if user.is_superuser:
         assert resp.status_code == 204
-        # The import should update the correctly named projects, but not the original import project
         project_ohsu.refresh_from_db()
         project_ucsd.refresh_from_db()
         assert project_ohsu.experiments.count() == 1
@@ -94,19 +107,16 @@ def test_import_json(
 ):
     json_file = str(tmp_path / 'import.json')
     with open(json_file, 'w') as fd:
-        fd.write(json.dumps(generate_import_json(samples_dir, sample_scans)))
+        fd.write(json.dumps(generate_import_json(samples_dir, [sample_scans[0]])))
 
-    # The default project will have a name which does not match the project in the JSON
-    project = project_factory(import_path=json_file)
+    project = project_factory(name='ucsd', import_path=json_file)
 
     resp = user_api_client(project=project).post(f'/api/v1/projects/{project.id}/import')
     if get_perms(user, project):
         assert resp.status_code == 204
-        # The import should update the project, even though the names do not match
         project.refresh_from_db()
-        assert project.experiments.count() == 2
+        assert project.experiments.count() == 1
         assert project.experiments.all()[0].scans.count() == 1
-        assert project.experiments.all()[1].scans.count() == 1
     else:
         assert resp.status_code == 401
 
@@ -157,12 +167,12 @@ def test_import_invalid_extension(user, project_factory):
 @pytest.mark.django_db
 def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans):
     csv_file = str(tmp_path / 'import.csv')
-    output, writer = generate_import_csv(sample_scans)
+    output, writer = generate_import_csv([sample_scans[0]])
 
     # deliberately invalidate the data
     writer.writerow(
         {
-            'project_name': 'testProject',
+            'project_name': 'ucsd',
             'experiment_name': 'testExperiment',
             'scan_name': 'testScan',
             'scan_type': 'foobar',
@@ -174,7 +184,7 @@ def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans)
     with open(csv_file, 'w') as fd:
         fd.write(output.getvalue())
 
-    project = project_factory(import_path=csv_file)
+    project = project_factory(name='ucsd', import_path=csv_file)
 
     error_list = import_data(project.id)
     assert error_list == ['File not found: /not/a/real/file.nii.gz']
@@ -209,7 +219,7 @@ def test_import_invalid_json(
 @pytest.mark.django_db
 def test_import_with_relative_path(project_factory):
     rel_import_csv = Path(__file__).parent / 'data' / 'relative_import.csv'
-    project = project_factory(import_path=rel_import_csv)
+    project = project_factory(name='Guys', import_path=rel_import_csv)
     import_data(project.id)
 
     frame = Frame.objects.first()
@@ -219,7 +229,7 @@ def test_import_with_relative_path(project_factory):
 @pytest.mark.django_db
 def test_import_s3_preserves_path(project_factory):
     s3_import_csv = Path(__file__).parent / 'data' / 's3_import.csv'
-    project = project_factory(import_path=s3_import_csv)
+    project = project_factory(name='Guys', import_path=s3_import_csv)
     import_data(project.id)
 
     frame = Frame.objects.first()

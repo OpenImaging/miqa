@@ -41,7 +41,6 @@ export default {
   computed: {
     ...mapState([
       'vtkViews',
-      'scanCachedPercentage',
       'scanFrames',
       'loadingFrame',
       'errorLoadingFrame',
@@ -91,7 +90,6 @@ export default {
   methods: {
     ...mapActions([
       'loadProject',
-      'reloadScan',
       'logout',
       'swapToFrame',
       'getFrame',
