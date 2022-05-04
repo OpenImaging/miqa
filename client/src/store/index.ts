@@ -13,7 +13,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, Frame, ScanState, ProjectSettings,
+  Project, ProjectTaskOverview, User, Frame, ProjectSettings,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -557,18 +557,17 @@ const {
         const myRole = state.currentTaskOverview.my_project_role;
         state.scans = Object.fromEntries(
           Object.entries(state.allScans).filter(
-            ([scanId, scan]) => {
+            ([scanId]) => {
               const scanState = state.currentTaskOverview.scan_states[scanId];
-              console.log(scanState)
-              switch(scanState){
+              switch (scanState) {
                 case 'unreviewed':
                   return true;
                 case 'complete':
                   return false;
                 default:
-                  return myRole == 'tier_2_reviewer';
+                  return myRole === 'tier_2_reviewer';
               }
-            }
+            },
           ),
         );
       } else {
