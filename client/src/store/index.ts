@@ -555,20 +555,20 @@ const {
       state.reviewMode = mode || false;
       if (mode) {
         const myRole = state.currentTaskOverview.my_project_role;
-        let scanStateForMyReview: string = null;
-        if (myRole === 'tier_2_reviewer') {
-          [, scanStateForMyReview] = Object.keys(ScanState);
-        } else if (myRole === 'tier_1_reviewer') {
-          [scanStateForMyReview] = Object.keys(ScanState);
-        }
-        const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
-          ([, scanState]) => scanStateForMyReview.replace(/_/g, ' ') === scanState,
-        ).map(
-          ([scanId]) => scanId,
-        );
         state.scans = Object.fromEntries(
           Object.entries(state.allScans).filter(
-            ([scanId]) => scanIdsForMyReview.includes(scanId),
+            ([scanId, scan]) => {
+              const scanState = state.currentTaskOverview.scan_states[scanId];
+              console.log(scanState)
+              switch(scanState){
+                case 'unreviewed':
+                  return true;
+                case 'complete':
+                  return false;
+                default:
+                  return myRole == 'tier_2_reviewer';
+              }
+            }
           ),
         );
       } else {
