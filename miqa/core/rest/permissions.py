@@ -37,14 +37,13 @@ def project_permission_required(review_access=False, superuser_access=False, **d
             user_perms_on_project = get_perms(user, project)
             review_perm = has_review_perm(user_perms_on_project)
             read_perm = has_read_perm(user_perms_on_project)
-            error_response = Response(status=status.HTTP_403_FORBIDDEN)
 
             if (
                 (superuser_access and not user.is_superuser)
                 or (review_access and not review_perm)
                 or not read_perm
             ):
-                return error_response
+                return Response(status=status.HTTP_403_FORBIDDEN)
 
             return view_func(viewset, *args, **wrapped_view_kwargs)
 
