@@ -53,7 +53,7 @@ def test_projects_list(user_api_client, project, user):
 def test_project_settings_get(user_api_client, project, user):
     resp = user_api_client().get(f'/api/v1/projects/{project.id}/settings')
     if not has_read_perm(get_perms(user, project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 200
         assert all(key in resp.data for key in ['import_path', 'export_path', 'permissions'])
@@ -79,7 +79,7 @@ def test_project_settings_put(user_api_client, project_factory, user_factory, us
         },
     )
     if not user.is_superuser:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         expected_perms = {
             'collaborator': [UserSerializer(user).data]
@@ -119,7 +119,7 @@ def test_settings_endpoint_requires_superuser(user_api_client, project_factory, 
         },
     )
     if not user.is_superuser:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 200
 
@@ -259,7 +259,7 @@ def test_experiment_lock_acquire(user_api_client, experiment, user):
         f'/api/v1/experiments/{experiment.id}/lock'
     )
     if not has_review_perm(get_perms(user, experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 200
 
@@ -274,7 +274,7 @@ def test_experiment_lock_reacquire_ok(user_api_client, experiment_factory, user)
         f'/api/v1/experiments/{experiment.id}/lock'
     )
     if not has_review_perm(get_perms(user, experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 200
 
@@ -287,7 +287,7 @@ def test_experiment_lock_denied(user_api_client, experiment_factory, user_factor
         f'/api/v1/experiments/{experiment.id}/lock'
     )
     if not has_review_perm(get_perms(user, experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 409
 
@@ -302,7 +302,7 @@ def test_experiment_lock_release(user_api_client, experiment_factory, user):
         f'/api/v1/experiments/{experiment.id}/lock'
     )
     if not has_review_perm(get_perms(user, experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 200
 
@@ -320,7 +320,7 @@ def test_experiment_lock_only_owner_can_release(
         f'/api/v1/experiments/{experiment.id}/lock'
     )
     if not has_review_perm(get_perms(user, experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 409
 
@@ -347,7 +347,7 @@ def test_create_scan_decision_without_lock_fails(user_api_client, scan, user):
         },
     )
     if not has_review_perm(get_perms(user, scan.experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 403
         assert resp.data['detail'] == 'You must lock the experiment before performing this action.'
@@ -367,7 +367,7 @@ def test_create_scan_decision_with_lock(user_api_client, scan, user):
         },
     )
     if not has_review_perm(get_perms(user, scan.experiment.project)):
-        assert resp.status_code == 401
+        assert resp.status_code == 403
     else:
         assert resp.status_code == 201
         decisions = scan.decisions.all()

@@ -26,7 +26,7 @@ def test_import_empty_csv(tmp_path, user, project_factory, user_api_client):
         assert resp.status_code == 500
         assert resp.data['detail'] == 'Import CSV has no data.'
     else:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
 
 
 @pytest.mark.django_db
@@ -46,7 +46,7 @@ def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_clie
         assert project.experiments.count() == 1
         assert project.experiments.all()[0].scans.count() == 1
     else:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
 
 
 @pytest.mark.django_db
@@ -64,7 +64,7 @@ def test_import_csv_optional_columns(user, project_factory, user_api_client):
         assert project.experiments.all()[0].scans.count() == 1
         assert project.experiments.all()[1].scans.count() == 1
     else:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
 
 
 @pytest.mark.django_db(transaction=True)
@@ -114,7 +114,7 @@ def test_import_json(
         assert project.experiments.count() == 1
         assert project.experiments.all()[0].scans.count() == 1
     else:
-        assert resp.status_code == 401
+        assert resp.status_code == 403
 
 
 @pytest.mark.django_db
