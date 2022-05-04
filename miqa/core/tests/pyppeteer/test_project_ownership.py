@@ -5,7 +5,8 @@ import pytest
 async def get_collaborators(page):
     """Return the list of collaborator emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Collaborators")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")]'  # noqa: E501
+        '//div[contains(.,"Collaborators")]'
+        '/../following-sibling::div/div[contains(@class, "v-avatar")]'
     )
     return [(await page.evaluate('(element) => element.textContent', row)).strip() for row in rows]
 
@@ -13,7 +14,8 @@ async def get_collaborators(page):
 async def get_tier_1_reviewers(page):
     """Return the list of tier 1 reviewer emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 1 reviewer "]]'  # noqa: E501
+        '//div[contains(.,"Members")]'
+        '/../following-sibling::div[span[contains(., "tier 1 reviewer")]]'
     )
     return [
         (await page.evaluate('(element) => element.textContent', row)).strip().split(' ')[0]
@@ -24,7 +26,8 @@ async def get_tier_1_reviewers(page):
 async def get_tier_2_reviewers(page):
     """Return the list of tier 2 reviewer emails."""
     rows = await page.xpath(
-        '//div[contains(@class, "col")][contains(.,"Members")]/../following-sibling::div[contains(@class, "row")]/div[contains(@class, "col-11")][span[.=" tier 2 reviewer "]]'  # noqa: E501
+        '//div[contains(.,"Members")]'
+        '/../following-sibling::div[span[contains(., "tier 2 reviewer")]]'
     )
     return [
         (await page.evaluate('(element) => element.textContent', row)).strip().split(' ')[0]
@@ -64,7 +67,10 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     await page.waitFor(500)
     # Select the Tier 1 reviewer
     await (
-        await page.waitForXPath(f'//div[@class="v-list-item__title"][.="{tier_1_user.email}"]')
+        await page.waitForXPath(
+            f'//div[@class="v-list-item__title"]'
+            f'[.="{tier_1_user.first_name + " " + tier_1_user.last_name}"]'
+        )
     ).click()
     # Close the selection menu
     await tier_1_input.press('Escape')
@@ -77,7 +83,10 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     await page.waitFor(500)
     # Select the Tier 2 reviewer
     await (
-        await page.waitForXPath(f'(//div[@class="v-list-item__title"][.="{tier_2_user.email}"])[2]')
+        await page.waitForXPath(
+            f'(//div[@class="v-list-item__title"]'
+            f'[.="{tier_2_user.first_name + " " + tier_2_user.last_name}"])[2]'
+        )
     ).click()
     # Close the selection menu
     await tier_2_input.press('Escape')
@@ -99,7 +108,10 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     await page.waitFor(500)
     # Select the Tier 2 reviewer
     await (
-        await page.waitForXPath(f'//div[@class="v-list-item__title"][.="{collaborator.email}"]')
+        await page.waitForXPath(
+            f'//div[@class="v-list-item__title"]'
+            f'[.="{collaborator.first_name + " " + collaborator.last_name}"]'
+        )
     ).click()
     # Close the selection menu
     await collaborators_input.press('Escape')
@@ -109,9 +121,13 @@ async def test_change_project_ownership(page, log_in, webpack_server, user_facto
     await page.waitFor(500)
 
     # Verify that all users have the correct roles on the project
-    assert await get_collaborators(page) == [collaborator.email]
-    assert await get_tier_1_reviewers(page) == [tier_1_user.email]
-    assert await get_tier_2_reviewers(page) == [tier_2_user.email]
+    assert await get_collaborators(page) == [collaborator.first_name[0] + collaborator.last_name[0]]
+    assert await get_tier_1_reviewers(page) == [
+        tier_1_user.first_name[0] + tier_1_user.last_name[0]
+    ]
+    assert await get_tier_2_reviewers(page) == [
+        tier_2_user.first_name[0] + tier_2_user.last_name[0]
+    ]
     assert get_perms(collaborator, project) == ['collaborator']
     assert get_perms(tier_1_user, project) == ['tier_1_reviewer']
     assert get_perms(tier_2_user, project) == ['tier_2_reviewer']

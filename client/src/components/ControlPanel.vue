@@ -29,7 +29,6 @@ export default {
       'scanCachedPercentage',
       'showCrosshairs',
       'storeCrosshairs',
-      'myCurrentProjectRoles',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -272,7 +271,7 @@ export default {
                   class="py-3"
                   style="text-align: center; height: 70px"
                 >
-                  <div v-if="scanCachedPercentage < 1">
+                  <div v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0">
                     <v-progress-circular
                       :value="scanCachedPercentage * 100"
                       color="blue"
@@ -288,6 +287,7 @@ export default {
                   <span>{{ currentViewData.projectName }}</span>
                   <div>
                     <UserAvatar
+                      v-if="lockOwner"
                       :target-user="lockOwner"
                       as-editor
                     />
