@@ -137,7 +137,10 @@ def import_data(project_id: Optional[str]):
             else:
                 with open(import_path) as fd:
                     buf = fd.read()
-            import_dict = import_dataframe_to_dict(pandas.read_csv(StringIO(buf), na_filter=False))
+            import_dict = import_dataframe_to_dict(
+                pandas.read_csv(StringIO(buf), index_col=False, na_filter=False),
+                project,
+            )
         elif import_path.endswith('.json'):
             if import_path.startswith('s3://'):
                 import_dict = json.loads(_download_from_s3(import_path, s3_public))
@@ -150,12 +153,12 @@ def import_data(project_id: Optional[str]):
         raise APIException(f'Could not locate import file at {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
-    perform_import.delay(import_dict, project_id)
+    perform_import.delay(import_dict)
     return not_found_errors
 
 
 @shared_task
-def perform_import(import_dict, project_id: Optional[str]):
+def perform_import(import_dict):
     new_projects: List[Project] = []
     new_experiments: List[Experiment] = []
     new_scans: List[Scan] = []
@@ -163,12 +166,10 @@ def perform_import(import_dict, project_id: Optional[str]):
     new_scan_decisions: List[ScanDecision] = []
 
     for project_name, project_data in import_dict['projects'].items():
-        if project_id is None:
-            # A global import uses the project name column to determine which project to import to
+        try:
             project_object = Project.objects.get(name=project_name)
-        else:
-            # A normal import ignores the project name column
-            project_object = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            raise APIException(f'Project {project_name} does not exist.')
 
         # delete old imports of these projects
         Experiment.objects.filter(

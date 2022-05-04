@@ -212,6 +212,7 @@ export default {
               >
                 {{ experiment.name }}
                 <UserAvatar
+                  v-if="experiment.lock_owner"
                   :target-user="experiment.lock_owner"
                   as-editor
                 />

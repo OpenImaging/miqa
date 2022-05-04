@@ -28,7 +28,7 @@ Vue.use(Vuex);
 const fileCache = new Map();
 const frameCache = new Map();
 let readDataQueue = [];
-const pendingFrameDownloads = new Set();
+const pendingFrameDownloads = new Set<any>();
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 let taskRunId = -1;
 let savedWorker = null;
@@ -464,6 +464,14 @@ const {
     },
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
+      state.projects.find(
+        (project) => project.id === state.currentProject.id,
+      ).status = {
+        total_scans: taskOverview.total_scans,
+        total_complete: Object.values(taskOverview.scan_states).filter(
+          (scanState) => scanState === 'complete',
+        ).length,
+      };
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -652,10 +660,6 @@ const {
               name: scan.name,
               experiment: experiment.id,
               cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-              numFrames: frames.length,
-              // The experiment.scans.note serialization does not contain note metadata.
-              // Just set notes to [] and let reloadScan set the complete values later.
-              notes: [],
               decisions: scan.decisions,
               sessionID: scan.session_id,
               subjectID: scan.subject_id,
@@ -696,18 +700,11 @@ const {
       const taskOverview = await djangoRest.projectTaskOverview(project.id);
       commit('setTaskOverview', taskOverview);
     },
-    async reloadScan({ commit, getters }) {
+    async reloadScan({ commit, getters }, scanId) {
       const { currentFrame } = getters;
-      // No need to reload if the frame doesn't exist or doesn't exist on the server
-      if (!currentFrame || currentFrame.local) {
-        return;
-      }
-      const scanId = currentFrame.scan;
-      if (!scanId) {
-        return;
-      }
+      scanId = scanId || currentFrame.scan;
+      if (!scanId) return;
       const scan = await djangoRest.scan(scanId);
-      const frames = await djangoRest.frames(scanId);
       commit('setScan', {
         scanId: scan.id,
         scan: {
@@ -715,7 +712,6 @@ const {
           name: scan.name,
           experiment: scan.experiment,
           cumulativeRange: [Number.MAX_VALUE, -Number.MAX_VALUE],
-          numFrames: frames.length,
           notes: scan.notes,
           decisions: scan.decisions,
           sessionID: scan.session_id,
@@ -735,11 +731,8 @@ const {
       }
       return state.frames[frameId];
     },
-    async setCurrentFrame({ commit, dispatch }, frameId) {
+    async setCurrentFrame({ commit }, frameId) {
       commit('setCurrentFrameId', frameId);
-      if (frameId) {
-        dispatch('reloadScan');
-      }
     },
     async swapToFrame({
       state, dispatch, getters, commit,

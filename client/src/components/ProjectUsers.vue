@@ -69,6 +69,12 @@ export default {
         ([, value]) => value.includes(user),
       )[0][0].replace(/_/g, ' ');
     },
+    userDisplayName(user) {
+      if (!user.first_name || !user.last_name) {
+        return user.username;
+      }
+      return `${user.first_name} ${user.last_name}`;
+    },
     allEmails(inputs) {
       for (let i = 0; i < inputs.length; i += 1) {
         const match = String(inputs[i])
@@ -150,22 +156,17 @@ export default {
           </v-tooltip>
         </v-col>
       </v-row>
-      <v-row
+      <div
         v-for="(user, index) in members"
         :key="'member_'+index"
-        no-gutters
-        class="py-1"
+        class="py-1 d-flex"
       >
-        <v-col cols="1">
-          <UserAvatar :target-user="user" />
-        </v-col>
-        <v-col cols="11">
-          {{ user.username }}
-          <span class="gray-info">
-            {{ getGroup(user) }}
-          </span>
-        </v-col>
-      </v-row>
+        <UserAvatar :target-user="user" />
+        {{ user.first_name }} {{ user.last_name }} ({{ user.username }})
+        <span class="gray-info">
+          {{ getGroup(user) }}
+        </span>
+      </div>
       <v-row
         no-gutters
         class="pt-5 pb-3"
@@ -191,19 +192,14 @@ export default {
           </v-tooltip>
         </v-col>
       </v-row>
-      <v-row
+      <div
         v-for="(user, index) in collaborators"
         :key="'collaborator_'+index"
-        no-gutters
-        class="py-1"
+        class="py-1 d-flex"
       >
-        <v-col cols="1">
-          <UserAvatar :target-user="user" />
-        </v-col>
-        <v-col cols="11">
-          {{ user.username }}
-        </v-col>
-      </v-row>
+        <UserAvatar :target-user="user" />
+        {{ user.first_name }} {{ user.last_name }} ({{ user.username }})
+      </div>
       <v-row
         no-gutters
         class="pt-5"
@@ -237,7 +233,7 @@ export default {
             v-model="emailList"
             :items="emailOptions"
             :disabled="!userCanEditProject"
-            label="Select or type an email"
+            :label="userCanEditProject ?'Select or type an email' :''"
             :rules="[allEmails]"
             multiple
             chips
@@ -284,7 +280,7 @@ export default {
           <v-select
             v-model="selectedPermissionSet.tier_1_reviewer"
             :items="allUsers"
-            item-text="username"
+            :item-text="userDisplayName"
             item-value="username"
             label="Select Tier 1 Reviewers"
             multiple
@@ -299,7 +295,7 @@ export default {
           <v-select
             v-model="selectedPermissionSet.tier_2_reviewer"
             :items="allUsers"
-            item-text="username"
+            :item-text="userDisplayName"
             item-value="username"
             label="Select Tier 2 Reviewers"
             multiple
@@ -346,7 +342,7 @@ export default {
           <v-select
             v-model="selectedPermissionSet.collaborator"
             :items="allUsers"
-            item-text="username"
+            :item-text="userDisplayName"
             item-value="username"
             label="Select Collaborators"
             multiple

@@ -25,8 +25,6 @@ IMPORT_CSV_COLUMNS = [
     'last_decision_created',
     'identified_artifacts',
     'location_of_interest',
-    'subject_ID',
-    'session_ID',
 ]
 
 
@@ -90,9 +88,9 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
         import_dict, not_found_errors = validate_file_locations(
             import_dict, project, not_found_errors
         )
-    except SchemaError:
+    except SchemaError as e:
         import_path = GlobalSettings.load().import_path if project is None else project.import_path
-        raise APIException(f'Invalid format of import file {import_path}')
+        raise APIException(f'Invalid format of import file {import_path}. {e.autos[-1]}.')
     if not project:
         for project_name in import_dict['projects']:
             if not Project.objects.filter(name=project_name).exists():
@@ -100,7 +98,9 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
     return import_dict, not_found_errors
 
 
-def import_dataframe_to_dict(df):
+def import_dataframe_to_dict(df, project):
+    if df.empty:
+        raise APIException('Import CSV has no data.')
     df_columns = list(df.columns)
     # The columns after the first 6 are optional
     if df_columns != IMPORT_CSV_COLUMNS and (
@@ -109,19 +109,29 @@ def import_dataframe_to_dict(df):
         raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
     ingest_dict = {'projects': {}}
     for project_name, project_df in df.groupby('project_name'):
+        if project and project_name != project.name:
+            raise APIException(
+                f'Import file contains rows for project "{project_name}, " \
+                which does not match "{project.name}." Import failed.'
+            )
         project_dict = {'experiments': {}}
         for experiment_name, experiment_df in project_df.groupby('experiment_name'):
             experiment_dict = {'scans': {}}
             if 'experiment_notes' in experiment_df.columns:
                 experiment_dict['notes'] = experiment_df['experiment_notes'].iloc[0]
             for scan_name, scan_df in experiment_df.groupby('scan_name'):
-                scan_dict = {
-                    'type': scan_df['scan_type'].iloc[0],
-                    'frames': {
-                        row[1]['frame_number']: {'file_location': row[1]['file_location']}
-                        for row in scan_df.iterrows()
-                    },
-                }
+                try:
+                    scan_dict = {
+                        'type': scan_df['scan_type'].iloc[0],
+                        'frames': {
+                            int(row[1]['frame_number']): {'file_location': row[1]['file_location']}
+                            for row in scan_df.iterrows()
+                        },
+                    }
+                except ValueError as e:
+                    raise APIException(
+                        f'Invalid frame number {str(e).split(":")[-1]}. Must be an integer value.'
+                    )
                 if 'subject_id' in scan_df.columns:
                     scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
                 if 'session_id' in scan_df.columns:

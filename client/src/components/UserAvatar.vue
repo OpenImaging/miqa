@@ -16,11 +16,15 @@ export default {
   },
   computed: {
     tooltipText() {
+      let name = this.targetUser.username;
+      if (this.targetUser.first_name && this.targetUser.last_name) {
+        name = `${this.targetUser.first_name} ${this.targetUser.last_name}`;
+      }
       if (this.asEditor) {
         if (this.targetUser.username === this.user.username) return 'You are editing this experiment.';
-        return `${this.targetUser.username} is editing this experiment.`;
+        return `${name} is editing this experiment.`;
       }
-      return this.targetUser.username;
+      return name;
     },
   },
   methods: {
@@ -58,6 +62,7 @@ export default {
         :color="computeColor()"
         size="30"
         style="border-radius: 50%"
+        class="mx-2"
         v-on="on"
       >
         <span
