@@ -132,7 +132,8 @@ export default {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice',
+    ...mapMutations([
+      'saveSlice',
       'setCurrentScreenshot',
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
@@ -159,6 +160,9 @@ export default {
       });
       this.resizeObserver.observe(this.$refs.viewer);
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+      this.view.getInteractor().getInteractorStyle().getMouseManipulators().forEach(
+        (manipulator) => manipulator.setDragEnabled(false),
+      );
     },
     initializeSlice() {
       if (this.name !== 'default') {
