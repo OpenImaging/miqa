@@ -37,6 +37,8 @@ export default {
       'iIndexSlice',
       'jIndexSlice',
       'kIndexSlice',
+      'currentWindowWidth',
+      'currentWindowLevel',
     ]),
     ...mapGetters(['currentFrame', 'currentScan', 'currentViewData']),
     representation() {
@@ -137,6 +139,8 @@ export default {
       'setCurrentScreenshot',
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
+      'setCurrentWindowWidth',
+      'setCurrentWindowLevel',
     ]),
     prepareViewer() {
       this.initializeView();
@@ -160,8 +164,11 @@ export default {
       });
       this.resizeObserver.observe(this.$refs.viewer);
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
-      this.view.getInteractor().getInteractorStyle().getMouseManipulators().forEach(
-        (manipulator) => { manipulator.setDragEnabled(false); }, 
+      this.representation.getActors()[0].getProperty().onModified(
+        (property) => {
+          this.setCurrentWindowWidth(property.getColorWindow());
+          this.setCurrentWindowLevel(property.getColorLevel());
+        },
       );
     },
     initializeSlice() {

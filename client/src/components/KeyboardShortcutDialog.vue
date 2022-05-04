@@ -23,6 +23,7 @@ export default defineComponent({
       ],
       ['Decrease/increase window width', [['-', '=']]],
       ['Decrease/increase window level', [['[', ']']]],
+      ['Changing window width & level', [['click + dragging']]],
       ['Toggle fullscreen', [['e', 'd', 'c']]],
       ['Mark as usable/usable extra/questionable/unusable', [['u', 'i', 'o', 'p']]],
       ['Place crosshairs at location', [['click']]],

@@ -306,6 +306,8 @@ const initState = {
   iIndexSlice: 0,
   jIndexSlice: 0,
   kIndexSlice: 0,
+  currentWindowWidth: 256,
+  currentWindowLevel: 150,
 };
 
 const {
@@ -544,6 +546,12 @@ const {
     },
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
+    },
+    setCurrentWindowWidth(state, value) {
+      state.currentWindowWidth = value;
+    },
+    setCurrentWindowLevel(state, value) {
+      state.currentWindowLevel = value;
     },
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
