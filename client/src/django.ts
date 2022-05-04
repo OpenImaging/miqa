@@ -18,6 +18,9 @@ const apiClient = axios.create({ baseURL: API_URL });
 let s3ffClient;
 
 apiClient.interceptors.response.use(null, (error) => {
+  if (error?.response?.status === 401) {
+    djangoClient.logout()
+  }
   const msg = error?.response?.data?.detail || 'No response from server';
   throw new Error(msg);
 });
@@ -57,6 +60,7 @@ const djangoClient = {
       apiClient.post('/logout/', undefined, { withCredentials: true }),
       oauthClient.logout(),
     ]);
+    window.location.reload()
   },
   async MIQAConfig() {
     const { data } = await apiClient.get('/configuration/');

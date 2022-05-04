@@ -37,7 +37,7 @@ def project_permission_required(review_access=False, superuser_access=False, **d
             user_perms_on_project = get_perms(user, project)
             review_perm = has_review_perm(user_perms_on_project)
             read_perm = has_read_perm(user_perms_on_project)
-            error_response = Response(status=status.HTTP_401_UNAUTHORIZED)
+            error_response = Response(status=status.HTTP_403_FORBIDDEN)
 
             if (
                 (superuser_access and not user.is_superuser)

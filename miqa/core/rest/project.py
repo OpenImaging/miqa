@@ -130,7 +130,7 @@ class ProjectViewSet(
 
     def create(self, request, *args, **kwargs):
         if not settings.NORMAL_USERS_CAN_CREATE_PROJECTS and not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         project = serializer.save(creator=request.user)
@@ -160,7 +160,7 @@ class ProjectViewSet(
         project: Project = self.get_object()
         if request.method == 'PUT':
             if not (request.user.is_superuser or request.user == project.creator):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
+                return Response(status=status.HTTP_403_FORBIDDEN)
 
             if 'permissions' in request.data:
                 for key, user_list in request.data['permissions'].items():
