@@ -138,7 +138,7 @@ def import_data(project_id: Optional[str]):
                 with open(import_path) as fd:
                     buf = fd.read()
             import_dict = import_dataframe_to_dict(
-                pandas.read_csv(StringIO(buf), index_col=False, na_filter=False),
+                pandas.read_csv(StringIO(buf), index_col=False, na_filter=False).astype(str),
                 project,
             )
         elif import_path.endswith('.json'):
