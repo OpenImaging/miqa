@@ -17,10 +17,6 @@ interface Paginated<T> {
 const apiClient = axios.create({ baseURL: API_URL });
 let s3ffClient;
 
-apiClient.interceptors.response.use(null, (error) => {
-  const msg = error?.response?.data?.detail || 'No response from server';
-  throw new Error(msg);
-});
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
   // TODO importing the actual AppStore type results in a dependency cycle
@@ -57,6 +53,7 @@ const djangoClient = {
       apiClient.post('/logout/', undefined, { withCredentials: true }),
       oauthClient.logout(),
     ]);
+    window.location.reload();
   },
   async MIQAConfig() {
     const { data } = await apiClient.get('/configuration/');
@@ -200,6 +197,17 @@ const djangoClient = {
     await apiClient.post('/email', email);
   },
 };
+
+apiClient.interceptors.response.use(null, (error) => {
+  if (error?.response?.status === 401) {
+    djangoClient.logout();
+  }
+  let msg = error?.response?.data?.detail || 'No response from server';
+  if (error?.response?.status === 403) {
+    msg = 'You are not allowed to perform this action.';
+  }
+  throw new Error(msg);
+});
 
 export { apiClient };
 export default djangoClient;

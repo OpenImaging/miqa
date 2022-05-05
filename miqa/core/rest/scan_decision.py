@@ -55,7 +55,7 @@ class ScanDecisionViewSet(
         scan = Scan.objects.get(id=request.data['scan'])
 
         if not has_review_perm(get_perms(request.user, scan.experiment.project)):
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
         request_data['scan'] = scan
         request_data['creator'] = request.user

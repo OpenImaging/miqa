@@ -41,7 +41,8 @@ def validate_file_locations(input_dict, project, not_found_errors):
                     raw_path = Path(import_path).parent.parent / raw_path
                 if not raw_path.exists():
                     not_found_errors.append(f'File not found: {raw_path}')
-            input_dict[key] = str(raw_path) if 's3://' not in value else value
+                    value = None
+            input_dict[key] = str(raw_path) if value and 's3://' not in value else value
         else:
             new_value, not_found_errors = validate_file_locations(value, project, not_found_errors)
             input_dict[key] = new_value

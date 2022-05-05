@@ -20,7 +20,9 @@ export default defineComponent({
     const projects = computed(() => store.state.projects);
     const isGlobal = computed(() => store.getters.isGlobal);
     const userCanEditProject = computed(
-      () => user.is_superuser || user.username === currentProject.value.creator,
+      () => user.is_superuser || (
+        currentProject.value && user.username === currentProject.value.creator
+      ),
     );
 
     const importPath = ref('');
@@ -191,7 +193,10 @@ export default defineComponent({
       >
         Save
       </v-btn>
-      <DataImportExport />
+      <DataImportExport
+        :import-path="importPath"
+        :export-path="exportPath"
+      />
       <div style="flex-grow:2">
         <v-btn
           v-if="userCanEditProject && !isGlobal"

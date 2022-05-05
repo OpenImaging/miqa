@@ -55,12 +55,19 @@ export default {
       <div :class="convertDecisionToColor(decision.decision)">
         ({{ decision.decision }})
       </div>
-      <v-icon
-        v-if="Object.values(decision.location).length > 0"
-        @click="goToLocation"
-      >
-        mdi-crosshairs-gps
-      </v-icon>
+      <v-tooltip bottom>
+        <template #activator="{ on, attrs }">
+          <v-icon
+            v-if="Object.values(decision.location).length > 0"
+            v-bind="attrs"
+            v-on="on"
+            @click="goToLocation"
+          >
+            mdi-crosshairs-gps
+          </v-icon>
+        </template>
+        <span>View location saved with decision</span>
+      </v-tooltip>
     </div>
     <v-flex
       :class="decision.note ? 'black--text' : 'grey--text'"

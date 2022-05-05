@@ -18,8 +18,6 @@ export default {
   },
   inject: ['user'],
   data: () => ({
-    window: 256,
-    level: 150,
     newExperimentNote: '',
     loadingLock: undefined,
   }),
@@ -29,6 +27,8 @@ export default {
       'scanCachedPercentage',
       'showCrosshairs',
       'storeCrosshairs',
+      'currentWindowWidth',
+      'currentWindowLevel',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -81,14 +81,14 @@ export default {
     },
   },
   watch: {
-    window(value) {
+    currentWindowWidth(value) {
       if (Number.isInteger(value) && value !== this.autoWindow) {
         const { setExperimentAutoWindow } = store.commit;
         setExperimentAutoWindow({ experimentId: this.experimentId, autoWindow: value });
         this.representation.setWindowWidth(value);
       }
     },
-    level(value) {
+    currentWindowLevel(value) {
       if (Number.isInteger(value) && value !== this.autoLevel) {
         const { setExperimentAutoLevel } = store.commit;
         setExperimentAutoLevel({ experimentId: this.experimentId, autoLevel: value });
@@ -134,6 +134,8 @@ export default {
     ...mapMutations([
       'setShowCrosshairs',
       'setStoreCrosshairs',
+      'setCurrentWindowWidth',
+      'setCurrentWindowLevel',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -167,17 +169,11 @@ export default {
         }
       }
     },
-    setWindowWidth(value) {
-      this.window = value;
-    },
-    setWindowLevel(value) {
-      this.level = value;
-    },
     updateWinLev() {
-      this.window = this.autoWindow;
-      this.level = this.autoLevel;
-      this.representation.setWindowWidth(this.window);
-      this.representation.setWindowLevel(this.level);
+      this.setCurrentWindowWidth(this.autoWindow);
+      this.setCurrentWindowLevel(this.autoLevel);
+      this.representation.setWindowWidth(this.currentWindowWidth);
+      this.representation.setWindowLevel(this.currentWindowLevel);
     },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
@@ -479,15 +475,22 @@ export default {
                         style="text-align: center"
                       >
                         <v-slider
-                          v-model="window"
                           v-mousetrap="[
-                            { bind: '-', handler: () => setWindowWidth(window - 5) },
-                            { bind: '=', handler: () => setWindowWidth(window + 5) }
+                            {
+                              bind: '-',
+                              handler: () => setCurrentWindowWidth(currentWindowWidth - 5)
+                            },
+                            {
+                              bind: '=',
+                              handler: () => setCurrentWindowWidth(currentWindowWidth + 5)
+                            }
                           ]"
+                          :value="currentWindowWidth"
                           :max="winMax"
                           :min="winMin"
                           class="align-center"
                           hide-details
+                          @input="setCurrentWindowWidth"
                         >
                           <template #prepend>
                             {{ winMin }}
@@ -497,12 +500,13 @@ export default {
                               {{ winMax }}
                             </div>
                             <v-text-field
-                              v-model="window"
+                              :value="currentWindowWidth"
                               class="mt-0 pt-0"
                               hide-details
                               single-line
                               type="number"
                               style="width: 60px"
+                              @input="setCurrentWindowWidth"
                             />
                           </template>
                         </v-slider>
@@ -536,15 +540,22 @@ export default {
                         style="text-align: center"
                       >
                         <v-slider
-                          v-model="level"
                           v-mousetrap="[
-                            { bind: '[', handler: () => setWindowLevel(level - 5) },
-                            { bind: ']', handler: () => setWindowLevel(level + 5) }
+                            {
+                              bind: '[',
+                              handler: () => setCurrentWindowLevel(currentWindowLevel - 5)
+                            },
+                            {
+                              bind: ']',
+                              handler: () => setCurrentWindowLevel(currentWindowLevel + 5)
+                            }
                           ]"
+                          :value="currentWindowLevel"
                           :max="levMax"
                           :min="levMin"
                           class="align-center"
                           hide-details
+                          @input="setCurrentWindowLevel"
                         >
                           <template #prepend>
                             {{ levMin }}
@@ -554,12 +565,13 @@ export default {
                               {{ levMax }}
                             </div>
                             <v-text-field
-                              v-model="level"
+                              :value="currentWindowLevel"
                               class="mt-0 pt-0"
                               hide-details
                               single-line
                               type="number"
                               style="width: 60px"
+                              @input="setCurrentWindowLevel"
                             />
                           </template>
                         </v-slider>
