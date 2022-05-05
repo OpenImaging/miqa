@@ -206,7 +206,7 @@ export default defineComponent({
               </v-btn>
             </v-list-item>
             <div
-              v-if="user.is_superuser"
+              v-if="projects.length > 0"
               class="global-settings"
             >
               <v-btn

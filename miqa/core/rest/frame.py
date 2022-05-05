@@ -108,7 +108,7 @@ class FrameViewSet(
         experiment = Experiment.objects.get(id=serializer.data['experiment'])
 
         if not get_perms(request.user, experiment.project):
-            Response(status=status.HTTP_401_UNAUTHORIZED)
+            Response(status=status.HTTP_403_FORBIDDEN)
 
         new_scan = Scan(name=serializer.data['filename'], experiment=experiment)
         new_scan.save()

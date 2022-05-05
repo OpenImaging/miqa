@@ -28,8 +28,7 @@ services:
         DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
         VUE_APP_OAUTH_API_ROOT: ${VUE_APP_OAUTH_API_ROOT}
 
-    # TODO install and use a wsgi server
-    command: ["./manage.py", "runserver", "0.0.0.0:8000"]
+    command: ["gunicorn", "-k", "gthread", "--threads", "8", "--bind", "0.0.0.0:8000", "miqa.wsgi"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
     # deploy:

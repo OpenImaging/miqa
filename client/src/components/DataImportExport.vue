@@ -8,13 +8,13 @@ export default defineComponent({
   name: 'DataImportExport',
   components: {},
   props: {
-    importOnly: {
-      type: Boolean,
-      default: false,
+    importPath: {
+      type: String,
+      required: true,
     },
-    exportOnly: {
-      type: Boolean,
-      default: false,
+    exportPath: {
+      type: String,
+      required: true,
     },
   },
   setup() {
@@ -111,31 +111,35 @@ export default defineComponent({
   <div
     class="pl-3"
   >
-    <v-tooltip
-      v-if="!exportOnly"
-      top
-    >
+    <v-tooltip top>
       <template #activator="{ on, attrs }">
         <v-btn
+          :disabled="importing || importPath === ''"
           v-bind="attrs"
           text
           color="primary"
           v-on="on"
           @click="importDialog = true"
         >
-          Import
+          <v-progress-circular
+            v-if="importing"
+            :size="25"
+            :width="2"
+            indeterminate
+            color="primary"
+          />
+          <span v-else>
+            Import
+          </span>
         </v-btn>
       </template>
-      <span>Import from import path</span>
+      <span>Import from {{ importPath }}</span>
     </v-tooltip>
 
-    <v-tooltip
-      v-if="!importOnly"
-      top
-    >
+    <v-tooltip top>
       <template #activator="{ on, attrs }">
         <v-btn
-          :disabled="exporting"
+          :disabled="exporting || exportPath === ''"
           v-bind="attrs"
           text
           color="primary"
@@ -154,7 +158,7 @@ export default defineComponent({
           </span>
         </v-btn>
       </template>
-      <span>Export to export path</span>
+      <span>Export to {{ exportPath }}</span>
     </v-tooltip>
 
     <v-dialog

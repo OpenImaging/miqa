@@ -86,7 +86,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
         serializer.is_valid(raise_exception=True)
         project = Project.objects.get(id=serializer.data['project'])
         if not get_perms(request.user, project):
-            Response(status=status.HTTP_401_UNAUTHORIZED)
+            Response(status=status.HTTP_403_FORBIDDEN)
         experiment = Experiment(
             project=project,
             name=serializer.data['name'],
