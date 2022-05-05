@@ -202,7 +202,10 @@ apiClient.interceptors.response.use(null, (error) => {
   if (error?.response?.status === 401) {
     djangoClient.logout();
   }
-  const msg = error?.response?.data?.detail || 'No response from server';
+  let msg = error?.response?.data?.detail || 'No response from server';
+  if(error?.response?.status === 403){
+    msg = 'You are not allowed to perform this action.'
+  }
   throw new Error(msg);
 });
 
