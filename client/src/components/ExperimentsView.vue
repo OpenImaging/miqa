@@ -75,6 +75,15 @@ export default {
         };
       });
     },
+    ellipsisText(str) {
+      if (!this.minimal) return str;
+      if (str.length > 25) {
+        return `${str.substr(0, 10)}...${str.substr(
+          str.length - 10, str.length,
+        )}`;
+      }
+      return str;
+    },
     getURLForFirstFrameInScan(scanId) {
       return `/${this.currentProject.id}/${this.scanFrames[scanId][0]}`;
     },
@@ -207,7 +216,7 @@ export default {
               class="d-flex pr-2"
             >
               <v-card flat>
-                {{ experiment.name }}
+                {{ ellipsisText(experiment.name) }}
                 <UserAvatar
                   v-if="experiment.lock_owner"
                   :target-user="experiment.lock_owner"
@@ -242,7 +251,7 @@ export default {
                       active-class=""
                       v-on="on"
                     >
-                      {{ scan.name }}
+                      {{ ellipsisText(scan.name) }}
                       <span
                         v-if="scan.decisions.length !== 0"
                         :class="scan.color + ' pl-3'"
