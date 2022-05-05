@@ -1,3 +1,3 @@
 project_name,experiment_name,scan_name,scan_type,frame_number,file_location
-simple-scans,NCANDA_E08710,NCANDA_E08710_ncanda-t1spgr-v1,ncanda-t1spgr-v1,3,/srv/samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ucsd_incoming/arc001/E-99999-P-9-20190121/RESOURCES/nifti/3_ncanda-t1spgr-v1/image.nii.gz
-simple-scans,NCANDA_E08714,NCANDA_E08714_ncanda-mprage-v1,ncanda-mprage-v1,2,/srv/samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti/2_ncanda-mprage-v1/image.nii.gz
+simple-scans,NCANDA_E08710,NCANDA_E08710_ncanda-t1spgr-v1,ncanda-t1spgr-v1,3,samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ucsd_incoming/arc001/E-99999-P-9-20190121/RESOURCES/nifti/3_ncanda-t1spgr-v1/image.nii.gz
+simple-scans,NCANDA_E08714,NCANDA_E08714_ncanda-mprage-v1,ncanda-mprage-v1,2,samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ohsu_incoming/arc001/D-99999-P-9-2081220/RESOURCES/nifti/2_ncanda-mprage-v1/image.nii.gz
