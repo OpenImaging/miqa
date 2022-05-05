@@ -16,6 +16,9 @@ module.exports = {
       new CopyPlugin({
         patterns: [
           {
+            // It'd be preferable to "require.resolve" here, to ensure that the package resolved by
+            // imports matches these copied assets, but itk.js has a buggy "package.json" with an
+            // invalid "main" field, which causes warnings on every build.
             from: path.join(__dirname, 'node_modules', 'itk'),
             to: 'itk',
           },
