@@ -25,7 +25,7 @@ class GlobalSettingsViewSet(ViewSet):
         return GlobalSettings.load()
 
     def get_permissions(self):
-        if self.request.method == 'GET':
+        if self.request.method == 'GET' or self.request.method == 'POST':
             return [IsAuthenticated()]
         else:
             return [IsSuperUser()]

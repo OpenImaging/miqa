@@ -248,14 +248,28 @@ def perform_import(import_dict):
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
 
-                    frame_object = Frame(
-                        frame_number=frame_number,
-                        raw_path=frame_data['file_location'],
-                        scan=scan_object,
-                    )
-                    new_frames.append(frame_object)
-                    if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
-                        nifti_to_zarr_ngff.delay(frame_data['file_location'])
+                    if frame_data['file_location']:
+                        frame_object = Frame(
+                            frame_number=frame_number,
+                            raw_path=frame_data['file_location'],
+                            scan=scan_object,
+                        )
+                        new_frames.append(frame_object)
+                        if settings.ZARR_SUPPORT and Path(frame_object.raw_path).exists():
+                            nifti_to_zarr_ngff.delay(frame_data['file_location'])
+
+    # if any scan has no frames, it should not be created
+    new_scans = [
+        new_scan
+        for new_scan in new_scans
+        if any(new_frame.scan == new_scan for new_frame in new_frames)
+    ]
+    # if any experiment has no scans, it should not be created
+    new_experiments = [
+        new_experiment
+        for new_experiment in new_experiments
+        if any(new_scan.experiment == new_experiment for new_scan in new_scans)
+    ]
 
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)

@@ -48,3 +48,9 @@ export const VIEW_ORIENTATIONS = {
     directionOfProjection: [0, 0, -1],
   },
 };
+
+export const ijkMapping = {
+  x: 'i',
+  y: 'j',
+  z: 'k',
+};

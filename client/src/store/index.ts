@@ -13,13 +13,14 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, Frame, ScanState, ProjectSettings,
+  Project, ProjectTaskOverview, User, Frame, ProjectSettings,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
 
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
+import { ijkMapping } from '../vtk/constants';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -306,6 +307,8 @@ const initState = {
   iIndexSlice: 0,
   jIndexSlice: 0,
   kIndexSlice: 0,
+  currentWindowWidth: 256,
+  currentWindowLevel: 150,
 };
 
 const {
@@ -464,14 +467,16 @@ const {
     },
     setTaskOverview(state, taskOverview: ProjectTaskOverview) {
       state.currentTaskOverview = taskOverview;
-      state.projects.find(
-        (project) => project.id === state.currentProject.id,
-      ).status = {
-        total_scans: taskOverview.total_scans,
-        total_complete: Object.values(taskOverview.scan_states).filter(
-          (scanState) => scanState === 'complete',
-        ).length,
-      };
+      if (taskOverview.scan_states) {
+        state.projects.find(
+          (project) => project.id === state.currentProject.id,
+        ).status = {
+          total_scans: taskOverview.total_scans,
+          total_complete: Object.values(taskOverview.scan_states).filter(
+            (scanState) => scanState === 'complete',
+          ).length,
+        };
+      }
     },
     setProjects(state, projects: Project[]) {
       state.projects = projects;
@@ -537,11 +542,24 @@ const {
     },
     setSliceLocation(state, ijkLocation) {
       if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
-        state.sliceLocation = ijkLocation;
+        state.vtkViews.forEach(
+          (view) => {
+            state.proxyManager.getRepresentation(null, view).setSlice(
+              ijkLocation[ijkMapping[view.getName()]],
+            );
+          },
+        );
       }
     },
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
+      state.sliceLocation = undefined;
+    },
+    setCurrentWindowWidth(state, value) {
+      state.currentWindowWidth = value;
+    },
+    setCurrentWindowLevel(state, value) {
+      state.currentWindowLevel = value;
     },
     setShowCrosshairs(state, show) {
       state.showCrosshairs = show;
@@ -553,20 +571,19 @@ const {
       state.reviewMode = mode || false;
       if (mode) {
         const myRole = state.currentTaskOverview.my_project_role;
-        let scanStateForMyReview: string = null;
-        if (myRole === 'tier_2_reviewer') {
-          [, scanStateForMyReview] = Object.keys(ScanState);
-        } else if (myRole === 'tier_1_reviewer') {
-          [scanStateForMyReview] = Object.keys(ScanState);
-        }
-        const scanIdsForMyReview = Object.entries(state.currentTaskOverview.scan_states).filter(
-          ([, scanState]) => scanStateForMyReview.replace(/_/g, ' ') === scanState,
-        ).map(
-          ([scanId]) => scanId,
-        );
         state.scans = Object.fromEntries(
           Object.entries(state.allScans).filter(
-            ([scanId]) => scanIdsForMyReview.includes(scanId),
+            ([scanId]) => {
+              const scanState = state.currentTaskOverview.scan_states[scanId];
+              switch (scanState) {
+                case 'unreviewed':
+                  return true;
+                case 'complete':
+                  return false;
+                default:
+                  return myRole === 'tier_2_reviewer';
+              }
+            },
           ),
         );
       } else {

@@ -6,7 +6,7 @@ import { mapState, mapGetters, mapMutations } from 'vuex';
 
 import CrosshairSet from '../utils/crosshairs';
 import fill2DView from '../utils/fill2DView';
-import { VIEW_ORIENTATIONS } from '../vtk/constants';
+import { VIEW_ORIENTATIONS, ijkMapping } from '../vtk/constants';
 
 export default {
   name: 'VtkViewer',
@@ -23,11 +23,6 @@ export default {
     resized: false,
     fullscreen: false,
     screenshotContainer: document.createElement('div'),
-    ijkMapping: {
-      x: 'i',
-      y: 'j',
-      z: 'k',
-    },
   }),
   computed: {
     ...mapState(['proxyManager',
@@ -37,6 +32,8 @@ export default {
       'iIndexSlice',
       'jIndexSlice',
       'kIndexSlice',
+      'currentWindowWidth',
+      'currentWindowLevel',
     ]),
     ...mapGetters(['currentFrame', 'currentScan', 'currentViewData']),
     representation() {
@@ -65,7 +62,7 @@ export default {
       }
     },
     ijkName() : ('i' | 'j' | 'k') {
-      return this.ijkMapping[this.name];
+      return ijkMapping[this.name];
     },
     keyboardBindings() {
       switch (this.name) {
@@ -85,16 +82,9 @@ export default {
       this.representation.setSlice(value);
       if (this.setCurrentVtkIndexSlices) {
         this.setCurrentVtkIndexSlices({
-          indexAxis: this.ijkMapping[this.trueAxis(this.name)],
+          indexAxis: ijkMapping[this.trueAxis(this.name)],
           value: this.representation.getSliceIndex(),
         });
-      }
-    },
-    sliceLocation(value) {
-      if (value[this.ijkName]
-      && this.sliceDomain.min < value[this.ijkName]
-      && this.sliceDomain.max > value[this.ijkName]) {
-        this.representation.setSlice(value[this.ijkName]);
       }
     },
     iIndexSlice() {
@@ -132,10 +122,13 @@ export default {
     this.cleanup();
   },
   methods: {
-    ...mapMutations(['saveSlice',
+    ...mapMutations([
+      'saveSlice',
       'setCurrentScreenshot',
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
+      'setCurrentWindowWidth',
+      'setCurrentWindowLevel',
     ]),
     prepareViewer() {
       this.initializeView();
@@ -159,6 +152,12 @@ export default {
       });
       this.resizeObserver.observe(this.$refs.viewer);
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+      this.representation.getActors()[0].getProperty().onModified(
+        (property) => {
+          this.setCurrentWindowWidth(property.getColorWindow());
+          this.setCurrentWindowLevel(property.getColorLevel());
+        },
+      );
     },
     initializeSlice() {
       if (this.name !== 'default') {
