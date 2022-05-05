@@ -20,6 +20,7 @@ import ReaderFactory from '../utils/ReaderFactory';
 
 import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
+import { ijkMapping } from '../vtk/constants';
 
 const { convertItkToVtkImage } = ITKHelper;
 
@@ -541,11 +542,18 @@ const {
     },
     setSliceLocation(state, ijkLocation) {
       if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
-        state.sliceLocation = ijkLocation;
+        state.vtkViews.forEach(
+          (view) => {
+            state.proxyManager.getRepresentation(null, view).setSlice(
+              ijkLocation[ijkMapping[view.getName()]],
+            );
+          },
+        );
       }
     },
     setCurrentVtkIndexSlices(state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
+      state.sliceLocation = undefined;
     },
     setCurrentWindowWidth(state, value) {
       state.currentWindowWidth = value;
