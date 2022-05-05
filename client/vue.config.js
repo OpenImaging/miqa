@@ -13,12 +13,14 @@ module.exports = {
   publicPath: process.env.VUE_APP_STATIC_PATH,
   configureWebpack: {
     plugins: [
-      new CopyPlugin([
-        {
-          from: path.join(__dirname, 'node_modules', 'itk'),
-          to: 'itk',
-        },
-      ]),
+      new CopyPlugin({
+        patterns: [
+          {
+            from: path.join(__dirname, 'node_modules', 'itk'),
+            to: 'itk',
+          },
+        ],
+      }),
       new webpack.DefinePlugin({
         'process.env': {
           VERSION: JSON.stringify(packageJson.version),
