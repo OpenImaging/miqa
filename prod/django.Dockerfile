@@ -9,6 +9,8 @@ RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
     nodejs && \
     apt-get install --no-install-recommends --yes \
+    git && \
+    apt-get install --no-install-recommends --yes \
     libpq-dev gcc libc6-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -44,6 +46,9 @@ RUN npm install \
     && mkdir -p /opt/django-project/staticfiles/ \
     && mv dist/* /opt/django-project/staticfiles/ \
     && rm -rf /opt/vue-client/
+
+# Copy the git folder so we can fetch the version tag at runtime
+COPY ./.git /opt/django-project/.git
 
 # Use a directory name which will never be an import name, as isort considers this as first-party.
 WORKDIR /opt/django-project
