@@ -1,4 +1,5 @@
 import subprocess
+
 from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,9 +8,8 @@ from rest_framework.views import APIView
 
 from miqa.core.models.scan_decision import ArtifactState, default_identified_artifacts
 
-
 MIQA_VERSION = subprocess.run(
-    ["git", "describe", "--tags"],
+    ['git', 'describe', '--tags'],
     capture_output=True,
 ).stdout.decode()
 
