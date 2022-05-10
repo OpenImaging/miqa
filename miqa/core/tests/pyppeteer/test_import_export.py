@@ -34,6 +34,8 @@ async def perform_import(page):
     ).click()
     await page.waitFor(6_000)
     await page.waitForXPath('//div[@class="v-snack__content"][contains(., "Import finished")]')
+    # Wait for the snackbar message to go away
+    await page.waitFor(5_000)
 
 
 async def perform_export(page):
@@ -43,6 +45,8 @@ async def perform_export(page):
     await page.waitForXPath(
         '//div[@class="v-snack__content"][contains(., "Saved data to file successfully")]'
     )
+    # Wait for the snackbar message to go away
+    await page.waitFor(5_000)
 
 
 @pytest.mark.pyppeteer
