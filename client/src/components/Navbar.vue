@@ -1,6 +1,6 @@
 <script lang="ts">
 import { mapActions, mapState, mapGetters } from 'vuex';
-import { computed, defineComponent } from '@vue/composition-api';
+import { defineComponent } from '@vue/composition-api';
 
 import UserButton from '@/components/UserButton.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
@@ -19,16 +19,12 @@ export default defineComponent({
     TimeoutDialog,
     KeyboardShortcutDialog,
   },
-  inject: ['user'],
+  inject: ['user', 'MIQAConfig'],
   props: {
     frameView: {
       type: Boolean,
       default: false,
     },
-  },
-  setup() {
-    const version = computed(() => process.env.VERSION);
-    return { version };
   },
   data: () => ({
     emailDialog: false,
@@ -75,7 +71,7 @@ export default defineComponent({
         <template #activator="{ on }">
           <span v-on="on">MIQA</span>
         </template>
-        <span>v{{ version }}</span>
+        <span>{{ MIQAConfig.version }}</span>
       </v-tooltip>
     </v-toolbar-title>
     <v-tabs
