@@ -5,17 +5,17 @@ async def get_current_num_scans(page):
     return len(await page.xpath('//ul[contains(@class, "scans")]/li'))
 
 
-async def edit_import_export_paths(page):
+async def edit_import_export_paths(page, import_path, export_path):
     # Edit import path
     import_path_input = await page.waitForXPath('//input[contains(@name, "import-path")]')
     await import_path_input.click({'clickCount': 3})  # highlight the text to overwrite it
-    await import_path_input.type('samples/demo_project.csv')
+    await import_path_input.type(import_path)
     await page.waitFor(1_000)
 
     # Edit export path
     import_path_input = await page.waitForXPath('//input[contains(@name, "export-path")]')
     await import_path_input.click({'clickCount': 3})  # highlight the text to overwrite it
-    await import_path_input.type('samples/demo_project_export.csv')
+    await import_path_input.type(export_path)
     await page.waitFor(1_000)
 
     # Click save
@@ -71,7 +71,11 @@ async def test_project_import_export(
     # Assert no scans yet
     assert (await get_current_num_scans(page)) == 0
 
-    await edit_import_export_paths(page)
+    await edit_import_export_paths(
+        page,
+        import_path='samples/demo_project.csv',
+        export_path='samples/demo_project_export.csv',
+    )
     await perform_import(page)
     await perform_export(page)
 
@@ -95,6 +99,10 @@ async def test_global_import_export(
     await (await page.waitForXPath('//button[span[.=" Global import/export "]]')).click()
     await page.waitFor(1_000)
 
-    await edit_import_export_paths(page)
+    await edit_import_export_paths(
+        page,
+        import_path='samples/demo_project.csv',
+        export_path='samples/demo_project_export.csv',
+    )
     await perform_import(page)
     await perform_export(page)
