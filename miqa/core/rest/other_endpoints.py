@@ -1,3 +1,5 @@
+import subprocess
+
 from django.conf import settings
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -5,6 +7,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from miqa.core.models.scan_decision import ArtifactState, default_identified_artifacts
+
+MIQA_VERSION = subprocess.run(
+    ['git', 'describe', '--tags'],
+    capture_output=True,
+).stdout.decode()
+
+MIQA_VERSION += (
+    ' commit: '
+    + subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        capture_output=True,
+    ).stdout.decode()
+)
 
 
 class MIQAConfigView(APIView):
@@ -19,6 +34,7 @@ class MIQAConfigView(APIView):
                     'ABSENT': ArtifactState.ABSENT.value,
                     'UNDEFINED': ArtifactState.UNDEFINED.value,
                 },
+                'version': MIQA_VERSION,
                 'S3_SUPPORT': settings.S3_SUPPORT,
                 'NORMAL_USERS_CAN_CREATE_PROJECTS': settings.NORMAL_USERS_CAN_CREATE_PROJECTS,
             }
