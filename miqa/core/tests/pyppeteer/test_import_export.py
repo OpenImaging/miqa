@@ -10,13 +10,11 @@ async def edit_import_export_paths(page, import_path, export_path):
     import_path_input = await page.waitForXPath('//input[contains(@name, "import-path")]')
     await import_path_input.click({'clickCount': 3})  # highlight the text to overwrite it
     await import_path_input.type(import_path)
-    await page.waitFor(1_000)
 
     # Edit export path
     import_path_input = await page.waitForXPath('//input[contains(@name, "export-path")]')
     await import_path_input.click({'clickCount': 3})  # highlight the text to overwrite it
     await import_path_input.type(export_path)
-    await page.waitFor(1_000)
 
     # Click save
     save_button = await page.waitForXPath('//button[span[.=" Save "]][@type="submit"]')
@@ -44,7 +42,6 @@ async def perform_import(page):
 async def perform_export(page):
     # Click export button
     await (await page.waitForXPath('//button[span[.=" Export "]]')).click()
-    await page.waitFor(2_000)
     await page.waitForXPath(
         '//div[@class="v-snack__content"][contains(., "Saved data to file successfully")]'
     )
@@ -70,7 +67,6 @@ async def test_project_import_export(
         await page.waitForXPath(f'//div[contains(@class, "col")][contains(.,"{project.name}")]')
     ).click()
     await page.waitFor(1_000)
-
     # Assert no scans yet
     assert (await get_current_num_scans(page)) == 0
 
