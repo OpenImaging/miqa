@@ -19,8 +19,11 @@ async def edit_import_export_paths(page, import_path, export_path):
     await page.waitFor(1_000)
 
     # Click save
-    await (await page.waitForXPath('//button[span[.=" Save "]][@type="submit"]')).click()
+    save_button = await page.waitForXPath('//button[span[.=" Save "]][@type="submit"]')
+    await save_button.click()
     await page.waitFor(1_000)
+    # If save was successful, the save button will be disabled.
+    assert await page.evaluate('(element) => element.disabled', save_button)
 
 
 async def perform_import(page):
