@@ -13,6 +13,14 @@ MIQA_VERSION = subprocess.run(
     capture_output=True,
 ).stdout.decode()
 
+MIQA_VERSION += (
+    ' commit: '
+    + subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        capture_output=True,
+    ).stdout.decode()
+)
+
 
 class MIQAConfigView(APIView):
     @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated])
