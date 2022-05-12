@@ -190,6 +190,7 @@ export default defineComponent({
         :disabled="!changed"
         type="submit"
         color="primary"
+        @click="save"
       >
         Save
       </v-btn>
