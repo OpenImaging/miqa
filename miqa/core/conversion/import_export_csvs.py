@@ -100,8 +100,6 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
 
 
 def import_dataframe_to_dict(df, project):
-    if df.empty:
-        raise APIException('Import CSV has no data.')
     df_columns = list(df.columns)
     # The columns after the first 6 are optional
     if df_columns != IMPORT_CSV_COLUMNS and (
