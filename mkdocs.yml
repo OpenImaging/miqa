@@ -1,4 +1,4 @@
-site_name: MIQA Application User Guide
+site_name: MIQA
 site_description: Documentation for MIQA
 site_author: Kitware
 
@@ -6,7 +6,7 @@ repo_url: https://github.com/OpenImaging/miqa
 
 theme:
   name: material
-  logo: images/Kitware-Mark.png
+  logo: images/kitware-mark.png
   highlightjs: true
   palette:
     primary: black
@@ -20,4 +20,17 @@ extra_css: [extra.css]
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/kitware/dive
+      link: https://github.com/OpenImaging/miqa
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Navigating the site: site.md
+    - Users in MIQA: users.md
+    - Projects in MIQA: projects.md
+    - Imports and Exports: imports.md
+  - Administrator Guide:
+    - Introduction: admin.md
+    - Setting up MIQA: setup.md
+    - The Django Admin Console: console.md
+    - Integrating MIQA in your workflow: integration.md
