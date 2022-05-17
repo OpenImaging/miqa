@@ -106,7 +106,8 @@ def import_dataframe_to_dict(df, project):
         len(df_columns) < 6 or df_columns != IMPORT_CSV_COLUMNS[: len(df_columns)]
     ):
         raise APIException(
-            f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}, received {df_columns}.'
+            'Import file has invalid columns. '
+            f'Expected {IMPORT_CSV_COLUMNS}, received {df_columns}.'
         )
     ingest_dict = {'projects': {}}
     for project_name, project_df in df.groupby('project_name'):
