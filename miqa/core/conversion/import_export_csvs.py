@@ -53,12 +53,12 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
     import_schema = Schema(
         {
             'projects': {
-                And(Use(str)): {
+                Optional(Use(str)): {
                     'experiments': {
-                        And(Use(str)): {
+                        Optional(Use(str)): {
                             Optional('notes'): Optional(str, None),
                             'scans': {
-                                And(Use(str)): {
+                                Optional(Use(str)): {
                                     'type': And(Use(str)),
                                     Optional('subject_id'): Or(str, None),
                                     Optional('session_id'): Or(str, None),
