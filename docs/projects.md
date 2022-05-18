@@ -1,5 +1,4 @@
-﻿## Projects
-### Object organization
+﻿### Object organization
 There are a few different standards for organizing files for a medical imaging effort, and some researchers may have unique file structures. MIQA is built to ingest data from almost any file structure and present it in a flexible but uniform object organization.
 
 Projects are the top level of the organization tree; they represent whole research efforts. Collaboration and image sharing is set at the project level, so privileged users (superusers and the creator of a project) may set permissions for other users on a project. Each project has a group of collaborators with read-only access and a group of members who may be given tier 1 review access or tier 2 review access.  (see [Users > User roles](./users.md#User-roles) for details).
