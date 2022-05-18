@@ -28,24 +28,47 @@ export const ANNOTATIONS = {
 };
 
 export const VIEW_ORIENTATIONS = {
-  default: {
-    axis: 1,
-    viewUp: [0, 0, 1],
+  LPS: {
+    default: {
+      axis: 1,
+      viewUp: [0, 0, 1],
+    },
+    x: {
+      axis: 0,
+      viewUp: [0, 0, 1],
+      directionOfProjection: [1, 0, 0],
+    },
+    y: {
+      axis: 1,
+      viewUp: [0, 0, 1],
+      directionOfProjection: [0, -1, 0],
+    },
+    z: {
+      axis: 2,
+      viewUp: [0, -1, 0],
+      directionOfProjection: [0, 0, -1],
+    },
   },
-  x: {
-    axis: 0,
-    viewUp: [0, 0, 1],
-    directionOfProjection: [1, 0, 0],
-  },
-  y: {
-    axis: 1,
-    viewUp: [0, 0, 1],
-    directionOfProjection: [0, -1, 0],
-  },
-  z: {
-    axis: 2,
-    viewUp: [0, -1, 0],
-    directionOfProjection: [0, 0, -1],
+  RAS: {
+    default: {
+      axis: 1,
+      viewUp: [0, 0, 1],
+    },
+    x: {
+      axis: 0,
+      viewUp: [0, 0, 1],
+      directionOfProjection: [-1, 0, 0],
+    },
+    y: {
+      axis: 1,
+      viewUp: [0, 0, 1],
+      directionOfProjection: [0, 1, 0],
+    },
+    z: {
+      axis: 2,
+      viewUp: [0, -1, 0],
+      directionOfProjection: [0, 0, -1],
+    },
   },
 };
 

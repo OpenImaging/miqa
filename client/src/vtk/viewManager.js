@@ -61,7 +61,7 @@ function getView(proxyManager, viewType) {
       .forEach((s) => proxyManager.getRepresentation(s, view));
 
     // Update orientation
-    const { axis, orientation, viewUp } = VIEW_ORIENTATIONS[name];
+    const { axis, orientation, viewUp } = VIEW_ORIENTATIONS.LPS[name];
     view.updateOrientation(axis, orientation, viewUp);
 
     // set background to transparent

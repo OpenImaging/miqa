@@ -309,6 +309,7 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
+  renderOrientation: 'LPS',
 };
 
 const {
@@ -456,9 +457,13 @@ const {
       state.scans[scanId] = scan;
       state.allScans = Object.assign(state.allScans, state.scans);
     },
+    setRenderOrientation(state, neurology) {
+      state.renderOrientation = neurology ? 'LPS' : 'RAS'
+    },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
       if (project) {
+        state.renderOrientation = project.settings.neurology_orientation ? 'LPS' : 'RAS'
         state.currentProjectPermissions = project.settings.permissions;
       }
     },
