@@ -1,0 +1,28 @@
+name: MIQA demo heroku deployment
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  heroku:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: false
+          # Don't shallow checkout; pushing to Heroku requires the full repo history
+          fetch-depth: 0
+      # This Action attempts to do much by default (including making new commits and
+      # setting Heroku config vars), so just use it for login
+      - name: Login to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          justlogin: true
+      - name: Add a Git remote for Heroku
+        run: heroku git:remote --app miqa-demo
+      - name: Push to Heroku
+        # Use --no-verify to disable pushing Git LFS content
+        run: git push --no-verify heroku master
