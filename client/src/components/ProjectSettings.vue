@@ -27,6 +27,7 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
+    const neurologyOrientation = ref<Boolean>(true);
     watchEffect(() => {
       if (isGlobal.value) {
         importPath.value = globalSettings.value.import_path;
@@ -35,6 +36,7 @@ export default defineComponent({
         djangoRest.settings(currentProject.value.id).then((settings) => {
           importPath.value = settings.import_path;
           exportPath.value = settings.export_path;
+          neurologyOrientation.value = settings.neurology_orientation;
         });
       }
     });
@@ -53,12 +55,15 @@ export default defineComponent({
           await djangoRest.setGlobalSettings({
             import_path: importPath.value,
             export_path: exportPath.value,
+            neurology_orientation: undefined,
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {
             import_path: importPath.value,
             export_path: exportPath.value,
+            neurology_orientation: neurologyOrientation.value,
           });
+          store.commit.setRenderOrientation(neurologyOrientation.value);
         }
         changed.value = false;
       } catch (e) {
@@ -83,6 +88,7 @@ export default defineComponent({
       projects,
       importPath,
       exportPath,
+      neurologyOrientation,
       changed,
       importPathError,
       exportPathError,
@@ -181,6 +187,20 @@ export default defineComponent({
         </v-tooltip>
       </template>
     </v-text-field>
+    <v-radio-group
+      v-model="neurologyOrientation"
+      label="Project scans orientation"
+      @change="changed = true"
+    >
+      <v-radio
+        label="Neurology"
+        :value="true"
+      />
+      <v-radio
+        label="Radiology"
+        :value="false"
+      />
+    </v-radio-group>
     <v-flex
       class="d-flex"
       style="flex-direction: row"
