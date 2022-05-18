@@ -39,6 +39,10 @@ class Project(TimeStampedModel, models.Model):
     archived = models.BooleanField(default=False)
     import_path = models.CharField(max_length=500, blank=True)
     export_path = models.CharField(max_length=500, blank=True)
+    neurology_orientation = models.BooleanField(
+        default=True,
+        help_text='If true, scans will be rendered with LPS orientation, else with RAS orientation',
+    )
     s3_public = models.BooleanField(
         default=False, help_text='Whether the S3 bucket is publicly readable.'
     )
