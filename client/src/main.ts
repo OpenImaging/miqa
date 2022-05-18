@@ -20,7 +20,8 @@ import vMousetrap from './vue-utilities/v-mousetrap';
 import snackbarService from './vue-utilities/snackbar-service';
 import promptService from './vue-utilities/prompt-service';
 
-import djangoRest from './django';
+import djangoRest, { oauthClient } from './django';
+import { setupHeartbeat } from './heartbeat';
 
 Vue.use(Vuetify);
 
@@ -44,16 +45,19 @@ Sentry.init({
   dsn: process.env.VUE_APP_SENTRY_DSN,
 });
 
-djangoRest.restoreLogin(store).then(async () => {
+(async () => {
+  // If user closes the tab, we want them to be logged out if they return to the page
+  await setupHeartbeat('miqa_logout_heartbeat', async () => { oauthClient.logout(); });
+  await djangoRest.restoreLogin(store);
   await Promise.all([store.dispatch.loadMe(), store.dispatch.loadConfiguration()]);
-  const user = store.state.me;
-  const { MIQAConfig } = store.state;
+
   new Vue({
     vuetify,
     router,
     store: store.original,
     provide: {
-      user, MIQAConfig,
+      user: store.state.me,
+      MIQAConfig: store.state.MIQAConfig,
     },
     render: (h) => h(App),
   })
@@ -61,4 +65,4 @@ djangoRest.restoreLogin(store).then(async () => {
     // @ts-ignore
     .$snackbarAttach()
     .$promptAttach();
-});
+})();
