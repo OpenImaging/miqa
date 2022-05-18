@@ -1,5 +1,4 @@
-﻿## Users
-### Signing up
+﻿### Signing up
 **![](images/users_0.png)**
 The MIQA login screen has a button in the upper right corner that allows new users to request an account. This button leads to a form where a new user can provide their email address and write a new password for their account. After submitting this form, a verification email will be sent to the email address that was provided. The new user must click the verification link in this email to verify their identity.
 

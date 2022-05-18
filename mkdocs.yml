@@ -28,9 +28,9 @@ nav:
     - Navigating the site: site.md
     - Users in MIQA: users.md
     - Projects in MIQA: projects.md
-    - Imports and Exports: imports.md
   - Administrator Guide:
     - Introduction: admin.md
     - Setting up MIQA: setup.md
     - The Django Admin Console: console.md
+    - Imports and Exports: imports.md
     - Integrating MIQA in your workflow: integration.md
