@@ -23,7 +23,7 @@ def populate_demo():
         demo_user.save()
         demo_user_email, created = EmailAddress.objects.get_or_create(
             email='test@miqa.dev',
-            user_id=demo_user.id,
+            user=demo_user,
         )
         demo_user_email.verified = True
         demo_user_email.save()
