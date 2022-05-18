@@ -21,7 +21,7 @@ def populate_demo():
         )
         demo_user.set_password('demoMe')
         demo_user.save()
-        demo_user_email = EmailAddress.objects.get(email='test@miqa.dev')
+        demo_user_email = EmailAddress.objects.get_or_create(email='test@miqa.dev')
         demo_user_email.verified = True
         demo_user_email.save()
 
