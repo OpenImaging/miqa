@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
             name='neurology_orientation',
             field=models.BooleanField(
                 default=True,
-                help_text='If true, scans will be rendered with LPS orientation, else with RAS orientation',
+                help_text=(
+                    'If true, scans will be rendered with LPS orientation. '
+                    'If false, scans will be rendered with RAS orientation.'
+                ),
             ),
         ),
     ]
