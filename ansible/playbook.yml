@@ -38,4 +38,3 @@
         key: "{{ item }}"
       with_items:
         - "{{ lookup('file', 'anne.pub') }}"
-        - "{{ lookup('file', 'daniel.pub') }}"
