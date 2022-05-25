@@ -51,6 +51,9 @@ const djangoClient = {
   async logout() {
     try {
       await apiClient.post('/logout/', undefined, { withCredentials: true });
+    } catch (e) {
+      // it's very important that we catch this, because the XHR to logout can raise exceptions
+      // if we're already logged out, and the surrounding behavior can cause an infinite loop.
     } finally {
       await oauthClient.logout();
       window.location.reload();
