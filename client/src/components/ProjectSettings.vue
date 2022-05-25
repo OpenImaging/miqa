@@ -51,13 +51,13 @@ export default defineComponent({
       try {
         if (isGlobal.value) {
           await djangoRest.setGlobalSettings({
-            import_path: importPath.value,
-            export_path: exportPath.value,
+            import_path: importPath.value.trim(),
+            export_path: exportPath.value.trim(),
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {
-            import_path: importPath.value,
-            export_path: exportPath.value,
+            import_path: importPath.value.trim(),
+            export_path: exportPath.value.trim(),
           });
         }
         changed.value = false;
