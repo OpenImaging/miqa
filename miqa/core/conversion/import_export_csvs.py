@@ -53,12 +53,12 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
     import_schema = Schema(
         {
             'projects': {
-                And(Use(str)): {
+                Optional(Use(str)): {
                     'experiments': {
-                        And(Use(str)): {
+                        Optional(Use(str)): {
                             Optional('notes'): Optional(str, None),
                             'scans': {
-                                And(Use(str)): {
+                                Optional(Use(str)): {
                                     'type': And(Use(str)),
                                     Optional('subject_id'): Or(str, None),
                                     Optional('session_id'): Or(str, None),
@@ -100,14 +100,15 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
 
 
 def import_dataframe_to_dict(df, project):
-    if df.empty:
-        raise APIException('Import CSV has no data.')
     df_columns = list(df.columns)
     # The columns after the first 6 are optional
     if df_columns != IMPORT_CSV_COLUMNS and (
         len(df_columns) < 6 or df_columns != IMPORT_CSV_COLUMNS[: len(df_columns)]
     ):
-        raise APIException(f'Import file has invalid columns. Expected {IMPORT_CSV_COLUMNS}')
+        raise APIException(
+            'Import file has invalid columns. '
+            f'Expected {IMPORT_CSV_COLUMNS}, received {df_columns}.'
+        )
     ingest_dict = {'projects': {}}
     for project_name, project_df in df.groupby('project_name'):
         if project and project_name != project.name:
