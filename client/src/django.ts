@@ -50,13 +50,14 @@ const djangoClient = {
   },
   async logout() {
     try {
-      await apiClient.post('/logout/', undefined, { withCredentials: true });
+      await Promise.all([
+        apiClient.post('/logout/', undefined, { withCredentials: true }),
+        oauthClient.logout(),
+      ]);
+      window.location.reload();
     } catch (e) {
       // it's very important that we catch this, because the XHR to logout can raise exceptions
       // if we're already logged out, and the surrounding behavior can cause an infinite loop.
-    } finally {
-      await oauthClient.logout();
-      window.location.reload();
     }
   },
   async MIQAConfig() {
