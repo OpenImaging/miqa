@@ -41,7 +41,6 @@ def validate_file_locations(input_dict, project, not_found_errors):
                     raw_path = Path(import_path).parent.parent / raw_path
                 if not raw_path.exists():
                     not_found_errors.append(f'File not found: {raw_path}')
-                    value = None
             input_dict[key] = str(raw_path) if value and 's3://' not in value else value
         else:
             new_value, not_found_errors = validate_file_locations(value, project, not_found_errors)
@@ -117,52 +116,57 @@ def import_dataframe_to_dict(df, project):
                 which does not match "{project.name}." Import failed.'
             )
         project_dict = {'experiments': {}}
-        for experiment_name, experiment_df in project_df.groupby('experiment_name'):
-            experiment_dict = {'scans': {}}
-            if 'experiment_notes' in experiment_df.columns:
-                experiment_dict['notes'] = experiment_df['experiment_notes'].iloc[0]
-            for scan_name, scan_df in experiment_df.groupby('scan_name'):
-                try:
-                    scan_dict = {
-                        'type': scan_df['scan_type'].iloc[0],
-                        'frames': {
-                            int(row[1]['frame_number']): {'file_location': row[1]['file_location']}
-                            for row in scan_df.iterrows()
-                        },
-                    }
-                except ValueError as e:
-                    raise APIException(
-                        f'Invalid frame number {str(e).split(":")[-1]}. Must be an integer value.'
-                    )
-                if 'subject_id' in scan_df.columns:
-                    scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
-                if 'session_id' in scan_df.columns:
-                    scan_dict['session_id'] = scan_df['session_id'].iloc[0]
-                if 'scan_link' in scan_df.columns:
-                    scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
-                if 'last_decision' in scan_df.columns and scan_df['last_decision'].iloc[0]:
-                    decision_dict = {
-                        'decision': scan_df['last_decision'].iloc[0],
-                        'creator': scan_df['last_decision_creator'].iloc[0],
-                        'note': scan_df['last_decision_note'].iloc[0],
-                        'created': scan_df['last_decision_created'].iloc[0],
-                        'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0]
-                        or None,
-                        'location': scan_df['location_of_interest'].iloc[0] or None,
-                    }
-                    decision_dict = {k: (v or None) for k, v in decision_dict.items()}
-                    scan_dict['last_decision'] = decision_dict
-                else:
-                    scan_dict['last_decision'] = None
+        if list(project_df["experiment_name"].unique()) != [""]:
+            for experiment_name, experiment_df in project_df.groupby('experiment_name'):
+                experiment_dict = {'scans': {}}
+                if 'experiment_notes' in experiment_df.columns:
+                    experiment_dict['notes'] = experiment_df['experiment_notes'].iloc[0]
+                for scan_name, scan_df in experiment_df.groupby('scan_name'):
+                    scan_dict = {}
+                    if list(scan_df["file_location"].unique()) != [""]:
+                        try:
+                            scan_dict = {
+                                'type': scan_df['scan_type'].iloc[0],
+                                'frames': {
+                                    int(row[1]['frame_number']): {
+                                        'file_location': row[1]['file_location']
+                                    }
+                                    for row in scan_df.iterrows()
+                                },
+                            }
+                        except ValueError as e:
+                            raise APIException(
+                                f'Invalid frame number {str(e).split(":")[-1]}. Must be an integer value.'
+                            )
+                        if 'subject_id' in scan_df.columns:
+                            scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
+                        if 'session_id' in scan_df.columns:
+                            scan_dict['session_id'] = scan_df['session_id'].iloc[0]
+                        if 'scan_link' in scan_df.columns:
+                            scan_dict['scan_link'] = scan_df['scan_link'].iloc[0]
+                        if 'last_decision' in scan_df.columns and scan_df['last_decision'].iloc[0]:
+                            decision_dict = {
+                                'decision': scan_df['last_decision'].iloc[0],
+                                'creator': scan_df['last_decision_creator'].iloc[0],
+                                'note': scan_df['last_decision_note'].iloc[0],
+                                'created': scan_df['last_decision_created'].iloc[0],
+                                'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0]
+                                or None,
+                                'location': scan_df['location_of_interest'].iloc[0] or None,
+                            }
+                            decision_dict = {k: (v or None) for k, v in decision_dict.items()}
+                            scan_dict['last_decision'] = decision_dict
+                        else:
+                            scan_dict['last_decision'] = None
 
-                # added for BIDS import
-                if 'subject_ID' in scan_df.columns:
-                    scan_dict['subject_ID'] = scan_df['subject_ID'].iloc[0]
-                if 'session_ID' in scan_df.columns:
-                    scan_dict['session_ID'] = scan_df['session_ID'].iloc[0]
-                # ---- end of BIDS support addition
+                        # added for BIDS import
+                        if 'subject_ID' in scan_df.columns:
+                            scan_dict['subject_ID'] = scan_df['subject_ID'].iloc[0]
+                        if 'session_ID' in scan_df.columns:
+                            scan_dict['session_ID'] = scan_df['session_ID'].iloc[0]
+                        # ---- end of BIDS support addition
 
-                experiment_dict['scans'][scan_name] = scan_dict
-            project_dict['experiments'][experiment_name] = experiment_dict
+                        experiment_dict['scans'][scan_name] = scan_dict
+                project_dict['experiments'][experiment_name] = experiment_dict
         ingest_dict['projects'][project_name] = project_dict
     return ingest_dict
