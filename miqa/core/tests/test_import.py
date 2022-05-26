@@ -16,15 +16,16 @@ from miqa.core.tests.helpers import generate_import_csv, generate_import_json
 def test_import_empty_csv(tmp_path, user, project_factory, user_api_client):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
-        fd.write(', '.join(IMPORT_CSV_COLUMNS))
+        fd.write(','.join(IMPORT_CSV_COLUMNS))
 
     project = project_factory(name='ucsd', import_path=csv_file)
     user_api_client = user_api_client(project=project)
 
     resp = user_api_client.post(f'/api/v1/projects/{project.id}/import')
     if get_perms(user, project):
-        assert resp.status_code == 500
-        assert resp.data['detail'] == 'Import CSV has no data.'
+        assert resp.status_code == 204
+        project.refresh_from_db()
+        assert project.experiments.count() == 0
     else:
         assert resp.status_code == 403
 
