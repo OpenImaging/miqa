@@ -116,14 +116,14 @@ def import_dataframe_to_dict(df, project):
                 which does not match "{project.name}." Import failed.'
             )
         project_dict = {'experiments': {}}
-        if list(project_df["experiment_name"].unique()) != [""]:
+        if list(project_df['experiment_name'].unique()) != ['']:
             for experiment_name, experiment_df in project_df.groupby('experiment_name'):
                 experiment_dict = {'scans': {}}
                 if 'experiment_notes' in experiment_df.columns:
                     experiment_dict['notes'] = experiment_df['experiment_notes'].iloc[0]
                 for scan_name, scan_df in experiment_df.groupby('scan_name'):
                     scan_dict = {}
-                    if list(scan_df["file_location"].unique()) != [""]:
+                    if list(scan_df['file_location'].unique()) != ['']:
                         try:
                             scan_dict = {
                                 'type': scan_df['scan_type'].iloc[0],
@@ -136,7 +136,8 @@ def import_dataframe_to_dict(df, project):
                             }
                         except ValueError as e:
                             raise APIException(
-                                f'Invalid frame number {str(e).split(":")[-1]}. Must be an integer value.'
+                                f'Invalid frame number {str(e).split(":")[-1]}.'
+                                f' Must be an integer value.'
                             )
                         if 'subject_id' in scan_df.columns:
                             scan_dict['subject_id'] = scan_df['subject_id'].iloc[0]
