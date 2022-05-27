@@ -22,7 +22,7 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
             'export_path',
             'permissions',
             'default_email_recipients',
-            'neurology_orientation',
+            'anatomy_orientation',
         ]
 
     permissions = serializers.SerializerMethodField('get_permissions')
@@ -180,8 +180,8 @@ class ProjectViewSet(
                     request.data['default_email_recipients']
                 )
 
-            if 'neurology_orientation' in request.data:
-                project.neurology_orientation = request.data['neurology_orientation']
+            if 'anatomy_orientation' in request.data:
+                project.anatomy_orientation = request.data['anatomy_orientation']
 
             project.import_path = request.data['import_path']
             project.export_path = request.data['export_path']

@@ -27,7 +27,7 @@ export default defineComponent({
 
     const importPath = ref('');
     const exportPath = ref('');
-    const neurologyOrientation = ref<Boolean>(true);
+    const anatomyOrientation = ref<string>();
     watchEffect(() => {
       if (isGlobal.value) {
         importPath.value = globalSettings.value.import_path;
@@ -36,7 +36,7 @@ export default defineComponent({
         djangoRest.settings(currentProject.value.id).then((settings) => {
           importPath.value = settings.import_path;
           exportPath.value = settings.export_path;
-          neurologyOrientation.value = settings.neurology_orientation;
+          anatomyOrientation.value = settings.anatomy_orientation;
         });
       }
     });
@@ -55,15 +55,15 @@ export default defineComponent({
           await djangoRest.setGlobalSettings({
             import_path: importPath.value.trim(),
             export_path: exportPath.value.trim(),
-            neurology_orientation: undefined,
+            anatomy_orientation: undefined,
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {
             import_path: importPath.value.trim(),
             export_path: exportPath.value.trim(),
-            neurology_orientation: neurologyOrientation.value,
+            anatomy_orientation: anatomyOrientation.value,
           });
-          store.commit.setRenderOrientation(neurologyOrientation.value);
+          store.commit.setRenderOrientation(anatomyOrientation.value);
         }
         changed.value = false;
       } catch (e) {
@@ -88,7 +88,7 @@ export default defineComponent({
       projects,
       importPath,
       exportPath,
-      neurologyOrientation,
+      anatomyOrientation,
       changed,
       importPathError,
       exportPathError,
@@ -187,20 +187,13 @@ export default defineComponent({
         </v-tooltip>
       </template>
     </v-text-field>
-    <v-radio-group
-      v-model="neurologyOrientation"
+    <v-select
+      v-if="!isGlobal"
+      v-model="anatomyOrientation"
       label="Project scans orientation"
+      :items="[{text: 'Neurology (LPS)', value: 'LPS'}, {text: 'Radiology (RAS)', value: 'RAS'}]"
       @change="changed = true"
-    >
-      <v-radio
-        label="Neurology"
-        :value="true"
-      />
-      <v-radio
-        label="Radiology"
-        :value="false"
-      />
-    </v-radio-group>
+    />
     <v-flex
       class="d-flex"
       style="flex-direction: row"

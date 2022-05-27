@@ -457,13 +457,13 @@ const {
       state.scans[scanId] = scan;
       state.allScans = Object.assign(state.allScans, state.scans);
     },
-    setRenderOrientation(state, neurology) {
-      state.renderOrientation = neurology ? 'LPS' : 'RAS';
+    setRenderOrientation(state, anatomy) {
+      state.renderOrientation = anatomy;
     },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
       if (project) {
-        state.renderOrientation = project.settings.neurology_orientation ? 'LPS' : 'RAS';
+        state.renderOrientation = project.settings.anatomy_orientation;
         state.currentProjectPermissions = project.settings.permissions;
       }
     },
