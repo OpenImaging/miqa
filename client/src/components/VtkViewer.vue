@@ -34,6 +34,7 @@ export default {
       'kIndexSlice',
       'currentWindowWidth',
       'currentWindowLevel',
+      'renderOrientation',
     ]),
     ...mapGetters(['currentFrame', 'currentScan', 'currentViewData']),
     representation() {
@@ -182,8 +183,10 @@ export default {
       const camera = this.view.getCamera();
       const orientation = this.representation.getInputDataSet().getDirection();
 
-      let newViewUp = VIEW_ORIENTATIONS[this.name].viewUp.slice();
-      let newDirectionOfProjection = VIEW_ORIENTATIONS[this.name].directionOfProjection;
+      let newViewUp = VIEW_ORIENTATIONS[this.renderOrientation][this.name].viewUp.slice();
+      let newDirectionOfProjection = VIEW_ORIENTATIONS[
+        this.renderOrientation
+      ][this.name].directionOfProjection;
       newViewUp = this.findClosestColumnToVector(
         newViewUp,
         orientation,
@@ -222,7 +225,7 @@ export default {
     },
     trueAxis(axisName) {
       const orientation = this.representation.getInputDataSet().getDirection();
-      const axisNumber = VIEW_ORIENTATIONS[axisName].axis;
+      const axisNumber = VIEW_ORIENTATIONS[this.renderOrientation][axisName].axis;
       const axisOrientation = [
         orientation[axisNumber],
         orientation[3 + axisNumber],

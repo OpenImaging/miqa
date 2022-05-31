@@ -17,7 +17,13 @@ from miqa.core.tasks import export_data, import_data
 class ProjectSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['import_path', 'export_path', 'permissions', 'default_email_recipients']
+        fields = [
+            'import_path',
+            'export_path',
+            'permissions',
+            'default_email_recipients',
+            'anatomy_orientation',
+        ]
 
     permissions = serializers.SerializerMethodField('get_permissions')
     default_email_recipients = serializers.SerializerMethodField('get_default_email_recipients')
@@ -173,6 +179,9 @@ class ProjectViewSet(
                 project.default_email_recipients = '\n'.join(
                     request.data['default_email_recipients']
                 )
+
+            if 'anatomy_orientation' in request.data:
+                project.anatomy_orientation = request.data['anatomy_orientation']
 
             project.import_path = request.data['import_path']
             project.export_path = request.data['export_path']
