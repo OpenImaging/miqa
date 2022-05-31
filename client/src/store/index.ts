@@ -309,6 +309,7 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
+  renderOrientation: 'LPS',
 };
 
 const {
@@ -456,9 +457,13 @@ const {
       state.scans[scanId] = scan;
       state.allScans = Object.assign(state.allScans, state.scans);
     },
+    setRenderOrientation(state, anatomy) {
+      state.renderOrientation = anatomy;
+    },
     setCurrentProject(state, project: Project | null) {
       state.currentProject = project;
       if (project) {
+        state.renderOrientation = project.settings.anatomy_orientation;
         state.currentProjectPermissions = project.settings.permissions;
       }
     },
