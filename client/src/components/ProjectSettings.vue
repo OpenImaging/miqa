@@ -55,7 +55,6 @@ export default defineComponent({
           await djangoRest.setGlobalSettings({
             import_path: importPath.value.trim(),
             export_path: exportPath.value.trim(),
-            anatomy_orientation: undefined,
           });
         } else {
           await djangoRest.setProjectSettings(currentProject.value.id, {

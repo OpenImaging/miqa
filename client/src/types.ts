@@ -68,7 +68,7 @@ interface Experiment {
 interface ProjectSettings {
   import_path: string,
   export_path: string,
-  anatomy_orientation: string,
+  anatomy_orientation?: string,
   permissions?: Object,
 }
 
