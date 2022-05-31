@@ -32,6 +32,11 @@ def default_evaluation_model_mapping():
     }
 
 
+class AnatomyOrientation(models.TextChoices):
+    LPS = 'LPS'
+    RAS = 'RAS'
+
+
 class Project(TimeStampedModel, models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     name = models.CharField(max_length=255)
@@ -39,6 +44,11 @@ class Project(TimeStampedModel, models.Model):
     archived = models.BooleanField(default=False)
     import_path = models.CharField(max_length=500, blank=True)
     export_path = models.CharField(max_length=500, blank=True)
+    anatomy_orientation = models.CharField(
+        choices=AnatomyOrientation.choices,
+        default=AnatomyOrientation.LPS,
+        max_length=3,
+    )
     s3_public = models.BooleanField(
         default=False, help_text='Whether the S3 bucket is publicly readable.'
     )

@@ -61,7 +61,10 @@ function getView(proxyManager, viewType) {
       .forEach((s) => proxyManager.getRepresentation(s, view));
 
     // Update orientation
-    const { axis, orientation, viewUp } = VIEW_ORIENTATIONS[name];
+    //   LPS is the default of the view constructor
+    //   Camera initialization when the view is rendered will override this
+    //   with the project's preferred orientation
+    const { axis, orientation, viewUp } = VIEW_ORIENTATIONS.LPS[name];
     view.updateOrientation(axis, orientation, viewUp);
 
     // set background to transparent

@@ -96,6 +96,7 @@ def test_project_settings_put(user_api_client, project_factory, user_factory, us
         assert user_api_client.get(f'/api/v1/projects/{project.id}/settings').data == {
             'import_path': '/new/fake/path',
             'export_path': '/new/fake/path',
+            'anatomy_orientation': 'LPS',
             'permissions': expected_perms,
             'default_email_recipients': project.default_email_recipients.split('\n'),
         }
