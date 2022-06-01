@@ -148,6 +148,7 @@ export default defineComponent({
   >
     <v-form
       ref="form"
+      v-model="valid"
       @submit.prevent="send"
     >
       <v-card>
@@ -283,6 +284,7 @@ export default defineComponent({
           <v-spacer />
           <v-btn
             :loading="sending"
+            :disabled="!valid"
             color="primary"
             text
             type="submit"

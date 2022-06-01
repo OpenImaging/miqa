@@ -79,6 +79,7 @@ enum ScanState {
 }
 
 interface ProjectTaskOverview {
+  project_id: string,
   total_experiments: number,
   total_scans: number,
   my_project_role: string,
