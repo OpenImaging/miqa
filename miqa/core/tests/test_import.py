@@ -34,7 +34,7 @@ def test_import_empty_csv(tmp_path, user, project_factory, user_api_client):
 def test_import_csv(tmp_path, user, project_factory, sample_scans, user_api_client):
     csv_file = str(tmp_path / 'import.csv')
     with open(csv_file, 'w') as fd:
-        output, _writer = generate_import_csv([sample_scans[0]])
+        output, _writer = generate_import_csv([scan for scan in sample_scans if 'ucsd' in scan[0]])
         fd.write(output.getvalue())
 
     project = project_factory(name='ucsd', import_path=csv_file)
@@ -104,7 +104,14 @@ def test_import_json(
 ):
     json_file = str(tmp_path / 'import.json')
     with open(json_file, 'w') as fd:
-        fd.write(json.dumps(generate_import_json(samples_dir, [sample_scans[0]])))
+        fd.write(
+            json.dumps(
+                generate_import_json(
+                    samples_dir,
+                    [scan for scan in sample_scans if 'ucsd' in scan[0]],
+                )
+            )
+        )
 
     project = project_factory(name='ucsd', import_path=json_file)
 
@@ -161,7 +168,7 @@ def test_import_invalid_extension(user, project_factory):
 @pytest.mark.django_db
 def test_import_invalid_csv(tmp_path: Path, user, project_factory, sample_scans):
     csv_file = str(tmp_path / 'import.csv')
-    output, writer = generate_import_csv([sample_scans[0]])
+    output, writer = generate_import_csv([scan for scan in sample_scans if 'ucsd' in scan[0]])
 
     # deliberately invalidate the data
     writer.writerow(

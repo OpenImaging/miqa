@@ -13,7 +13,7 @@ Once a project is populated with experiments and scans, the project page will ha
 
 
 
-1.  *The project’s settings*. This component allows privileged users (superusers and the project creator) to save changes to the import path and export path and delete the project. Other users (members and collaborators on the project) can perform imports and exports with those respective buttons (see Projects > Imports and exports for details).
+1.  *The project’s settings*. This component allows privileged users (superusers and the project creator) to save changes to the import path and export path and delete the project. Other users (members and collaborators on the project) can perform imports and exports with those respective buttons (see Projects > Imports and exports for details). Additionally, the preferred rendering orientation for all scans in that project may also be changed in the project's settings. The default orientation is Left-Posterior-Superior (LPS), which is the standard orientation for neurology scans.
 
 2.  *The project overview*. This donut chart shows the status of the scans in the project. As reviews are made on these scans, the status of the scans will change, and refreshing the page will fetch the updated version of this chart. The goal of any MIQA project is to review all scans, so this illustration helps to track progress towards that goal.
 
