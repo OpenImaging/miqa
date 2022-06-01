@@ -181,13 +181,13 @@ export default {
       this.setCurrentWindowWidth(1500);
       this.setCurrentWindowLevel(-500);
       this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel); 
+      this.representation.setWindowLevel(this.currentWindowLevel);
     },
     setWindowLevelToLowContrast() {
       this.setCurrentWindowWidth(6000);
       this.setCurrentWindowLevel(500);
       this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel); 
+      this.representation.setWindowLevel(this.currentWindowLevel);
     },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
@@ -601,7 +601,9 @@ export default {
                           small
                           depressed
                           @click="setWindowLevelToHighContrast"
-                        >High Contrast</v-btn>
+                        >
+                          High Contrast
+                        </v-btn>
                       </v-col>
 
                       <v-col cols="4">
@@ -609,7 +611,9 @@ export default {
                           small
                           depressed
                           @click="setWindowLevelToLowContrast"
-                        >Low Contrast</v-btn>
+                        >
+                          Low Contrast
+                        </v-btn>
                       </v-col>
                     </v-row>
 
