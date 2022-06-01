@@ -56,12 +56,22 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
 class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['total_experiments', 'total_scans', 'my_project_role', 'scan_states']
+        fields = [
+            'total_experiments',
+            'total_scans',
+            'my_project_role',
+            'scan_states',
+            'project_id',
+        ]
 
+    project_id = serializers.SerializerMethodField('get_project_id')
     total_experiments = serializers.SerializerMethodField('get_total_experiments')
     total_scans = serializers.SerializerMethodField('get_total_scans')
     my_project_role = serializers.SerializerMethodField('get_my_project_role')
     scan_states = serializers.SerializerMethodField('get_scan_states')
+
+    def get_project_id(self, obj):
+        return obj.id
 
     def get_total_experiments(self, obj):
         return obj.experiments.count()
