@@ -8,7 +8,7 @@ import 'vue-css-donut-chart/dist/vcdonut.css';
 import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
-import { Project, Scan, ScanState } from '@/types';
+import { Project, ScanState } from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
 import ProjectSettings from '@/components/ProjectSettings.vue';
@@ -69,20 +69,19 @@ export default defineComponent({
         overviewSections.value = [];
       }
     };
-    watch(currentTaskOverview, setOverviewSections);
 
-    const overviewPoll = setInterval(async () => {
-      // refresh the task overview for this project
+    async function refreshTaskOverview() {
       if (currentProject.value) {
         const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          Object.values(store.state.allScans).forEach((scan: Scan) => {
-            store.dispatch.reloadScan(scan.id);
-          });
           store.commit.setTaskOverview(taskOverview);
         }
       }
-    }, 10000);
+    }
+
+    const overviewPoll = setInterval(refreshTaskOverview, 10000);
+    watch(currentTaskOverview, setOverviewSections);
+    watch(currentProject, refreshTaskOverview);
 
     return {
       currentProject,
@@ -110,7 +109,7 @@ export default defineComponent({
       }
     });
   },
-  beforeUnmount() {
+  beforeDestroy() {
     clearInterval(this.overviewPoll);
   },
   methods: {
