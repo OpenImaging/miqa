@@ -24,6 +24,7 @@ export default {
     uploadError: '',
     experimentNameForUpload: '',
     fileSetForUpload: [],
+    uploading: false,
   }),
   computed: {
     ...mapState([
@@ -54,6 +55,13 @@ export default {
   watch: {
     showUploadModal() {
       this.delayPrepareDropZone();
+    },
+    currentProject() {
+      this.showUploadModal = false;
+      this.uploadToExisting = false;
+      this.uploadError = '';
+      this.fileSetForUpload = [];
+      this.uploading = false;
     },
   },
   methods: {
@@ -143,6 +151,7 @@ export default {
     },
     async uploadToExperiment() {
       let experimentId;
+      this.uploading = true;
       try {
         if (!this.uploadToExisting) {
           const newExperiment = await djangoRest.createExperiment(
@@ -161,6 +170,7 @@ export default {
         const text = ex || 'Upload failed due to server error.';
         this.uploadError = text;
       }
+      this.uploading = false;
     },
   },
 };
@@ -392,6 +402,7 @@ export default {
             </div>
             <v-spacer />
             <v-btn
+              loading="uploading"
               :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"
               color="primary"
               text
