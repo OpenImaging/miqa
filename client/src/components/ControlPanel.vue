@@ -175,6 +175,20 @@ export default {
       this.representation.setWindowWidth(this.currentWindowWidth);
       this.representation.setWindowLevel(this.currentWindowLevel);
     },
+
+    // this is a preset value assigned when the user clicks a W/L preset button icon
+    setWindowLevelToHighContrast() {
+      this.setCurrentWindowWidth(1500);
+      this.setCurrentWindowLevel(-500);
+      this.representation.setWindowWidth(this.currentWindowWidth);
+      this.representation.setWindowLevel(this.currentWindowLevel);
+    },
+    setWindowLevelToLowContrast() {
+      this.setCurrentWindowWidth(6000);
+      this.setCurrentWindowLevel(500);
+      this.representation.setWindowWidth(this.currentWindowWidth);
+      this.representation.setWindowLevel(this.currentWindowLevel);
+    },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
         this.$router
@@ -577,6 +591,32 @@ export default {
                         </v-slider>
                       </v-col>
                     </v-row>
+
+                    <v-row>
+                      <v-col cols="4">
+                        Window/Level Presets
+                      </v-col>
+                      <v-col cols="4">
+                        <v-btn
+                          small
+                          depressed
+                          @click="setWindowLevelToHighContrast"
+                        >
+                          High Contrast
+                        </v-btn>
+                      </v-col>
+
+                      <v-col cols="4">
+                        <v-btn
+                          small
+                          depressed
+                          @click="setWindowLevelToLowContrast"
+                        >
+                          Low Contrast
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+
                     <v-row class="mx-0">
                       <v-col
                         cols="12"
