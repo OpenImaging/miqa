@@ -1,4 +1,5 @@
 import pytest
+
 from miqa.core.tests.pyppeteer.test_import_export import get_current_num_scans
 
 
@@ -33,12 +34,14 @@ async def test_upload_scans(
     )
 
     new_experiment_input = await page.waitForXPath(
-        '//label[contains(@class, "v-label")][contains(.,"Name new Experiment")]/following::input[@type="text"]'
+        '//label[contains(@class, "v-label")]'
+        '[contains(.,"Name new Experiment")]/following::input[@type="text"]'
     )
     await new_experiment_input.type('Test Experiment')
 
     file_input = await page.waitForXPath(
-        '//label[contains(@class, "v-label")][contains(.,"Image files")]/following::input[@type="file"]'
+        '//label[contains(@class, "v-label")]'
+        '[contains(.,"Image files")]/following::input[@type="file"]'
     )
 
     await file_input.uploadFile(
