@@ -482,7 +482,7 @@ const {
           ).length,
         };
       }
-      if(taskOverview.project_id == state.currentProject.id){
+      if (taskOverview.project_id === state.currentProject.id) {
         Object.values(store.state.allScans).forEach((scan: Scan) => {
           if (taskOverview.scan_states[scan.id] && taskOverview.scan_states[scan.id] !== 'unreviewed') {
             store.dispatch.reloadScan(scan.id);
