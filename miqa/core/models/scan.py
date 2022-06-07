@@ -22,6 +22,7 @@ SCAN_TYPES = [
     ('ncanda-grefieldmap-v1', 'ncanda-grefieldmap-v1'),
     ('ncanda-rsfmri-v1', 'ncanda-rsfmri-v1'),
     ('PET', 'PET'),
+    ('CT', 'CT'),
 ]
 
 
