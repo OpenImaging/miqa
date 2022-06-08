@@ -53,7 +53,7 @@ async def test_upload_scans(
     await (
         await page.waitForXPath('//span[contains(@class, "v-btn__content")][contains(.,"Upload")]')
     ).click()
-    await page.waitFor(10_000)
+    await page.waitFor(5_000)
 
     # Assert there are 3 scans now, and that the experiment name appears as we typed it
     assert (await get_current_num_scans(page)) == 3
