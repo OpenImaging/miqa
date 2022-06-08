@@ -48,8 +48,8 @@ jobs:
           DJANGO_CONFIGURATION: DevelopmentConfiguration
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ROOT_USER: minioAccessKey
-          DJANGO_MINIO_STORAGE_ROOT_PASSWORD: minioSecretKey
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
       - uses: codecov/codecov-action@v2
         with:
@@ -90,6 +90,6 @@ jobs:
         env:
           DJANGO_DATABASE_URL: postgres://postgres:postgres@postgres:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: minio:9000
-          DJANGO_MINIO_STORAGE_ROOT_USER: minioAccessKey
-          DJANGO_MINIO_STORAGE_ROOT_PASSWORD: minioSecretKey
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: integration-test-bucket
