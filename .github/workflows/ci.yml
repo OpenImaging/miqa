@@ -72,8 +72,8 @@ jobs:
       minio:
         image: bitnami/minio:latest
         env:
-          MINIO_ACCESS_KEY: minioAccesskey
-          MINIO_SECRET_KEY: minioSecretkey
+          MINIO_ACCESS_KEY: minioAccessKey
+          MINIO_SECRET_KEY: minioSecretKey
         ports:
           - 9000:9000
     steps:
