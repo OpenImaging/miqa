@@ -36,7 +36,8 @@ async def test_save_decisions_tier_1(
     ).click()
     await page.waitFor(1_000)
 
-    # Mark the second scan as questionable, get a warning that there must be a comment or chip selection,
+    # Mark the second scan as questionable,
+    # get a warning that there must be a comment or chip selection,
     # Then make a comment and try again
     await (
         await page.waitForXPath(
@@ -48,7 +49,7 @@ async def test_save_decisions_tier_1(
         '[contains(.," must have a comment or artifact selection")]'
     )
     await (await page.waitForXPath('//textarea[contains(@name, "input-comment")]')).type(
-        "This is my comment for this questionable scan."
+        'This is my comment for this questionable scan.'
     )
     await (
         await page.waitForXPath(
@@ -70,7 +71,8 @@ async def test_save_decisions_tier_1(
     # Go back up a scan and confirm the previous decision marked all artifacts as present
     await (await page.waitForXPath('//i[contains(@class, "fa-caret-up")]')).click()
     saved_artifacts = await page.xpath(
-        '//div[contains(., "No comment")]/following-sibling::div/span/span[contains(@class,"v-chip__content")]'
+        '//div[contains(., "No comment")]/following-sibling::div/'
+        'span/span[contains(@class,"v-chip__content")]'
     )
     assert len(saved_artifacts) == len(artifact_chips)
 
@@ -80,7 +82,7 @@ async def test_save_decisions_tier_1(
     [(await chip.click()) for chip in artifact_chips]
     [(await chip.click()) for chip in artifact_chips]
     await (await page.waitForXPath('//textarea[contains(@name, "input-comment")]')).type(
-        "I disagree."
+        'I disagree.'
     )
     await (
         await page.waitForXPath('//span[contains(@class, "v-btn__content")][contains(.,"Usable")]')
@@ -90,7 +92,8 @@ async def test_save_decisions_tier_1(
     # Go back up a scan and confirm the previous decision marked all artifacts as absent
     await (await page.waitForXPath('//i[contains(@class, "fa-caret-up")]')).click()
     saved_artifacts = await page.xpath(
-        '//div[contains(., "I disagree")]/following-sibling::div/span/span[contains(@class,"v-chip__content")]'
+        '//div[contains(., "I disagree")]/following-sibling::div/'
+        'span/span[contains(@class,"v-chip__content")]'
     )
     assert len(saved_artifacts) == 0
 
@@ -138,7 +141,8 @@ async def test_save_decisions_tier_2(
     ).click()
     await page.waitFor(1_000)
 
-    # Mark the second scan as unusable, get a warning that there must be a comment or chip selection,
+    # Mark the second scan as unusable,
+    # get a warning that there must be a comment or chip selection,
     # Then make a comment and try again
     await (
         await page.waitForXPath(
@@ -150,7 +154,7 @@ async def test_save_decisions_tier_2(
         '[contains(.," must have a comment or artifact selection")]'
     )
     await (await page.waitForXPath('//textarea[contains(@name, "input-comment")]')).type(
-        "This is my comment for this unusable scan."
+        'This is my comment for this unusable scan.'
     )
     await (
         await page.waitForXPath(
