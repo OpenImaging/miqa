@@ -102,7 +102,7 @@ async def test_save_decisions_tier_1(
     await (
         await page.waitForXPath(f'//div[contains(@class, "col")][contains(.,"{project.name}")]')
     ).click()
-    await page.waitFor(1_000)
+    await page.waitFor(3_000)
 
     # confirm that the number of scans awaiting tier 2 review is 3
     assert await (page.waitForXPath('//span[contains(., "needs tier 2 review (3)")]'))
@@ -178,7 +178,7 @@ async def test_save_decisions_tier_2(
     await (
         await page.waitForXPath(f'//div[contains(@class, "col")][contains(.,"{project.name}")]')
     ).click()
-    await page.waitFor(1_000)
+    await page.waitFor(3_000)
 
     # confirm that the number of complete scans is 3
     assert await (page.waitForXPath('//span[contains(., "complete (3)")]'))
