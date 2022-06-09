@@ -402,7 +402,7 @@ export default {
             </div>
             <v-spacer />
             <v-btn
-              loading="uploading"
+              :loading="uploading"
               :disabled="fileSetForUpload.length < 1 || !experimentNameForUpload"
               color="primary"
               text

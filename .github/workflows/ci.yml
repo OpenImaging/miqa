@@ -35,8 +35,8 @@ jobs:
         # TODO at the time this was pinned, latest bitnami/minio was broken
         image: bitnami/minio:2022.2.18
         env:
-          MINIO_ACCESS_KEY: minioAccesskey
-          MINIO_SECRET_KEY: minioSecretkey
+          MINIO_ROOT_USER: minioAccessKey
+          MINIO_ROOT_PASSWORD: minioSecretKey
         ports:
           - 9000:9000
     steps:
@@ -48,8 +48,8 @@ jobs:
           DJANGO_CONFIGURATION: DevelopmentConfiguration
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccesskey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretkey
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
       - uses: codecov/codecov-action@v2
         with:
@@ -72,8 +72,8 @@ jobs:
       minio:
         image: bitnami/minio:latest
         env:
-          MINIO_ACCESS_KEY: minioAccesskey
-          MINIO_SECRET_KEY: minioSecretkey
+          MINIO_ROOT_USER: minioAccessKey
+          MINIO_ROOT_PASSWORD: minioSecretKey
         ports:
           - 9000:9000
     steps:
