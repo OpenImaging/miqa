@@ -60,7 +60,8 @@ async def test_save_decisions_tier_1(
 
     # Mark all artifacts as present on the third scan and mark it as questionable
     artifact_chips = await page.xpath('//span[contains(@class,"v-chip__content")]')
-    [(await chip.click()) for chip in artifact_chips]
+    for chip in artifact_chips:
+        await chip.click()
     await (
         await page.waitForXPath(
             '//span[contains(@class, "v-btn__content")][contains(.,"Questionable")]'
