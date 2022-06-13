@@ -155,17 +155,6 @@ async def test_save_decisions_tier_2(
     ).click()
     await page.waitFor(1_000)
 
-    # Mark all artifacts as present on the third scan and mark it as usable-extra
-    artifact_chips = await page.xpath('//span[contains(@class,"v-chip__content")]')
-    for chip in artifact_chips:
-        await chip.click()
-    await (
-        await page.waitForXPath(
-            '//span[contains(@class, "v-btn__content")][contains(.,"Usable-Extra")]'
-        )
-    ).click()
-    await page.waitFor(1_000)
-
     # Go back to the project page
     await (await page.waitForXPath('//a[contains(., "Projects")]')).click()
     await (
@@ -173,7 +162,7 @@ async def test_save_decisions_tier_2(
     ).click()
     await page.waitFor(3_000)
 
-    # confirm that the number of complete scans is 3
+    # confirm that the number of complete scans is 2
     complete_span = await (page.waitForXPath('//span[contains(., "complete (")]'))
     complete_text = (await page.evaluate('(element) => element.textContent', complete_span)).strip()
-    assert complete_text == 'complete (3)'
+    assert complete_text == 'complete (2)'
