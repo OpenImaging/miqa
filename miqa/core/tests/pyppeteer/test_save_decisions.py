@@ -144,35 +144,13 @@ async def test_save_decisions_tier_2(
     ).click()
     await page.waitFor(1_000)
 
-    # Mark the second scan as unusable,
-    # get a warning that there must be a comment or chip selection,
-    # Then make a comment and try again
-    await (
-        await page.waitForXPath(
-            '//span[contains(@class, "v-btn__content")][contains(.,"Unusable")]'
-        )
-    ).click()
-    assert await page.waitForXPath(
-        '//div[contains(@class,"red--text")]'
-        '[contains(.," must have a comment or artifact selection")]'
-    )
+    # Mark the second scan as unusable
     await (await page.waitForXPath('//textarea[contains(@name, "input-comment")]')).type(
         'This is my comment for this unusable scan.'
     )
     await (
         await page.waitForXPath(
             '//span[contains(@class, "v-btn__content")][contains(.,"Unusable")]'
-        )
-    ).click()
-    await page.waitFor(1_000)
-
-    # Mark all artifacts as present on the third scan and mark it as usable-extra
-    artifact_chips = await page.xpath('//span[contains(@class,"v-chip__content")]')
-    for chip in artifact_chips:
-        await chip.click()
-    await (
-        await page.waitForXPath(
-            '//span[contains(@class, "v-btn__content")][contains(.,"Usable-Extra")]'
         )
     ).click()
     await page.waitFor(1_000)
@@ -184,5 +162,7 @@ async def test_save_decisions_tier_2(
     ).click()
     await page.waitFor(3_000)
 
-    # confirm that the number of complete scans is 3
-    assert await (page.waitForXPath('//span[contains(., "complete (3)")]'))
+    # confirm that the number of complete scans is 2
+    complete_span = await (page.waitForXPath('//span[contains(., "complete (")]'))
+    complete_text = (await page.evaluate('(element) => element.textContent', complete_span)).strip()
+    assert complete_text == 'complete (2)'
