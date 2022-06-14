@@ -79,6 +79,15 @@ export default defineComponent({
       }
     }
 
+    async function refreshAllTaskOverviews() {
+      projects.value.forEach(
+        async (project: Project) => {
+          const taskOverview = await djangoRest.projectTaskOverview(project.id);
+          store.commit.setTaskOverview(taskOverview);
+        },
+      );
+    }
+
     const overviewPoll = setInterval(refreshTaskOverview, 10000);
     watch(currentTaskOverview, setOverviewSections);
     watch(currentProject, refreshTaskOverview);
@@ -95,6 +104,7 @@ export default defineComponent({
       selectGlobal,
       overviewSections,
       setOverviewSections,
+      refreshAllTaskOverviews,
     };
   },
   data: () => ({
@@ -144,7 +154,12 @@ export default defineComponent({
     <div class="d-flex">
       <v-card class="project-list-container">
         <v-navigation-drawer permanent>
-          <v-card-title>Projects</v-card-title>
+          <v-card-title style="display: flex; justify-content: space-between">
+            Projects
+            <v-icon @click="refreshAllTaskOverviews">
+              mdi-refresh
+            </v-icon>
+          </v-card-title>
           <v-list-item-group
             v-model="selectedProjectIndex"
             class="project-list"
