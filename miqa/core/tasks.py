@@ -1,3 +1,4 @@
+import datetime
 from io import BytesIO, StringIO
 import json
 from pathlib import Path
@@ -30,7 +31,7 @@ from miqa.core.models import (
     ScanDecision,
 )
 from miqa.core.models.frame import StorageMode
-from miqa.core.models.scan_decision import default_identified_artifacts
+from miqa.core.models.scan_decision import DECISION_CHOICES, default_identified_artifacts
 
 
 def _get_s3_client(public: bool):
@@ -215,8 +216,15 @@ def perform_import(import_dict):
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['created']:
-                            created = last_decision_dict['created']
-                        if last_decision_dict['location']:
+                            try:
+                                datetime.datetime.strptime(
+                                    last_decision_dict['created'], '%Y-%m-%d'
+                                )
+                            except ValueError:
+                                created = timezone.now()
+                            else:
+                                created = last_decision_dict['created']
+                        if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]
                                 for axis in last_decision_dict['location'].split(';')
@@ -226,25 +234,26 @@ def perform_import(import_dict):
                                 'j': slices[1],
                                 'k': slices[2],
                             }
-                        last_decision = ScanDecision(
-                            decision=last_decision_dict['decision'],
-                            creator=creator,
-                            created=created,
-                            note=note,
-                            user_identified_artifacts={
-                                artifact_name: (
-                                    1
-                                    if last_decision_dict['user_identified_artifacts']
-                                    and artifact_name
-                                    in last_decision_dict['user_identified_artifacts']
-                                    else 0
-                                )
-                                for artifact_name in default_identified_artifacts().keys()
-                            },
-                            location=location,
-                            scan=scan_object,
-                        )
-                        new_scan_decisions.append(last_decision)
+                        if last_decision_dict['decision'] in DECISION_CHOICES:
+                            last_decision = ScanDecision(
+                                decision=last_decision_dict['decision'],
+                                creator=creator,
+                                created=created,
+                                note=note,
+                                user_identified_artifacts={
+                                    artifact_name: (
+                                        1
+                                        if last_decision_dict['user_identified_artifacts']
+                                        and artifact_name
+                                        in last_decision_dict['user_identified_artifacts']
+                                        else 0
+                                    )
+                                    for artifact_name in default_identified_artifacts().keys()
+                                },
+                                location=location,
+                                scan=scan_object,
+                            )
+                            new_scan_decisions.append(last_decision)
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
 
@@ -274,8 +283,8 @@ def perform_import(import_dict):
     Project.objects.bulk_create(new_projects)
     Experiment.objects.bulk_create(new_experiments)
     Scan.objects.bulk_create(new_scans)
-    ScanDecision.objects.bulk_create(new_scan_decisions)
     Frame.objects.bulk_create(new_frames)
+    ScanDecision.objects.bulk_create(new_scan_decisions)
 
     # must use str, not UUID, to get sent to celery task properly
     frames_by_project: Dict[str, List[str]] = {}

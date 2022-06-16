@@ -91,7 +91,7 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
         return {
             str(scan.id): convert_state_string(
                 obj.get_user_role(scan.decisions.latest('created').creator)
-                if scan.decisions.count() > 0
+                if scan.decisions.count() > 0 and scan.decisions.latest('created').creator
                 else 'unreviewed'
             )
             for exp in obj.experiments.all()
