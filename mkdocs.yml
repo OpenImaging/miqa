@@ -23,8 +23,8 @@ extra:
       link: https://github.com/OpenImaging/miqa
 
 nav:
-  - Home: index.md
   - User Guide:
+    - Home: index.md
     - Navigating the site: site.md
     - Users in MIQA: users.md
     - Projects in MIQA: projects.md
