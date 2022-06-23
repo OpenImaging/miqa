@@ -1,0 +1,1184 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for MIQA">
+      
+      
+        <meta name="author" content="Kitware">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.3.7">
+    
+    
+      
+        <title>Imports and Exports - MIQA</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.4a0965b7.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#importexport-file-formats" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MIQA" class="md-header__button md-logo" aria-label="MIQA" data-md-component="logo">
+      
+  <img src="../images/kitware-mark.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MIQA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Imports and Exports
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/OpenImaging/miqa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-tabs__inner md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        User Guide
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../admin/" class="md-tabs__link md-tabs__link--active">
+        Administrator Guide
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MIQA" class="md-nav__button md-logo" aria-label="MIQA" data-md-component="logo">
+      
+  <img src="../images/kitware-mark.png" alt="logo">
+
+    </a>
+    MIQA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/OpenImaging/miqa" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_1" type="checkbox" id="__nav_1" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_1">
+          User Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_1">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../site/" class="md-nav__link">
+        Navigating the site
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../users/" class="md-nav__link">
+        Users in MIQA
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../projects/" class="md-nav__link">
+        Projects in MIQA
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Administrator Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Administrator Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Administrator Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../admin/" class="md-nav__link">
+        Introduction
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        Setting up MIQA
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        The Django Admin Console
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Imports and Exports
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Imports and Exports
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#importexport-file-formats" class="md-nav__link">
+    Import/export file formats
+  </a>
+  
+    <nav class="md-nav" aria-label="Import/export file formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-project-name-required" class="md-nav__link">
+    1. Project name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-experiment-name-required" class="md-nav__link">
+    2.  Experiment name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-scan-name-required" class="md-nav__link">
+    3.  Scan name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scan-type-required" class="md-nav__link">
+    4.  Scan type. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-frame-number-required" class="md-nav__link">
+    5.  Frame number. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-file-location-required" class="md-nav__link">
+    6.  File location. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-experiment-notes" class="md-nav__link">
+    7. Experiment Notes.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-subject-id" class="md-nav__link">
+    8.  Subject ID.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-session-id" class="md-nav__link">
+    9.  Session ID.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-scan-link" class="md-nav__link">
+    10.  Scan link.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-last-decision" class="md-nav__link">
+    11.  Last decision.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-last-decision-creator" class="md-nav__link">
+    12.  Last decision creator.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-last-decision-note" class="md-nav__link">
+    13.  Last decision note.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-last-decision-creation-datetime" class="md-nav__link">
+    14.  Last decision creation datetime.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-identified-artifacts" class="md-nav__link">
+    15.  Identified artifacts.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-location-of-interest" class="md-nav__link">
+    16.  Location of interest.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-csvs" class="md-nav__link">
+    Import CSVs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-jsons" class="md-nav__link">
+    Import JSONs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-imports-and-exports" class="md-nav__link">
+    Global imports and exports
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../integration/" class="md-nav__link">
+        Integrating MIQA in your workflow
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#importexport-file-formats" class="md-nav__link">
+    Import/export file formats
+  </a>
+  
+    <nav class="md-nav" aria-label="Import/export file formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-project-name-required" class="md-nav__link">
+    1. Project name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-experiment-name-required" class="md-nav__link">
+    2.  Experiment name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-scan-name-required" class="md-nav__link">
+    3.  Scan name. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-scan-type-required" class="md-nav__link">
+    4.  Scan type. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-frame-number-required" class="md-nav__link">
+    5.  Frame number. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-file-location-required" class="md-nav__link">
+    6.  File location. Required.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-experiment-notes" class="md-nav__link">
+    7. Experiment Notes.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-subject-id" class="md-nav__link">
+    8.  Subject ID.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-session-id" class="md-nav__link">
+    9.  Session ID.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-scan-link" class="md-nav__link">
+    10.  Scan link.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#11-last-decision" class="md-nav__link">
+    11.  Last decision.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-last-decision-creator" class="md-nav__link">
+    12.  Last decision creator.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-last-decision-note" class="md-nav__link">
+    13.  Last decision note.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-last-decision-creation-datetime" class="md-nav__link">
+    14.  Last decision creation datetime.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-identified-artifacts" class="md-nav__link">
+    15.  Identified artifacts.
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-location-of-interest" class="md-nav__link">
+    16.  Location of interest.
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-csvs" class="md-nav__link">
+    Import CSVs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#import-jsons" class="md-nav__link">
+    Import JSONs
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-imports-and-exports" class="md-nav__link">
+    Global imports and exports
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/OpenImaging/miqa/edit/master/docs/imports.md" title="Edit this page" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+  <h1>Imports and Exports</h1>
+
+<p>There are two ways to bring data into MIQA. The first way is uploading scans from your local computer through the MIQA web interface (see <a href="../site/#projects-homepage">User Guide Projects homepage</a> for details). The second way is a system of exports and imports that catalog and refresh (respectively) the state of a project. Import files and export files reference image files on the server machine for which MIQA should save representational objects.</p>
+<p>Before writing import files for your MIQA projects, it is important to understand the organization of certain objects in MIQA. Refer to the User Guide explanation of projects to better understand the relationships between projects, experiments, scans, and frames.</p>
+<p>Each project in MIQA has an <code>import_path</code> and an <code>export_path</code>. Since these attributes affect the behavior of imports and exports, editing these paths for a project is a privilege reserved for superusers and the creators of projects. An import/export path is a string containing one of the following options:</p>
+<ol>
+<li>
+<p>An absolute path of a csv or json file <strong>on the server machine</strong>. The path must exist for an import file so that file can be read. For an export file, at least the parent folder must exist so the file can be written at that path. All file references within the import file can be absolute paths of the same form OR paths relative to the parent folder. See <a href="#6-file-location-required">the description of the file_location attribute</a>.</p>
+</li>
+<li>
+<p>A URL referencing a csv or json file <strong>that exists on Amazon S3</strong>. The string must be of the form <code>s3://[bucket_name]/[key_name].[csv|json]</code>. All of the file references within the import file must be of the same form. See <a href="#6-file-location-required">the description of the file_location attribute</a>; all values for file locations should be S3 URLS.</p>
+</li>
+</ol>
+<p>As the system administrator for your instance of MIQA, you will be responsible for the content and maintenance of server files so that normal users may successfully perform imports and exports in the application. You are responsible for ensuring that these files are accessible to the server (by location and permission settings). If you are running MIQA through <code>docker-compose</code>, you will need to specify an environment variable <code>SAMPLES_DIR</code> as a directory containing any absolute file paths you wish to access from the server. For example, the command <code>export SAMPLES_DIR=/home/user/miqa_files/</code> would mount the entire <code>miqa_files</code> directory to the server container and make those files available via the same absolute paths.</p>
+<p>A project import will read the contents of the file at the referenced <code>import_path</code>, interpret that data as objects, and save those objects within the target project. An import will overwrite the current state of the project, so this operation should be performed with caution. An export will overwrite the contents of the file at the referenced <code>export_path</code> or create a new file at that location if it does not exist. The data written by an export operation will record the current state of the project, including experiments, scans, frames, and the last decision made for each scan.</p>
+<p>The data written by the export operation is in the same format as what the import operation ingests, so it may be useful for the import and export paths for a project to be the same. In that case, an export operation would save the state of the project and an import operation would refresh that state (although any scan decisions made prior to the last decision would be lost). Adding lines to the import file before importing would add new content to the project.</p>
+<h3 id="importexport-file-formats">Import/export file formats</h3>
+<p>The import and export files must be in either a CSV or JSON format. Below are exact specifications and explanations for the two formats. Since only the import files are written by the administrator, these formats are explained in the context of writing import files; export files will be written in the same formats by the server. When writing an import file, these attributes are expected (although only the first six are required). Read the descriptions of these attributes, then see the following sections, <a href="#import-csvs">Import CSVs</a> and <a href="#import-jsons">Import JSONs</a>, to learn how to format these values.</p>
+<h5 id="1-project-name-required">1. Project name. Required.</h5>
+<p>In a CSV for just one project, this value should be the same for all rows in the file below the header row. This should specify the name of the project to which the Frame in this row belongs. In most cases, this is an assurance that the file is being used by the proper project. However, it is also possible to use this format to specify the objects to create in multiple projects at once, in which case the rows may have different values for <code>project_name</code> (see Global imports and exports).</p>
+<h5 id="2-experiment-name-required">2.  Experiment name. Required.</h5>
+<p>Each row specifies a Frame that belongs to a Scan, which belongs to an Experiment. This column allows you to specify the experiment-level organization by specifying an experiment name for each Frame. You will likely have the same value repeated often in this column, since multiple scans are often organized into a single experiment..</p>
+<h5 id="3-scan-name-required">3.  Scan name. Required.</h5>
+<p>Each row specifies a Frame that belongs to a Scan. This column allows you to specify the scan-level organization by specifying a scan name for each Frame. You will likely have repeating values in this column.</p>
+<h5 id="4-scan-type-required">4.  Scan type. Required.</h5>
+<p>For each unique value in the <code>scan_name</code> column, some additional information about the Scan object should be supplied. The only required additional scan attribute is the <code>scan_type</code>. Other additional scan attributes can be found in columns 12-14. The scan type may be one of "T1", "T2", "FMRI", "MRA", "PD", "DTI", "DWI", or any of the ncanda-specific scan types (see miqa.core.models.scan for more).</p>
+<h5 id="5-frame-number-required">5.  Frame number. Required.</h5>
+<p>Since each row specifies a Frame belonging to a Scan in the Project, and multiple Frames can belong to a single Scan, you may specify an order for the Frames in a Scan. The <code>frame_number</code> column should contain a unique integer for each Frame in the same Scan object. If only one Frame exists in a Scan, the <code>frame_number</code> value can simply be set to 0.</p>
+<h5 id="6-file-location-required">6.  File location. Required.</h5>
+<p>This column’s value should contain the file path of / URL to the image file to associate with this row’s Frame object. An image file should be of the types <code>.nii.gz</code>, <code>.nii</code>, <code>.mgz</code>, or <code>.nrrd</code>.</p>
+<h5 id="7-experiment-notes">7. Experiment Notes.</h5>
+<p>This is an optional additional attribute of an Experiment which may be specified in the CSV. This field should contain any additional text you would like to associate with an experiment.</p>
+<h5 id="8-subject-id">8.  Subject ID.</h5>
+<p>This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for scan subjects, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.</p>
+<h5 id="9-session-id">9.  Session ID.</h5>
+<p>This is an optional additional attribute of a Scan which may be specified in the CSV. This field is stored as a string and may be a number or any other alphanumeric identifier your organization may have for session IDs, up to 255 characters long. This value is stored in MIQA and displayed on the user interface when a scan is being reviewed. These values do not have to be unique, as multiple scans can belong to a single subject.</p>
+<h5 id="10-scan-link">10.  Scan link.</h5>
+<p>This is an optional additional attribute of a Scan which may be specified in the CSV. As such, for each unique value in the <code>scan_name</code> column, a new value may be supplied in this column. This value should be a URL that directs to an external site where more information about that scan can be found. This link will be used in the MIQA control panel as a hyperlink on the text of the scan’s name.</p>
+<h5 id="11-last-decision">11.  Last decision.</h5>
+<p>As MIQA is a tool to make decisions about the usability of scans, the import/export file formats include the ability to record the last decision made on a scan. This is to enable import/export cycles where the state of a project may be saved to an export file and later redigested by the system as an import file. It is not likely that you will be writing these column values yourself, rather reading these values as the result of what the export writes. These values will be one of the following: <code>U</code> for “usable”, <code>UN</code> for “unusable”, <code>Q?</code> for “questionable”, or <code>UE</code> for “usable-extra”. If this column does not have a value for a given row, columns 12-16 will have no value either.</p>
+<h5 id="12-last-decision-creator">12.  Last decision creator.</h5>
+<p>This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 12 specifies the user that submitted that decision.</p>
+<h5 id="13-last-decision-note">13.  Last decision note.</h5>
+<p>This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 13 supplies any note that the user submitted alongside the decision.</p>
+<h5 id="14-last-decision-creation-datetime">14.  Last decision creation datetime.</h5>
+<p>This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 14 supplies the datetime on the server when the decision was submitted.</p>
+<h5 id="15-identified-artifacts">15.  Identified artifacts.</h5>
+<p>This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 15 supplies the list of artifacts identified as present in the scan when the decision was submitted. This list will be separated by semicolons to differentiate between the column separator <code>,</code>.</p>
+<h5 id="16-location-of-interest">16.  Location of interest.</h5>
+<p>This column value will only exist when column 11 has a value. If a scan had some decision(s) made about its usability, the last one will be recorded in the last 6 columns. Column 16 supplies a three-dimensional coordinate which specifies a location of interest when the decision was submitted (or at least, what the user was looking at when they made the decision). These coordinates are slices within the three dimensional image and may be read by the MIQA webapp to bring another user to that location in the image. If a decision has a saved location of interest, a crosshair pointer icon will appear next to it in the control panel. Clicking this icon will snap the current user’s viewer to that slice location in the image.
+<img alt="" src="../images/imports_0.png" /></p>
+<h3 id="import-csvs">Import CSVs</h3>
+<p>If your project’s import file is written in a CSV format, it should contain a header row; any following rows will represent Frame objects within the Project. Each Frame object in the Project represents a single image file. A Scan is a collection of associated Frames, and an Experiment is a collection of associated Scans. The import CSV format contains fourteen possible columns to specify things about the Frame or the Scan to which it belongs. Only the first six columns are required. Below is a list of the columns and the explanations for each.</p>
+<p>In the case that you only specify the required columns in your import CSV, your file may look something like this table:</p>
+<table>
+<thead>
+<tr>
+<th><strong>project_name</strong></th>
+<th><strong>experiment_name</strong></th>
+<th><strong>scan_name</strong></th>
+<th><strong>scan_type</strong></th>
+<th><strong>frame_number</strong></th>
+<th><strong>file_location</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>My Project</td>
+<td>Experiment 1</td>
+<td>Scan A</td>
+<td>T1</td>
+<td>1</td>
+<td>my_project/experiment_1/scan_a/file_1.nii.gz</td>
+</tr>
+<tr>
+<td>My Project</td>
+<td>Experiment 1</td>
+<td>Scan A</td>
+<td>T1</td>
+<td>2</td>
+<td>my_project/experiment_1/scan_a/file_2.nii.gz</td>
+</tr>
+<tr>
+<td>My Project</td>
+<td>Experiment 1</td>
+<td>Scan B</td>
+<td>T1</td>
+<td>0</td>
+<td>my_project/experiment_1/scan_b/file_0.nii.gz</td>
+</tr>
+<tr>
+<td>My Project</td>
+<td>Experiment 2</td>
+<td>Scan C</td>
+<td>T2</td>
+<td>0</td>
+<td>my_project/experiment_2/scan_c/file_0.nii.gz</td>
+</tr>
+</tbody>
+</table>
+<p>In the case that you provide optional columns 7-10, those columns would look something like this (for the same rows as the above table).</p>
+<table>
+<thead>
+<tr>
+<th><strong>…</strong></th>
+<th><strong>experiment_notes</strong></th>
+<th><strong>subject_id</strong></th>
+<th><strong>session_id</strong></th>
+<th><strong>scan_link</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>…</td>
+<td>Experiment 1 Notes!</td>
+<td>sub_one</td>
+<td>ses_one</td>
+<td>https://my-org.org/scans/1</td>
+</tr>
+<tr>
+<td>…</td>
+<td>Experiment 1 Notes!</td>
+<td>sub_one</td>
+<td>ses_one</td>
+<td>https://my-org.org/scans/1</td>
+</tr>
+<tr>
+<td>…</td>
+<td>Experiment 1 Notes!</td>
+<td>sub_one</td>
+<td>ses_two</td>
+<td>https://my-org.org/scans/2</td>
+</tr>
+<tr>
+<td>…</td>
+<td>Experiment 2 Notes!</td>
+<td>sub_two</td>
+<td>ses_one</td>
+<td>https://my-org.org/scans/3</td>
+</tr>
+</tbody>
+</table>
+<p>After importing this version and making some decisions on these scans in MIQA, you may export the project and see optional columns 11-16 added to what you supplied. Those newly added columns would look something like this (for the same rows as the tables above).</p>
+<table>
+<thead>
+<tr>
+<th><strong>…</strong></th>
+<th><strong>last_decision</strong></th>
+<th><strong>last_decision_creator</strong></th>
+<th><strong>last_decision_note</strong></th>
+<th><strong>last_decision_created</strong></th>
+<th><strong>identified_artifacts</strong></th>
+<th><strong>location_of_interest</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>…</td>
+<td>U</td>
+<td>me@my-org.org</td>
+<td></td>
+<td>2022-01-01 13:44:34</td>
+<td>normal_variants;lesions</td>
+<td>i=-45.504;j=-20.451;k=15.50</td>
+</tr>
+<tr>
+<td>…</td>
+<td>U</td>
+<td>me@my-org.org</td>
+<td></td>
+<td>2022-01-01 13:44:34</td>
+<td>normal_variants;lesions</td>
+<td>i=-45.504;j=-20.451;k=15.50</td>
+</tr>
+<tr>
+<td>…</td>
+<td>UN</td>
+<td>me@my-org.org</td>
+<td>This scan is misaligned and doesn’t cover the whole brain</td>
+<td>2022-01-02 09:04:22</td>
+<td>misalignment;partial_coverage</td>
+<td>i=-2.669;j=-61.718;k=-48.763</td>
+</tr>
+<tr>
+<td>…</td>
+<td>Q?</td>
+<td>me@my-org.org</td>
+<td>There may be some ghosting motion in this scan</td>
+<td>2022-01-02 14:02:57</td>
+<td>ghosting_motion</td>
+<td>i=50.305;j=-40.541;k=-30</td>
+</tr>
+</tbody>
+</table>
+<h3 id="import-jsons">Import JSONs</h3>
+<p>The information specified in the CSV format can also be specified in a JSON format. This may be more convenient/readable in the case that many frames are nested in each scan. Rather than repeating values of scan attributes for every row describing frames in that scan, the JSON format allows you to specify those scan attributes once at the scan level and specify frames in a subsequent mapping.</p>
+<p>The example JSON below is a translation of the example CSV in the above tables to the JSON format.</p>
+<pre><code>{
+    &quot;projects&quot;: {
+        &quot;My Project&quot;: {
+            &quot;experiments&quot;: {
+                &quot;Experiment One&quot;: {
+                    &quot;notes&quot;: &quot;Experiment 1 Notes!&quot;,
+                    &quot;scans&quot;: {
+                        &quot;Scan A&quot;: {
+                            &quot;type&quot;: &quot;T1&quot;,
+                            &quot;subject_id&quot;: &quot;sub_one&quot;,
+                            &quot;session_id&quot;: &quot;ses_one&quot;,
+                            &quot;scan_link&quot;: &quot;https://my-org.org/scans/1&quot;,
+                            &quot;frames&quot;: {
+                                &quot;1&quot;: {
+                                    &quot;file_location&quot;: &quot;my_project/experiment_1/scan_a/file_1.nii.gz&quot;
+                                },
+                                &quot;2&quot;: {
+                                    &quot;file_location&quot;: &quot;my_project/experiment_1/scan_a/file_2.nii.gz&quot;
+                                }
+                            },
+                            &quot;last_decision&quot;: {
+                                &quot;decision&quot;: &quot;U&quot;,
+                                &quot;creator&quot;: &quot;me@my-org.org&quot;,
+                                &quot;note&quot;:     &quot;&quot;,
+                                &quot;created&quot;: &quot;2022-01-01 13:44:34&quot;,
+                                &quot;user_identified_artifacts&quot;: &quot;normal_variants;lesions&quot;,
+                                &quot;location&quot;: &quot;i=-45.504;j=-20.451;k=15.50&quot;
+                            }
+                        },
+                        &quot;Scan B&quot;: {
+                            &quot;type&quot;: &quot;T1&quot;,
+                            &quot;subject_id&quot;: &quot;sub_one&quot;,
+                            &quot;session_id&quot;: &quot;ses_two&quot;,
+                            &quot;scan_link&quot;: &quot;https://my-org.org/scans/2&quot;,
+                            &quot;frames&quot;: {
+                                &quot;0&quot;: {
+                                    &quot;file_location&quot;: &quot;my_project/experiment_1/scan_b/file_0.nii.gz&quot;
+                                }
+                            },
+                            &quot;last_decision&quot;: {
+                                &quot;decision&quot;: &quot;UN&quot;,
+                                &quot;creator&quot;: &quot;me@my-org.org&quot;,
+                                &quot;note&quot;:     &quot;This scan is misaligned and doesn't cover the whole brain&quot;,
+                                &quot;created&quot;: &quot;2022-01-02 09:04:22&quot;,
+                                &quot;user_identified_artifacts&quot;: &quot;misalignment;partial_coverage&quot;,
+                                &quot;location&quot;: &quot;i=-2.669;j=-61.718;k=-48.763&quot;
+                            }
+                        }
+                    }
+                },
+                &quot;Experiment Two&quot;: {
+                    &quot;notes&quot;: &quot;Experiment 2 Notes!&quot;,
+                    &quot;scans&quot;: {
+                        &quot;Scan C&quot;: {
+                            &quot;type&quot;: &quot;T2&quot;,
+                            &quot;subject_id&quot;: &quot;sub_two&quot;,
+                            &quot;session_id&quot;: &quot;ses_one&quot;,
+                            &quot;scan_link&quot;: &quot;https://my-org.org/scans/3&quot;,
+                            &quot;frames&quot;: {
+                                &quot;0&quot;: {
+                                    &quot;file_location&quot;: &quot;my_project/experiment_2/scan_c/file_0.nii.gz&quot;
+                                }
+                            },
+                            &quot;last_decision&quot;: {
+                                &quot;decision&quot;: &quot;Q?&quot;,
+                                &quot;creator&quot;: &quot;me@my-org.org&quot;,
+                                &quot;note&quot;:     &quot;There may be some ghosting motion in this scan &quot;,
+                                &quot;created&quot;: &quot;2022-01-02 14:02:57&quot;,
+                                &quot;user_identified_artifacts&quot;: &quot;ghosting_motion&quot;,
+                                &quot;location&quot;: &quot;i=50.305;j=-40.541;k=-30&quot;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="global-imports-and-exports">Global imports and exports</h3>
+<p>As an administrator, there is one more important feature to imports and exports of which you should be aware. Any import or export file has the flexibility to specify the contents of more than one project (hence the <code>project_name</code> column in the CSV format and top-level <code>projects</code> mapping in the JSON format). With global imports/exports, multiple projects can be imported/exported at once.</p>
+<p>Only superusers have permission to perform global imports and exports. As a superuser, the Projects homepage will have an additional button at the bottom, “Global import/export”.</p>
+<p><img alt="" src="../images/imports_1.png" /></p>
+<p>Clicking this button will open an interface that is similar to a project configuration, except only the import/export component is visible. You may specify and save the global import and export paths. These values, just like project import and export paths, should be absolute file paths referencing existing files on the server machine.</p>
+<p><img alt="" src="../images/imports_2.png" /></p>
+<p>After saving these values, clicking “Import” will overwrite the states <strong>of all projects listed in the file</strong> with the objects (experiments, scans, frames, and decisions) specified in the file for that project. <strong>This action may be destructive of the states of multiple projects, so it should be used with caution.</strong></p>
+<p>Global exports, however, are non-destructive. Clicking “Export” will write the current states of all projects to the specified global export path. Just like project imports and exports, the output of the export can be used as the input of the import. It is recommended that you save the states of all projects with the global export <strong>before</strong> performing any global imports.</p>
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="../console/" class="md-footer__link md-footer__link--prev" aria-label="Previous: The Django Admin Console" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              The Django Admin Console
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../integration/" class="md-footer__link md-footer__link--next" aria-label="Next: Integrating MIQA in your workflow" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Integrating MIQA in your workflow
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+      
+    
+    <a href="https://github.com/OpenImaging/miqa" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.expand"], "search": "../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.0238f547.min.js"></script>
+      
+    
+  </body>
+</html>
