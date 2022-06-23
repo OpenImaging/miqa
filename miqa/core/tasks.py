@@ -234,7 +234,7 @@ def perform_import(import_dict):
                                 'j': slices[1],
                                 'k': slices[2],
                             }
-                        if last_decision_dict['decision'] in DECISION_CHOICES:
+                        if last_decision_dict['decision'] in [dec[0] for dec in DECISION_CHOICES]:
                             last_decision = ScanDecision(
                                 decision=last_decision_dict['decision'],
                                 creator=creator,
