@@ -19,6 +19,7 @@ export default defineComponent({
   },
   setup() {
     const currentProject = computed(() => store.state.currentProject);
+    const projects = computed(() => store.state.projects);
     const loadProject = (project: Project) => store.dispatch.loadProject(project);
     const isGlobal = computed(() => store.getters.isGlobal);
 
@@ -54,6 +55,13 @@ export default defineComponent({
 
         if (!isGlobal.value) {
           await loadProject(currentProject.value);
+        } else {
+          projects.value.forEach(
+            async (project: Project) => {
+              const taskOverview = await djangoRest.projectTaskOverview(project.id);
+              store.commit.setTaskOverview(taskOverview);
+            },
+          );
         }
       } catch (ex) {
         const text = ex || 'Import failed due to server error.';
