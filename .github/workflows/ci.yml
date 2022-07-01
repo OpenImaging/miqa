@@ -15,7 +15,7 @@ jobs:
       - uses: ./.github/actions/tox
       - uses: ./.github/actions/npm
       - run: tox -e lint
-      - run: cd client && npm run lint -- --no-fix
+      - run: cd web_client && npm run lint -- --no-fix
 
   pytests:
     runs-on: ubuntu-latest
@@ -83,7 +83,7 @@ jobs:
       - uses: ./.github/actions/npm
       - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.11
         with:
-          install_directory: client
+          install_directory: web_client
           install_command: npm install
           test_directory: .
           test_command: tox -e test-pyppeteer

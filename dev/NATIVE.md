@@ -22,7 +22,7 @@ This configuration still uses Docker to run attached services in the background,
    1. `source ./dev/export-env.sh`
    2. `celery --app miqa.celery worker --loglevel INFO --without-heartbeat`
 3. Run in a third terminal:
-   1. `cd client`
+   1. `cd web_client`
    2. `npm run serve`
 4. When finished, run `docker-compose stop`
 

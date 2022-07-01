@@ -17,4 +17,4 @@ runs:
         restore-keys: ${{ runner.os }}-npm-
     - name: install-node-modules
       shell: bash
-      run: cd client && npm install
+      run: cd web_client && npm install
