@@ -11,6 +11,7 @@ class Frame:
         self,
         id: str,
         frame_number: int,
+        scan,
         frame_evaluation: dict,
         extension: str,
         download_url: str,
@@ -18,6 +19,7 @@ class Frame:
     ):
         self.id = id
         self.number = frame_number
+        self.scan = scan
         self.evaluation = frame_evaluation
         self.file_extension = extension
         self.download_url = download_url

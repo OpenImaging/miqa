@@ -11,6 +11,7 @@ class ScanDecision:
         self,
         id: str,
         decision: str,
+        scan,
         creator: dict,
         created: str,
         note: str,
@@ -20,6 +21,7 @@ class ScanDecision:
     ):
         self.id = id
         self.decision_code = decision
+        self.scan = scan
         self.creator = creator
         self.creation_time = created
         self.note = note
