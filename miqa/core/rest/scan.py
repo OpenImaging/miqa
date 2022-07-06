@@ -28,6 +28,7 @@ class ScanSerializer(serializers.ModelSerializer):
 
     frames = FrameSerializer(many=True, read_only=True)
     decisions = ScanDecisionSerializer(many=True, read_only=True)
+    experiment = serializers.CharField(source='experiment.id')
 
 
 class ScanViewSet(

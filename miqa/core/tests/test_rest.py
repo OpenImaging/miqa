@@ -4,6 +4,7 @@ import pytest
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
 from miqa.core.rest.project import ProjectSerializer
+from miqa.core.rest.scan import ScanSerializer
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
 from miqa.core.rest.user import UserSerializer
 
@@ -185,18 +186,7 @@ def test_scans_list(user_api_client, scan, user):
             'results': [],
         }
     else:
-        expected_result = [
-            {
-                'id': str(scan.id),
-                'name': scan.name,
-                'decisions': [],
-                'frames': [],
-                'scan_type': scan.scan_type,
-                'subject_id': scan.subject_id,
-                'session_id': scan.session_id,
-                'scan_link': scan.scan_link,
-            }
-        ]
+        expected_result = [ScanSerializer(scan).data]
         assert resp.data == {
             'count': 1,
             'next': None,
