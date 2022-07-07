@@ -13,7 +13,8 @@ class MIQA:
       projects, artifact_options
     Functions:
       login, get_config, make_request, upload_file,
-       get_all_objects, get_project_by_id, list_all_objects
+       get_all_objects, get_project_by_id, create_project,
+       list_all_objects
     """
 
     def __init__(self, url, username=None, password=None):
@@ -46,10 +47,10 @@ class MIQA:
         self.headers["Authorization"] = f"Token {self.token}"
 
     def get_config(self):
-        content = requests.get(f"{self.url}/configuration", headers=self.headers).json()
-        self.version = content["version"]
-        self.artifact_options = content["artifact_options"]
-        return content
+        response = requests.get(f"{self.url}/configuration", headers=self.headers).json()
+        self.version = response["version"]
+        self.artifact_options = response["artifact_options"]
+        return response
 
     def make_request(
         self,
@@ -60,22 +61,22 @@ class MIQA:
         body=None,
     ):
         api_path = api_path.rstrip('/').lstrip('/')
-        content = None
+        response = None
         if GET:
-            content = requests.get(f"{self.url}/{api_path}", headers=self.headers)
+            response = requests.get(f"{self.url}/{api_path}", headers=self.headers)
         elif POST:
-            content = requests.post(
+            response = requests.post(
                 f"{self.url}/{api_path}",
                 headers=self.headers,
                 json=body,
             )
         elif DELETE:
-            content = requests.delete(f"{self.url}/{api_path}", headers=self.headers)
+            response = requests.delete(f"{self.url}/{api_path}", headers=self.headers)
         try:
-            content.raise_for_status()
+            response.raise_for_status()
         except requests.exceptions.HTTPError:
-            raise Exception(f'Request failed: {content.json()}')
-        return content.json() if content else None
+            raise Exception(f'Request failed: {response.json()}')
+        return response.json() if response and response.content else None
 
     def upload_file(self, file_path: str, field_id: str):
         sess = requests.Session()
@@ -89,8 +90,8 @@ class MIQA:
             )
 
     def get_all_objects(self):
-        content = self.make_request("projects", GET=True)
-        self.projects = [Project(**result, MIQA=self) for result in content["results"]]
+        response = self.make_request("projects", GET=True)
+        self.projects = [Project(**result, MIQA=self) for result in response["results"]]
         return self.projects
 
     def get_project_by_id(self, id: str):
@@ -99,10 +100,22 @@ class MIQA:
             if len(matches) == 1:
                 return matches[0]
         try:
-            content = requests.get(f"{self.url}/projects/{id}", headers=self.headers).json()
+            response = requests.get(f"{self.url}/projects/{id}", headers=self.headers).json()
         except Exception:
             return None
-        new_project = Project(**content, MIQA=self)
+        new_project = Project(**response, MIQA=self)
+        self.projects.append(new_project)
+        return new_project
+
+    def create_project(self, name: str):
+        response = self.make_request(
+            'projects',
+            POST=True,
+            body={
+                'name': name,
+            },
+        )
+        new_project = Project(**dict(response, MIQA=self))
         self.projects.append(new_project)
         return new_project
 

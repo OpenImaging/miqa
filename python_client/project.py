@@ -11,7 +11,7 @@ class Project:
       MIQA
     Functions:
       get_experiment_by_id, add_experiment,
-      list_all_objects
+      list_all_objects, delete
 
     """
 
@@ -39,15 +39,15 @@ class Project:
             if len(matches) == 1:
                 return matches[0]
         try:
-            content = self.MIQA.make_request(f"experiments/{id}", GET=True)
+            response = self.MIQA.make_request(f"experiments/{id}", GET=True)
         except Exception:
             return None
-        new_experiment = Experiment(**dict(content, project=self))
+        new_experiment = Experiment(**dict(response, project=self))
         self.experiments.append(new_experiment)
         return new_experiment
 
     def add_experiment(self, name: str):
-        content = self.MIQA.make_request(
+        response = self.MIQA.make_request(
             'experiments',
             POST=True,
             body={
@@ -55,14 +55,22 @@ class Project:
                 'project': self.id,
             },
         )
-        if not content:
+        if not response:
             raise Exception('Failed to create experiment.')
-        return Experiment(**dict(content, project=self))
+        return Experiment(**dict(response, project=self))
 
     def list_all_objects(self, indent=0):
         print(" " * indent, str(self))
         for exp in self.experiments:
             exp.list_all_objects(indent=indent + 2)
+
+    def delete(self):
+        self.MIQA.make_request(
+            f'projects/{self.id}',
+            DELETE=True,
+        )
+        self.MIQA.projects = [proj for proj in self.MIQA.projects if proj.id != self.id]
+        return True
 
     def __repr__(self):
         return f"Project {self.name}"

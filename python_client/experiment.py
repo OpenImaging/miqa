@@ -34,10 +34,10 @@ class Experiment:
             if len(matches) == 1:
                 return matches[0]
         try:
-            content = self.project.MIQA.make_request(f"scans/{id}", GET=True)
+            response = self.project.MIQA.make_request(f"scans/{id}", GET=True)
         except Exception:
             return None
-        new_scan = Scan(**dict(content, experiment=self))
+        new_scan = Scan(**dict(response, experiment=self))
         self.scans.append(new_scan)
         return new_scan
 
@@ -49,7 +49,7 @@ class Experiment:
         session_id: str = None,
         scan_link: str = None,
     ):
-        content = self.project.MIQA.make_request(
+        response = self.project.MIQA.make_request(
             'scans',
             POST=True,
             body={
@@ -63,19 +63,19 @@ class Experiment:
                 'experiment': self.id,
             },
         )
-        if not content:
+        if not response:
             raise Exception('Failed to create scan.')
-        return Scan(**dict(content, experiment=self))
+        return Scan(**dict(response, experiment=self))
 
     def update_note(self, note: str):
-        content = self.project.MIQA.make_request(
+        response = self.project.MIQA.make_request(
             f'experiments/{self.id}/note',
             POST=True,
             body={
                 'note': note,
             },
         )
-        return True if content else False
+        return True if response else False
 
     def list_all_objects(self, indent=0):
         print(" " * indent, str(self))

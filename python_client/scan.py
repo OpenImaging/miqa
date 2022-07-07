@@ -42,19 +42,19 @@ class Scan:
         for index, path in enumerate(paths):
             field_value = self.experiment.project.MIQA.upload_file(
                 path,
-                'core.Frame.content',
+                'core.Frame.response',
             )
-            content = self.experiment.project.MIQA.make_request(
+            response = self.experiment.project.MIQA.make_request(
                 'frames',
                 POST=True,
                 body={
-                    'content': field_value,
+                    'response': field_value,
                     'filename': path.split('/')[-1],
                     'scan': self.id,
                     'frame_number': index,
                 },
             )
-            new_frame = Frame(**dict(content, scan=self))
+            new_frame = Frame(**dict(response, scan=self))
             new_frames.append(new_frame)
             self.frames.append(new_frame)
         return new_frames
@@ -99,7 +99,7 @@ class Scan:
         self.experiment.project.MIQA.make_request(
             f'experiments/{self.experiment.id}/lock', POST=True
         )
-        content = self.experiment.project.MIQA.make_request(
+        response = self.experiment.project.MIQA.make_request(
             'scan-decisions',
             POST=True,
             body={
@@ -115,7 +115,7 @@ class Scan:
         self.experiment.project.MIQA.make_request(
             f'experiments/{self.experiment.id}/lock', DELETE=True
         )
-        new_scan_decision = ScanDecision(**dict(content, scan=self))
+        new_scan_decision = ScanDecision(**dict(response, scan=self))
         self.decisions.append(new_scan_decision)
         return new_scan_decision
 
