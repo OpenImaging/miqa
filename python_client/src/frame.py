@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 if TYPE_CHECKING:
-    from scan import Scan
+    from .scan import Scan
 
 
 @dataclass

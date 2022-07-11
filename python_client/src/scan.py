@@ -2,9 +2,9 @@ from typing import List
 import requests
 from s3_file_field_client import S3FileFieldClient
 
-from decision import ScanDecision
-from frame import Frame
-from exception import MIQAAPIError
+from .decision import ScanDecision
+from .frame import Frame
+from .exception import MIQAAPIError
 
 
 class Scan:

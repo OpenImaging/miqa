@@ -1,8 +1,8 @@
 from typing import List
 import requests
 
-from experiment import Experiment
-from exception import MIQAAPIError
+from .experiment import Experiment
+from .exception import MIQAAPIError
 
 
 class Project:

@@ -1,8 +1,8 @@
 from typing import List
 import requests
 
-from scan import Scan
-from exception import MIQAAPIError
+from .scan import Scan
+from .exception import MIQAAPIError
 
 
 class Experiment:

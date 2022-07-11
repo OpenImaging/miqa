@@ -1,8 +1,8 @@
 from getpass import getpass
 import requests
 
-from project import Project
-from exception import MIQAAPIError
+from .project import Project
+from .exception import MIQAAPIError
 
 
 class MIQA:
