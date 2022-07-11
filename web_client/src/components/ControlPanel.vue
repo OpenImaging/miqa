@@ -8,6 +8,7 @@ import store from '@/store';
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
+import WindowWidget from './WindowWidget.vue';
 
 export default {
   name: 'Frame',
@@ -15,6 +16,7 @@ export default {
     UserAvatar,
     ScanDecision,
     DecisionButtons,
+    WindowWidget,
   },
   inject: ['user'],
   data: () => ({
@@ -27,8 +29,6 @@ export default {
       'scanCachedPercentage',
       'showCrosshairs',
       'storeCrosshairs',
-      'currentWindowWidth',
-      'currentWindowLevel',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -40,8 +40,8 @@ export default {
     ...mapMutations([
       'updateExperiment',
       'addScanDecision',
-      'setExperimentAutoWindow',
-      'setExperimentAutoLevel',
+      'setShowCrosshairs',
+      'setStoreCrosshairs',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
@@ -60,44 +60,8 @@ export default {
     representation() {
       return this.currentFrame && this.proxyManager.getRepresentations()[0];
     },
-    winMin() {
-      return (this.representation && this.representation.getPropertyDomainByName('windowWidth').min) || 0;
-    },
-    winMax() {
-      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max)) || 0;
-    },
-    autoWindow() {
-      return this.currentViewData.autoWindow || this.winMax;
-    },
-    autoLevel() {
-      return this.currentViewData.autoLevel
-        || Math.ceil((this.levMax * 0.4) / 10) * 10;
-    },
-    levMin() {
-      return (this.representation && this.representation.getPropertyDomainByName('windowLevel').min) || 0;
-    },
-    levMax() {
-      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max)) || 0;
-    },
   },
   watch: {
-    currentWindowWidth(value) {
-      if (Number.isInteger(value) && value !== this.autoWindow) {
-        const { setExperimentAutoWindow } = store.commit;
-        setExperimentAutoWindow({ experimentId: this.experimentId, autoWindow: value });
-        this.representation.setWindowWidth(value);
-      }
-    },
-    currentWindowLevel(value) {
-      if (Number.isInteger(value) && value !== this.autoLevel) {
-        const { setExperimentAutoLevel } = store.commit;
-        setExperimentAutoLevel({ experimentId: this.experimentId, autoLevel: value });
-        this.representation.setWindowLevel(value);
-      }
-    },
-    currentFrame() {
-      this.updateWinLev();
-    },
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
       clearInterval(this.lockCycle);
@@ -109,7 +73,6 @@ export default {
   mounted() {
     if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
-      this.updateWinLev();
       window.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowUp') {
           this.handleKeyPress('previous');
@@ -130,12 +93,6 @@ export default {
   methods: {
     ...mapActions([
       'setLock',
-    ]),
-    ...mapMutations([
-      'setShowCrosshairs',
-      'setStoreCrosshairs',
-      'setCurrentWindowWidth',
-      'setCurrentWindowLevel',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -168,26 +125,6 @@ export default {
           }
         }
       }
-    },
-    updateWinLev() {
-      this.setCurrentWindowWidth(this.autoWindow);
-      this.setCurrentWindowLevel(this.autoLevel);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
-    },
-
-    // this is a preset value assigned when the user clicks a W/L preset button icon
-    setWindowLevelToHighContrast() {
-      this.setCurrentWindowWidth(1500);
-      this.setCurrentWindowLevel(-500);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
-    },
-    setWindowLevelToLowContrast() {
-      this.setCurrentWindowWidth(6000);
-      this.setCurrentWindowLevel(500);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
     },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
@@ -458,164 +395,11 @@ export default {
                         </v-btn>
                       </v-col>
                     </v-row>
-                    <v-row
-                      no-gutters
-                      fill-height
-                      align="center"
-                    >
-                      <v-col
-                        cols="4"
-                      >
-                        Window width
-                        <v-tooltip bottom>
-                          <template #activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              small
-                              v-on="on"
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            The measure of the range of CT numbers that an image contains.
-                            A significantly wide window displaying all the CT numbers will
-                            obscure different attenuations between soft tissues.
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col
-                        cols="8"
-                        style="text-align: center"
-                      >
-                        <v-slider
-                          v-mousetrap="[
-                            {
-                              bind: '-',
-                              handler: () => setCurrentWindowWidth(currentWindowWidth - 5)
-                            },
-                            {
-                              bind: '=',
-                              handler: () => setCurrentWindowWidth(currentWindowWidth + 5)
-                            }
-                          ]"
-                          :value="currentWindowWidth"
-                          :max="winMax"
-                          :min="winMin"
-                          class="align-center"
-                          hide-details
-                          @input="setCurrentWindowWidth"
-                        >
-                          <template #prepend>
-                            {{ winMin }}
-                          </template>
-                          <template #append>
-                            <div class="pr-5 pt-2">
-                              {{ winMax }}
-                            </div>
-                            <v-text-field
-                              :value="currentWindowWidth"
-                              class="mt-0 pt-0"
-                              hide-details
-                              single-line
-                              type="number"
-                              style="width: 60px"
-                              @input="setCurrentWindowWidth"
-                            />
-                          </template>
-                        </v-slider>
-                      </v-col>
-                    </v-row>
-                    <v-row
-                      no-gutters
-                      fill-height
-                      align="center"
-                    >
-                      <v-col cols="4">
-                        Window level
-                        <v-tooltip bottom>
-                          <template #activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              small
-                              v-on="on"
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            The midpoint of the range of the CT numbers displayed.
-                            When the window level is decreased the CT image will be brighter.
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col
-                        cols="8"
-                        style="text-align: center"
-                      >
-                        <v-slider
-                          v-mousetrap="[
-                            {
-                              bind: '[',
-                              handler: () => setCurrentWindowLevel(currentWindowLevel - 5)
-                            },
-                            {
-                              bind: ']',
-                              handler: () => setCurrentWindowLevel(currentWindowLevel + 5)
-                            }
-                          ]"
-                          :value="currentWindowLevel"
-                          :max="levMax"
-                          :min="levMin"
-                          class="align-center"
-                          hide-details
-                          @input="setCurrentWindowLevel"
-                        >
-                          <template #prepend>
-                            {{ levMin }}
-                          </template>
-                          <template #append>
-                            <div class="pr-5 pt-2">
-                              {{ levMax }}
-                            </div>
-                            <v-text-field
-                              :value="currentWindowLevel"
-                              class="mt-0 pt-0"
-                              hide-details
-                              single-line
-                              type="number"
-                              style="width: 60px"
-                              @input="setCurrentWindowLevel"
-                            />
-                          </template>
-                        </v-slider>
-                      </v-col>
-                    </v-row>
 
-                    <v-row>
-                      <v-col cols="4">
-                        Window/Level Presets
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          small
-                          depressed
-                          @click="setWindowLevelToHighContrast"
-                        >
-                          High Contrast
-                        </v-btn>
-                      </v-col>
-
-                      <v-col cols="4">
-                        <v-btn
-                          small
-                          depressed
-                          @click="setWindowLevelToLowContrast"
-                        >
-                          Low Contrast
-                        </v-btn>
-                      </v-col>
-                    </v-row>
+                    <window-widget
+                      :representation="representation"
+                      :experiment-id="experimentId"
+                    />
 
                     <v-row class="mx-0">
                       <v-col
