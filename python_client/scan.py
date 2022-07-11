@@ -94,16 +94,16 @@ class Scan:
         elif decision.lower() in ['usable-extra', 'usable extra', 'ue']:
             decision = 'UE'
         else:
-            raise Exception(
+            raise MIQAAPIError(
                 'Unknown decision string. Acceptable values include [usable, unusable, questionable, usable-extra].'
             )
         artifact_options = self.experiment.project.MIQA.artifact_options
         if any(art not in artifact_options for art in present_artifacts):
-            raise Exception(
+            raise MIQAAPIError(
                 f'Unknown artifact found in present artifacts. Acceptable artifact values are {artifact_options}.'
             )
         if any(art not in artifact_options for art in absent_artifacts):
-            raise Exception(
+            raise MIQAAPIError(
                 f'Unknown artifact found in absent artifacts. Acceptable artifact values are {artifact_options}.'
             )
         if (
@@ -112,7 +112,7 @@ class Scan:
             and len(present_artifacts) < 1
             and len(absent_artifacts) < 1
         ):
-            raise Exception(
+            raise MIQAAPIError(
                 'Decisions other than "usable" must have some explanatory note or selection of present artifacts.'
             )
 

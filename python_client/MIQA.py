@@ -41,7 +41,7 @@ class MIQA:
             },
         )
         if response.status_code != 200:
-            raise Exception("Invalid username or password provided")
+            raise MIQAAPIError("Invalid username or password provided")
         self.token = response.json()["token"]
         self.headers["Authorization"] = f"Token {self.token}"
 
