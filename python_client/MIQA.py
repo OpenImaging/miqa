@@ -1,9 +1,8 @@
 from getpass import getpass
 import requests
-from s3_file_field_client import S3FileFieldClient
-
 
 from project import Project
+from exception import MIQAAPIError
 
 
 class MIQA:
@@ -12,9 +11,9 @@ class MIQA:
       url, headers, token, version,
       projects, artifact_options
     Functions:
-      login, get_config, make_request, upload_file,
-       get_all_objects, get_project_by_id, create_project,
-       print_all_objects
+      login, get_config,
+      get_all_objects, get_project_by_id, create_project,
+      print_all_objects
     """
 
     def __init__(self, url, username=None, password=None):
@@ -52,46 +51,14 @@ class MIQA:
         self.artifact_options = response["artifact_options"]
         return response
 
-    def make_request(
-        self,
-        api_path,
-        GET=False,
-        POST=False,
-        DELETE=False,
-        body=None,
-    ):
-        api_path = api_path.rstrip('/').lstrip('/')
-        response = None
-        if GET:
-            response = requests.get(f"{self.url}/{api_path}", headers=self.headers)
-        elif POST:
-            response = requests.post(
-                f"{self.url}/{api_path}",
-                headers=self.headers,
-                json=body,
-            )
-        elif DELETE:
-            response = requests.delete(f"{self.url}/{api_path}", headers=self.headers)
+    def get_all_objects(self):
+        api_path = "projects"
+        response = requests.get(f"{self.url}/{api_path}", headers=self.headers)
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError:
-            raise Exception(f'Request failed: {response.json()}')
-        return response.json() if response and response.content else None
-
-    def upload_file(self, file_path: str, field_id: str):
-        sess = requests.Session()
-        sess.headers.update(**self.headers)
-        s3ff = S3FileFieldClient(f'{self.url}/s3-upload/', sess)
-        with open(file_path, 'rb') as file_stream:
-            return s3ff.upload_file(
-                file_stream,
-                file_path.split('/')[-1],
-                field_id,
-            )
-
-    def get_all_objects(self):
-        response = self.make_request("projects", GET=True)
-        self.projects = [Project(**result, MIQA=self) for result in response["results"]]
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+        self.projects = [Project(**result, MIQA=self) for result in response.json()["results"]]
         return self.projects
 
     def get_project_by_id(self, id: str):
@@ -108,14 +75,19 @@ class MIQA:
         return new_project
 
     def create_project(self, name: str):
-        response = self.make_request(
-            'projects',
-            POST=True,
-            body={
+        api_path = "projects"
+        response = requests.post(
+            f"{self.url}/{api_path}",
+            headers=self.headers,
+            json={
                 'name': name,
             },
         )
-        new_project = Project(**dict(response, MIQA=self))
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+        new_project = Project(**dict(response.json(), MIQA=self))
         self.projects.append(new_project)
         return new_project
 

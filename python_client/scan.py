@@ -1,7 +1,10 @@
 from typing import List
+import requests
+from s3_file_field_client import S3FileFieldClient
 
 from decision import ScanDecision
 from frame import Frame
+from exception import MIQAAPIError
 
 
 class Scan:
@@ -37,24 +40,40 @@ class Scan:
         self.session_id = session_id
         self.scan_link = scan_link
 
+    def upload_file(self, file_path: str, field_id: str):
+        sess = requests.Session()
+        sess.headers.update(**self.experiment.project.MIQA.headers)
+        s3ff = S3FileFieldClient(f'{self.experiment.project.MIQA.url}/s3-upload/', sess)
+        with open(file_path, 'rb') as file_stream:
+            return s3ff.upload_file(
+                file_stream,
+                file_path.split('/')[-1],
+                field_id,
+            )
+
     def add_frames_from_paths(self, *paths: List[str]):
         new_frames = []
         for index, path in enumerate(paths):
-            field_value = self.experiment.project.MIQA.upload_file(
+            field_value = self.upload_file(
                 path,
-                'core.Frame.response',
+                'core.Frame.content',
             )
-            response = self.experiment.project.MIQA.make_request(
-                'frames',
-                POST=True,
-                body={
-                    'response': field_value,
+            api_path = 'frames'
+            response = requests.post(
+                f"{self.experiment.project.MIQA.url}/{api_path}",
+                headers=self.experiment.project.MIQA.headers,
+                json={
+                    'content': field_value,
                     'filename': path.split('/')[-1],
                     'scan': self.id,
                     'frame_number': index,
                 },
             )
-            new_frame = Frame(**dict(response, scan=self))
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError:
+                raise MIQAAPIError(f'Request failed: {response.json()}')
+            new_frame = Frame(**dict(response.json(), scan=self))
             new_frames.append(new_frame)
             self.frames.append(new_frame)
         return new_frames
@@ -96,13 +115,22 @@ class Scan:
             raise Exception(
                 'Decisions other than "usable" must have some explanatory note or selection of present artifacts.'
             )
-        self.experiment.project.MIQA.make_request(
-            f'experiments/{self.experiment.id}/lock', POST=True
+
+        api_path = f'experiments/{self.experiment.id}/lock'
+        response = requests.post(
+            f"{self.experiment.project.MIQA.url}/{api_path}",
+            headers=self.experiment.project.MIQA.headers,
         )
-        response = self.experiment.project.MIQA.make_request(
-            'scan-decisions',
-            POST=True,
-            body={
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+
+        api_path = 'scan-decisions'
+        response = requests.post(
+            f"{self.experiment.project.MIQA.url}/{api_path}",
+            headers=self.experiment.project.MIQA.headers,
+            json={
                 "decision": decision,
                 "note": note,
                 "scan": self.id,
@@ -112,10 +140,23 @@ class Scan:
                 },
             },
         )
-        self.experiment.project.MIQA.make_request(
-            f'experiments/{self.experiment.id}/lock', DELETE=True
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+
+        new_scan_decision = ScanDecision(**dict(response.json(), scan=self))
+
+        api_path = f'experiments/{self.experiment.id}/lock'
+        response = requests.delete(
+            f"{self.experiment.project.MIQA.url}/{api_path}",
+            headers=self.experiment.project.MIQA.headers,
         )
-        new_scan_decision = ScanDecision(**dict(response, scan=self))
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+
         self.decisions.append(new_scan_decision)
         return new_scan_decision
 

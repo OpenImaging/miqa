@@ -24,4 +24,4 @@ class Frame:
     download_url: str
 
     def __repr__(self):
-        return f"Frame {self.number}"
+        return f"Frame {self.frame_number}"

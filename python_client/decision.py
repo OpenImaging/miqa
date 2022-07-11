@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class ScanDecision:
     """
     Attributes:
-      id, name, decision_code, creator, creation_time, note,
+      id, name, decision, creator, creation_time, note,
       user_identified_artifacts, location
     Functions:
 
@@ -26,4 +26,4 @@ class ScanDecision:
     location: dict
 
     def __repr__(self):
-        return f"Scan Decision {self.decision_code}"
+        return f"Scan Decision {self.decision}"

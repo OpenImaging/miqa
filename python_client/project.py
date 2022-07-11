@@ -1,6 +1,8 @@
 from typing import List
+import requests
 
 from experiment import Experiment
+from exception import MIQAAPIError
 
 
 class Project:
@@ -38,26 +40,34 @@ class Project:
             matches = [exp for exp in self.experiments if exp.id == id]
             if len(matches) == 1:
                 return matches[0]
+        api_path = f"experiments/{id}"
+        response = requests.get(
+            f"{self.MIQA.url}/{api_path}",
+            headers=self.MIQA.headers,
+        )
         try:
-            response = self.MIQA.make_request(f"experiments/{id}", GET=True)
-        except Exception:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
             return None
-        new_experiment = Experiment(**dict(response, project=self))
+        new_experiment = Experiment(**dict(response.json(), project=self))
         self.experiments.append(new_experiment)
         return new_experiment
 
     def add_experiment(self, name: str):
-        response = self.MIQA.make_request(
-            'experiments',
-            POST=True,
-            body={
+        api_path = "experiments"
+        response = requests.post(
+            f"{self.MIQA.url}/{api_path}",
+            headers=self.MIQA.headers,
+            json={
                 'name': name,
                 'project': self.id,
             },
         )
-        if not response:
-            raise Exception('Failed to create experiment.')
-        return Experiment(**dict(response, project=self))
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+        return Experiment(**dict(response.json(), project=self))
 
     def print_all_objects(self, indent=0):
         print(" " * indent, str(self))
@@ -65,10 +75,15 @@ class Project:
             exp.print_all_objects(indent=indent + 2)
 
     def delete(self):
-        self.MIQA.make_request(
-            f'projects/{self.id}',
-            DELETE=True,
+        api_path = f'projects/{self.id}'
+        response = requests.delete(
+            f"{self.MIQA.url}/{api_path}",
+            headers=self.MIQA.headers,
         )
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
         self.MIQA.projects = [proj for proj in self.MIQA.projects if proj.id != self.id]
         return True
 

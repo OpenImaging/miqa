@@ -1,6 +1,8 @@
 from typing import List
+import requests
 
 from scan import Scan
+from exception import MIQAAPIError
 
 
 class Experiment:
@@ -33,11 +35,16 @@ class Experiment:
             matches = [scan for scan in self.scans if scan.id == id]
             if len(matches) == 1:
                 return matches[0]
+        api_path = f"scans/{id}"
+        response = requests.get(
+            f"{self.project.MIQA.url}/{api_path}",
+            headers=self.project.MIQA.headers,
+        )
         try:
-            response = self.project.MIQA.make_request(f"scans/{id}", GET=True)
-        except Exception:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
             return None
-        new_scan = Scan(**dict(response, experiment=self))
+        new_scan = Scan(**dict(response.json(), experiment=self))
         self.scans.append(new_scan)
         return new_scan
 
@@ -49,10 +56,11 @@ class Experiment:
         session_id: str = None,
         scan_link: str = None,
     ):
-        response = self.project.MIQA.make_request(
-            'scans',
-            POST=True,
-            body={
+        api_path = "scans"
+        response = requests.post(
+            f"{self.project.MIQA.url}/{api_path}",
+            headers=self.project.MIQA.headers,
+            json={
                 'name': name,
                 'decisions': [],
                 'frames': [],
@@ -63,18 +71,25 @@ class Experiment:
                 'experiment': self.id,
             },
         )
-        if not response:
-            raise Exception('Failed to create scan.')
-        return Scan(**dict(response, experiment=self))
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
+        return Scan(**dict(response.json(), experiment=self))
 
     def update_note(self, note: str):
-        response = self.project.MIQA.make_request(
-            f'experiments/{self.id}/note',
-            POST=True,
-            body={
+        api_path = f'experiments/{self.id}/note'
+        response = requests.post(
+            f"{self.project.MIQA.url}/{api_path}",
+            headers=self.project.MIQA.headers,
+            json={
                 'note': note,
             },
         )
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            raise MIQAAPIError(f'Request failed: {response.json()}')
         return True if response else False
 
     def print_all_objects(self, indent=0):
