@@ -9,7 +9,7 @@ class Experiment:
       id, name, scans, project
     Functions:
       get_scan_by_id, add_scan,
-      list_all_objects
+      print_all_objects
 
     """
 
@@ -77,10 +77,10 @@ class Experiment:
         )
         return True if response else False
 
-    def list_all_objects(self, indent=0):
+    def print_all_objects(self, indent=0):
         print(" " * indent, str(self))
         for scan in self.scans:
-            scan.list_all_objects(indent=indent + 2)
+            scan.print_all_objects(indent=indent + 2)
 
     def __repr__(self):
         return f"Experiment {self.name}"

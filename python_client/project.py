@@ -11,7 +11,7 @@ class Project:
       MIQA
     Functions:
       get_experiment_by_id, add_experiment,
-      list_all_objects, delete
+      print_all_objects, delete
 
     """
 
@@ -59,10 +59,10 @@ class Project:
             raise Exception('Failed to create experiment.')
         return Experiment(**dict(response, project=self))
 
-    def list_all_objects(self, indent=0):
+    def print_all_objects(self, indent=0):
         print(" " * indent, str(self))
         for exp in self.experiments:
-            exp.list_all_objects(indent=indent + 2)
+            exp.print_all_objects(indent=indent + 2)
 
     def delete(self):
         self.MIQA.make_request(

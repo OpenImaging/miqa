@@ -10,7 +10,7 @@ class Scan:
       id, name, experiment, decisions, frames,
       scan_type, suject_id, session_id, scan_link,
     Functions:
-      list_all_objects
+      print_all_objects
 
     """
 
@@ -119,7 +119,7 @@ class Scan:
         self.decisions.append(new_scan_decision)
         return new_scan_decision
 
-    def list_all_objects(self, indent=0):
+    def print_all_objects(self, indent=0):
         print(" " * indent, str(self))
         print(" " * indent, "|Decisions:  ", self.decisions)
         print(" " * indent, "|Frames:  ", self.frames)

@@ -14,7 +14,7 @@ class MIQA:
     Functions:
       login, get_config, make_request, upload_file,
        get_all_objects, get_project_by_id, create_project,
-       list_all_objects
+       print_all_objects
     """
 
     def __init__(self, url, username=None, password=None):
@@ -119,12 +119,12 @@ class MIQA:
         self.projects.append(new_project)
         return new_project
 
-    def list_all_objects(self, indent=0):
+    def print_all_objects(self, indent=0):
         if len(self.projects) < 1:
             self.get_all_objects()
         print(" " * indent, str(self))
         for proj in self.projects:
-            proj.list_all_objects(indent=indent)
+            proj.print_all_objects(indent=indent)
 
     def __repr__(self):
         return f"MIQA Instance {self.url}"
