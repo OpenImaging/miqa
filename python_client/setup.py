@@ -26,15 +26,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "asgiref",
-        "certifi",
-        "Django>3.2,<4.0",
-        "django-s3-file-field-client==0.3.0",
-        "djangorestframework>3",
-        "idna",
-        "pytz",
+        "django-s3-file-field-client",
         "requests",
-        "sqlparse",
-        "urllib3",
     ],
 )
