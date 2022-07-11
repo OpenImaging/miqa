@@ -1,5 +1,7 @@
 from guardian.shortcuts import get_perms
 import pytest
+import json
+from uuid import UUID
 
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import has_read_perm, has_review_perm
@@ -7,6 +9,15 @@ from miqa.core.rest.project import ProjectSerializer
 from miqa.core.rest.scan import ScanSerializer
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
 from miqa.core.rest.user import UserSerializer
+
+
+# to avoid failing a comparison between a string id and UUID
+class UUIDEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, UUID):
+            # if the obj is uuid, we simply return the value of uuid
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
 
 
 @pytest.mark.django_db
@@ -187,7 +198,7 @@ def test_scans_list(user_api_client, scan, user):
         }
     else:
         expected_result = [ScanSerializer(scan).data]
-        assert resp.data == {
+        assert json.loads(json.dumps(resp.data, cls=UUIDEncoder)) == {
             'count': 1,
             'next': None,
             'previous': None,
