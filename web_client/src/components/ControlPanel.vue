@@ -40,8 +40,6 @@ export default {
     ...mapMutations([
       'updateExperiment',
       'addScanDecision',
-      'setShowCrosshairs',
-      'setStoreCrosshairs',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
@@ -93,6 +91,10 @@ export default {
   methods: {
     ...mapActions([
       'setLock',
+    ]),
+    ...mapMutations([
+      'setShowCrosshairs',
+      'setStoreCrosshairs',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');

@@ -309,6 +309,7 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
+  windowLocked: false,
   renderOrientation: 'LPS',
 };
 
@@ -536,6 +537,9 @@ const {
       // Necessary for reactivity
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
+    },
+    setWindowLocked(state, lock) {
+      state.windowLocked = lock;
     },
     setExperimentAutoWindow(state, { experimentId, autoWindow }) {
       state.experiments[experimentId].autoWindow = autoWindow;

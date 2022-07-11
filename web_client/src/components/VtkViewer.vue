@@ -32,6 +32,7 @@ export default {
       'iIndexSlice',
       'jIndexSlice',
       'kIndexSlice',
+      'windowLocked',
       'currentWindowWidth',
       'currentWindowLevel',
       'renderOrientation',
@@ -153,10 +154,18 @@ export default {
       });
       this.resizeObserver.observe(this.$refs.viewer);
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
-      this.representation.getActors()[0].getProperty().onModified(
+      const representationProperty = this.representation.getActors()[0].getProperty();
+      representationProperty.setColorWindow(this.currentWindowWidth);
+      representationProperty.setColorLevel(this.currentWindowLevel);
+      representationProperty.onModified(
         (property) => {
-          this.setCurrentWindowWidth(property.getColorWindow());
-          this.setCurrentWindowLevel(property.getColorLevel());
+          if (!this.windowLocked) {
+            this.setCurrentWindowWidth(property.getColorWindow());
+            this.setCurrentWindowLevel(property.getColorLevel());
+          } else {
+            property.setColorWindow(this.currentWindowWidth);
+            property.setColorLevel(this.currentWindowLevel);
+          }
         },
       );
     },

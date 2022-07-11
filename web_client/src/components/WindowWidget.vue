@@ -18,6 +18,7 @@ export default defineComponent({
   },
   setup(props) {
     const { currentViewData } = store.getters;
+    const windowLocked = computed(() => store.state.windowLocked);
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
     const currentWindowLevel = computed(() => store.state.currentWindowLevel);
     const widthMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowWidth').min) || 0);
@@ -27,6 +28,7 @@ export default defineComponent({
     const autoWidth = computed(() => currentViewData.autoWindow || widthMax.value);
     const autoLevel = computed(() => currentViewData.autoLevel
         || Math.ceil((levelMax.value * 0.4) / 10) * 10);
+    const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
     const setExperimentAutoWidth = (width) => store.commit.setExperimentAutoWindow(width);
     const setExperimentAutoLevel = (level) => store.commit.setExperimentAutoLevel(level);
 
@@ -51,8 +53,10 @@ export default defineComponent({
 
     updateWindow(autoWidth.value, autoLevel.value);
     return {
+      windowLocked,
       currentWindowWidth,
       currentWindowLevel,
+      setWindowLocked,
       setExperimentAutoWidth,
       setExperimentAutoLevel,
       widthMin,
@@ -74,7 +78,23 @@ export default defineComponent({
     align="center"
   >
     <v-col
-      cols="4"
+      cols="1"
+    >
+      <v-icon
+        v-if="!windowLocked"
+        @click="() => setWindowLocked(true)"
+      >
+        mdi-lock-open
+      </v-icon>
+      <v-icon
+        v-else
+        @click="() => setWindowLocked(false)"
+      >
+        mdi-lock
+      </v-icon>
+    </v-col>
+    <v-col
+      cols="3"
     >
       Window width
       <v-tooltip bottom>
@@ -95,7 +115,7 @@ export default defineComponent({
       </v-tooltip>
     </v-col>
     <v-col
-      cols="8"
+      cols="6"
       style="text-align: center"
     >
       <v-slider
@@ -114,6 +134,7 @@ export default defineComponent({
         :min="widthMin"
         class="align-center"
         hide-details
+        :disabled="windowLocked"
         @input="(width) => updateWindow(width, currentWindowLevel)"
       >
         <template #prepend>
@@ -123,19 +144,39 @@ export default defineComponent({
           <div class="pr-5 pt-2">
             {{ widthMax }}
           </div>
-          <v-text-field
-            :value="currentWindowWidth"
-            class="mt-0 pt-0"
-            hide-details
-            single-line
-            type="number"
-            style="width: 60px"
-            @input="(width) => updateWindow(width, currentWindowLevel)"
-          />
         </template>
       </v-slider>
     </v-col>
-    <v-col cols="4">
+    <v-col cols="2">
+      <v-text-field
+        :value="currentWindowWidth"
+        class="mt-0 pt-0"
+        hide-details
+        single-line
+        type="number"
+        style="width: 80px; float: right"
+        :disabled="windowLocked"
+        @input="(width) => updateWindow(width, currentWindowLevel)"
+      />
+    </v-col>
+
+    <v-col
+      cols="1"
+    >
+      <v-icon
+        v-if="!windowLocked"
+        @click="() => setWindowLocked(true)"
+      >
+        mdi-lock-open
+      </v-icon>
+      <v-icon
+        v-else
+        @click="() => setWindowLocked(false)"
+      >
+        mdi-lock
+      </v-icon>
+    </v-col>
+    <v-col cols="3">
       Window level
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
@@ -153,10 +194,7 @@ export default defineComponent({
         </span>
       </v-tooltip>
     </v-col>
-    <v-col
-      cols="8"
-      style="text-align: center"
-    >
+    <v-col cols="6">
       <v-slider
         v-mousetrap="[
           {
@@ -173,6 +211,7 @@ export default defineComponent({
         :min="levelMin"
         class="align-center"
         hide-details
+        :disabled="windowLocked"
         @input="(level) => updateWindow(currentWindowWidth, level)"
       >
         <template #prepend>
@@ -182,17 +221,20 @@ export default defineComponent({
           <div class="pr-5 pt-2">
             {{ levelMax }}
           </div>
-          <v-text-field
-            :value="currentWindowLevel"
-            class="mt-0 pt-0"
-            hide-details
-            single-line
-            type="number"
-            style="width: 60px"
-            @input="(level) => updateWindow(currentWindowWidth, level)"
-          />
         </template>
       </v-slider>
+    </v-col>
+    <v-col cols="2">
+      <v-text-field
+        :value="currentWindowLevel"
+        class="mt-0 pt-0"
+        hide-details
+        single-line
+        type="number"
+        style="width: 80px; float: right"
+        :disabled="windowLocked"
+        @input="(level) => updateWindow(currentWindowWidth, level)"
+      />
     </v-col>
   </v-row>
 </template>
