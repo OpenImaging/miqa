@@ -1,8 +1,9 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  defineComponent, computed, watch,
+  defineComponent, computed, watch, ref,
 } from '@vue/composition-api';
+import { windowPresets } from '@/vtk/constants';
 
 export default defineComponent({
   name: 'WindowWidget',
@@ -17,7 +18,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const { currentViewData } = store.getters;
+    const selectedPreset = ref();
     const windowLocked = computed(() => store.state.windowLocked);
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
     const currentWindowLevel = computed(() => store.state.currentWindowLevel);
@@ -25,47 +26,42 @@ export default defineComponent({
     const widthMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowWidth').max)) || 0);
     const levelMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowLevel').min) || 0);
     const levelMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowLevel').max)) || 0);
-    const autoWidth = computed(() => currentViewData.autoWindow || widthMax.value);
-    const autoLevel = computed(() => currentViewData.autoLevel
-        || Math.ceil((levelMax.value * 0.4) / 10) * 10);
     const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
-    const setExperimentAutoWidth = (width) => store.commit.setExperimentAutoWindow(width);
-    const setExperimentAutoLevel = (level) => store.commit.setExperimentAutoLevel(level);
 
     function updateWindow(width: number, level: number) {
       props.representation.setWindowWidth(width);
       props.representation.setWindowLevel(level);
     }
+    function applyPreset(preset) {
+      console.log(preset);
+      updateWindow(preset.width, preset.level);
+    }
 
     watch(currentWindowWidth, (value) => {
-      if (Number.isInteger(value) && value !== autoWidth.value) {
-        setExperimentAutoWidth({ experimentId: props.experimentId, autoWindow: value });
+      if (Number.isInteger(value)) {
         props.representation.setWindowWidth(value);
       }
     });
 
     watch(currentWindowLevel, (value) => {
-      if (Number.isInteger(value) && value !== autoLevel.value) {
-        setExperimentAutoLevel({ experimentId: props.experimentId, autoLevel: value });
+      if (Number.isInteger(value)) {
         props.representation.setWindowLevel(value);
       }
     });
 
-    updateWindow(autoWidth.value, autoLevel.value);
     return {
+      selectedPreset,
       windowLocked,
       currentWindowWidth,
       currentWindowLevel,
       setWindowLocked,
-      setExperimentAutoWidth,
-      setExperimentAutoLevel,
       widthMin,
       widthMax,
       levelMin,
       levelMax,
-      autoWidth,
-      autoLevel,
       updateWindow,
+      windowPresets,
+      applyPreset,
     };
   },
 });
@@ -235,6 +231,33 @@ export default defineComponent({
         :disabled="windowLocked"
         @input="(level) => updateWindow(currentWindowWidth, level)"
       />
+    </v-col>
+
+    <v-col cols="1" />
+    <v-col cols="3">
+      Window Presets
+    </v-col>
+    <v-col cols="6">
+      <v-select
+        v-model="selectedPreset"
+        :items="windowPresets"
+        label="Preset options"
+        placeholder="Select a preset"
+        item-text="label"
+        item-value="window"
+        hide-details
+        height="20"
+      />
+    </v-col>
+    <v-col col="2">
+      <v-btn
+        small
+        :disabled="!selectedPreset"
+        style="float: right; margin-top: 10px"
+        @click="() => applyPreset(selectedPreset)"
+      >
+        Apply
+      </v-btn>
     </v-col>
   </v-row>
 </template>

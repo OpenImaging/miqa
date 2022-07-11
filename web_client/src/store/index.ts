@@ -379,8 +379,6 @@ const {
         downTo,
         currentFrame,
         currentAutoEvaluation: currentFrame.frame_evaluation,
-        autoWindow: experiment.autoWindow,
-        autoLevel: experiment.autoLevel,
       };
     },
     currentFrame(state) {
@@ -540,12 +538,6 @@ const {
     },
     setWindowLocked(state, lock) {
       state.windowLocked = lock;
-    },
-    setExperimentAutoWindow(state, { experimentId, autoWindow }) {
-      state.experiments[experimentId].autoWindow = autoWindow;
-    },
-    setExperimentAutoLevel(state, { experimentId, autoLevel }) {
-      state.experiments[experimentId].autoLevel = autoLevel;
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;

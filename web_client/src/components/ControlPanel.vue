@@ -407,7 +407,7 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 100px; overflow:auto;"
+                        style="height: 90px; overflow:auto; margin-bottom: 10px"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
