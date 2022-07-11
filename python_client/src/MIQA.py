@@ -54,10 +54,7 @@ class MIQA:
     def get_all_objects(self):
         api_path = "projects"
         response = requests.get(f"{self.url}/{api_path}", headers=self.headers)
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
         self.projects = [Project(**result, MIQA=self) for result in response.json()["results"]]
         return self.projects
 
@@ -66,9 +63,8 @@ class MIQA:
             matches = [proj for proj in self.projects if proj.id == id]
             if len(matches) == 1:
                 return matches[0]
-        try:
-            response = requests.get(f"{self.url}/projects/{id}", headers=self.headers).json()
-        except Exception:
+        response = requests.get(f"{self.url}/projects/{id}", headers=self.headers).json()
+        if response.status_code == 404:
             return None
         new_project = Project(**response, MIQA=self)
         self.projects.append(new_project)
@@ -83,10 +79,7 @@ class MIQA:
                 'name': name,
             },
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
         new_project = Project(**dict(response.json(), MIQA=self))
         self.projects.append(new_project)
         return new_project

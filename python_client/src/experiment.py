@@ -2,7 +2,6 @@ from typing import List
 import requests
 
 from .scan import Scan
-from .exception import MIQAAPIError
 
 
 class Experiment:
@@ -40,9 +39,7 @@ class Experiment:
             f"{self.project.MIQA.url}/{api_path}",
             headers=self.project.MIQA.headers,
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
+        if response.status_code == 404:
             return None
         new_scan = Scan(**dict(response.json(), experiment=self))
         self.scans.append(new_scan)
@@ -71,10 +68,7 @@ class Experiment:
                 'experiment': self.id,
             },
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
         return Scan(**dict(response.json(), experiment=self))
 
     def update_note(self, note: str):
@@ -86,10 +80,7 @@ class Experiment:
                 'note': note,
             },
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
         return True if response else False
 
     def print_all_objects(self, indent=0):

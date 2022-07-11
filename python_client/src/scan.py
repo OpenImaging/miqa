@@ -69,10 +69,7 @@ class Scan:
                     'frame_number': index,
                 },
             )
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                raise MIQAAPIError(f'Request failed: {response.json()}')
+            response.raise_for_status()
             new_frame = Frame(**dict(response.json(), scan=self))
             new_frames.append(new_frame)
             self.frames.append(new_frame)
@@ -121,10 +118,7 @@ class Scan:
             f"{self.experiment.project.MIQA.url}/{api_path}",
             headers=self.experiment.project.MIQA.headers,
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
 
         api_path = 'scan-decisions'
         response = requests.post(
@@ -140,11 +134,7 @@ class Scan:
                 },
             },
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
-
+        response.raise_for_status()
         new_scan_decision = ScanDecision(**dict(response.json(), scan=self))
 
         api_path = f'experiments/{self.experiment.id}/lock'
@@ -152,10 +142,7 @@ class Scan:
             f"{self.experiment.project.MIQA.url}/{api_path}",
             headers=self.experiment.project.MIQA.headers,
         )
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            raise MIQAAPIError(f'Request failed: {response.json()}')
+        response.raise_for_status()
 
         self.decisions.append(new_scan_decision)
         return new_scan_decision
