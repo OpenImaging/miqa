@@ -4,7 +4,7 @@ from rest_framework import mixins, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Project, Scan, Experiment
+from miqa.core.models import Experiment, Project, Scan
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import UserHoldsExperimentLock
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
