@@ -108,7 +108,9 @@ async def test_save_decisions_tier_1(
     await page.waitFor(3_000)
 
     # confirm that the number of scans awaiting tier 2 review is 3
-    assert await (page.waitForXPath('//span[contains(., "needs tier 2 review (3)")]'))
+    complete_span = await (page.waitForXPath('//span[contains(., "tier 2 review (")]'))
+    complete_text = (await page.evaluate('(element) => element.textContent', complete_span)).strip()
+    assert complete_text == 'needs tier 2 review (3)'
 
 
 @pytest.mark.pyppeteer

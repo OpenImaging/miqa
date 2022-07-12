@@ -1,10 +1,10 @@
 from django_filters import rest_framework as filters
 from guardian.shortcuts import get_objects_for_user
-from rest_framework import serializers
+from rest_framework import mixins, serializers
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
-from miqa.core.models import Project, Scan
+from miqa.core.models import Experiment, Project, Scan
 from miqa.core.rest.frame import FrameSerializer
 from miqa.core.rest.permissions import UserHoldsExperimentLock
 from miqa.core.rest.scan_decision import ScanDecisionSerializer
@@ -22,14 +22,21 @@ class ScanSerializer(serializers.ModelSerializer):
             'subject_id',
             'session_id',
             'scan_link',
+            'experiment',
         ]
         ref_name = 'experiment_scan'
 
-    frames = FrameSerializer(many=True)
-    decisions = ScanDecisionSerializer(many=True)
+    frames = FrameSerializer(many=True, read_only=True)
+    decisions = ScanDecisionSerializer(many=True, read_only=True)
+    experiment = serializers.SlugRelatedField(queryset=Experiment.objects.all(), slug_field='id')
 
 
-class ScanViewSet(ReadOnlyModelViewSet):
+class ScanViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
     filter_backends = [filters.DjangoFilterBackend]
     permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
     serializer_class = ScanSerializer

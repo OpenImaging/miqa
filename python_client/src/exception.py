@@ -1,0 +1,2 @@
+class MIQAAPIError(Exception):
+    pass

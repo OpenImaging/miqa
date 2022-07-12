@@ -1,4 +1,4 @@
-[![logo](client/public/favicon.ico)](https://github.com/OpenImaging/miqa/)
+[![logo](web_client/public/favicon.ico)](https://github.com/OpenImaging/miqa/)
 # MIQA (Medical Image Quality Assurance)
 
 

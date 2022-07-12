@@ -8,6 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -64,20 +65,28 @@ def is_valid_experiment(experiment_id):
         raise serializers.ValidationError(f'Experiment {experiment_id} does not exist.')
 
 
+def is_valid_scan(scan_id):
+    try:
+        Scan.objects.get(id=scan_id)
+    except Scan.DoesNotExist:
+        raise serializers.ValidationError(f'Scan {scan_id} does not exist.')
+
+
 class FrameCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['content', 'experiment', 'filename']
+        fields = ['content', 'experiment', 'scan', 'filename', 'frame_number']
         extra_kwargs = {'content': {'required': True}}
 
-    experiment = serializers.CharField(required=True, validators=[is_valid_experiment])
+    experiment = serializers.CharField(required=False, validators=[is_valid_experiment])
+    scan = serializers.CharField(required=False, validators=[is_valid_scan])
     filename = serializers.CharField(required=True)
 
 
 class FrameContentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Frame
-        fields = ['content', 'scan']
+        fields = ['content', 'scan', 'frame_number']
 
 
 class FrameViewSet(
@@ -105,17 +114,25 @@ class FrameViewSet(
     def create(self, request, *args, **kwargs):
         serializer = FrameCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        experiment = Experiment.objects.get(id=serializer.data['experiment'])
+        scan = None
+        if 'experiment' in serializer.data:
+            experiment = Experiment.objects.get(id=serializer.data['experiment'])
 
-        if not get_perms(request.user, experiment.project):
-            Response(status=status.HTTP_403_FORBIDDEN)
+            if not get_perms(request.user, experiment.project):
+                Response(status=status.HTTP_403_FORBIDDEN)
 
-        new_scan = Scan(name=serializer.data['filename'], experiment=experiment)
-        new_scan.save()
+            scan = Scan(name=serializer.data['filename'], experiment=experiment)
+            scan.save()
+        elif 'scan' in serializer.data:
+            scan = Scan.objects.get(id=serializer.data['scan'])
+            if not get_perms(request.user, scan.experiment.project):
+                Response(status=status.HTTP_403_FORBIDDEN)
+        else:
+            raise APIException(
+                'Provide either a parent scan or grandparent experiment for this frame.'
+            )
 
-        content_serializer = FrameContentSerializer(
-            data={'content': request.data['content'], 'scan': new_scan.pk}
-        )
+        content_serializer = FrameContentSerializer(data=dict(request.data, scan=scan.id))
         content_serializer.is_valid(raise_exception=True)
         new_frame = content_serializer.save()
         evaluate_frame_content.delay(str(new_frame.id))

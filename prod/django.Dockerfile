@@ -37,7 +37,7 @@ RUN pip install .[learning] && \
 # * Build
 # * Copy to staticfiles
 # * Remove node_modules, etc.
-COPY client /opt/vue-client/
+COPY web_client /opt/vue-client/
 WORKDIR /opt/vue-client/
 # This is necessary so that the OAuth client knows who it's authenticating with
 ARG VUE_APP_OAUTH_API_ROOT

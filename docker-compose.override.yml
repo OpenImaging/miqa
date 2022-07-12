@@ -58,6 +58,6 @@ services:
       # https://nodejs.org/en/blog/release/v17.0.0/
       - NODE_OPTIONS=--openssl-legacy-provider
     volumes:
-      - ./client:/opt/client
+      - ./web_client:/opt/client
     ports:
       - 8081:8081
