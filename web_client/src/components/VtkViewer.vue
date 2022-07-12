@@ -249,22 +249,48 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
-      // TODO: scale is currently slightly off, causing a no-content border around the screenshot
-      // scale calculated in fill2Dview comes from view bounds and input data spacing
-      // relevant info: frameData.getSpacing() where frameData comes from loadFileAndGetData
-      const scale = fill2DView(this.view, 512, 512, false);
-      const dataURL = await this.view.captureImage({
-        size: [512, 512],
-        resetCamera: ({ renderer }) => {
-          renderer.resetCamera();
-          renderer.getActiveCamera().setParallelScale(scale);
-        },
-      });
+      const dataURL = await this.view.captureImage();
+
+      const imageOutput = await (
+        async (file) : Promise<HTMLImageElement> => new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            resolve(img);
+          };
+          img.src = file;
+        })
+      )(dataURL);
+      const canvas = document.createElement('canvas');
+      canvas.width = imageOutput.width;
+      canvas.height = imageOutput.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imageOutput, 0, 0);
+
+      if (this.showCrosshairs) {
+        const crosshairSet = new CrosshairSet(
+          this.name, this.ijkName,
+          this.representation, this.view, canvas,
+          this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+        );
+        const originalColors = {
+          x: '#fdd835',
+          y: '#4caf50',
+          z: '#b71c1c',
+        };
+        const trueColors = Object.fromEntries(
+          Object.entries(originalColors).map(([axisName, hex]) => [this.trueAxis(axisName), hex]),
+        );
+        const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(
+          this.trueAxis(this.name), trueColors,
+        );
+        this.drawLine(ctx, displayLine1);
+        this.drawLine(ctx, displayLine2);
+      }
       this.setCurrentScreenshot({
         name: `${this.currentViewData.experimentName}/${
           this.currentViewData.scanName
         }/${this.currentFrame.frame_number}/${this.displayName}`,
-        dataURL,
+        dataURL: canvas.toDataURL('image/jpeg'),
       });
     },
     toggleFullscreen() {
