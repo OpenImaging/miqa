@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class ScanDecision:
     """
     Attributes:
-      id, name, decision, creator, creation_time, note,
+      id, decision, creator, created, note,
       user_identified_artifacts, location
     Functions:
 
