@@ -1,7 +1,6 @@
 <script lang="ts">
 import { vec3 } from 'gl-matrix';
 
-import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
 
 import CrosshairSet from '../utils/crosshairs';
@@ -295,13 +294,10 @@ export default {
     },
     toggleFullscreen() {
       this.fullscreen = !this.fullscreen;
-      this.resized = false;
-      Vue.nextTick(() => {
-        fill2DView(this.view);
-        setTimeout(() => {
-          this.resized = true;
-        });
-      });
+      setTimeout(() => {
+        this.$refs.viewer.style.width = 'inherit';
+        this.$refs.viewer.style.width = `${this.$refs.viewer.clientWidth - 3}px`;
+      }, 100);
     },
     changeSlice(newValue) {
       this.slice = newValue;
@@ -461,10 +457,10 @@ export default {
 
   &.fullscreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
+    top: 48px;
+    left: 55px;
+    bottom: 0px;
+    right: 0px;
     z-index: 2;
   }
 
