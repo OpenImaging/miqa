@@ -210,10 +210,10 @@ export default {
               >
                 <div
                   class="d-flex"
-                  style="flex-direction:column; row-gap: 5px;"
+                  style="flex-direction:column; row-gap: 10px;"
                 >
-                  <span>Project</span>
-                  <span>Experiment</span>
+                  <span>Project:</span>
+                  <span>Experiment:</span>
                 </div>
                 <div
                   rows="2"
@@ -244,17 +244,45 @@ export default {
                   </div>
                 </div>
               </v-flex>
+              <v-row
+                v-if="currentViewData.scanSession || currentViewData.scanSubject"
+                no-gutters
+              >
+                <v-col cols="3">
+                  Subject:
+                </v-col>
+                <v-col
+                  cols="9"
+                  style="text-align: right;"
+                >
+                  <b>{{ currentViewData.scanSubject || 'None' }}</b>
+                </v-col>
+              </v-row>
+              <v-row
+                v-if="currentViewData.scanSession || currentViewData.scanSubject"
+                no-gutters
+              >
+                <v-col cols="3">
+                  Session:
+                </v-col>
+                <v-col
+                  cols="9"
+                  style="text-align: right;"
+                >
+                  <b>{{ currentViewData.scanSession || 'None' }}</b>
+                </v-col>
+              </v-row>
               <v-textarea
                 v-model="currentViewData.experimentNote"
                 filled
                 :disabled="!experimentIsEditable"
                 no-resize
-                height="80px"
+                height="60px"
                 hide-details
-                class="mt-3"
                 name="input-experiment-notes"
                 label="Experiment Notes"
                 placeholder="There are no notes on this experiment."
+                style="margin-top: 15px;"
                 @input="handleExperimentNoteChange"
               />
               <v-row no-gutters>
@@ -268,7 +296,7 @@ export default {
               </v-row>
               <v-flex
                 class="d-flex ml-5"
-                style="flex-direction:column"
+                style="flex-direction:row"
               >
                 <div style="flex-grow: 1">
                   <v-switch
@@ -310,24 +338,13 @@ export default {
                     fill-height
                     fluid
                   >
-                    <v-row
-                      v-if="currentViewData.scanSession || currentViewData.scanSubject"
-                    >
-                      <v-col cols="6">
-                        Scan Subject: <b>{{ currentViewData.scanSubject || 'None' }}</b>
-                      </v-col>
-                      <v-col cols="6">
-                        Scan Session: <b>{{ currentViewData.scanSession || 'None' }}</b>
-                      </v-col>
-                    </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Scan
+                      <v-col cols="2">
+                        Scan:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         <div
                           :class="currentViewData.scanLink ? 'link' : ''"
@@ -363,13 +380,12 @@ export default {
                       </v-col>
                     </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Frame
+                      <v-col cols="2">
+                        Frame:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         {{ currentViewData.framePositionString }}
                       </v-col>
@@ -407,7 +423,7 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 90px; overflow:auto; margin-bottom: 10px"
+                        style="height: 100px; overflow:auto; margin-bottom: 10px"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
