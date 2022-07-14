@@ -84,10 +84,19 @@ export default defineComponent({
       if (this.user) {
         this.cc.push(this.user.email);
       }
+
+      console.log(this.currentScan);
+
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
       this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
-      this.body = `Experiment: ${this.currentViewData.experimentName}\nScan: ${this.currentScan.name}\n`;
+      this.body = `Project: ${this.currentViewData.projectName}\n`;
+      this.body += `Experiment: ${this.currentViewData.experimentName}\n`;
+      this.body += `Scan: ${this.currentScan.name}`;
+      if (this.currentScan.link) this.body += ` (${this.currentScan.link})`;
+      if (this.currentScan.subjectID) this.body += `, Subject: ${this.currentScan.subjectID}`;
+      if (this.currentScan.sessionID) this.body += `, Session: ${this.currentScan.sessionID}`;
+      this.body += '\n';
       if (this.currentViewData.scanDecisions.length > 0) {
         this.body += `Decisions:\n${this.currentViewData.scanDecisions.map(
           (decision) => `    ${decision.creator.email} (${decision.created}): `
