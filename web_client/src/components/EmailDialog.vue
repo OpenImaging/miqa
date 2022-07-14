@@ -84,9 +84,6 @@ export default defineComponent({
       if (this.user) {
         this.cc.push(this.user.email);
       }
-
-      console.log(this.currentScan);
-
       this.showCC = !!this.cc.length;
       this.showBCC = !!this.bcc.length;
       this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
