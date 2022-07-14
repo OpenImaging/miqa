@@ -471,5 +471,6 @@ export default {
 .link {
   color: #1976d2;
   text-decoration: underline;
+  cursor: pointer;
 }
 </style>
