@@ -43,5 +43,22 @@ available_evaluation_models = {
             'truncation_artifact',
         ],
     ),
-    'MIQAT2-0': NNModel('fake_uri', []),
+    'MIQAMix-0': NNModel(
+        'miqaMix-val0.pth',
+        [
+            'overall_quality',
+            'signal_to_noise_ratio',
+            'contrast_to_noise_ratio',
+            'normal_variants',
+            'lesions',
+            'full_brain_coverage',
+            'misalignment',
+            'swap_wraparound',
+            'ghosting_motion',
+            'inhomogeneity',
+            'susceptibility_metal',
+            'flow_artifact',
+            'truncation_artifact',
+        ],
+    ),
 }
