@@ -204,120 +204,108 @@ export default {
             height="100%"
             elevation="3"
           >
-            <v-container fluid>
-              <v-flex
-                class="d-flex justify-space-between"
+            <div style="display: flex">
+              <v-container>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Project:
+                  </v-col>
+                  <v-col cols="9">
+                    {{ currentViewData.projectName }}
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Experiment:
+                  </v-col>
+                  <v-col cols="9">
+                    <div v-if="lockOwner">
+                      <div>
+                        {{ currentViewData.experimentName }}
+                        <UserAvatar
+                          v-if="lockOwner"
+                          :target-user="lockOwner"
+                          as-editor
+                        />
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Subject:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSubject || 'None' }}</b>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Session:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSession || 'None' }}</b>
+                  </v-col>
+                </v-row>
+              </v-container>
+              <div
+                v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0"
+                class="ma-10"
               >
-                <div
-                  class="d-flex"
-                  style="flex-direction:column; row-gap: 10px;"
-                >
-                  <span>Project:</span>
-                  <span>Experiment:</span>
-                </div>
-                <div
-                  rows="2"
-                  class="py-3"
-                  style="text-align: center; height: 70px"
-                >
-                  <div v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0">
-                    <v-progress-circular
-                      :value="scanCachedPercentage * 100"
-                      color="blue"
-                    />
-                    <div> Loading... </div>
-                  </div>
-                </div>
-                <div
-                  v-if="lockOwner"
-                  class="grey--text d-flex"
-                  style="text-align: right; flex-direction:column; row-gap: 5px;"
-                >
-                  <span>{{ currentViewData.projectName }}</span>
-                  <div>
-                    <UserAvatar
-                      v-if="lockOwner"
-                      :target-user="lockOwner"
-                      as-editor
-                    />
-                    {{ currentViewData.experimentName }}
-                  </div>
-                </div>
-              </v-flex>
-              <v-row
-                v-if="currentViewData.scanSession || currentViewData.scanSubject"
-                no-gutters
+                <v-progress-circular
+                  :value="scanCachedPercentage * 100"
+                  color="blue"
+                />
+                <div> Loading... </div>
+              </div>
+            </div>
+            <v-textarea
+              v-model="currentViewData.experimentNote"
+              filled
+              :disabled="!experimentIsEditable"
+              no-resize
+              height="60px"
+              hide-details
+              name="input-experiment-notes"
+              label="Experiment Notes"
+              placeholder="There are no notes on this experiment."
+              style="margin-top: 15px;"
+              class="mx-3"
+              @input="handleExperimentNoteChange"
+            />
+            <v-row no-gutters>
+              <v-col
+                :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
+                style="text-align: right"
+                class="px-3"
+                @click="handleExperimentNoteSave()"
               >
-                <v-col cols="3">
-                  Subject:
-                </v-col>
-                <v-col
-                  cols="9"
-                  style="text-align: right;"
-                >
-                  <b>{{ currentViewData.scanSubject || 'None' }}</b>
-                </v-col>
-              </v-row>
-              <v-row
-                v-if="currentViewData.scanSession || currentViewData.scanSubject"
-                no-gutters
-              >
-                <v-col cols="3">
-                  Session:
-                </v-col>
-                <v-col
-                  cols="9"
-                  style="text-align: right;"
-                >
-                  <b>{{ currentViewData.scanSession || 'None' }}</b>
-                </v-col>
-              </v-row>
-              <v-textarea
-                v-model="currentViewData.experimentNote"
-                filled
-                :disabled="!experimentIsEditable"
-                no-resize
-                height="60px"
-                hide-details
-                name="input-experiment-notes"
-                label="Experiment Notes"
-                placeholder="There are no notes on this experiment."
-                style="margin-top: 15px;"
-                @input="handleExperimentNoteChange"
-              />
-              <v-row no-gutters>
-                <v-col
-                  :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
-                  style="text-align: right"
-                  @click="handleExperimentNoteSave()"
-                >
-                  Save Note
-                </v-col>
-              </v-row>
-              <v-flex
-                class="d-flex ml-5"
-                style="flex-direction:row"
-              >
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="showCrosshairs"
-                    label="Display crosshairs"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setShowCrosshairs"
-                  />
-                </div>
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="storeCrosshairs"
-                    label="Store crosshairs with decision"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setStoreCrosshairs"
-                  />
-                </div>
-              </v-flex>
-            </v-container>
+                Save Note
+              </v-col>
+            </v-row>
+            <v-flex
+              class="d-flex ml-5"
+              style="flex-direction:row"
+            >
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="showCrosshairs"
+                  label="Display crosshairs"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setShowCrosshairs"
+                />
+              </div>
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="storeCrosshairs"
+                  label="Store crosshairs with decision"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setStoreCrosshairs"
+                />
+              </div>
+            </v-flex>
           </v-card>
         </v-col>
         <v-col

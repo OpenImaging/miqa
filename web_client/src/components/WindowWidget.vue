@@ -75,9 +75,9 @@ export default defineComponent({
     style="border: 1px solid gray; padding: 10px"
   >
     <v-col
-      cols="3"
+      cols="2"
     >
-      Window width
+      Window
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
           <v-icon
@@ -96,7 +96,7 @@ export default defineComponent({
       </v-tooltip>
     </v-col>
     <v-col
-      cols="6"
+      cols="7"
       style="text-align: center"
     >
       <v-slider
@@ -158,8 +158,8 @@ export default defineComponent({
       </v-icon>
     </v-col>
 
-    <v-col cols="3">
-      Window level
+    <v-col cols="2">
+      Level
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
           <v-icon
@@ -176,7 +176,7 @@ export default defineComponent({
         </span>
       </v-tooltip>
     </v-col>
-    <v-col cols="6">
+    <v-col cols="7">
       <v-slider
         v-mousetrap="[
           {
@@ -236,19 +236,18 @@ export default defineComponent({
       </v-icon>
     </v-col>
 
-    <v-col cols="3">
-      Window Presets
+    <v-col cols="2">
+      Presets
     </v-col>
-    <v-col cols="7">
+    <v-col cols="8">
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
-        label="Preset options"
         placeholder="Select a preset"
         item-text="label"
         item-value="window"
         hide-details
-        height="20"
+        class="pa-0"
       />
     </v-col>
     <v-col col="2">
