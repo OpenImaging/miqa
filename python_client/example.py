@@ -35,7 +35,10 @@ print(
 project_a = instance.get_project_by_id('6c3ecc33-ee41-45a8-a31a-230ca9b574f0')
 project_a.print_all_objects()
 # You can create projects if you are a privileged user in this MIQA instance
-# If you do not have permission, you will receive a 403 Forbidden response
+# If you do not have permission, you will receive a 403 Forbidden response.
+# Some instances of MIQA may be configured to allow all users to create projects,
+# Otherwise, this is a superuser-only privilege.
+# An administrator can edit NORMAL_USERS_CAN_CREATE_PROJECTS in the MIQA settings.
 project_b = instance.create_project('New Project')
 print(
     project_b.id,
