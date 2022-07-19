@@ -204,7 +204,7 @@ export default {
             height="100%"
             elevation="3"
           >
-            <div style="display: flex">
+            <div class="d-flex">
               <v-container>
                 <v-row no-gutters>
                   <v-col cols="3">
@@ -269,15 +269,13 @@ export default {
               name="input-experiment-notes"
               label="Experiment Notes"
               placeholder="There are no notes on this experiment."
-              style="margin-top: 15px;"
-              class="mx-3"
+              class="ma-3"
               @input="handleExperimentNoteChange"
             />
             <v-row no-gutters>
               <v-col
                 :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
-                style="text-align: right"
-                class="px-3"
+                class="px-3 text-right"
                 @click="handleExperimentNoteSave()"
               >
                 Save Note
@@ -345,7 +343,7 @@ export default {
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!currentViewData.upTo"
@@ -379,7 +377,7 @@ export default {
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!previousFrame"
