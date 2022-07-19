@@ -211,7 +211,8 @@ class CombinedLoss(torch.nn.Module):
 
         # if we make overall QA a lot more important than individual artifacts,
         # then accuracy of the artifact predictions is very low
-        loss = 0.1 * qa_loss  # overallQA has 0-10, individual artifacts 0-1 range
+        # overallQA has 0-10, individual artifacts 0-1 range
+        loss = 10 * qa_loss
 
         for i in range(self.presence_count):
             i_target = target[..., i + regression_count]
@@ -685,9 +686,9 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     epoch_count = max(35, int(30000 / df.shape[0]))
     epoch_count = math.ceil(epoch_count / val_count) * val_count
 
-    wandb.init(project='miqaT1', sync_tensorboard=True)
+    wandb.init(project='miqaMix', sync_tensorboard=True)
     count_train = df.shape[0] - vf.shape[0]
-    model_path = os.getcwd() + f'/models/miqaT1-val{validation_fold}.pth'
+    model_path = os.getcwd() + f'/models/miqaMix-val{validation_fold}.pth'
     sizes = train_and_save_model(
         df,
         count_train,

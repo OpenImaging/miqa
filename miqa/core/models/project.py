@@ -14,20 +14,20 @@ from miqa.core.models.scan_decision import ScanDecision
 
 def default_evaluation_model_mapping():
     return {
-        'T1': 'MIQAT1-0',
-        'T2': 'MIQAT1-0',
+        'T1': 'MIQAMix-0',
+        'T2': 'MIQAMix-0',
         'FMRI': 'MIQAT1-0',
         'MRA': 'MIQAT1-0',
-        'PD': 'MIQAT1-0',
+        'PD': 'MIQAMix-0',
         'DTI': 'MIQAT1-0',
         'DWI': 'MIQAT1-0',
-        'ncanda-t1spgr-v1': 'MIQAT1-0',
-        'ncanda-mprage-v1': 'MIQAT1-0',
-        'ncanda-t2fse-v1': 'MIQAT1-0',
-        'ncanda-dti6b500pepolar-v1': 'MIQAT1-0',
+        'ncanda-t1spgr-v1': 'MIQAMix-0',
+        'ncanda-mprage-v1': 'MIQAMix-0',
+        'ncanda-t2fse-v1': 'MIQAMix-0',
+        'ncanda-dti6b500pepolar-v1': 'MIQAMix-0',
         'ncanda-dti30b400-v1': 'MIQAT1-0',
         'ncanda-dti60b1000-v1': 'MIQAT1-0',
-        'ncanda-grefieldmap-v1': 'MIQAT1-0',
+        'ncanda-grefieldmap-v1': 'MIQAMix-0',
         'ncanda-rsfmri-v1': 'MIQAT1-0',
     }
 
@@ -68,7 +68,7 @@ class Project(TimeStampedModel, models.Model):
                 f'Valid scan types are {scan_types}.'
             )
         # do we want to demand that every scan type has a chosen evaluation model?
-        available_evaluation_models = ['MIQAT1-0', 'MIQAT2-0']
+        available_evaluation_models = ['MIQAMix-0', 'MIQAT1-0']
         if any(
             value is None or value not in available_evaluation_models
             for value in self.evaluation_models.values()
