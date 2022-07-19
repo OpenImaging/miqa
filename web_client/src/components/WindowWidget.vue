@@ -33,8 +33,8 @@ export default defineComponent({
       props.representation.setWindowLevel(level);
     }
     function applyPreset(preset) {
-      console.log(preset);
       updateWindow(preset.width, preset.level);
+      setWindowLocked(true);
     }
 
     watch(currentWindowWidth, (value) => {
@@ -72,27 +72,12 @@ export default defineComponent({
     no-gutters
     fill-height
     align="center"
+    style="border: 1px solid gray; padding: 10px"
   >
     <v-col
-      cols="1"
+      cols="2"
     >
-      <v-icon
-        v-if="!windowLocked"
-        @click="() => setWindowLocked(true)"
-      >
-        mdi-lock-open
-      </v-icon>
-      <v-icon
-        v-else
-        @click="() => setWindowLocked(false)"
-      >
-        mdi-lock
-      </v-icon>
-    </v-col>
-    <v-col
-      cols="3"
-    >
-      Window width
+      Window
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
           <v-icon
@@ -111,7 +96,7 @@ export default defineComponent({
       </v-tooltip>
     </v-col>
     <v-col
-      cols="6"
+      cols="7"
       style="text-align: center"
     >
       <v-slider
@@ -155,9 +140,9 @@ export default defineComponent({
         @input="(width) => updateWindow(width, currentWindowLevel)"
       />
     </v-col>
-
     <v-col
       cols="1"
+      style="text-align: right"
     >
       <v-icon
         v-if="!windowLocked"
@@ -172,8 +157,9 @@ export default defineComponent({
         mdi-lock
       </v-icon>
     </v-col>
-    <v-col cols="3">
-      Window level
+
+    <v-col cols="2">
+      Level
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
           <v-icon
@@ -190,7 +176,7 @@ export default defineComponent({
         </span>
       </v-tooltip>
     </v-col>
-    <v-col cols="6">
+    <v-col cols="7">
       <v-slider
         v-mousetrap="[
           {
@@ -232,21 +218,36 @@ export default defineComponent({
         @input="(level) => updateWindow(currentWindowWidth, level)"
       />
     </v-col>
-
-    <v-col cols="1" />
-    <v-col cols="3">
-      Window Presets
+    <v-col
+      cols="1"
+      style="text-align: right"
+    >
+      <v-icon
+        v-if="!windowLocked"
+        @click="() => setWindowLocked(true)"
+      >
+        mdi-lock-open
+      </v-icon>
+      <v-icon
+        v-else
+        @click="() => setWindowLocked(false)"
+      >
+        mdi-lock
+      </v-icon>
     </v-col>
-    <v-col cols="6">
+
+    <v-col cols="2">
+      Presets
+    </v-col>
+    <v-col cols="8">
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
-        label="Preset options"
         placeholder="Select a preset"
         item-text="label"
         item-value="window"
         hide-details
-        height="20"
+        class="pa-0"
       />
     </v-col>
     <v-col col="2">

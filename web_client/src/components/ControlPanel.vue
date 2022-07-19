@@ -204,92 +204,106 @@ export default {
             height="100%"
             elevation="3"
           >
-            <v-container fluid>
-              <v-flex
-                class="d-flex justify-space-between"
+            <div class="d-flex">
+              <v-container>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Project:
+                  </v-col>
+                  <v-col cols="9">
+                    {{ currentViewData.projectName }}
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Experiment:
+                  </v-col>
+                  <v-col cols="9">
+                    <div v-if="lockOwner">
+                      <div>
+                        {{ currentViewData.experimentName }}
+                        <UserAvatar
+                          v-if="lockOwner"
+                          :target-user="lockOwner"
+                          as-editor
+                        />
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Subject:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSubject || 'None' }}</b>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Session:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSession || 'None' }}</b>
+                  </v-col>
+                </v-row>
+              </v-container>
+              <div
+                v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0"
+                class="ma-10"
               >
-                <div
-                  class="d-flex"
-                  style="flex-direction:column; row-gap: 5px;"
-                >
-                  <span>Project</span>
-                  <span>Experiment</span>
-                </div>
-                <div
-                  rows="2"
-                  class="py-3"
-                  style="text-align: center; height: 70px"
-                >
-                  <div v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0">
-                    <v-progress-circular
-                      :value="scanCachedPercentage * 100"
-                      color="blue"
-                    />
-                    <div> Loading... </div>
-                  </div>
-                </div>
-                <div
-                  v-if="lockOwner"
-                  class="grey--text d-flex"
-                  style="text-align: right; flex-direction:column; row-gap: 5px;"
-                >
-                  <span>{{ currentViewData.projectName }}</span>
-                  <div>
-                    <UserAvatar
-                      v-if="lockOwner"
-                      :target-user="lockOwner"
-                      as-editor
-                    />
-                    {{ currentViewData.experimentName }}
-                  </div>
-                </div>
-              </v-flex>
-              <v-textarea
-                v-model="currentViewData.experimentNote"
-                filled
-                :disabled="!experimentIsEditable"
-                no-resize
-                height="80px"
-                hide-details
-                class="mt-3"
-                name="input-experiment-notes"
-                label="Experiment Notes"
-                placeholder="There are no notes on this experiment."
-                @input="handleExperimentNoteChange"
-              />
-              <v-row no-gutters>
-                <v-col
-                  :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
-                  style="text-align: right"
-                  @click="handleExperimentNoteSave()"
-                >
-                  Save Note
-                </v-col>
-              </v-row>
-              <v-flex
-                class="d-flex ml-5"
-                style="flex-direction:column"
+                <v-progress-circular
+                  :value="scanCachedPercentage * 100"
+                  color="blue"
+                />
+                <div> Loading... </div>
+              </div>
+            </div>
+            <v-textarea
+              v-model="currentViewData.experimentNote"
+              filled
+              :disabled="!experimentIsEditable"
+              no-resize
+              height="60px"
+              hide-details
+              name="input-experiment-notes"
+              label="Experiment Notes"
+              placeholder="There are no notes on this experiment."
+              class="ma-3"
+              @input="handleExperimentNoteChange"
+            />
+            <v-row no-gutters>
+              <v-col
+                :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
+                class="px-3 text-right"
+                @click="handleExperimentNoteSave()"
               >
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="showCrosshairs"
-                    label="Display crosshairs"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setShowCrosshairs"
-                  />
-                </div>
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="storeCrosshairs"
-                    label="Store crosshairs with decision"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setStoreCrosshairs"
-                  />
-                </div>
-              </v-flex>
-            </v-container>
+                Save Note
+              </v-col>
+            </v-row>
+            <v-flex
+              class="d-flex ml-5"
+              style="flex-direction:row"
+            >
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="showCrosshairs"
+                  label="Display crosshairs"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setShowCrosshairs"
+                />
+              </div>
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="storeCrosshairs"
+                  label="Store crosshairs with decision"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setStoreCrosshairs"
+                />
+              </div>
+            </v-flex>
           </v-card>
         </v-col>
         <v-col
@@ -310,24 +324,13 @@ export default {
                     fill-height
                     fluid
                   >
-                    <v-row
-                      v-if="currentViewData.scanSession || currentViewData.scanSubject"
-                    >
-                      <v-col cols="6">
-                        Scan Subject: <b>{{ currentViewData.scanSubject || 'None' }}</b>
-                      </v-col>
-                      <v-col cols="6">
-                        Scan Session: <b>{{ currentViewData.scanSession || 'None' }}</b>
-                      </v-col>
-                    </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Scan
+                      <v-col cols="2">
+                        Scan:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         <div
                           :class="currentViewData.scanLink ? 'link' : ''"
@@ -340,7 +343,7 @@ export default {
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!currentViewData.upTo"
@@ -363,19 +366,18 @@ export default {
                       </v-col>
                     </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Frame
+                      <v-col cols="2">
+                        Frame:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         {{ currentViewData.framePositionString }}
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!previousFrame"
@@ -407,7 +409,7 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 90px; overflow:auto; margin-bottom: 10px"
+                        style="height: 100px; overflow:auto; margin-bottom: 10px"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
@@ -471,5 +473,6 @@ export default {
 .link {
   color: #1976d2;
   text-decoration: underline;
+  cursor: pointer;
 }
 </style>

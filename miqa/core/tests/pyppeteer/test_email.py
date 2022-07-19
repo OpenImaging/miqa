@@ -79,5 +79,9 @@ async def test_send_email_with_screenshots(page, log_in, user, samples_project):
     assert email.to == [samples_project.default_email_recipients, 'foo_bar@kitware.com']
     assert email.cc == [user.email]
     assert email.subject == f'Regarding {samples_project.name}, {experiment.name}, {scan.name}!!!'
-    assert email.body == f'Experiment: {experiment.name}\nScan: {scan.name}\nRegards\n'
+    assert email.body == (
+        f'Project: {samples_project.name}\n'
+        f'Experiment: {experiment.name}\n'
+        f'Scan: {scan.name}\nRegards\n'
+    )
     assert len(email.attachments) == 3

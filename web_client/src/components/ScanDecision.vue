@@ -1,6 +1,7 @@
 <script>
 import { mapMutations } from 'vuex';
 import UserAvatar from './UserAvatar.vue';
+import { decisionOptions } from '../constants';
 
 export default {
   name: 'ScanDecision',
@@ -12,6 +13,11 @@ export default {
       type: Object,
       required: true,
     },
+  },
+  data() {
+    return {
+      decisionOptions,
+    };
   },
   computed: {
     artifactChips() {
@@ -42,7 +48,7 @@ export default {
 <template>
   <v-flex
     class="d-flex"
-    style="flex-direction:row; column-gap: 5px"
+    style="flex-direction:row; column-gap: 5px; margin-bottom: 10px;"
   >
     <div
       class="d-flex"
@@ -53,7 +59,17 @@ export default {
         :target-user="decision.creator"
       />
       <div :class="convertDecisionToColor(decision.decision)">
-        ({{ decision.decision }})
+        <v-tooltip bottom>
+          <template #activator="{ on, attrs }">
+            <span
+              v-bind="attrs"
+              v-on="on"
+            >
+              ({{ decision.decision }})
+            </span>
+          </template>
+          <span>{{ decisionOptions[decision.decision] }}</span>
+        </v-tooltip>
       </div>
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
@@ -72,7 +88,6 @@ export default {
     <v-flex
       :class="decision.note ? 'black--text' : 'grey--text'"
       class="d-flex justify-space-between"
-      grow
     >
       {{ decision.note ? decision.note : "No comment" }}
     </v-flex>
