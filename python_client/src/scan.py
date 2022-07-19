@@ -13,6 +13,7 @@ class Scan:
       id, name, experiment, decisions, frames,
       scan_type, suject_id, session_id, scan_link,
     Functions:
+      add_frames_from_paths, add_decision
       print_all_objects
 
     """
@@ -40,7 +41,7 @@ class Scan:
         self.session_id = session_id
         self.scan_link = scan_link
 
-    def upload_file(self, file_path: str, field_id: str):
+    def _upload_file(self, file_path: str, field_id: str):
         sess = requests.Session()
         sess.headers.update(**self.experiment.project.MIQA.headers)
         s3ff = S3FileFieldClient(f'{self.experiment.project.MIQA.url}/s3-upload/', sess)
@@ -54,7 +55,7 @@ class Scan:
     def add_frames_from_paths(self, *paths: List[str]):
         new_frames = []
         for index, path in enumerate(paths):
-            field_value = self.upload_file(
+            field_value = self._upload_file(
                 path,
                 'core.Frame.content',
             )

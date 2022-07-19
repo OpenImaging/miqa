@@ -1,4 +1,4 @@
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 setup(
@@ -23,7 +23,8 @@ setup(
         'Programming Language :: Python',
     ],
     python_requires='>=3.8',
-    packages=find_packages(),
+    packages=['miqa_python_client'],
+    package_dir={"miqa_python_client": "./src"},
     include_package_data=True,
     install_requires=[
         "django-s3-file-field-client",

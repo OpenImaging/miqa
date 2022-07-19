@@ -7,7 +7,7 @@ from .scan import Scan
 class Experiment:
     """
     Attributes:
-      id, name, scans, project
+      id, name, scans, project, note
     Functions:
       get_scan_by_id, add_scan,
       print_all_objects
