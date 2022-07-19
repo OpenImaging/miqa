@@ -8,6 +8,7 @@ import store from '@/store';
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
+import WindowWidget from './WindowWidget.vue';
 
 export default {
   name: 'Frame',
@@ -15,6 +16,7 @@ export default {
     UserAvatar,
     ScanDecision,
     DecisionButtons,
+    WindowWidget,
   },
   inject: ['user'],
   data: () => ({
@@ -27,8 +29,6 @@ export default {
       'scanCachedPercentage',
       'showCrosshairs',
       'storeCrosshairs',
-      'currentWindowWidth',
-      'currentWindowLevel',
     ]),
     ...mapGetters([
       'currentViewData',
@@ -40,8 +40,6 @@ export default {
     ...mapMutations([
       'updateExperiment',
       'addScanDecision',
-      'setExperimentAutoWindow',
-      'setExperimentAutoLevel',
     ]),
     experimentId() {
       return this.currentViewData.experimentId;
@@ -60,44 +58,8 @@ export default {
     representation() {
       return this.currentFrame && this.proxyManager.getRepresentations()[0];
     },
-    winMin() {
-      return (this.representation && this.representation.getPropertyDomainByName('windowWidth').min) || 0;
-    },
-    winMax() {
-      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowWidth').max)) || 0;
-    },
-    autoWindow() {
-      return this.currentViewData.autoWindow || this.winMax;
-    },
-    autoLevel() {
-      return this.currentViewData.autoLevel
-        || Math.ceil((this.levMax * 0.4) / 10) * 10;
-    },
-    levMin() {
-      return (this.representation && this.representation.getPropertyDomainByName('windowLevel').min) || 0;
-    },
-    levMax() {
-      return (this.representation && Math.ceil(this.representation.getPropertyDomainByName('windowLevel').max)) || 0;
-    },
   },
   watch: {
-    currentWindowWidth(value) {
-      if (Number.isInteger(value) && value !== this.autoWindow) {
-        const { setExperimentAutoWindow } = store.commit;
-        setExperimentAutoWindow({ experimentId: this.experimentId, autoWindow: value });
-        this.representation.setWindowWidth(value);
-      }
-    },
-    currentWindowLevel(value) {
-      if (Number.isInteger(value) && value !== this.autoLevel) {
-        const { setExperimentAutoLevel } = store.commit;
-        setExperimentAutoLevel({ experimentId: this.experimentId, autoLevel: value });
-        this.representation.setWindowLevel(value);
-      }
-    },
-    currentFrame() {
-      this.updateWinLev();
-    },
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
       clearInterval(this.lockCycle);
@@ -109,7 +71,6 @@ export default {
   mounted() {
     if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
-      this.updateWinLev();
       window.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowUp') {
           this.handleKeyPress('previous');
@@ -134,8 +95,6 @@ export default {
     ...mapMutations([
       'setShowCrosshairs',
       'setStoreCrosshairs',
-      'setCurrentWindowWidth',
-      'setCurrentWindowLevel',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -168,26 +127,6 @@ export default {
           }
         }
       }
-    },
-    updateWinLev() {
-      this.setCurrentWindowWidth(this.autoWindow);
-      this.setCurrentWindowLevel(this.autoLevel);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
-    },
-
-    // this is a preset value assigned when the user clicks a W/L preset button icon
-    setWindowLevelToHighContrast() {
-      this.setCurrentWindowWidth(1500);
-      this.setCurrentWindowLevel(-500);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
-    },
-    setWindowLevelToLowContrast() {
-      this.setCurrentWindowWidth(6000);
-      this.setCurrentWindowLevel(500);
-      this.representation.setWindowWidth(this.currentWindowWidth);
-      this.representation.setWindowLevel(this.currentWindowLevel);
     },
     navigateToFrame(frameId) {
       if (frameId && frameId !== this.$route.params.frameId) {
@@ -265,92 +204,106 @@ export default {
             height="100%"
             elevation="3"
           >
-            <v-container fluid>
-              <v-flex
-                class="d-flex justify-space-between"
+            <div class="d-flex">
+              <v-container>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Project:
+                  </v-col>
+                  <v-col cols="9">
+                    {{ currentViewData.projectName }}
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Experiment:
+                  </v-col>
+                  <v-col cols="9">
+                    <div v-if="lockOwner">
+                      <div>
+                        {{ currentViewData.experimentName }}
+                        <UserAvatar
+                          v-if="lockOwner"
+                          :target-user="lockOwner"
+                          as-editor
+                        />
+                      </div>
+                    </div>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Subject:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSubject || 'None' }}</b>
+                  </v-col>
+                </v-row>
+                <v-row no-gutters>
+                  <v-col cols="3">
+                    Session:
+                  </v-col>
+                  <v-col cols="9">
+                    <b>{{ currentViewData.scanSession || 'None' }}</b>
+                  </v-col>
+                </v-row>
+              </v-container>
+              <div
+                v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0"
+                class="ma-10"
               >
-                <div
-                  class="d-flex"
-                  style="flex-direction:column; row-gap: 5px;"
-                >
-                  <span>Project</span>
-                  <span>Experiment</span>
-                </div>
-                <div
-                  rows="2"
-                  class="py-3"
-                  style="text-align: center; height: 70px"
-                >
-                  <div v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0">
-                    <v-progress-circular
-                      :value="scanCachedPercentage * 100"
-                      color="blue"
-                    />
-                    <div> Loading... </div>
-                  </div>
-                </div>
-                <div
-                  v-if="lockOwner"
-                  class="grey--text d-flex"
-                  style="text-align: right; flex-direction:column; row-gap: 5px;"
-                >
-                  <span>{{ currentViewData.projectName }}</span>
-                  <div>
-                    <UserAvatar
-                      v-if="lockOwner"
-                      :target-user="lockOwner"
-                      as-editor
-                    />
-                    {{ currentViewData.experimentName }}
-                  </div>
-                </div>
-              </v-flex>
-              <v-textarea
-                v-model="currentViewData.experimentNote"
-                filled
-                :disabled="!experimentIsEditable"
-                no-resize
-                height="80px"
-                hide-details
-                class="mt-3"
-                name="input-experiment-notes"
-                label="Experiment Notes"
-                placeholder="There are no notes on this experiment."
-                @input="handleExperimentNoteChange"
-              />
-              <v-row no-gutters>
-                <v-col
-                  :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
-                  style="text-align: right"
-                  @click="handleExperimentNoteSave()"
-                >
-                  Save Note
-                </v-col>
-              </v-row>
-              <v-flex
-                class="d-flex ml-5"
-                style="flex-direction:column"
+                <v-progress-circular
+                  :value="scanCachedPercentage * 100"
+                  color="blue"
+                />
+                <div> Loading... </div>
+              </div>
+            </div>
+            <v-textarea
+              v-model="currentViewData.experimentNote"
+              filled
+              :disabled="!experimentIsEditable"
+              no-resize
+              height="60px"
+              hide-details
+              name="input-experiment-notes"
+              label="Experiment Notes"
+              placeholder="There are no notes on this experiment."
+              class="ma-3"
+              @input="handleExperimentNoteChange"
+            />
+            <v-row no-gutters>
+              <v-col
+                :class="newExperimentNote.length > 0 ? 'blue--text' : 'grey--text'"
+                class="px-3 text-right"
+                @click="handleExperimentNoteSave()"
               >
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="showCrosshairs"
-                    label="Display crosshairs"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setShowCrosshairs"
-                  />
-                </div>
-                <div style="flex-grow: 1">
-                  <v-switch
-                    :input-value="storeCrosshairs"
-                    label="Store crosshairs with decision"
-                    hide-details
-                    class="shrink pa-0 ml-n2"
-                    @change="setStoreCrosshairs"
-                  />
-                </div>
-              </v-flex>
-            </v-container>
+                Save Note
+              </v-col>
+            </v-row>
+            <v-flex
+              class="d-flex ml-5"
+              style="flex-direction:row"
+            >
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="showCrosshairs"
+                  label="Display crosshairs"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setShowCrosshairs"
+                />
+              </div>
+              <div style="flex-grow: 1">
+                <v-switch
+                  :input-value="storeCrosshairs"
+                  label="Store crosshairs with decision"
+                  hide-details
+                  class="shrink pa-0 ml-n2"
+                  @change="setStoreCrosshairs"
+                />
+              </div>
+            </v-flex>
           </v-card>
         </v-col>
         <v-col
@@ -371,24 +324,13 @@ export default {
                     fill-height
                     fluid
                   >
-                    <v-row
-                      v-if="currentViewData.scanSession || currentViewData.scanSubject"
-                    >
-                      <v-col cols="6">
-                        Scan Subject: <b>{{ currentViewData.scanSubject || 'None' }}</b>
-                      </v-col>
-                      <v-col cols="6">
-                        Scan Session: <b>{{ currentViewData.scanSession || 'None' }}</b>
-                      </v-col>
-                    </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Scan
+                      <v-col cols="2">
+                        Scan:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         <div
                           :class="currentViewData.scanLink ? 'link' : ''"
@@ -401,7 +343,7 @@ export default {
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!currentViewData.upTo"
@@ -424,19 +366,18 @@ export default {
                       </v-col>
                     </v-row>
                     <v-row no-gutters>
-                      <v-col cols="3">
-                        Frame
+                      <v-col cols="2">
+                        Frame:
                       </v-col>
                       <v-col
-                        cols="6"
+                        cols="7"
                         class="grey--text"
-                        style="text-align: center"
                       >
                         {{ currentViewData.framePositionString }}
                       </v-col>
                       <v-col
                         cols="3"
-                        style="text-align: right"
+                        class="text-right"
                       >
                         <v-btn
                           :disabled="!previousFrame"
@@ -458,170 +399,17 @@ export default {
                         </v-btn>
                       </v-col>
                     </v-row>
-                    <v-row
-                      no-gutters
-                      fill-height
-                      align="center"
-                    >
-                      <v-col
-                        cols="4"
-                      >
-                        Window width
-                        <v-tooltip bottom>
-                          <template #activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              small
-                              v-on="on"
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            The measure of the range of CT numbers that an image contains.
-                            A significantly wide window displaying all the CT numbers will
-                            obscure different attenuations between soft tissues.
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col
-                        cols="8"
-                        style="text-align: center"
-                      >
-                        <v-slider
-                          v-mousetrap="[
-                            {
-                              bind: '-',
-                              handler: () => setCurrentWindowWidth(currentWindowWidth - 5)
-                            },
-                            {
-                              bind: '=',
-                              handler: () => setCurrentWindowWidth(currentWindowWidth + 5)
-                            }
-                          ]"
-                          :value="currentWindowWidth"
-                          :max="winMax"
-                          :min="winMin"
-                          class="align-center"
-                          hide-details
-                          @input="setCurrentWindowWidth"
-                        >
-                          <template #prepend>
-                            {{ winMin }}
-                          </template>
-                          <template #append>
-                            <div class="pr-5 pt-2">
-                              {{ winMax }}
-                            </div>
-                            <v-text-field
-                              :value="currentWindowWidth"
-                              class="mt-0 pt-0"
-                              hide-details
-                              single-line
-                              type="number"
-                              style="width: 60px"
-                              @input="setCurrentWindowWidth"
-                            />
-                          </template>
-                        </v-slider>
-                      </v-col>
-                    </v-row>
-                    <v-row
-                      no-gutters
-                      fill-height
-                      align="center"
-                    >
-                      <v-col cols="4">
-                        Window level
-                        <v-tooltip bottom>
-                          <template #activator="{ on, attrs }">
-                            <v-icon
-                              v-bind="attrs"
-                              small
-                              v-on="on"
-                            >
-                              info
-                            </v-icon>
-                          </template>
-                          <span>
-                            The midpoint of the range of the CT numbers displayed.
-                            When the window level is decreased the CT image will be brighter.
-                          </span>
-                        </v-tooltip>
-                      </v-col>
-                      <v-col
-                        cols="8"
-                        style="text-align: center"
-                      >
-                        <v-slider
-                          v-mousetrap="[
-                            {
-                              bind: '[',
-                              handler: () => setCurrentWindowLevel(currentWindowLevel - 5)
-                            },
-                            {
-                              bind: ']',
-                              handler: () => setCurrentWindowLevel(currentWindowLevel + 5)
-                            }
-                          ]"
-                          :value="currentWindowLevel"
-                          :max="levMax"
-                          :min="levMin"
-                          class="align-center"
-                          hide-details
-                          @input="setCurrentWindowLevel"
-                        >
-                          <template #prepend>
-                            {{ levMin }}
-                          </template>
-                          <template #append>
-                            <div class="pr-5 pt-2">
-                              {{ levMax }}
-                            </div>
-                            <v-text-field
-                              :value="currentWindowLevel"
-                              class="mt-0 pt-0"
-                              hide-details
-                              single-line
-                              type="number"
-                              style="width: 60px"
-                              @input="setCurrentWindowLevel"
-                            />
-                          </template>
-                        </v-slider>
-                      </v-col>
-                    </v-row>
 
-                    <v-row>
-                      <v-col cols="4">
-                        Window/Level Presets
-                      </v-col>
-                      <v-col cols="4">
-                        <v-btn
-                          small
-                          depressed
-                          @click="setWindowLevelToHighContrast"
-                        >
-                          High Contrast
-                        </v-btn>
-                      </v-col>
-
-                      <v-col cols="4">
-                        <v-btn
-                          small
-                          depressed
-                          @click="setWindowLevelToLowContrast"
-                        >
-                          Low Contrast
-                        </v-btn>
-                      </v-col>
-                    </v-row>
+                    <window-widget
+                      :representation="representation"
+                      :experiment-id="experimentId"
+                    />
 
                     <v-row class="mx-0">
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 100px; overflow:auto;"
+                        style="height: 100px; overflow:auto; margin-bottom: 10px"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
@@ -685,5 +473,6 @@ export default {
 .link {
   color: #1976d2;
   text-decoration: underline;
+  cursor: pointer;
 }
 </style>

@@ -309,6 +309,7 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
+  windowLocked: false,
   renderOrientation: 'LPS',
 };
 
@@ -378,8 +379,6 @@ const {
         downTo,
         currentFrame,
         currentAutoEvaluation: currentFrame.frame_evaluation,
-        autoWindow: experiment.autoWindow,
-        autoLevel: experiment.autoLevel,
       };
     },
     currentFrame(state) {
@@ -537,11 +536,8 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    setExperimentAutoWindow(state, { experimentId, autoWindow }) {
-      state.experiments[experimentId].autoWindow = autoWindow;
-    },
-    setExperimentAutoLevel(state, { experimentId, autoLevel }) {
-      state.experiments[experimentId].autoLevel = autoLevel;
+    setWindowLocked(state, lock) {
+      state.windowLocked = lock;
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;

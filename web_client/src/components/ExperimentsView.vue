@@ -5,7 +5,7 @@ import {
 } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';
-import { API_URL } from '../constants';
+import { API_URL, decisionOptions } from '../constants';
 
 export default {
   name: 'ExperimentsView',
@@ -25,6 +25,7 @@ export default {
     experimentNameForUpload: '',
     fileSetForUpload: [],
     uploading: false,
+    decisionOptions,
   }),
   computed: {
     ...mapState([
@@ -270,6 +271,7 @@ export default {
                     </v-btn>
                   </template>
                   <span>
+                    {{ scan.decision ? decisionOptions[scan.decision] +', ' : '' }}
                     {{ scanState(scan) }}
                   </span>
                 </v-tooltip>

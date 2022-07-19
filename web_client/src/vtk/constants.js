@@ -77,3 +77,20 @@ export const ijkMapping = {
   y: 'j',
   z: 'k',
 };
+
+export const windowPresets = [
+  {
+    label: 'High contrast',
+    window: {
+      width: 300,
+      level: 500,
+    },
+  },
+  {
+    label: 'Low contrast',
+    window: {
+      width: 900,
+      level: 200,
+    },
+  },
+];
