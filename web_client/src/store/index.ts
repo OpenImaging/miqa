@@ -206,20 +206,8 @@ function checkLoadExperiment(oldValue, newValue) {
   if (
     !newValue
     || newValue === oldValue
-    || (newValue && oldValue && newValue.folderId === oldValue.folderId)
   ) {
     return;
-  }
-
-  if (oldValue) {
-    const oldExperimentScans = store.state.experimentScans[oldValue.id];
-    oldExperimentScans.forEach((scanId) => {
-      const scanFrames = store.state.scanFrames[scanId];
-      scanFrames.forEach((frameId) => {
-        fileCache.delete(frameId);
-        frameCache.delete(frameId);
-      });
-    });
   }
 
   readDataQueue = [];
@@ -541,12 +529,6 @@ const {
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
-    },
-    startLoadingExperiment(state) {
-      state.loadingExperiment = true;
-    },
-    stopLoadingExperiment(state) {
-      state.loadingExperiment = false;
     },
     setSliceLocation(state, ijkLocation) {
       if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
