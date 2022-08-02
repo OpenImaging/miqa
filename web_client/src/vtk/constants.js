@@ -80,17 +80,22 @@ export const ijkMapping = {
 
 export const windowPresets = [
   {
-    label: 'High contrast',
-    window: {
-      width: 300,
-      level: 500,
+    text: 'High contrast',
+    value: 0,
+    apply: (winMin, winMax) => {
+      const windowRange = winMax - winMin;
+      return [
+        Math.ceil(winMin + windowRange * 0.2),
+        Math.ceil(winMin + windowRange * 0.3),
+      ];
     },
   },
   {
-    label: 'Low contrast',
-    window: {
-      width: 900,
-      level: 200,
-    },
+    text: 'Low contrast',
+    value: 1,
+    apply: (winMin, winMax) => [
+      winMin,
+      winMax,
+    ],
   },
 ];

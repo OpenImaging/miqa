@@ -39,13 +39,12 @@ export default defineComponent({
       props.representation.setWindowWidth(ww);
       props.representation.setWindowLevel(wl);
     }
-
     watch(currentRange, updateRender);
 
-    function applyPreset(preset) {
-      console.log('apply preset', preset, 'to range');
-      // updateWindow(preset.width, preset.level);
-      setWindowLocked(true);
+    function applyPreset(presetId) {
+      currentRange.value = windowPresets.find(
+        (preset) => preset.value === presetId,
+      ).apply(widthMin.value, widthMax.value);
     }
 
     return {
@@ -146,26 +145,15 @@ export default defineComponent({
     <v-col cols="2">
       Presets
     </v-col>
-    <v-col cols="8">
+    <v-col cols="10">
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
         placeholder="Select a preset"
-        item-text="label"
-        item-value="window"
         hide-details
         class="pa-0"
+        @change="applyPreset"
       />
-    </v-col>
-    <v-col col="2">
-      <v-btn
-        small
-        :disabled="!selectedPreset"
-        style="float: right; margin-top: 10px"
-        @click="() => applyPreset(selectedPreset)"
-      >
-        Apply
-      </v-btn>
     </v-col>
   </v-row>
 </template>
