@@ -33,6 +33,7 @@ export default defineComponent({
     const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
 
     function updateRender(ww, wl, updateRange = false) {
+      if (windowLocked.value) return;
       if (currentWindowWidth.value !== ww) props.representation.setWindowWidth(ww);
       if (currentWindowLevel.value !== wl) props.representation.setWindowLevel(wl);
       if (updateRange) {
@@ -43,6 +44,7 @@ export default defineComponent({
       }
     }
     function updateFromRange([v0, v1]) {
+      if (windowLocked.value) return;
       const ww = v1 - v0;
       const wl = v0 + Math.ceil(ww / 2);
       updateRender(ww, wl);
@@ -53,6 +55,7 @@ export default defineComponent({
     ));
 
     function applyPreset(presetId) {
+      if (windowLocked.value) return;
       currentRange.value = windowPresets.find(
         (preset) => preset.value === presetId,
       ).apply(widthMin.value, widthMax.value);
@@ -60,6 +63,14 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      if (windowLocked.value) {
+        currentRange.value = [
+          currentWindowLevel.value - currentWindowLevel.value / 2,
+          currentWindowLevel.value + currentWindowLevel.value / 2,
+        ];
+        return;
+      }
+      // start with a default range of the middle 60%
       const wholeRange = widthMax.value - widthMin.value;
       currentRange.value = [
         widthMin.value + wholeRange * 0.2,
@@ -117,6 +128,7 @@ export default defineComponent({
     >
       <v-range-slider
         v-model="currentRange"
+        :disabled="windowLocked"
         :max="widthMax"
         :min="widthMin"
         class="align-center"
@@ -172,6 +184,7 @@ export default defineComponent({
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
+        :disabled="windowLocked"
         placeholder="Select a preset"
         hide-details
         class="pa-0"
