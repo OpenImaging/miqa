@@ -2,4 +2,4 @@
 samples/Demo[[:space:]]Project/IXI002 filter=lfs diff=lfs merge=lfs -text
 samples/Demo[[:space:]]Project/IXI016 filter=lfs diff=lfs merge=lfs -text
 *.nii.gz filter=lfs diff=lfs merge=lfs -text
-text eol=lf
+* text eol=lf
