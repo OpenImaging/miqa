@@ -1,9 +1,10 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  defineComponent, computed, watch, ref,
+  defineComponent, computed, watch, ref, onMounted,
 } from '@vue/composition-api';
 import { windowPresets } from '@/vtk/constants';
+import debounce from 'lodash/debounce';
 
 export default defineComponent({
   name: 'WindowWidget',
@@ -21,36 +22,57 @@ export default defineComponent({
     const currentRange = ref();
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
     const currentWindowLevel = computed(() => store.state.currentWindowLevel);
+    const currentWindowState = computed(() => ({
+      width: currentWindowWidth.value,
+      level: currentWindowLevel.value,
+    }));
     const widthMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowWidth').min) || 0);
     const widthMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowWidth').max)) || 0);
     const selectedPreset = ref();
     const windowLocked = computed(() => store.state.windowLocked);
     const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
 
-    const wholeRange = widthMax.value - widthMin.value;
-    currentRange.value = [
-      widthMin.value + wholeRange * 0.2,
-      widthMax.value - wholeRange * 0.2,
-    ];
-
-    function updateRender([v0, v1]) {
+    function updateRender(ww, wl, updateRange = false) {
+      if (currentWindowWidth.value !== ww) props.representation.setWindowWidth(ww);
+      if (currentWindowLevel.value !== wl) props.representation.setWindowLevel(wl);
+      if (updateRange) {
+        currentRange.value = [
+          wl - ww / 2,
+          wl + ww / 2,
+        ];
+      }
+    }
+    function updateFromRange([v0, v1]) {
       const ww = v1 - v0;
       const wl = v0 + Math.ceil(ww / 2);
-      props.representation.setWindowWidth(ww);
-      props.representation.setWindowLevel(wl);
+      updateRender(ww, wl);
     }
-    watch(currentRange, updateRender);
+    watch(currentWindowState, debounce(
+      (state) => updateRender(state.width, state.level, true),
+      600,
+    ));
 
     function applyPreset(presetId) {
       currentRange.value = windowPresets.find(
         (preset) => preset.value === presetId,
       ).apply(widthMin.value, widthMax.value);
+      updateFromRange(currentRange.value);
     }
+
+    onMounted(() => {
+      const wholeRange = widthMax.value - widthMin.value;
+      currentRange.value = [
+        widthMin.value + wholeRange * 0.2,
+        widthMax.value - wholeRange * 0.2,
+      ];
+      updateFromRange(currentRange.value);
+    });
 
     return {
       currentRange,
       currentWindowWidth,
       currentWindowLevel,
+      updateFromRange,
       selectedPreset,
       windowLocked,
       setWindowLocked,
@@ -99,6 +121,7 @@ export default defineComponent({
         :min="widthMin"
         class="align-center"
         height="5"
+        @change="updateFromRange"
       >
         <template #prepend>
           <v-text-field
