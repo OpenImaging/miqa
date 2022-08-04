@@ -67,7 +67,7 @@ export const VIEW_ORIENTATIONS = {
     z: {
       axis: 2,
       viewUp: [0, -1, 0],
-      directionOfProjection: [0, 0, -1],
+      directionOfProjection: [0, 0, 1],
     },
   },
 };
