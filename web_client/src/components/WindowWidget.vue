@@ -1,12 +1,17 @@
 <script lang="ts">
 import store from '@/store';
 import {
-  defineComponent, computed, watch, ref,
+  defineComponent, computed, watch, ref, onMounted,
 } from '@vue/composition-api';
 import { windowPresets } from '@/vtk/constants';
+import debounce from 'lodash/debounce';
+import CustomRangeSlider from './CustomRangeSlider.vue';
 
 export default defineComponent({
   name: 'WindowWidget',
+  components: {
+    CustomRangeSlider,
+  },
   props: {
     representation: {
       required: true,
@@ -18,48 +23,106 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const selectedPreset = ref();
-    const windowLocked = computed(() => store.state.windowLocked);
+    const currentRange = ref();
+    const currentViewData = computed(() => store.getters.currentViewData);
+    const currentFrame = computed(() => store.state.currentFrameId);
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
     const currentWindowLevel = computed(() => store.state.currentWindowLevel);
+    const currentWindowState = computed(() => ({
+      width: currentWindowWidth.value,
+      level: currentWindowLevel.value,
+    }));
     const widthMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowWidth').min) || 0);
     const widthMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowWidth').max)) || 0);
-    const levelMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowLevel').min) || 0);
-    const levelMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowLevel').max)) || 0);
-    const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
+    const selectedPreset = ref();
+    const windowLocked = computed(() => store.state.windowLocked.lock);
+    const windowLockImage = computed(() => store.state.windowLocked.associatedImage);
+    const showLockOptions = ref(false);
 
-    function updateWindow(width: number, level: number) {
-      props.representation.setWindowWidth(width);
-      props.representation.setWindowLevel(level);
-    }
-    function applyPreset(preset) {
-      updateWindow(preset.width, preset.level);
-      setWindowLocked(true);
-    }
-
-    watch(currentWindowWidth, (value) => {
-      if (Number.isInteger(value)) {
-        props.representation.setWindowWidth(value);
+    function updateRender(ww, wl, updateRange = false) {
+      if (windowLocked.value) return;
+      if (currentWindowWidth.value !== ww) props.representation.setWindowWidth(ww);
+      if (currentWindowLevel.value !== wl) props.representation.setWindowLevel(wl);
+      if (updateRange) {
+        currentRange.value = [
+          wl - ww / 2,
+          wl + ww / 2,
+        ];
       }
+    }
+    function updateFromRange([v0, v1]) {
+      if (windowLocked.value) return;
+      const ww = v1 - v0;
+      const wl = v0 + Math.ceil(ww / 2);
+      updateRender(ww, wl);
+    }
+    watch(currentWindowState, debounce(
+      (state) => updateRender(state.width, state.level, true),
+      600,
+    ));
+
+    function autoRange() {
+      if (windowLocked.value) return;
+      currentRange.value = [widthMin.value, widthMax.value];
+      updateFromRange(currentRange.value);
+    }
+    watch(currentFrame, autoRange);
+
+    function applyPreset(presetId) {
+      if (windowLocked.value) return;
+      currentRange.value = windowPresets.find(
+        (preset) => preset.value === presetId,
+      ).apply(widthMin.value, widthMax.value);
+      updateFromRange(currentRange.value);
+    }
+
+    onMounted(() => {
+      if (windowLocked.value) {
+        currentRange.value = [
+          currentWindowLevel.value - currentWindowLevel.value / 2,
+          currentWindowLevel.value + currentWindowLevel.value / 2,
+        ];
+        return;
+      }
+      autoRange();
+      window.addEventListener('click', (event: Event) => {
+        const protectedDiv = document.getElementById('windowLockWidget');
+        const target = event.target as HTMLElement;
+        if (!protectedDiv.contains(target)) {
+          showLockOptions.value = false;
+        }
+      });
     });
 
-    watch(currentWindowLevel, (value) => {
-      if (Number.isInteger(value)) {
-        props.representation.setWindowLevel(value);
-      }
-    });
+    function setWindowLock(
+      lock: boolean,
+      duration: string | undefined = undefined,
+      target: string | undefined = undefined,
+    ) {
+      let associatedImage;
+      if (duration) associatedImage = `${duration.charAt(0).toUpperCase()}.png`;
+      store.commit.setWindowLocked({
+        lock,
+        duration,
+        target,
+        associatedImage,
+      });
+      showLockOptions.value = false;
+    }
 
     return {
-      selectedPreset,
-      windowLocked,
+      currentRange,
+      currentViewData,
       currentWindowWidth,
       currentWindowLevel,
-      setWindowLocked,
+      updateFromRange,
+      selectedPreset,
+      windowLocked,
+      setWindowLock,
+      showLockOptions,
+      windowLockImage,
       widthMin,
       widthMax,
-      levelMin,
-      levelMax,
-      updateWindow,
       windowPresets,
       applyPreset,
     };
@@ -89,176 +152,129 @@ export default defineComponent({
           </v-icon>
         </template>
         <span>
-          The measure of the range of CT numbers that an image contains.
-          A significantly wide window displaying all the CT numbers will
-          obscure different attenuations between soft tissues.
+          TODO: explain this new widget
         </span>
       </v-tooltip>
     </v-col>
     <v-col
-      cols="7"
+      cols="9"
       style="text-align: center"
     >
-      <v-slider
-        v-mousetrap="[
-          {
-            bind: '-',
-            handler: () => updateWindow(currentWindowWidth - 5, currentWindowLevel)
-          },
-          {
-            bind: '=',
-            handler: () => updateWindow(currentWindowWidth + 5, currentWindowLevel)
-          }
-        ]"
-        :value="currentWindowWidth"
+      <custom-range-slider
+        v-model="currentRange"
+        :disabled="windowLocked"
         :max="widthMax"
         :min="widthMin"
         class="align-center"
-        hide-details
-        :disabled="windowLocked"
-        @input="(width) => updateWindow(width, currentWindowLevel)"
+        height="5"
+        @change="updateFromRange"
       >
         <template #prepend>
-          {{ widthMin }}
+          <v-text-field
+            :value="currentRange[0]"
+            class="mt-0 pt-0"
+            hide-details
+            single-line
+            type="number"
+            style="width: 60px"
+            @change="$set(currentRange, 0, $event)"
+          />
         </template>
         <template #append>
-          <div class="pr-5 pt-2">
-            {{ widthMax }}
-          </div>
+          <v-text-field
+            :value="currentRange[1]"
+            class="mt-0 pt-0"
+            hide-details
+            single-line
+            type="number"
+            style="width: 60px"
+            @change="$set(currentRange, 1, $event)"
+          />
         </template>
-      </v-slider>
-    </v-col>
-    <v-col cols="2">
-      <v-text-field
-        :value="currentWindowWidth"
-        class="mt-0 pt-0"
-        hide-details
-        single-line
-        type="number"
-        style="width: 80px; float: right"
-        :disabled="windowLocked"
-        @input="(width) => updateWindow(width, currentWindowLevel)"
-      />
+      </custom-range-slider>
     </v-col>
     <v-col
+      id="windowLockWidget"
       cols="1"
       style="text-align: right"
     >
       <v-icon
         v-if="!windowLocked"
-        @click="() => setWindowLocked(true)"
+        @click="() => showLockOptions = true"
       >
         mdi-lock-open
       </v-icon>
-      <v-icon
+      <v-img
         v-else
-        @click="() => setWindowLocked(false)"
+        :src="windowLockImage"
+        height="24px"
+        width="18px"
+        class="float-right mx-1"
+        @click="() => setWindowLock(false)"
+      />
+      <v-card
+        v-if="showLockOptions"
+        attach="#windowLockWidget"
+        class="py-3 px-5"
+        style="width: 300px; position: absolute; z-index: 2;"
       >
-        mdi-lock
-      </v-icon>
-    </v-col>
-
-    <v-col cols="2">
-      Level
-      <v-tooltip bottom>
-        <template #activator="{ on, attrs }">
-          <v-icon
-            v-bind="attrs"
+        <div
+          class="d-flex"
+          style="flex-direction: column; align-items: flex-start; gap: 5px;"
+        >
+          <v-btn
             small
-            v-on="on"
+            @click="() => setWindowLock(true, 'scan', currentViewData.scanId)"
           >
-            info
-          </v-icon>
-        </template>
-        <span>
-          The midpoint of the range of the CT numbers displayed.
-          When the window level is decreased the CT image will be brighter.
-        </span>
-      </v-tooltip>
-    </v-col>
-    <v-col cols="7">
-      <v-slider
-        v-mousetrap="[
-          {
-            bind: '[',
-            handler: () => updateWindow(currentWindowWidth, currentWindowLevel - 5)
-          },
-          {
-            bind: ']',
-            handler: () => updateWindow(currentWindowWidth, currentWindowLevel + 5)
-          }
-        ]"
-        :value="currentWindowLevel"
-        :max="levelMax"
-        :min="levelMin"
-        class="align-center"
-        hide-details
-        :disabled="windowLocked"
-        @input="(level) => updateWindow(currentWindowWidth, level)"
-      >
-        <template #prepend>
-          {{ levelMin }}
-        </template>
-        <template #append>
-          <div class="pr-5 pt-2">
-            {{ levelMax }}
-          </div>
-        </template>
-      </v-slider>
-    </v-col>
-    <v-col cols="2">
-      <v-text-field
-        :value="currentWindowLevel"
-        class="mt-0 pt-0"
-        hide-details
-        single-line
-        type="number"
-        style="width: 80px; float: right"
-        :disabled="windowLocked"
-        @input="(level) => updateWindow(currentWindowWidth, level)"
-      />
-    </v-col>
-    <v-col
-      cols="1"
-      style="text-align: right"
-    >
-      <v-icon
-        v-if="!windowLocked"
-        @click="() => setWindowLocked(true)"
-      >
-        mdi-lock-open
-      </v-icon>
-      <v-icon
-        v-else
-        @click="() => setWindowLocked(false)"
-      >
-        mdi-lock
-      </v-icon>
+            <v-img
+              src="S.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Scan
+          </v-btn>
+          <v-btn
+            small
+            @click="() => setWindowLock(true, 'experiment', currentViewData.experimentId)"
+          >
+            <v-img
+              src="E.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Experiment
+          </v-btn>
+          <v-btn
+            small
+            @click="() => setWindowLock(true, 'project', currentViewData.projectId)"
+          >
+            <v-img
+              src="P.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Project
+          </v-btn>
+        </div>
+      </v-card>
     </v-col>
 
     <v-col cols="2">
       Presets
     </v-col>
-    <v-col cols="8">
+    <v-col cols="10">
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
+        :disabled="windowLocked"
         placeholder="Select a preset"
-        item-text="label"
-        item-value="window"
         hide-details
         class="pa-0"
+        @change="applyPreset"
       />
-    </v-col>
-    <v-col col="2">
-      <v-btn
-        small
-        :disabled="!selectedPreset"
-        style="float: right; margin-top: 10px"
-        @click="() => applyPreset(selectedPreset)"
-      >
-        Apply
-      </v-btn>
     </v-col>
   </v-row>
 </template>

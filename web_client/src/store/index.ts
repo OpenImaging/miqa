@@ -297,7 +297,12 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
-  windowLocked: false,
+  windowLocked: {
+    lock: false,
+    duration: undefined,
+    target: undefined,
+    associatedImage: undefined,
+  },
   renderOrientation: 'LPS',
 };
 
@@ -524,8 +529,8 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    setWindowLocked(state, lock) {
-      state.windowLocked = lock;
+    setWindowLocked(state, lockState) {
+      state.windowLocked = lockState;
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
@@ -835,6 +840,34 @@ const {
 
       // If necessary, queue loading scans of new experiment
       checkLoadExperiment(oldExperiment, newExperiment);
+
+      // check for window lock expiry
+      if (state.windowLocked.lock) {
+        console.log(state.windowLocked);
+        const { currentViewData } = getters;
+        console.log(currentViewData);
+        const unlock = () => {
+          commit('setWindowLocked', {
+            lock: false,
+            duration: undefined,
+            target: undefined,
+            associatedImage: undefined,
+          });
+        };
+        switch (state.windowLocked.duration) {
+          case 'scan':
+            if (currentViewData.scanId !== state.windowLocked.target) unlock();
+            break;
+          case 'experiment':
+            if (currentViewData.experimentId !== state.windowLocked.target) unlock();
+            break;
+          case 'project':
+            if (currentViewData.projectId !== state.windowLocked.target) unlock();
+            break;
+          default:
+            break;
+        }
+      }
     },
     async setLock({ commit }, { experimentId, lock, force }) {
       if (lock) {
