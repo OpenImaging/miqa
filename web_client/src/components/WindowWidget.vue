@@ -36,6 +36,7 @@ export default defineComponent({
     const widthMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowWidth').max)) || 0);
     const selectedPreset = ref();
     const windowLocked = computed(() => store.state.windowLocked.lock);
+    const windowLockImage = computed(() => store.state.windowLocked.associatedImage);
     const showLockOptions = ref(false);
 
     function updateRender(ww, wl, updateRange = false) {
@@ -62,12 +63,7 @@ export default defineComponent({
 
     function autoRange() {
       if (windowLocked.value) return;
-      // start with a default range of the middle 60%
-      const wholeRange = widthMax.value - widthMin.value;
-      currentRange.value = [
-        widthMin.value + wholeRange * 0.2,
-        widthMax.value - wholeRange * 0.2,
-      ];
+      currentRange.value = [widthMin.value, widthMax.value];
       updateFromRange(currentRange.value);
     }
     watch(currentFrame, autoRange);
@@ -103,10 +99,13 @@ export default defineComponent({
       duration: string | undefined = undefined,
       target: string | undefined = undefined,
     ) {
+      let associatedImage;
+      if (duration) associatedImage = `${duration.charAt(0).toUpperCase()}.png`;
       store.commit.setWindowLocked({
         lock,
         duration,
         target,
+        associatedImage,
       });
       showLockOptions.value = false;
     }
@@ -121,6 +120,7 @@ export default defineComponent({
       windowLocked,
       setWindowLock,
       showLockOptions,
+      windowLockImage,
       widthMin,
       widthMax,
       windowPresets,
@@ -204,12 +204,14 @@ export default defineComponent({
       >
         mdi-lock-open
       </v-icon>
-      <v-icon
+      <v-img
         v-else
+        :src="windowLockImage"
+        height="24px"
+        width="18px"
+        class="float-right mx-1"
         @click="() => setWindowLock(false)"
-      >
-        mdi-lock
-      </v-icon>
+      />
       <v-card
         v-if="showLockOptions"
         attach="#windowLockWidget"

@@ -301,6 +301,7 @@ const initState = {
     lock: false,
     duration: undefined,
     target: undefined,
+    associatedImage: undefined,
   },
   renderOrientation: 'LPS',
 };
@@ -850,6 +851,7 @@ const {
             lock: false,
             duration: undefined,
             target: undefined,
+            associatedImage: undefined,
           });
         };
         switch (state.windowLocked.duration) {
