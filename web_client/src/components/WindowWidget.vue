@@ -152,7 +152,7 @@ export default defineComponent({
           </v-icon>
         </template>
         <span>
-          TODO: explain this new widget
+          Adjust window and level by moving the slider endpoints or sliding the range bar
         </span>
       </v-tooltip>
     </v-col>
@@ -167,7 +167,7 @@ export default defineComponent({
         :min="widthMin"
         class="align-center"
         height="5"
-        @change="updateFromRange"
+        @input="updateFromRange"
       >
         <template #prepend>
           <v-text-field
