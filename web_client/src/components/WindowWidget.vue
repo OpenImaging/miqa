@@ -5,9 +5,13 @@ import {
 } from '@vue/composition-api';
 import { windowPresets } from '@/vtk/constants';
 import debounce from 'lodash/debounce';
+import CustomRangeSlider from './CustomRangeSlider.vue';
 
 export default defineComponent({
   name: 'WindowWidget',
+  components: {
+    CustomRangeSlider,
+  },
   props: {
     representation: {
       required: true,
@@ -156,7 +160,7 @@ export default defineComponent({
       cols="9"
       style="text-align: center"
     >
-      <v-range-slider
+      <custom-range-slider
         v-model="currentRange"
         :disabled="windowLocked"
         :max="widthMax"
@@ -187,7 +191,7 @@ export default defineComponent({
             @change="$set(currentRange, 1, $event)"
           />
         </template>
-      </v-range-slider>
+      </custom-range-slider>
     </v-col>
     <v-col
       id="windowLockWidget"
