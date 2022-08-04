@@ -72,6 +72,7 @@ export default {
     if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
       window.addEventListener('keydown', (event) => {
+        if (['textarea', 'input'].includes(document.activeElement.type)) return;
         if (event.key === 'ArrowUp') {
           this.handleKeyPress('previous');
         } else if (event.key === 'ArrowDown') {
