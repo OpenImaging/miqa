@@ -158,7 +158,7 @@ export default {
       representationProperty.setColorLevel(this.currentWindowLevel);
       representationProperty.onModified(
         (property) => {
-          if (!this.windowLocked) {
+          if (!this.windowLocked.lock) {
             this.setCurrentWindowWidth(property.getColorWindow());
             this.setCurrentWindowLevel(property.getColorLevel());
           } else {

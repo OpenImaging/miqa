@@ -20,6 +20,8 @@ export default defineComponent({
   },
   setup(props) {
     const currentRange = ref();
+    const currentViewData = computed(() => store.getters.currentViewData);
+    const currentFrame = computed(() => store.state.currentFrameId);
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
     const currentWindowLevel = computed(() => store.state.currentWindowLevel);
     const currentWindowState = computed(() => ({
@@ -29,8 +31,8 @@ export default defineComponent({
     const widthMin = computed(() => (props.representation && props.representation.getPropertyDomainByName('windowWidth').min) || 0);
     const widthMax = computed(() => (props.representation && Math.ceil(props.representation.getPropertyDomainByName('windowWidth').max)) || 0);
     const selectedPreset = ref();
-    const windowLocked = computed(() => store.state.windowLocked);
-    const setWindowLocked = (lock) => store.commit.setWindowLocked(lock);
+    const windowLocked = computed(() => store.state.windowLocked.lock);
+    const showLockOptions = ref(false);
 
     function updateRender(ww, wl, updateRange = false) {
       if (windowLocked.value) return;
@@ -54,6 +56,18 @@ export default defineComponent({
       600,
     ));
 
+    function autoRange() {
+      if (windowLocked.value) return;
+      // start with a default range of the middle 60%
+      const wholeRange = widthMax.value - widthMin.value;
+      currentRange.value = [
+        widthMin.value + wholeRange * 0.2,
+        widthMax.value - wholeRange * 0.2,
+      ];
+      updateFromRange(currentRange.value);
+    }
+    watch(currentFrame, autoRange);
+
     function applyPreset(presetId) {
       if (windowLocked.value) return;
       currentRange.value = windowPresets.find(
@@ -70,23 +84,39 @@ export default defineComponent({
         ];
         return;
       }
-      // start with a default range of the middle 60%
-      const wholeRange = widthMax.value - widthMin.value;
-      currentRange.value = [
-        widthMin.value + wholeRange * 0.2,
-        widthMax.value - wholeRange * 0.2,
-      ];
-      updateFromRange(currentRange.value);
+      autoRange();
+      window.addEventListener('click', (event: Event) => {
+        const protectedDiv = document.getElementById('windowLockWidget');
+        const target = event.target as HTMLElement;
+        if (!protectedDiv.contains(target)) {
+          showLockOptions.value = false;
+        }
+      });
     });
+
+    function setWindowLock(
+      lock: boolean,
+      duration: string | undefined = undefined,
+      target: string | undefined = undefined,
+    ) {
+      store.commit.setWindowLocked({
+        lock,
+        duration,
+        target,
+      });
+      showLockOptions.value = false;
+    }
 
     return {
       currentRange,
+      currentViewData,
       currentWindowWidth,
       currentWindowLevel,
       updateFromRange,
       selectedPreset,
       windowLocked,
-      setWindowLocked,
+      setWindowLock,
+      showLockOptions,
       widthMin,
       widthMax,
       windowPresets,
@@ -160,21 +190,70 @@ export default defineComponent({
       </v-range-slider>
     </v-col>
     <v-col
+      id="windowLockWidget"
       cols="1"
       style="text-align: right"
     >
       <v-icon
         v-if="!windowLocked"
-        @click="() => setWindowLocked(true)"
+        @click="() => showLockOptions = true"
       >
         mdi-lock-open
       </v-icon>
       <v-icon
         v-else
-        @click="() => setWindowLocked(false)"
+        @click="() => setWindowLock(false)"
       >
         mdi-lock
       </v-icon>
+      <v-card
+        v-if="showLockOptions"
+        attach="#windowLockWidget"
+        class="py-3 px-5"
+        style="width: 300px; position: absolute; z-index: 2;"
+      >
+        <div
+          class="d-flex"
+          style="flex-direction: column; align-items: flex-start; gap: 5px;"
+        >
+          <v-btn
+            small
+            @click="() => setWindowLock(true, 'scan', currentViewData.scanId)"
+          >
+            <v-img
+              src="S.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Scan
+          </v-btn>
+          <v-btn
+            small
+            @click="() => setWindowLock(true, 'experiment', currentViewData.experimentId)"
+          >
+            <v-img
+              src="E.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Experiment
+          </v-btn>
+          <v-btn
+            small
+            @click="() => setWindowLock(true, 'project', currentViewData.projectId)"
+          >
+            <v-img
+              src="P.png"
+              height="18px"
+              width="12px"
+              class="mr-2"
+            />
+            Maintain lock for Project
+          </v-btn>
+        </div>
+      </v-card>
     </v-col>
 
     <v-col cols="2">
