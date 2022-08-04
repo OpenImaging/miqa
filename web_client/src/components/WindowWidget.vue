@@ -167,7 +167,7 @@ export default defineComponent({
         :min="widthMin"
         class="align-center"
         height="5"
-        @change="updateFromRange"
+        @input="updateFromRange"
       >
         <template #prepend>
           <v-text-field
