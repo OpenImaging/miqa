@@ -39,21 +39,6 @@ np.random.seed(30101983)
 torch.manual_seed(30101983)
 torch.use_deterministic_algorithms(True)
 
-# counts of different QA results is used to calculate class weights
-qa_sample_counts = [
-    374,  # number of samples with qa==0
-    19,
-    25,
-    7,
-    19,
-    11,
-    2903,
-    521,
-    2398,
-    1908,
-    1290,  # number of samples with qa==10
-]
-
 ghosting_motion_index = regression_count + artifacts.index('ghosting_motion')
 inhomogeneity_index = regression_count + artifacts.index('inhomogeneity')
 
@@ -72,13 +57,13 @@ def index_of_abs_max(my_list):
 def get_image_dimension(path, print_non_lps=False):
     image_io = itk.ImageIOFactory.CreateImageIO(path, itk.CommonEnums.IOFileMode_ReadMode)
     dim = (0, 0, 0)
+    identity = True
     if image_io is not None:
         try:
             image_io.SetFileName(path)
             image_io.ReadImageInformation()
             assert image_io.GetNumberOfDimensions() == 3
             dim = (image_io.GetDimensions(0), image_io.GetDimensions(1), image_io.GetDimensions(2))
-            identity = True
             for d in range(2):
                 if index_of_abs_max(image_io.GetDirection(d)) != d:
                     identity = False
@@ -86,16 +71,46 @@ def get_image_dimension(path, print_non_lps=False):
                 print(f'Non-identity direction matrix: {path}')
         except RuntimeError:
             pass
-    return dim
+    return dim, identity
 
 
-def recursively_search_images(images, decisions, path_prefix, kind):
-    count = 0
-    for path in Path(path_prefix).rglob('*.nii.gz'):
-        images.append(str(path))
-        decisions.append(kind)
-        count += 1
-    logger.info(f'{count} images in prefix {path_prefix}')
+def ncanda_construct_data_frame(ncanda_root_dir):
+    df = pd.DataFrame(
+        [],
+        columns=[
+            'participant_id',
+            'series_type',
+            'overall_qa_assessment',
+            'file_path',
+            'exists',
+            'dimensions',
+            'lps',
+            'absent',
+        ],
+    )
+
+    root = Path(ncanda_root_dir)
+    root_len = len(root.parts)
+    for path in root.rglob('*.nii.gz'):
+        file_path = str(path)
+        participant_id = path.parts[root_len + 1]
+        series_type = path.parts[-1][0:-7]
+        qa = 3 if path.parts[root_len] == 'unusable' else 8
+        dimensions, lps = get_image_dimension(file_path, False)
+
+        df.loc[len(df.index)] = [
+            participant_id,
+            series_type,
+            qa,
+            file_path,
+            True,
+            dimensions,
+            lps,
+            -1,
+        ]
+
+    logger.info(f'Found {df.shape[0]} files.')
+    return df
 
 
 def construct_path_from_csv_fields(
@@ -156,23 +171,25 @@ def read_and_normalize_data_frame(tsv_path):
     existing_count = 0
     missing_count = 0
     df['exists'] = df.apply(lambda row: does_file_exist(row['file_path']), axis=1)
-    df['dimensions'] = df.apply(lambda row: get_image_dimension(row['file_path']), axis=1)
+    df['dimensions'], df['lps'] = zip(*df['file_path'].map(get_image_dimension))
     logger.info(f'Existing files: {existing_count}, non-existent files: {missing_count}')
     return df
 
 
 def verify_images(data_frame):
-    all_ok = True
+    problem_indices = []
     for index, row in data_frame.iterrows():
         try:
-            dim = get_image_dimension(row.file_path, print_non_lps=True)
+            dim, _ = get_image_dimension(row.file_path, print_non_lps=False)
             if dim == (0, 0, 0):
-                logger.info(f'{index}: size of {row.file_path} is zero')
-                all_ok = False
+                logger.warning(f'{index}: size of {row.file_path} is zero')
+                problem_indices.append(index)
         except Exception as e:
-            logger.info(f'{index}: there is some problem with: {row.file_path}:\n{e}')
-            all_ok = False
-    return all_ok
+            logger.warning(f'{index}: there is some problem with: {row.file_path}:\n{e}')
+            problem_indices.append(index)
+
+    data_frame.drop(problem_indices, inplace=True)
+    return len(problem_indices)
 
 
 class CombinedLoss(torch.nn.Module):
@@ -190,9 +207,11 @@ class CombinedLoss(torch.nn.Module):
 
         qa_out = output[..., 0]
         qa_target = target[..., 0]
-        qa_loss = torch.mean((qa_out - qa_target) ** 2)
+        qa_loss = torch.sqrt(torch.mean((qa_out - qa_target) ** 2))
 
-        # overall QA is more important than individual artifacts
+        # if we make overall QA a lot more important than individual artifacts,
+        # then accuracy of the artifact predictions is very low
+        # overallQA has 0-10, individual artifacts 0-1 range
         loss = 10 * qa_loss
 
         for i in range(self.presence_count):
@@ -203,10 +222,7 @@ class CombinedLoss(torch.nn.Module):
                 i_output2 = i_output.unsqueeze(0)
                 i_target2 = i_target.unsqueeze(0)
                 raw_loss = self.focal_loss(i_output2, i_target2)
-                if i_target == 1:
-                    loss += raw_loss * self.binary_class_weights[i]
-                else:
-                    loss += raw_loss * (1 - self.binary_class_weights[i])
+                loss += raw_loss / self.binary_class_weights[int(i_target), i]
             # if target is -1 then ignore difference because ground truth was missing
 
         return loss
@@ -428,7 +444,13 @@ def create_train_and_test_data_loaders(df, count_train):
     images = []
     regression_targets = []
     sizes = {}
-    artifact_column_indices = [df.columns.get_loc(c) + 1 for c in artifacts if c in df]
+    artifact_column_indices = []
+    for c in artifacts:
+        if c in df:
+            artifact_column_indices.append(1 + df.columns.get_loc(c))
+        else:
+            artifact_column_indices.append(1 + df.columns.get_loc('absent'))  # use dummy column
+
     for row in df.itertuples():
         try:
             exists = row.exists
@@ -478,9 +500,14 @@ def create_train_and_test_data_loaders(df, count_train):
                 count1[i] += 1
             # else ignore the missing data
 
-    weights_array = np.zeros(class_count)
-    for i in range(class_count):
-        weights_array[i] = count0[i] / (count0[i] + count1[i])
+    if count_train > 0:
+        weights_array = np.empty((2, class_count))
+        for i in range(class_count):
+            weights_array[0, i] = count0[i] / count_train
+            weights_array[1, i] = count1[i] / count_train
+    else:
+        weights_array = np.ones((2, class_count))
+
     logger.info(f'weights_array: {weights_array}')
     class_weights = torch.tensor(weights_array, dtype=torch.float).to(device)
 
@@ -499,16 +526,24 @@ def create_train_and_test_data_loaders(df, count_train):
     )
 
     # create a training data loader
-    train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
-    train_loader = DataLoader(
-        train_ds, batch_size=1, shuffle=True, num_workers=4, pin_memory=torch.cuda.is_available()
-    )
+    train_loader = None
+    if count_train > 0:
+        train_ds = torchio.SubjectsDataset(train_files, transform=transforms)
+        train_loader = DataLoader(
+            train_ds,
+            batch_size=1,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=torch.cuda.is_available(),
+        )
 
     # create a validation data loader
-    val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
-    val_loader = DataLoader(
-        val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
-    )
+    val_loader = None
+    if count_val > 0:
+        val_ds = torchio.SubjectsDataset(val_files, transform=rescale)
+        val_loader = DataLoader(
+            val_ds, batch_size=1, num_workers=4, pin_memory=torch.cuda.is_available()
+        )
 
     return train_loader, val_loader, class_weights, sizes
 
@@ -542,8 +577,9 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
     if only_evaluate:
         logger.info('Evaluating NN model on validation data')
         evaluate_model(model, val_loader, device, writer, 0, 'val')
-        logger.info('Evaluating NN model on training data')
-        evaluate_model(model, train_loader, device, writer, 0, 'train')
+        if train_loader is not None:
+            logger.info('Evaluating NN model on training data')
+            evaluate_model(model, train_loader, device, writer, 0, 'train')
         return sizes
 
     _, file_name = os.path.split(save_path)
@@ -582,8 +618,10 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
                 print(step, flush=True)  # new line
             writer.add_scalar('train_loss', loss.item(), epoch_len * epoch + step)
             wandb.log({'train_loss': loss.item()})
+        print('')  # newline
+
         epoch_loss /= step
-        logger.info(f'\nepoch {epoch + 1} average loss: {epoch_loss:.4f}')
+        logger.info(f'epoch {epoch + 1} average loss: {epoch_loss:.4f}')
         wandb.log({'epoch average loss': epoch_loss})
         epoch_cm = confusion_matrix(y_true, y_pred)
         logger.info(f'confusion matrix:\n{epoch_cm}')
@@ -622,20 +660,21 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
 
 def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    wandb.init(project='miqaT1', sync_tensorboard=True)
 
     folds = []
     for f in range(fold_count):
         csv_name = folds_prefix + f'{f}.csv'
         fold = pd.read_csv(csv_name)
-        logger.info(f'Verifying input data integrity of {csv_name}')
-        if not verify_images(fold):
-            logger.info('Data verification failed. Exiting...')
-            return
+        print(f'Verifying input data integrity of {csv_name}')
+        problem_count = verify_images(fold)
+        if problem_count > 0:
+            logger.error(
+                f'Data verification failed. {problem_count} non-existing images were dropped'
+            )
         folds.append(fold)
 
     df = pd.concat(folds, ignore_index=True)
-    logger.info(df)
+    logger.info(f'\n{df}')
 
     logger.info(f'Using fold {validation_fold} for validation')
     vf = folds.pop(validation_fold)
@@ -647,8 +686,9 @@ def process_folds(folds_prefix, validation_fold, evaluate_only, fold_count):
     epoch_count = max(35, int(30000 / df.shape[0]))
     epoch_count = math.ceil(epoch_count / val_count) * val_count
 
+    wandb.init(project='miqaMix', sync_tensorboard=True)
     count_train = df.shape[0] - vf.shape[0]
-    model_path = os.getcwd() + f'/models/miqaT1-val{validation_fold}.pth'
+    model_path = os.getcwd() + f'/models/miqaMix-val{validation_fold}.pth'
     sizes = train_and_save_model(
         df,
         count_train,
@@ -707,12 +747,17 @@ if __name__ == '__main__':
         df = read_and_normalize_data_frame(
             predict_hd_data_root + r'phenotype/bids_image_qc_information.tsv'
         )
-        logger.info(df)
+        logger.info(f'\n{df}')
         full_path = Path('bids_image_qc_information-customized.csv').absolute()
         df.to_csv(full_path, index=False)
         logger.info(f'CSV file written: {full_path}')
     elif args.ncanda is not None:
-        logger.info('Adding support for NCANDA data is a TODO')
+        args.ncanda
+        df = ncanda_construct_data_frame(args.ncanda)
+        logger.info(f'\n{df}')
+        full_path = Path('ncanda0.csv').absolute()
+        df.to_csv(full_path, index=False)
+        logger.info(f'CSV file written: {full_path}')
     else:
         logger.info('Not enough arguments specified')
         logger.info(parser.format_help())

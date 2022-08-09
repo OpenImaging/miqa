@@ -1,7 +1,6 @@
 <script lang="ts">
 import { vec3 } from 'gl-matrix';
 
-import Vue from 'vue';
 import { mapState, mapGetters, mapMutations } from 'vuex';
 
 import CrosshairSet from '../utils/crosshairs';
@@ -32,6 +31,7 @@ export default {
       'iIndexSlice',
       'jIndexSlice',
       'kIndexSlice',
+      'windowLocked',
       'currentWindowWidth',
       'currentWindowLevel',
       'renderOrientation',
@@ -153,10 +153,18 @@ export default {
       });
       this.resizeObserver.observe(this.$refs.viewer);
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
-      this.representation.getActors()[0].getProperty().onModified(
+      const representationProperty = this.representation.getActors()[0].getProperty();
+      representationProperty.setColorWindow(this.currentWindowWidth);
+      representationProperty.setColorLevel(this.currentWindowLevel);
+      representationProperty.onModified(
         (property) => {
-          this.setCurrentWindowWidth(property.getColorWindow());
-          this.setCurrentWindowLevel(property.getColorLevel());
+          if (!this.windowLocked.lock) {
+            this.setCurrentWindowWidth(property.getColorWindow());
+            this.setCurrentWindowLevel(property.getColorLevel());
+          } else {
+            property.setColorWindow(this.currentWindowWidth);
+            property.setColorLevel(this.currentWindowLevel);
+          }
         },
       );
     },
@@ -240,33 +248,56 @@ export default {
       return trueAxis;
     },
     async takeScreenshot() {
-      // TODO: scale is currently slightly off, causing a no-content border around the screenshot
-      // scale calculated in fill2Dview comes from view bounds and input data spacing
-      // relevant info: frameData.getSpacing() where frameData comes from loadFileAndGetData
-      const scale = fill2DView(this.view, 512, 512, false);
-      const dataURL = await this.view.captureImage({
-        size: [512, 512],
-        resetCamera: ({ renderer }) => {
-          renderer.resetCamera();
-          renderer.getActiveCamera().setParallelScale(scale);
-        },
-      });
+      const dataURL = await this.view.captureImage();
+
+      const imageOutput = await (
+        async (file) : Promise<HTMLImageElement> => new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            resolve(img);
+          };
+          img.src = file;
+        })
+      )(dataURL);
+      const canvas = document.createElement('canvas');
+      canvas.width = imageOutput.width;
+      canvas.height = imageOutput.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(imageOutput, 0, 0);
+
+      if (this.showCrosshairs) {
+        const crosshairSet = new CrosshairSet(
+          this.name, this.ijkName,
+          this.representation, this.view, canvas,
+          this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+        );
+        const originalColors = {
+          x: '#fdd835',
+          y: '#4caf50',
+          z: '#b71c1c',
+        };
+        const trueColors = Object.fromEntries(
+          Object.entries(originalColors).map(([axisName, hex]) => [this.trueAxis(axisName), hex]),
+        );
+        const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(
+          this.trueAxis(this.name), trueColors,
+        );
+        this.drawLine(ctx, displayLine1);
+        this.drawLine(ctx, displayLine2);
+      }
       this.setCurrentScreenshot({
         name: `${this.currentViewData.experimentName}/${
           this.currentViewData.scanName
         }/${this.currentFrame.frame_number}/${this.displayName}`,
-        dataURL,
+        dataURL: canvas.toDataURL('image/jpeg'),
       });
     },
     toggleFullscreen() {
       this.fullscreen = !this.fullscreen;
-      this.resized = false;
-      Vue.nextTick(() => {
-        fill2DView(this.view);
-        setTimeout(() => {
-          this.resized = true;
-        });
-      });
+      setTimeout(() => {
+        this.$refs.viewer.style.width = 'inherit';
+        this.$refs.viewer.style.width = `${this.$refs.viewer.clientWidth - 3}px`;
+      }, 100);
     },
     changeSlice(newValue) {
       this.slice = newValue;
@@ -426,10 +457,10 @@ export default {
 
   &.fullscreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
+    top: 48px;
+    left: 55px;
+    bottom: 0px;
+    right: 0px;
     z-index: 2;
   }
 

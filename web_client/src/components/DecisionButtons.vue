@@ -410,7 +410,7 @@ export default {
           :hide-details="warnDecision"
           filled
           no-resize
-          height="75px"
+          height="80px"
           name="input-comment"
           label="Evaluation Comment"
           placeholder="Write a comment about the scan"
@@ -432,7 +432,7 @@ export default {
     </v-row>
     <v-row
       v-if="experimentIsEditable"
-      dense
+      no-gutters
     >
       <v-col cols="12">
         <div class="button-container">

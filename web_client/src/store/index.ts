@@ -206,20 +206,8 @@ function checkLoadExperiment(oldValue, newValue) {
   if (
     !newValue
     || newValue === oldValue
-    || (newValue && oldValue && newValue.folderId === oldValue.folderId)
   ) {
     return;
-  }
-
-  if (oldValue) {
-    const oldExperimentScans = store.state.experimentScans[oldValue.id];
-    oldExperimentScans.forEach((scanId) => {
-      const scanFrames = store.state.scanFrames[scanId];
-      scanFrames.forEach((frameId) => {
-        fileCache.delete(frameId);
-        frameCache.delete(frameId);
-      });
-    });
   }
 
   readDataQueue = [];
@@ -309,6 +297,12 @@ const initState = {
   kIndexSlice: 0,
   currentWindowWidth: 256,
   currentWindowLevel: 150,
+  windowLocked: {
+    lock: false,
+    duration: undefined,
+    target: undefined,
+    associatedImage: undefined,
+  },
   renderOrientation: 'LPS',
 };
 
@@ -378,8 +372,6 @@ const {
         downTo,
         currentFrame,
         currentAutoEvaluation: currentFrame.frame_evaluation,
-        autoWindow: experiment.autoWindow,
-        autoLevel: experiment.autoLevel,
       };
     },
     currentFrame(state) {
@@ -537,20 +529,11 @@ const {
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    setExperimentAutoWindow(state, { experimentId, autoWindow }) {
-      state.experiments[experimentId].autoWindow = autoWindow;
-    },
-    setExperimentAutoLevel(state, { experimentId, autoLevel }) {
-      state.experiments[experimentId].autoLevel = autoLevel;
+    setWindowLocked(state, lockState) {
+      state.windowLocked = lockState;
     },
     setScanCachedPercentage(state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
-    },
-    startLoadingExperiment(state) {
-      state.loadingExperiment = true;
-    },
-    stopLoadingExperiment(state) {
-      state.loadingExperiment = false;
     },
     setSliceLocation(state, ijkLocation) {
       if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
@@ -857,6 +840,34 @@ const {
 
       // If necessary, queue loading scans of new experiment
       checkLoadExperiment(oldExperiment, newExperiment);
+
+      // check for window lock expiry
+      if (state.windowLocked.lock) {
+        console.log(state.windowLocked);
+        const { currentViewData } = getters;
+        console.log(currentViewData);
+        const unlock = () => {
+          commit('setWindowLocked', {
+            lock: false,
+            duration: undefined,
+            target: undefined,
+            associatedImage: undefined,
+          });
+        };
+        switch (state.windowLocked.duration) {
+          case 'scan':
+            if (currentViewData.scanId !== state.windowLocked.target) unlock();
+            break;
+          case 'experiment':
+            if (currentViewData.experimentId !== state.windowLocked.target) unlock();
+            break;
+          case 'project':
+            if (currentViewData.projectId !== state.windowLocked.target) unlock();
+            break;
+          default:
+            break;
+        }
+      }
     },
     async setLock({ commit }, { experimentId, lock, force }) {
       if (lock) {
