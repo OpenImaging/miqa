@@ -177,7 +177,7 @@ export default defineComponent({
             single-line
             type="number"
             style="width: 60px"
-            @change="$set(currentRange, 0, $event)"
+            @input="(value) => currentRange = [value, currentRange[1]]"
           />
         </template>
         <template #append>
@@ -188,7 +188,7 @@ export default defineComponent({
             single-line
             type="number"
             style="width: 60px"
-            @change="$set(currentRange, 1, $event)"
+            @input="(value) => currentRange = [currentRange[0], value]"
           />
         </template>
       </custom-range-slider>
