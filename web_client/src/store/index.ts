@@ -13,7 +13,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, Frame, ProjectSettings, Scan,
+  Project, ProjectTaskOverview, User, ProjectSettings, Scan,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -326,17 +326,8 @@ const {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = state.scans[currentFrame.scan];
       if (!scan) {
-        const nextFrame = Object.entries(state.frames).map(
-          ([, frameInfo]) => frameInfo,
-        ).filter(
-          (frameInfo: Frame) => frameInfo.scan === Object.keys(state.scans)[0],
-        )[0][0];
-        // Scan removed from list by review mode, return sparse object
-        // and let the component navigate away
-        // since navigation should not happen in the store
-        return {
-          downTo: nextFrame,
-        };
+        // scan was removed from list by review mode; do nothing
+        return {};
       }
       const experiment = currentFrame.experiment
         ? state.experiments[currentFrame.experiment] : null;
