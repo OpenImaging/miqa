@@ -88,7 +88,7 @@ export default defineComponent({
       window.addEventListener('click', (event: Event) => {
         const protectedDiv = document.getElementById('windowLockWidget');
         const target = event.target as HTMLElement;
-        if (!protectedDiv.contains(target)) {
+        if (!protectedDiv || !protectedDiv.contains(target)) {
           showLockOptions.value = false;
         }
       });
