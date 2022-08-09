@@ -80,20 +80,19 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
         return obj.get_user_role(self.context['user'])
 
     def get_scan_states(self, obj):
-        def convert_state_string(last_reviewer_role):
-            if last_reviewer_role == 'tier_2_reviewer':
+        def convert_state_string(last_decision):
+            last_reviewer_role = obj.get_user_role(last_decision.creator)
+            if last_reviewer_role == 'tier_2_reviewer' or last_decision.decision == 'U':
+                # scan is complete if it is marked usable by anyone
+                # or if marked at all by a tier 2 reviewer
                 return 'complete'
             elif last_reviewer_role == 'tier_1_reviewer':
                 return 'needs tier 2 review'
-            else:
-                return last_reviewer_role
 
         return {
-            str(scan.id): convert_state_string(
-                obj.get_user_role(scan.decisions.latest('created').creator)
-                if scan.decisions.count() > 0 and scan.decisions.latest('created').creator
-                else 'unreviewed'
-            )
+            str(scan.id): convert_state_string(scan.decisions.latest('created'))
+            if scan.decisions.count() > 0 and scan.decisions.latest('created').creator
+            else 'unreviewed'
             for exp in obj.experiments.all()
             for scan in exp.scans.all()
         }
