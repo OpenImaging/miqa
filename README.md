@@ -27,3 +27,6 @@ Get started right away using our pre-built docker containers.
 Read about configuring your instance of MIQA for production in [prod/README.md](prod/README.md) or for development in [dev/README.md](dev/README.md)
 
 Read the [MIQA user manual here](https://openimaging.github.io/miqa/).
+
+### Python client
+The python client for interacting with an instance of MIQA is available [on PyPI](https://pypi.org/project/miqa-python-client/). The documentation for using this client can be found at [python_client/README.md](python_client/README.md). Example usages of the client can be found at [python_client/example.py](python_client/example.py).
