@@ -1,7 +1,9 @@
+from .artifact import  Artifact
 from .evaluation import Evaluation
 from .experiment import Experiment
 from .frame import Frame
 from .global_settings import GlobalSettings
+from .group import Group
 from .project import Project
 from .scan import Scan
 from .scan_decision import ScanDecision
@@ -14,4 +16,6 @@ __all__ = [
     'Project',
     'Scan',
     'ScanDecision',
+    'Artifact',
+    'Group'
 ]
