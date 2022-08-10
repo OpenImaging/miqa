@@ -52,7 +52,11 @@ const djangoClient = {
     try {
       await apiClient.post('/logout/', undefined, { withCredentials: true });
     } finally {
-      await oauthClient.logout();
+      await oauthClient.logout().then(
+        async () => {
+          await oauthClient.redirectToLogin();
+        },
+      );
     }
   },
   async MIQAConfig() {
