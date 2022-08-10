@@ -52,6 +52,7 @@ export default defineComponent({
     }
     function updateFromRange([v0, v1]) {
       if (windowLocked.value) return;
+      if (v0 === currentRange.value[0] && v1 === currentRange.value[1]) return;
       const ww = v1 - v0;
       const wl = v0 + Math.ceil(ww / 2);
       updateRender(ww, wl);
