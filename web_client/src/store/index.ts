@@ -835,9 +835,7 @@ const {
 
       // check for window lock expiry
       if (state.windowLocked.lock) {
-        console.log(state.windowLocked);
         const { currentViewData } = getters;
-        console.log(currentViewData);
         const unlock = () => {
           commit('setWindowLocked', {
             lock: false,
