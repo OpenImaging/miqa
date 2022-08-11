@@ -7,22 +7,23 @@ from uuid import uuid4
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from miqa.core.models import GlobalSettings
 
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
 
-artifacts = [
-    'normal_variants',
-    'lesions',
-    'full_brain_coverage',
-    'misalignment',
-    'swap_wraparound',
-    'ghosting_motion',
-    'inhomogeneity',
-    'susceptibility_metal',
-    'flow_artifact',
-    'truncation_artifact',
-]
+# artifacts = [
+#     'normal_variants',
+#     'lesions',
+#     'full_brain_coverage',
+#     'misalignment',
+#     'swap_wraparound',
+#     'ghosting_motion',
+#     'inhomogeneity',
+#     'susceptibility_metal',
+#     'flow_artifact',
+#     'truncation_artifact',
+# ]
 
 DECISION_CHOICES = [
     ('U', 'Usable'),
@@ -39,6 +40,16 @@ class ArtifactState(Enum):
 
 
 def default_identified_artifacts():
+    from .project import Project
+    from .artifact import Artifact
+    try:
+        artifact_group = Project.artifact_group
+        if artifact_group:
+            artifacts = Artifact.objects.filter(group__artifact__id=artifact_group)
+
+    except:
+        artifacts = GlobalSettings.default_artifacts
+
     return {
         (
             artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'

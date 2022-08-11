@@ -9,6 +9,19 @@ class GlobalSettings(models.Model):
     import_path = models.CharField(max_length=1000, default='', blank=True)
     export_path = models.CharField(max_length=1000, default='', blank=True)
 
+    default_artifacts = [
+        'normal_variants',
+        'lesions',
+        'full_brain_coverage',
+        'misalignment',
+        'swap_wraparound',
+        'ghosting_motion',
+        'inhomogeneity',
+        'susceptibility_metal',
+        'flow_artifact',
+        'truncation_artifact',
+    ]
+
     def save(self, *args, **kwargs):
         self.pk = 1
         super().save(*args, **kwargs)
