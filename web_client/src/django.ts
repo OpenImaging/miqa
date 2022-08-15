@@ -14,6 +14,13 @@ interface Paginated<T> {
   results: T[],
 }
 
+class ErrorResponseDetail extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'Server Error';
+  }
+}
+
 const apiClient = axios.create({ baseURL: API_URL });
 let s3ffClient;
 
@@ -124,10 +131,14 @@ const djangoClient = {
     return data;
   },
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
-    const { data } = await apiClient.post('/experiments', {
+    const response = await apiClient.post('/experiments', {
       project: projectId,
       name: experimentName,
     });
+    const { data } = response;
+    if (response.status === 500 && data.detail) {
+      throw new ErrorResponseDetail(data.detail);
+    }
     return data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {

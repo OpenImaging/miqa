@@ -158,9 +158,6 @@ export default {
           const newExperiment = await djangoRest.createExperiment(
             this.currentProject.id, this.experimentNameForUpload,
           );
-          if (newExperiment.detail) {
-            throw new Error(newExperiment.detail);
-          }
           experimentId = newExperiment.id;
         } else {
           experimentId = Object.values(this.experiments).find(
