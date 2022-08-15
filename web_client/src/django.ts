@@ -206,6 +206,7 @@ apiClient.interceptors.response.use(null, (error) => {
   if (error?.response?.status === 401) {
     djangoClient.logout();
   }
+  return error.response;
 });
 
 export { apiClient, oauthClient };

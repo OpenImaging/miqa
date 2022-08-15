@@ -42,7 +42,7 @@ export default defineComponent({
           response = await djangoRest.projectImport(currentProject.value.id);
         }
         importing.value = false;
-        if (response.errors) {
+        if (response.detail) {
           importErrors.value = true;
           importErrorText.value = response.detail;
           importErrorList.value = response.errors;
@@ -80,7 +80,8 @@ export default defineComponent({
         } else {
           response = await djangoRest.projectExport(currentProject.value.id);
         }
-        if (response.warnings) {
+        console.log(response);
+        if (response.detail) {
           importErrors.value = true;
           importErrorText.value = response.detail;
           importErrorList.value = response.warnings;
