@@ -63,6 +63,6 @@ async def test_upload_scans(
     await scans[0].click()
 
     assert await page.waitForXPath(
-        '//div[contains(@class, "col")][contains(., "Demo Project")]'
-        '/following::div[contains(@class, "col")][contains(., "Test Experiment")]'
+        '//div[contains(@class, "d-flex")][contains(., "Demo Project")]'
+        '/following::div/div[contains(., "Test Experiment")]'
     )
