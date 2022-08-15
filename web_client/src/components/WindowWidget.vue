@@ -53,8 +53,9 @@ export default defineComponent({
     function updateFromRange([v0, v1]) {
       if (windowLocked.value) return;
       if (v0 === currentRange.value[0] && v1 === currentRange.value[1]) return;
+      currentRange.value = [v0, v1];
       const ww = v1 - v0;
-      const wl = v0 + Math.ceil(ww / 2);
+      const wl = v0 + Math.floor(ww / 2);
       updateRender(ww, wl);
     }
     watch(currentWindowState, debounce(
@@ -162,7 +163,7 @@ export default defineComponent({
       style="text-align: center"
     >
       <custom-range-slider
-        v-model="currentRange"
+        :value="currentRange"
         :disabled="windowLocked"
         :max="widthMax"
         :min="widthMin"
