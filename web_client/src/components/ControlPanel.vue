@@ -214,7 +214,7 @@ export default {
                   <div>
                     Project:
                   </div>
-                  <div id="projectName">
+                  <div>
                     {{ currentViewData.projectName }}
                   </div>
                 </div>
@@ -222,7 +222,7 @@ export default {
                   <div>
                     Experiment:
                   </div>
-                  <div id="experimentName">
+                  <div>
                     {{ currentViewData.experimentName }}
                     <UserAvatar
                       v-if="lockOwner"
@@ -235,7 +235,7 @@ export default {
                   <div>
                     Subject:
                   </div>
-                  <div id="scanSubject">
+                  <div>
                     <b>{{ currentViewData.scanSubject || 'None' }}</b>
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export default {
                   <div>
                     Session:
                   </div>
-                  <div id="scanSession">
+                  <div>
                     <b>{{ currentViewData.scanSession || 'None' }}</b>
                   </div>
                 </div>
