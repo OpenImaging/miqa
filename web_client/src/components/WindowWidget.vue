@@ -38,6 +38,7 @@ export default defineComponent({
     const windowLocked = computed(() => store.state.windowLocked.lock);
     const windowLockImage = computed(() => store.state.windowLocked.associatedImage);
     const showLockOptions = ref(false);
+    const imageLoadError = ref(false);
 
     function updateRender(ww, wl, updateRange = false) {
       if (windowLocked.value) return;
@@ -53,8 +54,9 @@ export default defineComponent({
     function updateFromRange([v0, v1]) {
       if (windowLocked.value) return;
       if (v0 === currentRange.value[0] && v1 === currentRange.value[1]) return;
+      currentRange.value = [v0, v1];
       const ww = v1 - v0;
-      const wl = v0 + Math.ceil(ww / 2);
+      const wl = v0 + Math.floor(ww / 2);
       updateRender(ww, wl);
     }
     watch(currentWindowState, debounce(
@@ -121,6 +123,7 @@ export default defineComponent({
       windowLocked,
       setWindowLock,
       showLockOptions,
+      imageLoadError,
       windowLockImage,
       widthMin,
       widthMax,
@@ -162,7 +165,7 @@ export default defineComponent({
       style="text-align: center"
     >
       <custom-range-slider
-        v-model="currentRange"
+        :value="currentRange"
         :disabled="windowLocked"
         :max="widthMax"
         :min="widthMin"
@@ -212,7 +215,14 @@ export default defineComponent({
         width="18px"
         class="float-right mx-1"
         @click="() => setWindowLock(false)"
+        @error="imageLoadError = true"
       />
+      <v-icon
+        v-if="imageLoadError && windowLocked"
+        @click="() => setWindowLock(false)"
+      >
+        mdi-lock
+      </v-icon>
       <v-card
         v-if="showLockOptions"
         attach="#windowLockWidget"
@@ -232,6 +242,7 @@ export default defineComponent({
               height="18px"
               width="12px"
               class="mr-2"
+              @error="imageLoadError = true"
             />
             Maintain lock for Scan
           </v-btn>
@@ -244,6 +255,7 @@ export default defineComponent({
               height="18px"
               width="12px"
               class="mr-2"
+              @error="imageLoadError = true"
             />
             Maintain lock for Experiment
           </v-btn>
@@ -256,6 +268,7 @@ export default defineComponent({
               height="18px"
               width="12px"
               class="mr-2"
+              @error="imageLoadError = true"
             />
             Maintain lock for Project
           </v-btn>
