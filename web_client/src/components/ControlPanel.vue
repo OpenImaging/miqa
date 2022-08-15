@@ -249,8 +249,7 @@ export default {
               </div>
               <div
                 v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0"
-                class="px-6 py-8"
-                style="text-align: center"
+                class="px-6 py-8 align-center"
               >
                 <v-progress-circular
                   :value="scanCachedPercentage * 100"
