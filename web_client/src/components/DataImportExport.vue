@@ -80,7 +80,6 @@ export default defineComponent({
         } else {
           response = await djangoRest.projectExport(currentProject.value.id);
         }
-        console.log(response);
         if (response.detail) {
           importErrors.value = true;
           importErrorText.value = response.detail;
