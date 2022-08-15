@@ -317,8 +317,6 @@ export default {
                 />
               </div>
             </v-flex>
-            </div>
-            </div>
           </v-card>
         </v-col>
         <v-col
