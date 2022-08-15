@@ -60,8 +60,8 @@ const djangoClient = {
     }
   },
   async MIQAConfig() {
-    const { data } = await apiClient.get('/configuration/');
-    return data;
+    const response = await apiClient.get('/configuration/');
+    return response ? response.data : undefined;
   },
   async globalSettings() {
     const { data } = await apiClient.get('/global/settings');
