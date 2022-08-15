@@ -210,25 +210,19 @@ export default {
                 class="d-flex px-5 py-3"
                 style="flex-direction: column; flex-grow: 3"
               >
-                <div
-                  class="d-flex"
-                  style="column-gap: 10px"
-                >
+                <div class="current-info-container">
                   <div>
                     Project:
                   </div>
-                  <div>
+                  <div id="projectName">
                     {{ currentViewData.projectName }}
                   </div>
                 </div>
-                <div
-                  class="d-flex"
-                  style="column-gap: 10px"
-                >
+                <div class="current-info-container">
                   <div>
                     Experiment:
                   </div>
-                  <div>
+                  <div id="experimentName">
                     {{ currentViewData.experimentName }}
                     <UserAvatar
                       v-if="lockOwner"
@@ -237,25 +231,19 @@ export default {
                     />
                   </div>
                 </div>
-                <div
-                  class="d-flex"
-                  style="column-gap: 10px"
-                >
+                <div class="current-info-container">
                   <div>
                     Subject:
                   </div>
-                  <div>
+                  <div id="scanSubject">
                     <b>{{ currentViewData.scanSubject || 'None' }}</b>
                   </div>
                 </div>
-                <div
-                  class="d-flex"
-                  style="column-gap: 10px"
-                >
+                <div class="current-info-container">
                   <div>
                     Session:
                   </div>
-                  <div>
+                  <div id="scanSession">
                     <b>{{ currentViewData.scanSession || 'None' }}</b>
                   </div>
                 </div>
@@ -487,5 +475,10 @@ export default {
   color: #1976d2;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.current-info-container {
+  display: flex;
+  column-gap: 10px;
 }
 </style>
