@@ -207,8 +207,7 @@ export default {
           >
             <div class="d-flex">
               <div
-                class="d-flex px-5 py-3"
-                style="flex-direction: column; flex-grow: 3"
+                class="d-flex px-5 py-3 flex-grow-1 flex-column"
               >
                 <div class="current-info-container">
                   <div>
