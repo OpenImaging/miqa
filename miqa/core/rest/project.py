@@ -12,6 +12,8 @@ from miqa.core.rest.experiment import ExperimentSerializer
 from miqa.core.rest.permissions import project_permission_required
 from miqa.core.rest.user import UserSerializer
 from miqa.core.tasks import export_data, import_data
+from miqa.core.models import Artifact
+from miqa.core.models import GlobalSettings
 
 
 class ProjectSettingsSerializer(serializers.ModelSerializer):
@@ -23,10 +25,13 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
             'permissions',
             'default_email_recipients',
             'anatomy_orientation',
+            'artifact_group',
+            'artifacts'
         ]
 
     permissions = serializers.SerializerMethodField('get_permissions')
     default_email_recipients = serializers.SerializerMethodField('get_default_email_recipients')
+    artifacts = serializers.SerializerMethodField('get_artifacts')
 
     def get_permissions(self, obj):
         permissions = {
@@ -46,6 +51,16 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
         ]
 
         return permissions
+
+    def get_artifacts(self, obj):
+        artifacts = {}
+        try:
+            if obj.artifact_group_id:
+                artifacts = Artifact.objects.filter(group__artifact__group__id=obj.artifact_group_id)
+        except:
+            artifacts = GlobalSettings.default_artifacts
+
+        return artifacts.values()
 
     def get_default_email_recipients(self, obj):
         if obj.default_email_recipients == '':
