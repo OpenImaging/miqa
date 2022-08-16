@@ -76,7 +76,10 @@ export default defineComponent({
       currentRange.value = windowPresets.find(
         (preset) => preset.value === presetId,
       ).apply(widthMin.value, widthMax.value);
-      updateFromRange(currentRange.value);
+      const [v0, v1] = currentRange.value;
+      const ww = v1 - v0;
+      const wl = v0 + Math.floor(ww / 2);
+      updateRender(ww, wl);
     }
 
     onMounted(() => {
