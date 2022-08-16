@@ -25,7 +25,7 @@ class ArtifactState(Enum):
     ABSENT = 0
     UNDEFINED = -1
 
-def default_identified_artifacts():
+def default_identified_artifacts(**project):
 
     artifacts = GlobalSettings.default_artifacts
 

@@ -13,7 +13,7 @@ from miqa.core.rest.permissions import project_permission_required
 from miqa.core.rest.user import UserSerializer
 from miqa.core.tasks import export_data, import_data
 from miqa.core.models import Artifact
-from miqa.core.models import GlobalSettings
+from miqa.core.models.scan_decision import default_identified_artifacts, ArtifactState
 
 
 class ProjectSettingsSerializer(serializers.ModelSerializer):
@@ -53,14 +53,17 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
         return permissions
 
     def get_artifacts(self, obj):
-        artifacts = {}
-        try:
-            if obj.artifact_group_id:
-                artifacts = Artifact.objects.filter(group__artifact__group__id=obj.artifact_group_id)
-        except:
-            artifacts = GlobalSettings.default_artifacts
+        if obj.artifact_group_id is not None:
+            artifacts = Artifact.objects.filter(group__artifact__group__id=obj.artifact_group_id)
+            artifact_values = {
+                artifact_name.name: ArtifactState.UNDEFINED.value
+                for artifact_name in artifacts
+            }
+            return artifact_values
+        else:
+            artifacts = default_identified_artifacts()
+            return artifacts
 
-        return artifacts.values()
 
     def get_default_email_recipients(self, obj):
         if obj.default_email_recipients == '':
