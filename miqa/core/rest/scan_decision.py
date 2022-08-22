@@ -54,6 +54,7 @@ class ScanDecisionViewSet(
         request_data = request.data
         scan = Scan.objects.get(id=request.data['scan'])
 
+        scan_project_artifacts = scan.experiment.project.artifact_group_id
         if not has_review_perm(get_perms(request.user, scan.experiment.project)):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -72,7 +73,7 @@ class ScanDecisionViewSet(
                     if artifact_name in request_data['artifacts']['absent']
                     else ArtifactState.UNDEFINED.value
                 )
-                for artifact_name in default_identified_artifacts().keys()
+                for artifact_name in default_identified_artifacts(scan_project_artifacts)
             }
             del request_data['artifacts']
 
