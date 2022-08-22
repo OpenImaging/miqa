@@ -169,6 +169,7 @@ def perform_import(import_dict):
     for project_name, project_data in import_dict['projects'].items():
         try:
             project_object = Project.objects.get(name=project_name)
+            project_artifacts_group_id = project_object.artifact_group_id
         except Project.DoesNotExist:
             raise APIException(f'Project {project_name} does not exist.')
 
@@ -248,7 +249,7 @@ def perform_import(import_dict):
                                         in last_decision_dict['user_identified_artifacts']
                                         else 0
                                     )
-                                    for artifact_name in default_identified_artifacts(project=project_object).keys()
+                                    for artifact_name in default_identified_artifacts(project_artifacts_group_id).keys()
                                 },
                                 location=location,
                                 scan=scan_object,
