@@ -51,16 +51,27 @@ export default {
       'proxyManager',
       'vtkViews',
       'storeCrosshairs',
+      'currentProject',
     ]),
     ...mapGetters([
       'currentViewData',
       'myCurrentProjectRoles',
     ]),
     artifacts() {
-      return this.MIQAConfig.artifact_options.map((name) => ({
-        value: name,
-        labelText: this.convertValueToLabel(name),
-      }));
+      let projectArtifacts;
+      if (typeof this.currentProject !== 'undefined') {
+        const artifacts = this.currentProject.settings.artifacts;
+        projectArtifacts = Object.keys(artifacts).map((name) => ({
+          value: name,
+          labelText: this.convertValueToLabel(name),
+        }));
+      } else {
+        projectArtifacts = this.MIQAConfig.artifact_options.map((name) => ({
+          value: name,
+          labelText: this.convertValueToLabel(name),
+        }));
+      }
+      return projectArtifacts;
     },
     chips() {
       return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
