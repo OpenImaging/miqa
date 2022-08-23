@@ -249,7 +249,7 @@ def perform_import(import_dict):
                                         in last_decision_dict['user_identified_artifacts']
                                         else 0
                                     )
-                                    for artifact_name in default_identified_artifacts(project_artifacts_group_id).keys()
+                                    for artifact_name in default_identified_artifacts(project_artifacts_group_id)
                                 },
                                 location=location,
                                 scan=scan_object,

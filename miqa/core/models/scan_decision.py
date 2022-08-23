@@ -29,10 +29,7 @@ class ArtifactState(Enum):
 def default_identified_artifacts(scan_project_artifacts = ''):
     if scan_project_artifacts != '':
         artifact_objects = Artifact.objects.filter(group__id=scan_project_artifacts)
-        artifacts = []
-        for artifact in artifact_objects:
-            this_artifact = getattr(artifact, "name")
-            artifacts.append(this_artifact)
+        artifacts = [getattr(artifact, "name") for artifact in artifact_objects]
     else:
         artifacts = GlobalSettings.default_artifacts
 

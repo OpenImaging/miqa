@@ -27,7 +27,7 @@ class MIQAConfigView(APIView):
     def get(self, request):
         return Response(
             {
-                'artifact_options': [key for key in default_identified_artifacts()],
+                'artifact_options': list(default_identified_artifacts()),
                 'auto_artifact_threshold': 0.4,
                 'artifact_states': {
                     'PRESENT': ArtifactState.PRESENT.value,

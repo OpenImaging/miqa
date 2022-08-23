@@ -55,11 +55,10 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
     def get_artifacts(self, obj):
         if obj.artifact_group_id is not None:
             artifacts = Artifact.objects.filter(group__artifact__group__id=obj.artifact_group_id)
-            artifact_values = {
+            return {
                 artifact_name.name: ArtifactState.UNDEFINED.value
                 for artifact_name in artifacts
             }
-            return artifact_values
         else:
             artifacts = default_identified_artifacts()
             return artifacts
