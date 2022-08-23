@@ -17,6 +17,7 @@ export default defineComponent({
   setup() {
     const show = ref(false);
     const idleWarningTriggered = ref(false);
+    const unauthorizedTriggered = ref(false);
     const idleStartTime = ref(0);
     const timeRemaining = ref(0);
     const timeRemainingStr = computed(() => {
@@ -26,25 +27,28 @@ export default defineComponent({
       return `${minutes}:${seconds}`;
     });
 
+    window.addEventListener(
+      'unauthorized', () => {
+        show.value = true;
+        unauthorizedTriggered.value = true;
+        timeRemaining.value = 30000;
+      },
+    );
+
     const lastApiRequestTime = computed(() => store.state.lastApiRequestTime);
 
-    const reset = () => {
-      // Send a request to refresh the server token
-      // Not awaited since we don't actually care about the result
+    const reset = async () => {
+      await djangoRest.restoreLogin(store);
       djangoRest.projects();
 
       // reset dialog
       show.value = false;
+      timeRemaining.value = 0;
       idleWarningTriggered.value = false;
+      unauthorizedTriggered.value = false;
     };
     const logout = async () => {
-      try {
-        // This may fail with a 401 if the user has already been logged out
-        await djangoRest.logout();
-      } finally {
-        // This will redirect to the login page
-        await djangoRest.login();
-      }
+      await djangoRest.logout();
     };
 
     // Watch for an absence of user interaction
@@ -68,11 +72,13 @@ export default defineComponent({
         // If the user is idle, we also need to consider the idle warning
         const idleTimeRemaining = idleStartTime.value + warningDuration - now;
         timeRemaining.value = Math.min(sessionTimeRemaining, idleTimeRemaining);
+      } else if (unauthorizedTriggered.value) {
+        timeRemaining.value -= 1000;
       } else {
         timeRemaining.value = sessionTimeRemaining;
       }
       // The timer has expired, log out
-      if (show.value && timeRemaining.value <= 0) {
+      if (timeRemaining.value <= 0) {
         logout();
       }
       // Show the warning if the time remaining is getting close to 0
@@ -87,6 +93,7 @@ export default defineComponent({
     return {
       show,
       idleWarningTriggered,
+      unauthorizedTriggered,
       timeRemaining,
       timeRemainingStr,
       reset,
@@ -112,6 +119,10 @@ export default defineComponent({
       <v-card-text class="py-4 px-6">
         <p v-if="idleWarningTriggered">
           You have been idle for almost {{ Math.floor(idleTimeout / (60 * 1000)) }} minutes.
+        </p>
+        <p v-else-if="unauthorizedTriggered">
+          Your server session has exceeded
+          {{ Math.floor(sessionTimeout / (60 * 1000)) }} minutes; your request has failed.
         </p>
         <p v-else>
           You have not made any network requests in almost
