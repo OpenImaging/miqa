@@ -67,7 +67,7 @@ export default {
       return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
     },
     suggestedArtifacts() {
-      if (this.currentViewData.scanDecisions.length > 0) {
+      if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
         const lastDecision = _.sortBy(
           this.currentViewData.scanDecisions, (dec) => dec.created,
         )[0];

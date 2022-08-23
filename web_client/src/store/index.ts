@@ -324,7 +324,7 @@ const {
     },
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
-      const scan = state.scans[currentFrame.scan];
+      const scan = currentFrame ? state.scans[currentFrame.scan] : undefined;
       if (!scan) {
         // scan was removed from list by review mode; do nothing
         return {};

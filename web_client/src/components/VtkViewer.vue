@@ -45,6 +45,7 @@ export default {
       );
     },
     sliceDomain() {
+      if (!this.representation) return null;
       return this.representation.getPropertyDomainByName('slice');
     },
     name() : ('x' | 'y' | 'z') {
@@ -227,6 +228,7 @@ export default {
       return currClosest;
     },
     trueAxis(axisName) {
+      if (!this.representation.getInputDataSet()) return undefined;
       const orientation = this.representation.getInputDataSet().getDirection();
       const axisNumber = VIEW_ORIENTATIONS[this.renderOrientation][axisName].axis;
       const axisOrientation = [

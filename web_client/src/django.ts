@@ -202,7 +202,7 @@ const djangoClient = {
   },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');
-    return resp.status === 200 ? resp.data : null;
+    return resp && resp.status === 200 ? resp.data : null;
   },
   async allUsers(): Promise<Paginated<User>> {
     const resp = await apiClient.get('/users');
