@@ -60,7 +60,7 @@ export default {
     artifacts() {
       let projectArtifacts;
       if (typeof this.currentProject !== 'undefined') {
-        const artifacts = this.currentProject.settings.artifacts;
+        const { artifacts } = this.currentProject.settings;
         projectArtifacts = Object.keys(artifacts).map((name) => ({
           value: name,
           labelText: this.convertValueToLabel(name),
