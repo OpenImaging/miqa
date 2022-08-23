@@ -66,8 +66,16 @@ export default defineComponent({
 
     function autoRange() {
       if (windowLocked.value) return;
-      currentRange.value = [widthMin.value, widthMax.value];
-      updateFromRange(currentRange.value);
+      const data = props.representation.getInputDataSet();
+      const distribution = data.computeHistogram(data.getBounds());
+      console.log(distribution);
+      currentRange.value = [
+        Math.floor(distribution.minimum + distribution.sigma),
+        Math.floor(distribution.maximum - distribution.sigma),
+      ];
+      const ww = currentRange.value[1] - currentRange.value[0];
+      const wl = currentRange.value[0] + Math.floor(ww / 2);
+      updateRender(ww, wl);
     }
     watch(currentFrame, autoRange);
 
