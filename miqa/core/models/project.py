@@ -102,20 +102,17 @@ class Project(TimeStampedModel, models.Model):
             .prefetch_related('decisions')
             .annotate(decision_count=models.Count('decisions'))
         )
-        complete_scans_in_project = (
-            scans_in_project.filter(decision_count__gt=0)
-            .annotate(
-                last_decider_id=models.Subquery(
-                    ScanDecision.objects.filter(scan__id=models.OuterRef('id'))
-                    .order_by('-created')
-                    .values('creator_id')[:1]
-                )
-            )
-            .filter(last_decider_id__in=tier_2_reviewers)
-        )
+        complete_scans_in_project = [
+            scan
+            for (scan, last_decision) in [
+                (scan, ScanDecision.objects.filter(scan=scan).order_by('created')[0])
+                for scan in scans_in_project.filter(decision_count__gt=0)
+            ]
+            if last_decision.decision == 'U' or last_decision.creator.id in tier_2_reviewers
+        ]
         return {
             'total_scans': scans_in_project.count(),
-            'total_complete': complete_scans_in_project.count(),
+            'total_complete': len(complete_scans_in_project),
         }
 
     def update_group(self, group_name, user_list):

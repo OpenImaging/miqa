@@ -48,6 +48,7 @@ export default {
   computed: {
     ...mapState([
       'currentViewData',
+      'currentProject',
       'proxyManager',
       'vtkViews',
       'storeCrosshairs',
@@ -221,6 +222,14 @@ export default {
           this.confirmedPresent.push(artifact.value);
       }
     },
+    async refreshTaskOverview() {
+      if (this.currentProject) {
+        const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
+        if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
+          store.commit.setTaskOverview(taskOverview);
+        }
+      }
+    },
     handleCommentChange(value) {
       this.newComment = value;
     },
@@ -255,6 +264,7 @@ export default {
             currentScan: this.currentViewData.scanId,
             newDecision: savedObj,
           });
+          this.refreshTaskOverview();
           this.$emit('handleKeyPress', 'next');
           this.$snackbar({
             text: 'Saved decision successfully.',
