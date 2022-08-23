@@ -513,7 +513,9 @@ const {
     },
     addExperiment(state, { id, value }) {
       state.experimentScans[id] = [];
-      state.experimentIds.push(id);
+      if (!state.experimentIds.includes(id)) {
+        state.experimentIds.push(id);
+      }
       state.experiments[id] = value;
     },
     updateExperiment(state, experiment) {
