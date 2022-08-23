@@ -274,9 +274,9 @@ export default defineComponent({
               has-legend
               legend-placement="right"
             >
-              <h2>{{ currentTaskOverview.total_experiments }}</h2>
-              <h4>experiments</h4>
-              <p>({{ currentTaskOverview.total_scans }} scans)</p>
+              <h2>{{ currentTaskOverview.total_scans }}</h2>
+              <h4>scans</h4>
+              <p>({{ currentTaskOverview.total_experiments }} experiments)</p>
             </vc-donut>
           </v-card>
         </div>
