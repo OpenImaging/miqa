@@ -68,7 +68,6 @@ export default defineComponent({
       if (windowLocked.value) return;
       const data = props.representation.getInputDataSet();
       const distribution = data.computeHistogram(data.getBounds());
-      console.log(distribution);
       currentRange.value = [
         Math.floor(distribution.minimum + distribution.sigma),
         Math.floor(distribution.maximum - distribution.sigma),
