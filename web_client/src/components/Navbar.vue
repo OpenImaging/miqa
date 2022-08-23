@@ -134,7 +134,7 @@ export default defineComponent({
       :target-user="user"
     />
     <UserButton
-      @user="logoutUser()"
+      @logout="logoutUser()"
       @login="djangoRest.login()"
     />
     <TimeoutDialog />

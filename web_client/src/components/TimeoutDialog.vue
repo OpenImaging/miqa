@@ -72,7 +72,7 @@ export default defineComponent({
         timeRemaining.value = sessionTimeRemaining;
       }
       // The timer has expired, log out
-      if (timeRemaining.value <= 0) {
+      if (show.value && timeRemaining.value <= 0) {
         logout();
       }
       // Show the warning if the time remaining is getting close to 0

@@ -600,10 +600,6 @@ const {
       const allUsers = await djangoRest.allUsers();
       commit('setAllUsers', allUsers.results);
     },
-    async logout({ dispatch }) {
-      dispatch('reset');
-      await djangoRest.logout();
-    },
     async loadGlobal({ commit }) {
       const globalSettings = await djangoRest.globalSettings();
       commit('setCurrentProject', null);
