@@ -14,6 +14,13 @@ interface Paginated<T> {
   results: T[],
 }
 
+class ErrorResponseDetail extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'Server Error';
+  }
+}
+
 const apiClient = axios.create({ baseURL: API_URL });
 let s3ffClient;
 
@@ -52,12 +59,16 @@ const djangoClient = {
     try {
       await apiClient.post('/logout/', undefined, { withCredentials: true });
     } finally {
-      await oauthClient.logout();
+      await oauthClient.logout().then(
+        async () => {
+          await oauthClient.redirectToLogin();
+        },
+      );
     }
   },
   async MIQAConfig() {
-    const { data } = await apiClient.get('/configuration/');
-    return data;
+    const response = await apiClient.get('/configuration/');
+    return response ? response.data : undefined;
   },
   async globalSettings() {
     const { data } = await apiClient.get('/global/settings');
@@ -120,10 +131,14 @@ const djangoClient = {
     return data;
   },
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
-    const { data } = await apiClient.post('/experiments', {
+    const response = await apiClient.post('/experiments', {
       project: projectId,
       name: experimentName,
     });
+    const { data } = response;
+    if (response.status === 500 && data.detail) {
+      throw new ErrorResponseDetail(data.detail);
+    }
     return data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {
@@ -202,11 +217,7 @@ apiClient.interceptors.response.use(null, (error) => {
   if (error?.response?.status === 401) {
     djangoClient.logout();
   }
-  let msg = error?.response?.data?.detail || 'No response from server';
-  if (error?.response?.status === 403) {
-    msg = 'You are not allowed to perform this action.';
-  }
-  throw new Error(msg);
+  return error.response;
 });
 
 export { apiClient, oauthClient };

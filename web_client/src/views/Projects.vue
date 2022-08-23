@@ -149,7 +149,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div>
+  <div v-if="user">
     <Navbar />
     <div class="d-flex">
       <v-card class="project-list-container">

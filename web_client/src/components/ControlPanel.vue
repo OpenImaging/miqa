@@ -206,52 +206,50 @@ export default {
             elevation="3"
           >
             <div class="d-flex">
-              <v-container>
-                <v-row no-gutters>
-                  <v-col cols="3">
+              <div
+                class="d-flex px-5 py-3 flex-grow-1 flex-column"
+              >
+                <div class="current-info-container">
+                  <div>
                     Project:
-                  </v-col>
-                  <v-col cols="9">
+                  </div>
+                  <div>
                     {{ currentViewData.projectName }}
-                  </v-col>
-                </v-row>
-                <v-row no-gutters>
-                  <v-col cols="3">
+                  </div>
+                </div>
+                <div class="current-info-container">
+                  <div>
                     Experiment:
-                  </v-col>
-                  <v-col cols="9">
-                    <div v-if="lockOwner">
-                      <div>
-                        {{ currentViewData.experimentName }}
-                        <UserAvatar
-                          v-if="lockOwner"
-                          :target-user="lockOwner"
-                          as-editor
-                        />
-                      </div>
-                    </div>
-                  </v-col>
-                </v-row>
-                <v-row no-gutters>
-                  <v-col cols="3">
+                  </div>
+                  <div>
+                    {{ currentViewData.experimentName }}
+                    <UserAvatar
+                      v-if="lockOwner"
+                      :target-user="lockOwner"
+                      as-editor
+                    />
+                  </div>
+                </div>
+                <div class="current-info-container">
+                  <div>
                     Subject:
-                  </v-col>
-                  <v-col cols="9">
+                  </div>
+                  <div>
                     <b>{{ currentViewData.scanSubject || 'None' }}</b>
-                  </v-col>
-                </v-row>
-                <v-row no-gutters>
-                  <v-col cols="3">
+                  </div>
+                </div>
+                <div class="current-info-container">
+                  <div>
                     Session:
-                  </v-col>
-                  <v-col cols="9">
+                  </div>
+                  <div>
                     <b>{{ currentViewData.scanSession || 'None' }}</b>
-                  </v-col>
-                </v-row>
-              </v-container>
+                  </div>
+                </div>
+              </div>
               <div
                 v-if="scanCachedPercentage < 1 && scanCachedPercentage > 0"
-                class="ma-10"
+                class="px-6 py-8 align-center"
               >
                 <v-progress-circular
                   :value="scanCachedPercentage * 100"
@@ -330,7 +328,7 @@ export default {
                         Scan:
                       </v-col>
                       <v-col
-                        cols="7"
+                        cols="6"
                         class="grey--text"
                       >
                         <div
@@ -343,7 +341,7 @@ export default {
                         {{ currentViewData.scanPositionString }}
                       </v-col>
                       <v-col
-                        cols="3"
+                        cols="4"
                         class="text-right"
                       >
                         <v-btn
@@ -371,13 +369,13 @@ export default {
                         Frame:
                       </v-col>
                       <v-col
-                        cols="7"
+                        cols="6"
                         class="grey--text"
                       >
                         {{ currentViewData.framePositionString }}
                       </v-col>
                       <v-col
-                        cols="3"
+                        cols="4"
                         class="text-right"
                       >
                         <v-btn
@@ -475,5 +473,10 @@ export default {
   color: #1976d2;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.current-info-container {
+  display: flex;
+  column-gap: 10px;
 }
 </style>
