@@ -102,7 +102,6 @@ export default {
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
-      view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
     },
     currentFrame() {
       this.prepareViewer();
@@ -128,8 +127,6 @@ export default {
       'setCurrentScreenshot',
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
-      'setCurrentWindowWidth',
-      'setCurrentWindowLevel',
     ]),
     prepareViewer() {
       this.initializeView();
@@ -152,21 +149,9 @@ export default {
         }
       });
       this.resizeObserver.observe(this.$refs.viewer);
-      this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
       const representationProperty = this.representation.getActors()[0].getProperty();
       representationProperty.setColorWindow(this.currentWindowWidth);
       representationProperty.setColorLevel(this.currentWindowLevel);
-      representationProperty.onModified(
-        (property) => {
-          if (!this.windowLocked.lock) {
-            this.setCurrentWindowWidth(property.getColorWindow());
-            this.setCurrentWindowLevel(property.getColorLevel());
-          } else {
-            property.setColorWindow(this.currentWindowWidth);
-            property.setColorLevel(this.currentWindowLevel);
-          }
-        },
-      );
     },
     initializeSlice() {
       if (this.name !== 'default') {
@@ -182,6 +167,16 @@ export default {
             this.slice = this.representation.getSlice();
           }
         });
+      }
+      // add click interaction to place crosshairs
+      this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+      // remove drag interaction to change window
+      const targetManipulator = this.view.getInteractor()
+        .getInteractorStyle().getMouseManipulators().find(
+          (manipulator) => manipulator.getClassName() === 'vtkMouseRangeManipulator',
+        );
+      if (targetManipulator) {
+        targetManipulator.setDragEnabled(false);
       }
       setTimeout(() => {
         this.resized = true;
