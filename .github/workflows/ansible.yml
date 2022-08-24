@@ -1,6 +1,5 @@
 name: Update Celery worker
 on:
-  pull_request:  # remove when finished
   push:
     branches:
       - master
