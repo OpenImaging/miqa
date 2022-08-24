@@ -1,0 +1,28 @@
+name: Update Celery worker
+on:
+  pull_request:  # remove when finished
+  push:
+    branches:
+      - master
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Ansible role
+        run: ansible-galaxy install -r ansible/requirements.yml
+      - name: Write vault pass and private key
+        env:
+          VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          echo $VAULT_PASSWORD > ansible/vault_pass.txt
+          mkdir $HOME/.ssh
+          echo "$PRIVATE_KEY" > $HOME/.ssh/id_miqa
+          chmod 600 $HOME/.ssh/id_miqa
+      - name: Run Ansible playbook for Celery
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: false
+        working-directory: ansible
+        run: ansible-playbook --vault-password-file vault_pass.txt -i hosts playbook.yml
