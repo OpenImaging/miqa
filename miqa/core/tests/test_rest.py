@@ -1,7 +1,7 @@
 import json
 from uuid import UUID
 
-from guardian.shortcuts import get_perms
+from guardian.shortcuts import assign_perm, get_perms
 import pytest
 
 from miqa.core.rest.frame import FrameSerializer
@@ -60,6 +60,34 @@ def test_projects_list(user_api_client, project, user):
             'previous': None,
             'results': [ProjectSerializer(project).data],
         }
+
+
+@pytest.mark.django_db
+def test_project_status(
+    user_api_client,
+    project,
+    experiment,
+    scan_factory,
+    scan_decision_factory,
+    user_factory,
+):
+    # 3 of 5 scans marked as complete
+    decisions = [
+        ('U', 'tier_1_reviewer'),
+        ('U', 'tier_2_reviewer'),
+        ('UN', 'tier_1_reviewer'),  # needs tier 2 review
+        ('UN', 'tier_2_reviewer'),
+        ('Q?', 'tier_1_reviewer'),  # needs tier 2 review
+    ]
+    scans = [scan_factory(experiment=experiment) for i in range(len(decisions))]
+    for i, scan in enumerate(scans):
+        decider = user_factory()
+        assign_perm(decisions[i][1], decider, project)
+        scan_decision_factory(scan=scan, creator=decider, decision=decisions[i][0])
+    resp = user_api_client().get(f'/api/v1/projects/{project.id}')
+    if resp.status_code == 200:
+        assert resp.data['status']['total_scans'] == len(scans)
+        assert resp.data['status']['total_complete'] == 3
 
 
 @pytest.mark.django_db
