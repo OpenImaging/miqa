@@ -64,7 +64,6 @@ def test_projects_list(user_api_client, project, user):
 
 @pytest.mark.django_db
 def test_project_status(
-    user_api_client,
     project,
     experiment,
     scan_factory,
@@ -80,14 +79,14 @@ def test_project_status(
         ('Q?', 'tier_1_reviewer'),  # needs tier 2 review
     ]
     scans = [scan_factory(experiment=experiment) for i in range(len(decisions))]
-    for i, scan in enumerate(scans):
+    for decision, scan in zip(decisions, scans):
         decider = user_factory()
-        assign_perm(decisions[i][1], decider, project)
-        scan_decision_factory(scan=scan, creator=decider, decision=decisions[i][0])
-    resp = user_api_client().get(f'/api/v1/projects/{project.id}')
-    if resp.status_code == 200:
-        assert resp.data['status']['total_scans'] == len(scans)
-        assert resp.data['status']['total_complete'] == 3
+        assign_perm(decision[1], decider, project)
+        scan_decision_factory(scan=scan, creator=decider, decision=decision[0])
+    project.refresh_from_db()
+    status = project.get_status()
+    assert status['total_scans'] == len(scans)
+    assert status['total_complete'] == 3
 
 
 @pytest.mark.django_db
