@@ -324,7 +324,7 @@ const {
     },
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
-      const scan = state.scans[currentFrame.scan];
+      const scan = currentFrame ? state.scans[currentFrame.scan] : undefined;
       if (!scan) {
         // scan was removed from list by review mode; do nothing
         return {};
@@ -513,7 +513,9 @@ const {
     },
     addExperiment(state, { id, value }) {
       state.experimentScans[id] = [];
-      state.experimentIds.push(id);
+      if (!state.experimentIds.includes(id)) {
+        state.experimentIds.push(id);
+      }
       state.experiments[id] = value;
     },
     updateExperiment(state, experiment) {
@@ -599,10 +601,6 @@ const {
     async loadAllUsers({ commit }) {
       const allUsers = await djangoRest.allUsers();
       commit('setAllUsers', allUsers.results);
-    },
-    async logout({ dispatch }) {
-      dispatch('reset');
-      await djangoRest.logout();
     },
     async loadGlobal({ commit }) {
       const globalSettings = await djangoRest.globalSettings();

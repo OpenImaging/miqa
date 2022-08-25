@@ -90,14 +90,9 @@ export default {
   methods: {
     ...mapActions([
       'loadProject',
-      'logout',
       'swapToFrame',
       'getFrame',
     ]),
-    async logoutUser() {
-      await this.logout();
-      this.$router.go('/'); // trigger re-render into oauth flow
-    },
     debouncedFrameSliderChange(index) {
       const frameId = this.currentScanFrames[index];
       this.$router.push(frameId).catch(this.handleNavigationError);

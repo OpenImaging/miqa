@@ -53,7 +53,9 @@ export default defineComponent({
     }
     function updateFromRange([v0, v1]) {
       if (windowLocked.value) return;
-      if (v0 === currentRange.value[0] && v1 === currentRange.value[1]) return;
+      if (currentRange.value
+        && v0 === currentRange.value[0]
+        && v1 === currentRange.value[1]) return;
       currentRange.value = [v0, v1];
       const ww = v1 - v0;
       const wl = v0 + Math.floor(ww / 2);
@@ -66,8 +68,15 @@ export default defineComponent({
 
     function autoRange() {
       if (windowLocked.value) return;
-      currentRange.value = [widthMin.value, widthMax.value];
-      updateFromRange(currentRange.value);
+      const data = props.representation.getInputDataSet();
+      const distribution = data.computeHistogram(data.getBounds());
+      currentRange.value = [
+        Math.floor(distribution.minimum + distribution.sigma),
+        Math.floor(distribution.maximum - distribution.sigma),
+      ];
+      const ww = currentRange.value[1] - currentRange.value[0];
+      const wl = currentRange.value[0] + Math.floor(ww / 2);
+      updateRender(ww, wl);
     }
     watch(currentFrame, autoRange);
 

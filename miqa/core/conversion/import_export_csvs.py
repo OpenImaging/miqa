@@ -34,7 +34,7 @@ def validate_file_locations(input_dict, project, not_found_errors):
     import_path = GlobalSettings.load().import_path if project is None else project.import_path
     for key, value in input_dict.items():
         if key == 'file_location':
-            raw_path = Path(value)
+            raw_path = Path(value.strip())
             if not value.startswith('s3://'):
                 if not raw_path.is_absolute():
                     # not an absolute file path; refer to project import csv location

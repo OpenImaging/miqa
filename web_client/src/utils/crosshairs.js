@@ -25,6 +25,7 @@ class CrosshairSet {
   }
 
   getOrientation() {
+    if (!this.imageRepresentation.getInputDataSet()) return undefined;
     return this.imageRepresentation.getInputDataSet().getDirection();
   }
 
