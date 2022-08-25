@@ -83,7 +83,7 @@ def test_project_status(
         decider = user_factory()
         assign_perm(decision[1], decider, project)
         scan_decision_factory(scan=scan, creator=decider, decision=decision[0])
-    project.refresh_from_db()
+    # project.refresh_from_db()
     status = project.get_status()
     assert status['total_scans'] == len(scans)
     assert status['total_complete'] == 3
