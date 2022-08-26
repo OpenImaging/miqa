@@ -530,7 +530,7 @@ const {
       state.scanCachedPercentage = percentComplete;
     },
     setSliceLocation(state, ijkLocation) {
-      if (!Object.keys(ijkLocation).some((value) => value === undefined)) {
+      if (Object.values(ijkLocation).every((value) => value !== undefined)) {
         state.vtkViews.forEach(
           (view) => {
             state.proxyManager.getRepresentation(null, view).setSlice(

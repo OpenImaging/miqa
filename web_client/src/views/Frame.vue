@@ -87,6 +87,14 @@ export default {
       this.$router.replace('/').catch(this.handleNavigationError);
     }
   },
+  mounted() {
+    window.addEventListener('unauthorized', () => {
+      this.$snackbar({
+        text: 'Server session expired. Try again.',
+        timeout: 6000,
+      });
+    });
+  },
   methods: {
     ...mapActions([
       'loadProject',

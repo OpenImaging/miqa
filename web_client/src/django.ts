@@ -216,7 +216,6 @@ const djangoClient = {
 apiClient.interceptors.response.use(null, (error) => {
   if (error?.response?.status === 401) {
     dispatchEvent(new Event('unauthorized'));
-    throw new Error('Server session expired.');
   }
   return error.response;
 });

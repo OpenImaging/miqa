@@ -118,6 +118,12 @@ export default defineComponent({
         this.createProject();
       }
     });
+    window.addEventListener('unauthorized', () => {
+      this.$snackbar({
+        text: 'Server session expired. Try again.',
+        timeout: 6000,
+      });
+    });
   },
   beforeDestroy() {
     clearInterval(this.overviewPoll);

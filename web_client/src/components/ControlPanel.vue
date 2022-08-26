@@ -323,81 +323,80 @@ export default {
                     fill-height
                     fluid
                   >
-                    <v-row no-gutters>
-                      <v-col cols="2">
-                        Scan:
-                      </v-col>
-                      <v-col
-                        cols="6"
-                        class="grey--text"
-                      >
-                        <div
-                          :class="currentViewData.scanLink ? 'link' : ''"
-                          style="display:inline"
-                          @click="openScanLink"
-                        >
-                          <b>{{ currentViewData.scanName }}</b>
+                    <div
+                      class="d-flex flex-column"
+                      style="width: 100%"
+                    >
+                      <div class="d-flex justify-space-between">
+                        <div>
+                          Scan:
+                          <p
+                            :class="currentViewData.scanLink ? 'link' : 'grey--text'"
+                            style="display:inline"
+                            @click="openScanLink"
+                          >
+                            <b>{{ currentViewData.scanName }}</b>
+                          </p>
+                          <p
+                            class="grey--text"
+                            style="display:inline"
+                          >
+                            {{ currentViewData.scanPositionString }}
+                          </p>
                         </div>
-                        {{ currentViewData.scanPositionString }}
-                      </v-col>
-                      <v-col
-                        cols="4"
-                        class="text-right"
-                      >
-                        <v-btn
-                          :disabled="!currentViewData.upTo"
-                          small
-                          depressed
-                          class="transparent-btn"
-                          @mousedown="handleKeyPress('previous')"
-                        >
-                          <v-icon>fa-caret-up</v-icon>
-                        </v-btn>
-                        <v-btn
-                          :disabled="!currentViewData.downTo"
-                          small
-                          depressed
-                          class="transparent-btn"
-                          @mousedown="handleKeyPress('next')"
-                        >
-                          <v-icon>fa-caret-down</v-icon>
-                        </v-btn>
-                      </v-col>
-                    </v-row>
-                    <v-row no-gutters>
-                      <v-col cols="2">
-                        Frame:
-                      </v-col>
-                      <v-col
-                        cols="6"
-                        class="grey--text"
-                      >
-                        {{ currentViewData.framePositionString }}
-                      </v-col>
-                      <v-col
-                        cols="4"
-                        class="text-right"
-                      >
-                        <v-btn
-                          :disabled="!previousFrame"
-                          small
-                          depressed
-                          class="transparent-btn"
-                          @mousedown="handleKeyPress('back')"
-                        >
-                          <v-icon>fa-caret-left</v-icon>
-                        </v-btn>
-                        <v-btn
-                          :disabled="!nextFrame"
-                          small
-                          depressed
-                          class="transparent-btn"
-                          @mousedown="handleKeyPress('forward')"
-                        >
-                          <v-icon>fa-caret-right</v-icon>
-                        </v-btn>
-                      </v-col>
-                    </v-row>
+                        <div>
+                          <v-btn
+                            :disabled="!currentViewData.upTo"
+                            small
+                            depressed
+                            class="transparent-btn"
+                            @mousedown="handleKeyPress('previous')"
+                          >
+                            <v-icon>fa-caret-up</v-icon>
+                          </v-btn>
+                          <v-btn
+                            :disabled="!currentViewData.downTo"
+                            small
+                            depressed
+                            class="transparent-btn"
+                            @mousedown="handleKeyPress('next')"
+                          >
+                            <v-icon>fa-caret-down</v-icon>
+                          </v-btn>
+                        </div>
+                      </div>
+                      <div class="d-flex justify-space-between">
+                        <div>
+                          Frame:
+                          <p
+                            class="grey--text"
+                            style="display:inline"
+                          >
+                            {{ currentViewData.framePositionString }}
+                          </p>
+                        </div>
+                        <div>
+                          <v-btn
+                            :disabled="!previousFrame"
+                            small
+                            depressed
+                            class="transparent-btn"
+                            @mousedown="handleKeyPress('back')"
+                          >
+                            <v-icon>fa-caret-left</v-icon>
+                          </v-btn>
+                          <v-btn
+                            :disabled="!nextFrame"
+                            small
+                            depressed
+                            class="transparent-btn"
+                            @mousedown="handleKeyPress('forward')"
+                          >
+                            <v-icon>fa-caret-right</v-icon>
+                          </v-btn>
+                        </div>
+                      </div>
+                    </div>
 
                     <window-widget
                       :representation="representation"
@@ -408,7 +407,7 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 100px; overflow:auto; margin-bottom: 10px"
+                        style="height: 100px; overflow:auto; margin: 15px 0px"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
