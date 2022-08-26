@@ -4,10 +4,10 @@ from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from miqa.core.models import GlobalSettings
 from miqa.core.models import Artifact
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ def default_identified_artifacts(scan_project_artifacts = ''):
         artifact_objects = Artifact.objects.filter(group__id=scan_project_artifacts)
         artifacts = [getattr(artifact, "name") for artifact in artifact_objects]
     else:
-        artifacts = GlobalSettings.default_artifacts
+        artifacts = settings.DEFAULT_ARTIFACTS
 
     return {
         (
