@@ -46,7 +46,7 @@ export default defineComponent({
     const exportPathError = ref('');
     const form = ref(null);
 
-    async function save() {
+    async function save(callback) {
       if (!form.value.validate()) {
         return;
       }
@@ -77,6 +77,7 @@ export default defineComponent({
           exportPathError.value = '';
         }, 3000);
       }
+      if (callback) callback();
     }
 
     return {
@@ -209,6 +210,7 @@ export default defineComponent({
       <DataImportExport
         :import-path="importPath"
         :export-path="exportPath"
+        @save="save"
       />
       <div style="flex-grow:2">
         <v-btn

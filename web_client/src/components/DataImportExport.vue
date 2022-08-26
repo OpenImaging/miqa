@@ -31,71 +31,76 @@ export default defineComponent({
     const exporting = ref(false);
 
     async function importData() {
-      importing.value = true;
-      importErrorText.value = '';
-      importErrors.value = false;
-      try {
-        let response;
-        if (isGlobal.value) {
-          response = await djangoRest.globalImport();
-        } else {
-          response = await djangoRest.projectImport(currentProject.value.id);
-        }
-        importing.value = false;
-        if (response.detail) {
+      this.$emit('save', async () => {
+        importing.value = true;
+        importErrorText.value = '';
+        importErrors.value = false;
+        try {
+          let response;
+          if (isGlobal.value) {
+            response = await djangoRest.globalImport();
+          } else {
+            response = await djangoRest.projectImport(currentProject.value.id);
+          }
+          importing.value = false;
+          if (response.detail) {
+            importErrors.value = true;
+            importErrorText.value = response.detail;
+            importErrorList.value = response.errors;
+          } else {
+            this.$snackbar({
+              text: 'Import finished.',
+              timeout: 6000,
+            });
+          }
+
+          if (!isGlobal.value) {
+            await loadProject(currentProject.value);
+          } else {
+            projects.value.forEach(
+              async (project: Project) => {
+                const taskOverview = await djangoRest.projectTaskOverview(project.id);
+                store.commit.setTaskOverview(taskOverview);
+              },
+            );
+          }
+        } catch (ex) {
+          const text = ex || 'Import failed due to server error.';
           importErrors.value = true;
-          importErrorText.value = response.detail;
-          importErrorList.value = response.errors;
+          importErrorText.value = text;
+          importing.value = false;
         }
-
-        this.$snackbar({
-          text: 'Import finished.',
-          timeout: 6000,
-        });
-
-        if (!isGlobal.value) {
-          await loadProject(currentProject.value);
-        } else {
-          projects.value.forEach(
-            async (project: Project) => {
-              const taskOverview = await djangoRest.projectTaskOverview(project.id);
-              store.commit.setTaskOverview(taskOverview);
-            },
-          );
-        }
-      } catch (ex) {
-        const text = ex || 'Import failed due to server error.';
-        importErrors.value = true;
-        importErrorText.value = text;
-        importing.value = false;
-      }
-      importDialog.value = false;
+        importDialog.value = false;
+      });
     }
     async function exportData() {
-      exporting.value = true;
-      try {
-        let response;
-        if (isGlobal.value) {
-          response = await djangoRest.globalExport();
-        } else {
-          response = await djangoRest.projectExport(currentProject.value.id);
-        }
-        if (response.detail) {
+      this.$emit('save', async () => {
+        exporting.value = true;
+        try {
+          let response;
+          if (isGlobal.value) {
+            response = await djangoRest.globalExport();
+          } else {
+            response = await djangoRest.projectExport(currentProject.value.id);
+          }
+          if (response.detail) {
+            importErrors.value = true;
+            importErrorText.value = response.detail;
+            importErrorList.value = response.warnings;
+          } else {
+            this.$snackbar({
+              text: 'Saved data to file successfully.',
+              timeout: 6000,
+            });
+          }
+        } catch (ex) {
+          const text = ex || 'Export failed due to server error.';
           importErrors.value = true;
-          importErrorText.value = response.detail;
-          importErrorList.value = response.warnings;
+          importErrorText.value = text;
+          importing.value = false;
         }
-        this.$snackbar({
-          text: 'Saved data to file successfully.',
-          timeout: 6000,
-        });
-      } catch (ex) {
-        const text = ex || 'Export failed due to server error.';
-        importErrors.value = true;
-        importErrorText.value = text;
-        importing.value = false;
-      }
-      exporting.value = false;
+        exporting.value = false;
+      });
     }
 
     return {
@@ -236,8 +241,8 @@ export default defineComponent({
         <v-divider class="my-3" />
 
         <v-card-text
-          v-for="importError in importErrorList"
-          :key="importError"
+          v-for="(importError, index) in importErrorList"
+          :key="index"
           class="console-format"
         >
           {{ importError }}
