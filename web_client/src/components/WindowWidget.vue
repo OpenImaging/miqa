@@ -147,15 +147,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <v-row
-    no-gutters
-    fill-height
-    align="center"
-    style="border: 1px solid gray; padding: 10px"
+  <div
+    class="d-flex flex-column"
+    style="width: 100%; border: 1px solid gray; padding: 10px"
   >
-    <v-col
-      cols="2"
-    >
+    <div class="d-flex justify-space-between gapped align-center flex-wrap">
       Window
       <v-tooltip bottom>
         <template #activator="{ on, attrs }">
@@ -171,11 +167,6 @@ export default defineComponent({
           Adjust window and level by moving the slider endpoints or sliding the range bar
         </span>
       </v-tooltip>
-    </v-col>
-    <v-col
-      cols="9"
-      style="text-align: center"
-    >
       <custom-range-slider
         :value="currentRange"
         :disabled="windowLocked"
@@ -183,6 +174,7 @@ export default defineComponent({
         :min="widthMin"
         class="align-center"
         height="5"
+        style="min-width: 300px"
         @input="updateFromRange"
       >
         <template #prepend>
@@ -208,90 +200,87 @@ export default defineComponent({
           />
         </template>
       </custom-range-slider>
-    </v-col>
-    <v-col
-      id="windowLockWidget"
-      cols="1"
-      style="text-align: right"
-    >
-      <v-icon
-        v-if="!windowLocked"
-        @click="() => showLockOptions = true"
+      <div
+        id="windowLockWidget"
+        cols="1"
+        style="text-align: right"
       >
-        mdi-lock-open
-      </v-icon>
-      <v-img
-        v-else
-        :src="windowLockImage"
-        height="24px"
-        width="18px"
-        class="float-right mx-1"
-        @click="() => setWindowLock(false)"
-        @error="imageLoadError = true"
-      />
-      <v-icon
-        v-if="imageLoadError && windowLocked"
-        @click="() => setWindowLock(false)"
-      >
-        mdi-lock
-      </v-icon>
-      <v-card
-        v-if="showLockOptions"
-        attach="#windowLockWidget"
-        class="py-3 px-5"
-        style="width: 300px; position: absolute; z-index: 2;"
-      >
-        <div
-          class="d-flex"
-          style="flex-direction: column; align-items: flex-start; gap: 5px;"
+        <v-icon
+          v-if="!windowLocked"
+          @click="() => showLockOptions = true"
         >
-          <v-btn
-            small
-            @click="() => setWindowLock(true, 'scan', currentViewData.scanId)"
+          mdi-lock-open
+        </v-icon>
+        <v-img
+          v-else
+          :src="windowLockImage"
+          height="24px"
+          width="18px"
+          class="float-right mx-1"
+          @click="() => setWindowLock(false)"
+          @error="imageLoadError = true"
+        />
+        <v-icon
+          v-if="imageLoadError && windowLocked"
+          @click="() => setWindowLock(false)"
+        >
+          mdi-lock
+        </v-icon>
+        <v-card
+          v-if="showLockOptions"
+          attach="#windowLockWidget"
+          class="py-3 px-5"
+          style="width: 300px; position: absolute; z-index: 2;"
+        >
+          <div
+            class="d-flex"
+            style="flex-direction: column; align-items: flex-start; gap: 5px;"
           >
-            <v-img
-              src="S.png"
-              height="18px"
-              width="12px"
-              class="mr-2"
-              @error="imageLoadError = true"
-            />
-            Maintain lock for Scan
-          </v-btn>
-          <v-btn
-            small
-            @click="() => setWindowLock(true, 'experiment', currentViewData.experimentId)"
-          >
-            <v-img
-              src="E.png"
-              height="18px"
-              width="12px"
-              class="mr-2"
-              @error="imageLoadError = true"
-            />
-            Maintain lock for Experiment
-          </v-btn>
-          <v-btn
-            small
-            @click="() => setWindowLock(true, 'project', currentViewData.projectId)"
-          >
-            <v-img
-              src="P.png"
-              height="18px"
-              width="12px"
-              class="mr-2"
-              @error="imageLoadError = true"
-            />
-            Maintain lock for Project
-          </v-btn>
-        </div>
-      </v-card>
-    </v-col>
-
-    <v-col cols="2">
+            <v-btn
+              small
+              @click="() => setWindowLock(true, 'scan', currentViewData.scanId)"
+            >
+              <v-img
+                src="S.png"
+                height="18px"
+                width="12px"
+                class="mr-2"
+                @error="imageLoadError = true"
+              />
+              Maintain lock for Scan
+            </v-btn>
+            <v-btn
+              small
+              @click="() => setWindowLock(true, 'experiment', currentViewData.experimentId)"
+            >
+              <v-img
+                src="E.png"
+                height="18px"
+                width="12px"
+                class="mr-2"
+                @error="imageLoadError = true"
+              />
+              Maintain lock for Experiment
+            </v-btn>
+            <v-btn
+              small
+              @click="() => setWindowLock(true, 'project', currentViewData.projectId)"
+            >
+              <v-img
+                src="P.png"
+                height="18px"
+                width="12px"
+                class="mr-2"
+                @error="imageLoadError = true"
+              />
+              Maintain lock for Project
+            </v-btn>
+          </div>
+        </v-card>
+      </div>
+    </div>
+    <div class="d-flex justify-space-between gapped align-center">
       Presets
-    </v-col>
-    <v-col cols="10">
       <v-select
         v-model="selectedPreset"
         :items="windowPresets"
@@ -301,6 +290,12 @@ export default defineComponent({
         class="pa-0"
         @change="applyPreset"
       />
-    </v-col>
-  </v-row>
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.gapped {
+  column-gap: 10px;
+}
+</style>
