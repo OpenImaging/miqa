@@ -149,7 +149,7 @@ export default defineComponent({
 <template>
   <div
     class="d-flex flex-column"
-    style="width: 100%; border: 1px solid gray; padding: 10px"
+    style="width: 100%;"
   >
     <div class="d-flex justify-space-between gapped align-center flex-wrap">
       Window
