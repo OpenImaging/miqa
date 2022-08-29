@@ -1,9 +1,9 @@
-import pytest
+# import pytest
 
 from miqa.core.tests.pyppeteer.test_import_export import get_current_num_scans
 
 
-@pytest.mark.pyppeteer
+# @pytest.mark.pyppeteer
 async def test_upload_scans(
     page,
     log_in,
