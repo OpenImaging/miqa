@@ -10,8 +10,8 @@ class Group(models.Model):
         It is currently used by Project to select a collection of Artifacts.
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=255, blank=False)
-    description = models.TextField()
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
 
     def __str__(self):
         return self.name
