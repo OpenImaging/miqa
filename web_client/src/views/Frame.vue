@@ -87,17 +87,20 @@ export default {
       this.$router.replace('/').catch(this.handleNavigationError);
     }
   },
+  mounted() {
+    window.addEventListener('unauthorized', () => {
+      this.$snackbar({
+        text: 'Server session expired. Try again.',
+        timeout: 6000,
+      });
+    });
+  },
   methods: {
     ...mapActions([
       'loadProject',
-      'logout',
       'swapToFrame',
       'getFrame',
     ]),
-    async logoutUser() {
-      await this.logout();
-      this.$router.go('/'); // trigger re-render into oauth flow
-    },
     debouncedFrameSliderChange(index) {
       const frameId = this.currentScanFrames[index];
       this.$router.push(frameId).catch(this.handleNavigationError);

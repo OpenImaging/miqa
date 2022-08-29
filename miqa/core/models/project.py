@@ -97,25 +97,23 @@ class Project(TimeStampedModel, models.Model):
         tier_2_reviewers = [
             user.id for user in get_users_with_perms(self, only_with_perms_in=['tier_2_reviewer'])
         ]
-        scans_in_project = (
-            Scan.objects.filter(experiment__in=self.experiments.all())
-            .prefetch_related('decisions')
-            .annotate(decision_count=models.Count('decisions'))
-        )
-        complete_scans_in_project = (
-            scans_in_project.filter(decision_count__gt=0)
-            .annotate(
-                last_decider_id=models.Subquery(
-                    ScanDecision.objects.filter(scan__id=models.OuterRef('id'))
-                    .order_by('-created')
-                    .values('creator_id')[:1]
-                )
-            )
-            .filter(last_decider_id__in=tier_2_reviewers)
-        )
+        scans_in_project = Scan.objects.filter(experiment__project=self)
+        completed_scans_in_project = scans_in_project.alias(
+            latest_decider_id=models.Subquery(
+                ScanDecision.objects.filter(scan__id=models.OuterRef('id'))
+                .order_by('-created')
+                .values('creator_id')[:1]
+            ),
+            latest_decision=models.Subquery(
+                ScanDecision.objects.filter(scan__id=models.OuterRef('id'))
+                .order_by('-created')
+                .values('decision')[:1]
+            ),
+        ).filter(models.Q(latest_decider_id__in=tier_2_reviewers) | models.Q(latest_decision='U'))
+
         return {
             'total_scans': scans_in_project.count(),
-            'total_complete': complete_scans_in_project.count(),
+            'total_complete': completed_scans_in_project.count(),
         }
 
     def update_group(self, group_name, user_list):

@@ -1,4 +1,5 @@
 export default function fill2DView(view, w, h, resize = true) {
+  if (!view) return undefined;
   if (resize) view.resize();
   const viewName = view.getName();
   if (viewName === 'default') return 0;
