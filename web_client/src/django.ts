@@ -202,7 +202,7 @@ const djangoClient = {
   },
   async me(): Promise<User> {
     const resp = await apiClient.get('/users/me');
-    return resp.status === 200 ? resp.data : null;
+    return resp && resp.status === 200 ? resp.data : null;
   },
   async allUsers(): Promise<Paginated<User>> {
     const resp = await apiClient.get('/users');
@@ -215,7 +215,7 @@ const djangoClient = {
 
 apiClient.interceptors.response.use(null, (error) => {
   if (error?.response?.status === 401) {
-    djangoClient.logout();
+    dispatchEvent(new Event('unauthorized'));
   }
   return error.response;
 });

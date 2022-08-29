@@ -1,5 +1,5 @@
 <script lang="ts">
-import { mapActions, mapState, mapGetters } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import { defineComponent } from '@vue/composition-api';
 
 import UserButton from '@/components/UserButton.vue';
@@ -8,6 +8,7 @@ import TimeoutDialog from '@/components/TimeoutDialog.vue';
 import EmailDialog from '@/components/EmailDialog.vue';
 import KeyboardShortcutDialog from '@/components/KeyboardShortcutDialog.vue';
 import UserAvatar from '@/components/UserAvatar.vue';
+import djangoClient from '@/django';
 
 export default defineComponent({
   name: 'Navbar',
@@ -47,9 +48,8 @@ export default defineComponent({
     },
   },
   methods: {
-    ...mapActions(['logout']),
     async logoutUser() {
-      await this.logout();
+      await djangoClient.logout();
       this.$router.go('/'); // trigger re-render into oauth flow
     },
     openDocumentation() {
@@ -71,7 +71,7 @@ export default defineComponent({
         <template #activator="{ on }">
           <span v-on="on">MIQA</span>
         </template>
-        <span>{{ MIQAConfig.version }}</span>
+        <span>{{ MIQAConfig.version.length > 0 ? MIQAConfig.version : "Demo Instance" }}</span>
       </v-tooltip>
     </v-toolbar-title>
     <v-tabs
@@ -134,7 +134,7 @@ export default defineComponent({
       :target-user="user"
     />
     <UserButton
-      @user="logoutUser()"
+      @logout="logoutUser()"
       @login="djangoRest.login()"
     />
     <TimeoutDialog />

@@ -19,7 +19,7 @@ export default defineComponent({
     icon
     color="black lighten-1"
     class="mx-4"
-    @click="$emit('user')"
+    @click="$emit('logout')"
   >
     Logout
   </v-btn>

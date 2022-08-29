@@ -13,13 +13,15 @@ MIQA_VERSION = subprocess.run(
     capture_output=True,
 ).stdout.decode()
 
-MIQA_VERSION += (
-    ' commit: '
-    + subprocess.run(
-        ['git', 'rev-parse', 'HEAD'],
-        capture_output=True,
-    ).stdout.decode()
-)
+# Heroku doesn't have access to .git directory, version will be blank
+if len(MIQA_VERSION) > 0:
+    MIQA_VERSION += (
+        ' commit: '
+        + subprocess.run(
+            ['git', 'rev-parse', 'HEAD'],
+            capture_output=True,
+        ).stdout.decode()
+    )
 
 
 class MIQAConfigView(APIView):

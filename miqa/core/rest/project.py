@@ -108,7 +108,7 @@ class ProjectTaskOverviewSerializer(serializers.ModelSerializer):
 
         return {
             str(scan.id): convert_state_string(scan.decisions.latest('created'))
-            if scan.decisions.count() > 0 and scan.decisions.latest('created').creator
+            if scan.decisions.count() > 0
             else 'unreviewed'
             for exp in obj.experiments.all()
             for scan in exp.scans.all()

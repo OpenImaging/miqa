@@ -45,6 +45,7 @@ export default {
       );
     },
     sliceDomain() {
+      if (!this.representation) return null;
       return this.representation.getPropertyDomainByName('slice');
     },
     name() : ('x' | 'y' | 'z') {
@@ -102,7 +103,6 @@ export default {
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
-      view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
     },
     currentFrame() {
       this.prepareViewer();
@@ -128,8 +128,6 @@ export default {
       'setCurrentScreenshot',
       'setCurrentVtkIndexSlices',
       'setSliceLocation',
-      'setCurrentWindowWidth',
-      'setCurrentWindowLevel',
     ]),
     prepareViewer() {
       this.initializeView();
@@ -152,21 +150,9 @@ export default {
         }
       });
       this.resizeObserver.observe(this.$refs.viewer);
-      this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
       const representationProperty = this.representation.getActors()[0].getProperty();
       representationProperty.setColorWindow(this.currentWindowWidth);
       representationProperty.setColorLevel(this.currentWindowLevel);
-      representationProperty.onModified(
-        (property) => {
-          if (!this.windowLocked.lock) {
-            this.setCurrentWindowWidth(property.getColorWindow());
-            this.setCurrentWindowLevel(property.getColorLevel());
-          } else {
-            property.setColorWindow(this.currentWindowWidth);
-            property.setColorLevel(this.currentWindowLevel);
-          }
-        },
-      );
     },
     initializeSlice() {
       if (this.name !== 'default') {
@@ -182,6 +168,16 @@ export default {
             this.slice = this.representation.getSlice();
           }
         });
+      }
+      // add click interaction to place crosshairs
+      this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
+      // remove drag interaction to change window
+      const targetManipulator = this.view.getInteractor()
+        .getInteractorStyle().getMouseManipulators().find(
+          (manipulator) => manipulator.getClassName() === 'vtkMouseRangeManipulator',
+        );
+      if (targetManipulator) {
+        targetManipulator.setDragEnabled(false);
       }
       setTimeout(() => {
         this.resized = true;
@@ -232,6 +228,7 @@ export default {
       return currClosest;
     },
     trueAxis(axisName) {
+      if (!this.representation.getInputDataSet()) return undefined;
       const orientation = this.representation.getInputDataSet().getDirection();
       const axisNumber = VIEW_ORIENTATIONS[this.renderOrientation][axisName].axis;
       const axisOrientation = [
