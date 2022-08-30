@@ -31,7 +31,7 @@ from miqa.core.models import (
     ScanDecision,
 )
 from miqa.core.models.frame import StorageMode
-from miqa.core.models.scan_decision import DECISION_CHOICES, default_identified_artifacts
+from miqa.core.models.scan_decision import DECISION_CHOICES
 
 
 def _get_s3_client(public: bool):
@@ -169,7 +169,7 @@ def perform_import(import_dict):
     for project_name, project_data in import_dict['projects'].items():
         try:
             project_object = Project.objects.get(name=project_name)
-            project_artifacts_group_id = project_object.artifact_group_id
+            # project_artifacts_group_id = project_object.artifact_group_id
         except Project.DoesNotExist:
             raise APIException(f'Project {project_name} does not exist.')
 
@@ -249,9 +249,7 @@ def perform_import(import_dict):
                                         in last_decision_dict['user_identified_artifacts']
                                         else 0
                                     )
-                                    for artifact_name in default_identified_artifacts(
-                                        project_artifacts_group_id
-                                    )
+                                    for artifact_name in project_object.artifacts
                                 },
                                 location=location,
                                 scan=scan_object,
