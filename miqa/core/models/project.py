@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -9,7 +10,8 @@ from django_extensions.db.models import TimeStampedModel
 from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
 from miqa.core.models.scan import SCAN_TYPES, Scan
-from miqa.core.models.scan_decision import ScanDecision
+from miqa.core.models.scan_decision import ScanDecision, ArtifactState
+from miqa.core.models.artifact import Artifact
 
 
 def default_evaluation_model_mapping():
@@ -55,6 +57,19 @@ class Project(TimeStampedModel, models.Model):
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
     default_email_recipients = models.TextField(blank=True)
     artifact_group = models.ForeignKey('Group', null=True, on_delete=models.SET_NULL)
+
+
+    @property
+    def artifacts(self) -> dict:
+        if self.artifact_group:
+            artifacts = Artifact.objects.filter(group__id=self.artifact_group.id)
+            return {
+                artifact_name.name: ArtifactState.UNDEFINED.value
+                for artifact_name in artifacts
+            }
+        else:
+            return settings.DEFAULT_ARTIFACTS
+
 
     def __str__(self):
         return self.name
