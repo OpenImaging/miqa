@@ -55,7 +55,7 @@ class ScanDecision(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
-    user_identified_artifacts = models.JSONField(default=default_identified_artifacts)
+    user_identified_artifacts = models.JSONField(null=True, blank=True)
     location = models.JSONField(default=dict)
 
     @property
