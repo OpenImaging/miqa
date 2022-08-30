@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from miqa.core.models.scan_decision import ArtifactState, default_identified_artifacts
+from miqa.core.models.scan_decision import ArtifactState
 
 MIQA_VERSION = subprocess.run(
     ['git', 'describe', '--tags'],
@@ -29,7 +29,7 @@ class MIQAConfigView(APIView):
     def get(self, request):
         return Response(
             {
-                'artifact_options': list(default_identified_artifacts()),
+                'artifact_options': settings.DEFAULT_ARTIFACTS,
                 'auto_artifact_threshold': 0.4,
                 'artifact_states': {
                     'PRESENT': ArtifactState.PRESENT.value,
