@@ -152,7 +152,7 @@ def import_data(project_id: Optional[str]):
             raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
     except (FileNotFoundError, boto3.exceptions.Boto3Error):
         raise APIException(f'Could not locate import file at {import_path}.')
-    except (PermissionError):
+    except PermissionError:
         raise APIException(f'MIQA lacks permission to read {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
@@ -378,6 +378,6 @@ def perform_export(project_id: Optional[str]):
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
     try:
         export_df.to_csv(export_path, index=False)
-    except (PermissionError):
+    except PermissionError:
         raise APIException(f'MIQA lacks permission to write to {export_path}.')
     return export_warnings
