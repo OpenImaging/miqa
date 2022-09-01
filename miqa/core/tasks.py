@@ -152,6 +152,8 @@ def import_data(project_id: Optional[str]):
             raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
     except (FileNotFoundError, boto3.exceptions.Boto3Error):
         raise APIException(f'Could not locate import file at {import_path}.')
+    except (PermissionError):
+        raise APIException(f'MIQA lacks permission to read {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
     perform_import.delay(import_dict)
@@ -374,5 +376,8 @@ def perform_export(project_id: Optional[str]):
                     f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
                 )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
-    export_df.to_csv(export_path, index=False)
+    try:
+        export_df.to_csv(export_path, index=False)
+    except (PermissionError):
+        raise APIException(f'MIQA lacks permission to write to {export_path}.')
     return export_warnings
