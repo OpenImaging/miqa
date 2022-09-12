@@ -60,13 +60,18 @@ class Project(TimeStampedModel, models.Model):
 
 
     @property
-    def artifacts(self) -> dict:
+    def artifacts(self) -> list:
         if self.artifact_group:
             artifacts = Artifact.objects.filter(group__id=self.artifact_group.id)
-            return {
-                artifact_name.name: ArtifactState.UNDEFINED.value
-                for artifact_name in artifacts
-            }
+            final_artifacts = []
+            for artifact in artifacts:
+                final_artifacts.append(artifact.name)
+            return final_artifacts
+            #return [
+                # artifact_name.name: ArtifactState.UNDEFINED.value
+            #    artifact_name
+            #    for artifact_name in artifacts
+            #]
         else:
             return settings.DEFAULT_ARTIFACTS
 

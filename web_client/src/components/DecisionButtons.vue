@@ -58,15 +58,28 @@ export default {
       'myCurrentProjectRoles',
     ]),
     artifacts() {
-      const { artifacts } = this.currentProject.settings.artifacts();
-      let projectArtifacts = Object.keys(artifacts).map((name) => ({
-        value: name,
-        labelText: this.convertValueToLabel(name),
-      }));
-      return projectArtifacts;
+      const { artifacts } = this.currentProject.settings;
+      console.log(artifacts);
+      let artifactsReturn = [];
+      if (typeof artifacts !== 'undefined') {
+        artifactsReturn = artifacts.map((name) => ([
+          String(name),
+          this.convertValueToLabel(String(name)),
+        ]));
+      }
+      console.log("Artifacts");
+      console.log(artifactsReturn);
+      return artifactsReturn;
     },
     chips() {
-      return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
+      const rawChips = this.artifacts;
+      let chips = [];
+      if (typeof rawChips !== 'undefined') {
+        chips = rawChips.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
+      }
+      console.log("Chips");
+      console.log(chips);
+      return chips;
     },
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
@@ -119,6 +132,8 @@ export default {
           color: 'grey darken-3 white--text',
         });
       }
+      console.log("myOptions");
+      console.log(myOptions);
       return myOptions;
     },
   },
@@ -384,6 +399,7 @@ export default {
         </v-tooltip>
       </v-flex>
     </v-flex>
+
     <v-row
       v-if="experimentIsEditable"
       no-gutters

@@ -11,7 +11,7 @@ import DecisionButtons from './DecisionButtons.vue';
 import WindowWidget from './WindowWidget.vue';
 
 export default {
-  name: 'Frame',
+  name: 'ControlPanelFrame',
   components: {
     UserAvatar,
     ScanDecision,
@@ -430,9 +430,10 @@ export default {
                     :edit-rights="editRights"
                     :lock-owner="lockOwner"
                     :loading-lock="loadingLock"
-                    @handleKeyPress="handleKeyPress"
                     @switchLock="switchLock"
                   />
+                  <!--@handleKeyPress="handleKeyPress" -->
+
                 </v-col>
               </v-row>
             </v-container>
