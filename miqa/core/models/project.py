@@ -68,7 +68,15 @@ class Project(TimeStampedModel, models.Model):
                 for artifact_name in artifacts
             }
         else:
-            return settings.DEFAULT_ARTIFACTS
+            artifacts = settings.DEFAULT_ARTIFACTS
+
+            return {
+                (
+                    artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'
+                ): ArtifactState.UNDEFINED.value
+                for artifact_name in artifacts
+                if artifact_name != 'normal_variants'
+            }
 
 
     def __str__(self):
