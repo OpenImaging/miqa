@@ -23,10 +23,13 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
             'permissions',
             'default_email_recipients',
             'anatomy_orientation',
+            'artifact_group',
+            'artifacts'
         ]
 
     permissions = serializers.SerializerMethodField('get_permissions')
     default_email_recipients = serializers.SerializerMethodField('get_default_email_recipients')
+    artifacts = serializers.SerializerMethodField('get_artifacts')
 
     def get_permissions(self, obj):
         permissions = {
@@ -46,6 +49,10 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
         ]
 
         return permissions
+
+    def get_artifacts(self, obj):
+        return obj.artifacts
+
 
     def get_default_email_recipients(self, obj):
         if obj.default_email_recipients == '':
