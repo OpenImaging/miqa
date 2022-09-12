@@ -56,11 +56,11 @@ class ProjectAdmin(GuardedModelAdmin):
 
 @admin.register(Artifact)
 class ArtifactAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'settings_group')
-    list_filter = ('name', 'settings_group')
+    list_display = ('id', 'name', 'group')
+    list_filter = ('name', 'group')
 
 
-@admin.register(Group)
-class ArtifactGroupAdmin(admin.ModelAdmin):
+@admin.register(SettingsGroup)
+class SettingsGroupAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     list_filter = ('name',)
