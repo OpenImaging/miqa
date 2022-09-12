@@ -2,7 +2,7 @@
 from django.contrib import admin
 from guardian.admin import GuardedModelAdmin
 
-from .models import Evaluation, Experiment, Frame, Project, Scan, ScanDecision
+from .models import Artifact, Evaluation, Experiment, Frame, Project, Scan, ScanDecision, SettingsGroup
 
 
 @admin.register(Experiment)
@@ -52,3 +52,15 @@ class ProjectAdmin(GuardedModelAdmin):
     )
     list_filter = ('created', 'modified', 'creator')
     search_fields = ('name',)
+
+
+@admin.register(Artifact)
+class ArtifactAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'settings_group')
+    list_filter = ('name', 'settings_group')
+
+
+@admin.register(Group)
+class ArtifactGroupAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    list_filter = ('name',)

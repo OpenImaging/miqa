@@ -42,6 +42,20 @@ class MiqaMixin(ConfigMixin):
     # Override default signup sheet to ask new users for first and last name
     ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
 
+    # Default artifacts
+    DEFAULT_ARTIFACTS = [
+        'normal_variants',
+        'lesions',
+        'full_brain_coverage',
+        'misalignment',
+        'swap_wraparound',
+        'ghosting_motion',
+        'inhomogeneity',
+        'susceptibility_metal',
+        'flow_artifact',
+        'truncation_artifact',
+    ]
+
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
         # Install local apps first, to ensure any overridden resources are found first

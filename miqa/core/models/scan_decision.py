@@ -4,25 +4,14 @@ from enum import Enum
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from miqa.core.models import Artifact
 
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
-
-artifacts = [
-    'normal_variants',
-    'lesions',
-    'full_brain_coverage',
-    'misalignment',
-    'swap_wraparound',
-    'ghosting_motion',
-    'inhomogeneity',
-    'susceptibility_metal',
-    'flow_artifact',
-    'truncation_artifact',
-]
 
 DECISION_CHOICES = [
     ('U', 'Usable'),
@@ -37,8 +26,13 @@ class ArtifactState(Enum):
     ABSENT = 0
     UNDEFINED = -1
 
+def default_identified_artifacts(scan_project_artifacts = ''):
+    if scan_project_artifacts != '':
+        artifact_objects = Artifact.objects.filter(group__id=scan_project_artifacts)
+        artifacts = [getattr(artifact, "name") for artifact in artifact_objects]
+    else:
+        artifacts = settings.DEFAULT_ARTIFACTS
 
-def default_identified_artifacts():
     return {
         (
             artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'
@@ -61,7 +55,7 @@ class ScanDecision(models.Model):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
     note = models.TextField(max_length=3000, blank=True)
-    user_identified_artifacts = models.JSONField(default=default_identified_artifacts)
+    user_identified_artifacts = models.JSONField(null=True, blank=True)
     location = models.JSONField(default=dict)
 
     @property

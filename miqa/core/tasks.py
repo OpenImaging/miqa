@@ -31,7 +31,7 @@ from miqa.core.models import (
     ScanDecision,
 )
 from miqa.core.models.frame import StorageMode
-from miqa.core.models.scan_decision import DECISION_CHOICES, default_identified_artifacts
+from miqa.core.models.scan_decision import DECISION_CHOICES
 
 
 def _get_s3_client(public: bool):
@@ -248,7 +248,7 @@ def perform_import(import_dict):
                                         in last_decision_dict['user_identified_artifacts']
                                         else 0
                                     )
-                                    for artifact_name in default_identified_artifacts().keys()
+                                    for artifact_name in project_object.artifacts
                                 },
                                 location=location,
                                 scan=scan_object,
