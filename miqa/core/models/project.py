@@ -56,7 +56,7 @@ class Project(TimeStampedModel, models.Model):
     )
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
     default_email_recipients = models.TextField(blank=True)
-    artifact_group = models.ForeignKey('SettingsGroup', null=True, on_delete=models.SET_NULL)
+    artifact_group = models.ForeignKey('SettingsGroup', null=True, blank=True, on_delete=models.SET_NULL)
 
 
     @property
