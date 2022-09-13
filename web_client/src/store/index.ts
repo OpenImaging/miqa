@@ -269,7 +269,7 @@ const initState = {
   allUsers: [],
   reviewMode: false,
   globalSettings: undefined as ProjectSettings,
-  currentProject: null as Project | null,
+  currentProject: undefined as Project | null,
   currentTaskOverview: null as ProjectTaskOverview | null,
   currentProjectPermissions: {},
   projects: [] as Project[],

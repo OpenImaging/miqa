@@ -185,7 +185,7 @@ const djangoClient = {
     location: Object,
   ): Promise<ResponseData> {
     const { data } = await apiClient.post('/scan-decisions', {
-      scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts, location, project: this.project
+      scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts, location,
     });
     return data;
   },
