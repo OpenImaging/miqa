@@ -54,7 +54,6 @@ class ScanDecisionViewSet(
         request_data = request.data
         scan = Scan.objects.get(id=request.data['scan'])
 
-        # project_artifacts_group_id = scan.experiment.project.artifact_group_id
         if not has_review_perm(get_perms(request.user, scan.experiment.project)):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
