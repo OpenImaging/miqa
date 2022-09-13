@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from miqa.core.models import Artifact
 
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
