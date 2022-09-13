@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -10,7 +9,7 @@ from django_extensions.db.models import TimeStampedModel
 from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
 from miqa.core.models.scan import SCAN_TYPES, Scan
-from miqa.core.models.scan_decision import ScanDecision, ArtifactState
+from miqa.core.models.scan_decision import ScanDecision, ArtifactState, default_identified_artifacts
 from miqa.core.models.artifact import Artifact
 
 
@@ -56,24 +55,19 @@ class Project(TimeStampedModel, models.Model):
     )
     evaluation_models = models.JSONField(default=default_evaluation_model_mapping)
     default_email_recipients = models.TextField(blank=True)
-    artifact_group = models.ForeignKey('Group', null=True, on_delete=models.SET_NULL)
+    artifact_group = models.ForeignKey('SettingsGroup', null=True, blank=True, on_delete=models.SET_NULL)
 
 
     @property
-    def artifacts(self) -> list:
+    def artifacts(self) -> dict:
         if self.artifact_group:
             artifacts = Artifact.objects.filter(group__id=self.artifact_group.id)
-            final_artifacts = []
-            for artifact in artifacts:
-                final_artifacts.append(artifact.name)
-            return final_artifacts
-            #return [
-                # artifact_name.name: ArtifactState.UNDEFINED.value
-            #    artifact_name
-            #    for artifact_name in artifacts
-            #]
+            return {
+                artifact_name.name: ArtifactState.UNDEFINED.value
+                for artifact_name in artifacts
+            }
         else:
-            return settings.DEFAULT_ARTIFACTS
+            return default_identified_artifacts()
 
 
     def __str__(self):

@@ -70,7 +70,7 @@ interface ProjectSettings {
   export_path: string,
   anatomy_orientation?: string,
   permissions?: Object,
-  artifacts?: Object,
+  artifacts?: Array<string>[],
 }
 
 enum ScanState {

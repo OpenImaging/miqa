@@ -51,7 +51,8 @@ class ProjectSettingsSerializer(serializers.ModelSerializer):
         return permissions
 
     def get_artifacts(self, obj):
-        return obj.artifacts
+        artifacts_list = [artifact for artifact in obj.artifacts]
+        return artifacts_list
 
 
     def get_default_email_recipients(self, obj):

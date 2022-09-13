@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
-from miqa.core.models import Artifact
 
 if TYPE_CHECKING:
     from miqa.core.models import Experiment
@@ -26,12 +25,8 @@ class ArtifactState(Enum):
     ABSENT = 0
     UNDEFINED = -1
 
-def default_identified_artifacts(scan_project_artifacts = ''):
-    if scan_project_artifacts != '':
-        artifact_objects = Artifact.objects.filter(group__id=scan_project_artifacts)
-        artifacts = [getattr(artifact, "name") for artifact in artifact_objects]
-    else:
-        artifacts = settings.DEFAULT_ARTIFACTS
+def default_identified_artifacts():
+    artifacts = settings.DEFAULT_ARTIFACTS
 
     return {
         (

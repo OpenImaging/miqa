@@ -48,38 +48,31 @@ export default {
   computed: {
     ...mapState([
       'currentViewData',
+      'currentProject',
       'proxyManager',
       'vtkViews',
       'storeCrosshairs',
-      'currentProject',
     ]),
     ...mapGetters([
       'currentViewData',
       'myCurrentProjectRoles',
     ]),
     artifacts() {
-      const { artifacts } = this.currentProject.settings;
-      console.log(artifacts);
-      let artifactsReturn = [];
-      if (typeof artifacts !== 'undefined') {
-        artifactsReturn = artifacts.map((name) => ([
-          String(name),
-          this.convertValueToLabel(String(name)),
-        ]));
+      if (this.currentProject.settings.artifacts !== 'undefined') {
+        const currentArtifacts = this.currentProject.settings.artifacts;
+        return currentArtifacts.map((name) => ({
+          value: name,
+          labelText: this.convertValueToLabel(name),
+        }));
+      } else {
+        return this.MIQAConfig.artifact_options.map((name) => ({
+          value: name,
+          labelText: this.convertValueToLabel(name),
+        }));
       }
-      console.log("Artifacts");
-      console.log(artifactsReturn);
-      return artifactsReturn;
     },
     chips() {
-      const rawChips = this.artifacts;
-      let chips = [];
-      if (typeof rawChips !== 'undefined') {
-        chips = rawChips.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
-      }
-      console.log("Chips");
-      console.log(chips);
-      return chips;
+      return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
     },
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
@@ -132,8 +125,6 @@ export default {
           color: 'grey darken-3 white--text',
         });
       }
-      console.log("myOptions");
-      console.log(myOptions);
       return myOptions;
     },
   },
@@ -399,7 +390,6 @@ export default {
         </v-tooltip>
       </v-flex>
     </v-flex>
-
     <v-row
       v-if="experimentIsEditable"
       no-gutters
