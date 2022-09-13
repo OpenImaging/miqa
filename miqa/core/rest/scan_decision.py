@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from miqa.core.models import Project, Scan, ScanDecision
-from miqa.core.models.scan_decision import ArtifactState, default_identified_artifacts
+from miqa.core.models.scan_decision import ArtifactState
 from miqa.core.rest.user import UserSerializer
 
 from .permissions import UserHoldsExperimentLock, ensure_experiment_lock, has_review_perm
@@ -72,7 +72,7 @@ class ScanDecisionViewSet(
                     if artifact_name in request_data['artifacts']['absent']
                     else ArtifactState.UNDEFINED.value
                 )
-                for artifact_name in default_identified_artifacts().keys()
+                for artifact_name in scan.experiment.project.artifacts
             }
             del request_data['artifacts']
 
