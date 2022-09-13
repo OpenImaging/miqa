@@ -430,10 +430,9 @@ export default {
                     :edit-rights="editRights"
                     :lock-owner="lockOwner"
                     :loading-lock="loadingLock"
+                    @handleKeyPress="handleKeyPress"
                     @switchLock="switchLock"
                   />
-                  <!--@handleKeyPress="handleKeyPress" -->
-
                 </v-col>
               </v-row>
             </v-container>

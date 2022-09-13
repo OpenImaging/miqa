@@ -11,7 +11,7 @@ import VtkViewer from '@/components/VtkViewer.vue';
 import formatSize from '@/utils/helper';
 
 export default {
-  name: 'FrameView',
+  name: 'Frame',
   components: {
     Navbar,
     ExperimentsView,
@@ -47,7 +47,6 @@ export default {
     ]),
     ...mapGetters([
       'currentFrame',
-      'currentScan',
     ]),
     currentScanFrames() {
       return this.scanFrames[this.currentScan.id];
