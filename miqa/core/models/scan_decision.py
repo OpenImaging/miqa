@@ -26,12 +26,8 @@ class ArtifactState(Enum):
     ABSENT = 0
     UNDEFINED = -1
 
-def default_identified_artifacts(scan_project_artifacts = ''):
-    if scan_project_artifacts != '':
-        artifact_objects = Artifact.objects.filter(group__id=scan_project_artifacts)
-        artifacts = [getattr(artifact, "name") for artifact in artifact_objects]
-    else:
-        artifacts = settings.DEFAULT_ARTIFACTS
+def default_identified_artifacts():
+    artifacts = settings.DEFAULT_ARTIFACTS
 
     return {
         (

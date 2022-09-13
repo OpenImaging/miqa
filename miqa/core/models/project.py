@@ -10,7 +10,7 @@ from django_extensions.db.models import TimeStampedModel
 from guardian.shortcuts import assign_perm, get_perms, get_users_with_perms, remove_perm
 
 from miqa.core.models.scan import SCAN_TYPES, Scan
-from miqa.core.models.scan_decision import ScanDecision, ArtifactState
+from miqa.core.models.scan_decision import ScanDecision, ArtifactState, default_identified_artifacts
 from miqa.core.models.artifact import Artifact
 
 
@@ -68,15 +68,7 @@ class Project(TimeStampedModel, models.Model):
                 for artifact_name in artifacts
             }
         else:
-            artifacts = settings.DEFAULT_ARTIFACTS
-
-            return {
-                (
-                    artifact_name if artifact_name != 'full_brain_coverage' else 'partial_brain_coverage'
-                ): ArtifactState.UNDEFINED.value
-                for artifact_name in artifacts
-                if artifact_name != 'normal_variants'
-            }
+            return default_identified_artifacts()
 
 
     def __str__(self):
