@@ -383,7 +383,8 @@ def perform_export(project_id: Optional[str]):
             export_df.to_csv(export_path, index=False)
         elif export_path.endswith('json'):
             json_contents = import_dataframe_to_dict(export_df, project)
-            json.dump(json_contents, open(export_path, 'w'))
+            with open(export_path, 'w') as fd:
+                json.dump(json_contents, fd)
         else:
             raise APIException(
                 f'Unknown format for export path {export_path}. Expected csv or json.'
