@@ -263,12 +263,12 @@ export default {
               filled
               :disabled="!experimentIsEditable"
               no-resize
-              height="60px"
+              height="95px"
               hide-details
               name="input-experiment-notes"
               label="Experiment Notes"
               placeholder="There are no notes on this experiment."
-              class="ma-3"
+              class="mx-3"
               @input="handleExperimentNoteChange"
             />
             <v-row no-gutters>
