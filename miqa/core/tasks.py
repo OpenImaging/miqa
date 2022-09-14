@@ -385,7 +385,9 @@ def perform_export(project_id: Optional[str]):
             json_contents = import_dataframe_to_dict(export_df, project)
             json.dump(json_contents, open(export_path, 'w'))
         else:
-            raise APIException(f'Unknown format for export path {export_path}. Expected csv or json.')
+            raise APIException(
+                f'Unknown format for export path {export_path}. Expected csv or json.'
+            )
     except PermissionError:
         raise APIException(f'MIQA lacks permission to write to {export_path}.')
     return export_warnings
