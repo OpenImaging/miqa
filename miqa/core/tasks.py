@@ -318,6 +318,7 @@ def perform_export(project_id: Optional[str]):
 
     if project_id is None:
         # A global export should export all projects
+        project = None
         projects = list(Project.objects.all())
         export_path = GlobalSettings.load().export_path
     else:
@@ -376,8 +377,15 @@ def perform_export(project_id: Optional[str]):
                     f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
                 )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
+
     try:
-        export_df.to_csv(export_path, index=False)
+        if export_path.endswith('csv'):
+            export_df.to_csv(export_path, index=False)
+        elif export_path.endswith('json'):
+            json_contents = import_dataframe_to_dict(export_df, project)
+            json.dump(json_contents, open(export_path, 'w'))
+        else:
+            raise APIException(f'Unknown format for export path {export_path}. Expected csv or json.')
     except PermissionError:
         raise APIException(f'MIQA lacks permission to write to {export_path}.')
     return export_warnings
