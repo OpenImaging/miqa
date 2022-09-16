@@ -37,10 +37,6 @@ export default {
       'currentFrame',
       'myCurrentProjectRoles',
     ]),
-    ...mapMutations([
-      'updateExperiment',
-      'addScanDecision',
-    ]),
     experimentId() {
       return this.currentViewData.experimentId;
     },
