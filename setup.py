@@ -68,6 +68,7 @@ setup(
             'factory_boy',
             'girder-pytest-pyppeteer==0.0.9',
             'pytest-asyncio',
+            'types-dateparser',
         ],
         'learning': [
             'itk>=5.3rc4',
