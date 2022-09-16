@@ -37,6 +37,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'celery',
+        'dateparser',
         'django>=3.2,<4.0',
         'django-allauth',
         'django-auth-style[allauth]',
@@ -67,6 +68,7 @@ setup(
             'factory_boy',
             'girder-pytest-pyppeteer==0.0.9',
             'pytest-asyncio',
+            'types-dateparser',
         ],
         'learning': [
             'itk>=5.3rc4',

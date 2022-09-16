@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from io import BytesIO, StringIO
 import json
 from pathlib import Path
@@ -9,9 +9,9 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 from celery import shared_task
+import dateparser
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.utils import timezone
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -213,19 +213,16 @@ def perform_import(import_dict):
                         except User.DoesNotExist:
                             creator = None
                         note = ''
-                        created = timezone.now()
+                        created = (
+                            datetime.now() if settings.REPLACE_NULL_CREATION_DATETIMES else None
+                        )
                         location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['created']:
-                            try:
-                                datetime.datetime.strptime(
-                                    last_decision_dict['created'], '%Y-%m-%d'
-                                )
-                            except ValueError:
-                                created = timezone.now()
-                            else:
-                                created = last_decision_dict['created']
+                            valid_dt = dateparser.parse(last_decision_dict['created'])
+                            if valid_dt:
+                                created = valid_dt.strftime('%Y-%m-%d %H:$M')
                         if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]
@@ -347,7 +344,11 @@ def perform_export(project_id: Optional[str]):
                 ]
                 # if a last decision exists for the scan, encode that decision on this row
                 # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-                last_decision = frame_object.scan.decisions.order_by('created').last()
+                last_decision = (
+                    frame_object.scan.decisions.filter(created__isnull=False)
+                    .order_by('created')
+                    .last()
+                )
                 if last_decision:
                     location = ''
                     if last_decision.location:
