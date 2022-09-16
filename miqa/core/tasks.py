@@ -213,7 +213,9 @@ def perform_import(import_dict):
                         except User.DoesNotExist:
                             creator = None
                         note = ''
-                        created = timezone.now()
+                        created = (
+                            timezone.now() if settings.REPLACE_NULL_CREATION_DATETIMES else None
+                        )
                         location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
