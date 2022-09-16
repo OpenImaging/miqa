@@ -1,3 +1,4 @@
+import dateparser
 from datetime import datetime
 from io import BytesIO, StringIO
 import json
@@ -46,19 +47,6 @@ def _download_from_s3(path: str, public: bool) -> bytes:
     buf = BytesIO()
     client.download_fileobj(bucket, key, buf)
     return buf.getvalue()
-
-
-def datetime_string_valid(text):
-    date_formats = ['%Y-%m-%d', '%d/%m/%Y']
-    time_formats = ['%H:%M', '%H:%M:%S', '%H:%M:%S%f', '%H:%M:%S%f%z']
-    for df in date_formats:
-        for tf in time_formats:
-            try:
-                print(f'{df} {tf}')
-                return datetime.strptime(text, f'{df} {tf}')
-            except ValueError:
-                pass
-    return False
 
 
 @shared_task
@@ -232,10 +220,9 @@ def perform_import(import_dict):
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['created']:
-                            valid_dt = datetime_string_valid(last_decision_dict['created'])
-                            print(valid_dt)
+                            valid_dt = dateparser.parse(last_decision_dict['created'])
                             if valid_dt:
-                                created = valid_dt
+                                created = valid_dt.strftime('%Y-%m-%d %H:$M')
                         if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]

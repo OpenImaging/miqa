@@ -37,6 +37,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'celery',
+        'dateparser',
         'django>=3.2,<4.0',
         'django-allauth',
         'django-auth-style[allauth]',
