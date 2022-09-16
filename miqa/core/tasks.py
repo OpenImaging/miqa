@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from io import BytesIO, StringIO
 import json
 from pathlib import Path
@@ -11,7 +11,6 @@ from botocore.client import Config
 from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.utils import timezone
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -47,6 +46,19 @@ def _download_from_s3(path: str, public: bool) -> bytes:
     buf = BytesIO()
     client.download_fileobj(bucket, key, buf)
     return buf.getvalue()
+
+
+def datetime_string_valid(text):
+    date_formats = ['%Y-%m-%d', '%d/%m/%Y']
+    time_formats = ['%H:%M', '%H:%M:%S', '%H:%M:%S%f', '%H:%M:%S%f%z']
+    for df in date_formats:
+        for tf in time_formats:
+            try:
+                print(f'{df} {tf}')
+                return datetime.strptime(text, f'{df} {tf}')
+            except ValueError:
+                pass
+    return False
 
 
 @shared_task
@@ -214,20 +226,16 @@ def perform_import(import_dict):
                             creator = None
                         note = ''
                         created = (
-                            timezone.now() if settings.REPLACE_NULL_CREATION_DATETIMES else None
+                            datetime.now() if settings.REPLACE_NULL_CREATION_DATETIMES else None
                         )
                         location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['created']:
-                            try:
-                                datetime.datetime.strptime(
-                                    last_decision_dict['created'], '%Y-%m-%d'
-                                )
-                            except ValueError:
-                                created = timezone.now()
-                            else:
-                                created = last_decision_dict['created']
+                            valid_dt = datetime_string_valid(last_decision_dict['created'])
+                            print(valid_dt)
+                            if valid_dt:
+                                created = valid_dt
                         if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]
@@ -349,7 +357,11 @@ def perform_export(project_id: Optional[str]):
                 ]
                 # if a last decision exists for the scan, encode that decision on this row
                 # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-                last_decision = frame_object.scan.decisions.order_by('created').last()
+                last_decision = (
+                    frame_object.scan.decisions.filter(created__isnull=False)
+                    .order_by('created')
+                    .last()
+                )
                 if last_decision:
                     location = ''
                     if last_decision.location:
