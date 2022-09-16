@@ -313,7 +313,7 @@ def export_data(project_id: Optional[str]):
 
 @shared_task
 def perform_export(project_id: Optional[str]):
-    data = []
+    data: List[List[Optional[str]]] = []
     export_warnings = []
 
     if project_id is None:
@@ -328,14 +328,17 @@ def perform_export(project_id: Optional[str]):
         export_path = project.export_path
 
     for project_object in projects:
-        for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
+        project_frames = Frame.objects.filter(scan__experiment__project=project_object)
+        if project_frames.count() == 0:
+            data.append([project_object.name])
+        for frame_object in project_frames:
             if frame_object.storage_mode == StorageMode.LOCAL_PATH:
                 row_data = [
                     project_object.name,
                     frame_object.scan.experiment.name,
                     frame_object.scan.name,
                     frame_object.scan.scan_type,
-                    frame_object.frame_number,
+                    str(frame_object.frame_number),
                     frame_object.raw_path,
                     frame_object.scan.experiment.note,
                     frame_object.scan.subject_id,
@@ -365,7 +368,7 @@ def perform_export(project_id: Optional[str]):
                         last_decision.decision,
                         creator,
                         last_decision.note.replace(',', ';'),
-                        last_decision.created,
+                        str(last_decision.created),
                         ';'.join(artifacts),
                         location,
                     ]
