@@ -1,4 +1,3 @@
-import dateparser
 from datetime import datetime
 from io import BytesIO, StringIO
 import json
@@ -10,6 +9,7 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 from celery import shared_task
+import dateparser
 from django.conf import settings
 from django.contrib.auth.models import User
 import pandas
