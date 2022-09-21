@@ -105,12 +105,6 @@ export default {
       const frameId = this.currentScanFrames[index];
       this.$router.push(frameId).catch(this.handleNavigationError);
     },
-    advanceLoop() {
-      if (this.scanning) {
-        this.updateFrame();
-        this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
-      }
-    },
     onFrameDownloadProgress(e) {
       this.downloadLoaded = e.loaded;
       this.downloadTotal = e.total;
