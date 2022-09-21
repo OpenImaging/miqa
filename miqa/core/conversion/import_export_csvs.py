@@ -150,7 +150,7 @@ def import_dataframe_to_dict(df, project):
                                 'decision': scan_df['last_decision'].iloc[0],
                                 'creator': scan_df['last_decision_creator'].iloc[0],
                                 'note': scan_df['last_decision_note'].iloc[0],
-                                'created': scan_df['last_decision_created'].iloc[0],
+                                'created': str(scan_df['last_decision_created'].iloc[0]),
                                 'user_identified_artifacts': scan_df['identified_artifacts'].iloc[0]
                                 or None,
                                 'location': scan_df['location_of_interest'].iloc[0] or None,

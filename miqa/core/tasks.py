@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from io import BytesIO, StringIO
 import json
 from pathlib import Path
@@ -9,9 +9,9 @@ import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
 from celery import shared_task
+import dateparser
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.utils import timezone
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -152,6 +152,8 @@ def import_data(project_id: Optional[str]):
             raise APIException(f'Invalid import file {import_path}. Must be CSV or JSON.')
     except (FileNotFoundError, boto3.exceptions.Boto3Error):
         raise APIException(f'Could not locate import file at {import_path}.')
+    except PermissionError:
+        raise APIException(f'MIQA lacks permission to read {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
     perform_import.delay(import_dict)
@@ -211,19 +213,16 @@ def perform_import(import_dict):
                         except User.DoesNotExist:
                             creator = None
                         note = ''
-                        created = timezone.now()
+                        created = (
+                            datetime.now() if settings.REPLACE_NULL_CREATION_DATETIMES else None
+                        )
                         location = {}
                         if last_decision_dict['note']:
                             note = last_decision_dict['note'].replace(';', ',')
                         if last_decision_dict['created']:
-                            try:
-                                datetime.datetime.strptime(
-                                    last_decision_dict['created'], '%Y-%m-%d'
-                                )
-                            except ValueError:
-                                created = timezone.now()
-                            else:
-                                created = last_decision_dict['created']
+                            valid_dt = dateparser.parse(last_decision_dict['created'])
+                            if valid_dt:
+                                created = valid_dt.strftime('%Y-%m-%d %H:$M')
                         if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]
@@ -311,11 +310,12 @@ def export_data(project_id: Optional[str]):
 
 @shared_task
 def perform_export(project_id: Optional[str]):
-    data = []
+    data: List[List[Optional[str]]] = []
     export_warnings = []
 
     if project_id is None:
         # A global export should export all projects
+        project = None
         projects = list(Project.objects.all())
         export_path = GlobalSettings.load().export_path
     else:
@@ -325,14 +325,17 @@ def perform_export(project_id: Optional[str]):
         export_path = project.export_path
 
     for project_object in projects:
-        for frame_object in Frame.objects.filter(scan__experiment__project=project_object):
+        project_frames = Frame.objects.filter(scan__experiment__project=project_object)
+        if project_frames.count() == 0:
+            data.append([project_object.name])
+        for frame_object in project_frames:
             if frame_object.storage_mode == StorageMode.LOCAL_PATH:
                 row_data = [
                     project_object.name,
                     frame_object.scan.experiment.name,
                     frame_object.scan.name,
                     frame_object.scan.scan_type,
-                    frame_object.frame_number,
+                    str(frame_object.frame_number),
                     frame_object.raw_path,
                     frame_object.scan.experiment.note,
                     frame_object.scan.subject_id,
@@ -341,7 +344,11 @@ def perform_export(project_id: Optional[str]):
                 ]
                 # if a last decision exists for the scan, encode that decision on this row
                 # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-                last_decision = frame_object.scan.decisions.order_by('created').last()
+                last_decision = (
+                    frame_object.scan.decisions.filter(created__isnull=False)
+                    .order_by('created')
+                    .last()
+                )
                 if last_decision:
                     location = ''
                     if last_decision.location:
@@ -362,7 +369,7 @@ def perform_export(project_id: Optional[str]):
                         last_decision.decision,
                         creator,
                         last_decision.note.replace(',', ';'),
-                        last_decision.created,
+                        str(last_decision.created),
                         ';'.join(artifacts),
                         location,
                     ]
@@ -374,5 +381,18 @@ def perform_export(project_id: Optional[str]):
                     f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
                 )
     export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
-    export_df.to_csv(export_path, index=False)
+
+    try:
+        if export_path.endswith('csv'):
+            export_df.to_csv(export_path, index=False)
+        elif export_path.endswith('json'):
+            json_contents = import_dataframe_to_dict(export_df, project)
+            with open(export_path, 'w') as fd:
+                json.dump(json_contents, fd)
+        else:
+            raise APIException(
+                f'Unknown format for export path {export_path}. Expected csv or json.'
+            )
+    except PermissionError:
+        raise APIException(f'MIQA lacks permission to write to {export_path}.')
     return export_warnings

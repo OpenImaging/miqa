@@ -56,7 +56,7 @@ class ScanDecision(models.Model):
         ]
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    created = models.DateTimeField(default=timezone.now)
+    created = models.DateTimeField(default=timezone.now, null=True)
     scan = models.ForeignKey('Scan', related_name='decisions', on_delete=models.CASCADE)
     creator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True)
     decision = models.CharField(max_length=2, choices=DECISION_CHOICES, blank=False)
