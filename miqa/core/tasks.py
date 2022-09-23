@@ -222,7 +222,7 @@ def perform_import(import_dict):
                         if last_decision_dict['created']:
                             valid_dt = dateparser.parse(last_decision_dict['created'])
                             if valid_dt:
-                                created = valid_dt.strftime('%Y-%m-%d %H:$M')
+                                created = valid_dt.strftime('%Y-%m-%d %H:%M')
                         if last_decision_dict['location'] and last_decision_dict['location'] != '':
                             slices = [
                                 axis.split('=')[1]
