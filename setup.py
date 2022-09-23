@@ -45,7 +45,7 @@ setup(
         'django-extensions',
         'django-filter',
         'django-oauth-toolkit',
-        'djangorestframework',
+        'djangorestframework==3.13.1',  # https://github.com/axnsan12/drf-yasg/issues/810
         'django-click',
         'django-guardian',
         'drf-yasg',
