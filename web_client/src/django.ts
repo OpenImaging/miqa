@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import axios from 'axios';
 import OAuthClient from '@girder/oauth-client';
 import S3FileFieldClient from 'django-s3-file-field';
@@ -87,14 +88,17 @@ const djangoClient = {
     return response?.data;
   },
   async projectExport(projectId: string): Promise<ResponseData> {
+    if (!projectId) return undefined;
     const response = await apiClient.post(`/projects/${projectId}/export`);
     return response?.data;
   },
   async createProject(projectName: string): Promise<Project> {
+    if (!projectName) return undefined;
     const response = await apiClient.post('/projects', { name: projectName });
     return response?.data;
   },
   async deleteProject(projectId: string): Promise<ResponseData> {
+    if (!projectId) return undefined;
     const response = await apiClient.delete(`/projects/${projectId}`);
     return response?.data;
   },
@@ -103,36 +107,44 @@ const djangoClient = {
     return response?.data?.results;
   },
   async project(projectId: string): Promise<Project> {
+    if (!projectId) return undefined;
     const response = await apiClient.get(`/projects/${projectId}`);
     return response?.data;
   },
   async projectTaskOverview(projectId: string): Promise<ProjectTaskOverview> {
+    if (!projectId) return undefined;
     const response = await apiClient.get(`/projects/${projectId}/task_overview`);
     return response?.data;
   },
   async settings(projectId: string): Promise<ProjectSettings> {
+    if (!projectId) return undefined;
     const response = await apiClient.get(`/projects/${projectId}/settings`);
     return response?.data;
   },
   async setGlobalSettings(settings: ProjectSettings): Promise<ResponseData> {
+    if (!settings) return undefined;
     const response = await apiClient.put('/global/settings', settings);
     return response?.data;
   },
   async setProjectSettings(projectId: string, settings: ProjectSettings): Promise<ResponseData> {
+    if (!projectId || !settings) return undefined;
     const response = await apiClient.put(`/projects/${projectId}/settings`, settings);
     return response?.data;
   },
   async experiments(projectId: string): Promise<Experiment[]> {
+    if (!projectId) return undefined;
     const response = await apiClient.get('/experiments', {
       params: { project: projectId },
     });
     return response?.data?.results;
   },
   async experiment(experimentId: string): Promise<Experiment> {
+    if (!experimentId) return undefined;
     const response = await apiClient.get(`/experiments/${experimentId}`);
     return response?.data;
   },
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
+    if (!projectId || !experimentName) return undefined;
     const response = await apiClient.post('/experiments', {
       project: projectId,
       name: experimentName,
@@ -143,6 +155,7 @@ const djangoClient = {
     return response?.data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {
+    if (!experimentId || !files) return undefined;
     // Promise.all maintains order so we can reference filenames by index
     const uploadResponses = await Promise.all(files.map(
       (file) => s3ffClient.uploadFile(file, 'core.Frame.content'),
@@ -156,24 +169,29 @@ const djangoClient = {
     ));
   },
   async setExperimentNote(experimentId: string, note: string): Promise<ResponseData> {
+    if (!experimentId) return undefined;
     const response = await apiClient.post(`/experiments/${experimentId}/note`, { note });
     return response?.data;
   },
   async lockExperiment(experimentId: string, force: boolean): Promise<ResponseData> {
+    if (!experimentId) return undefined;
     const response = await apiClient.post(`/experiments/${experimentId}/lock`, { force });
     return response?.data;
   },
   async unlockExperiment(experimentId: string): Promise<ResponseData> {
+    if (!experimentId) return undefined;
     const response = await apiClient.delete(`/experiments/${experimentId}/lock`);
     return response?.data;
   },
   async scans(experimentId: string): Promise<Scan[]> {
+    if (!experimentId) return undefined;
     const response = await apiClient.get('/scans', {
       params: { experiment: experimentId },
     });
     return response?.data?.results;
   },
   async scan(scanId: string): Promise<Scan> {
+    if (!scanId) return undefined;
     const response = await apiClient.get(`/scans/${scanId}`);
     return response?.data;
   },
@@ -184,18 +202,21 @@ const djangoClient = {
     userIdentifiedArtifacts: Object,
     location: Object,
   ): Promise<ResponseData> {
+    if (!scanId) return undefined;
     const response = await apiClient.post('/scan-decisions', {
       scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts, location,
     });
     return response?.data;
   },
   async frames(scanId: string): Promise<Frame[]> {
+    if (!scanId) return undefined;
     const response = await apiClient.get('/frames', {
       params: { scan: scanId },
     });
     return response?.data?.results;
   },
   async frame(frameId: string): Promise<Frame> {
+    if (!frameId) return undefined;
     const response = await apiClient.get(`/frames/${frameId}`);
     return response?.data;
   },
