@@ -30,6 +30,7 @@ class CrosshairSet {
   }
 
   getSliceLines() {
+    if (!this.imageData) return undefined;
     const [iMax, jMax, kMax] = this.imageData.getDimensions();
 
     const iRepresentation = [

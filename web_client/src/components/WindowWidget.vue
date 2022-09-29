@@ -168,6 +168,7 @@ export default defineComponent({
         </span>
       </v-tooltip>
       <custom-range-slider
+        v-if="currentRange && currentRange.length === 2"
         :value="currentRange"
         :disabled="windowLocked"
         :max="widthMax"
