@@ -69,16 +69,9 @@ async def test_save_decisions_tier_1(
     ).click()
     await page.waitFor(1_000)
 
-    # Go back up a scan and confirm the previous decision marked all artifacts as present
-    await (await page.waitForXPath('//i[contains(@class, "fa-caret-up")]')).click()
-    saved_artifacts = await page.xpath(
-        '//div[contains(., "No comment")]/following-sibling::div/'
-        'span/span[contains(@class,"v-chip__content")]'
-    )
-    assert len(saved_artifacts) == len(artifact_chips)
-
     # Submit another decision on the third scan
     # This time marking all artifacts as absent and the scan as Usable
+    await page.goBack()
     artifact_chips = await page.xpath('//span[contains(@class,"v-chip__content")]')
     for chip in artifact_chips:
         # clicking twice marks the artifact as absent
@@ -91,14 +84,6 @@ async def test_save_decisions_tier_1(
         await page.waitForXPath('//span[contains(@class, "v-btn__content")][contains(.,"Usable")]')
     ).click()
     await page.waitFor(1_000)
-
-    # Go back up a scan and confirm the previous decision marked all artifacts as absent
-    await (await page.waitForXPath('//i[contains(@class, "fa-caret-up")]')).click()
-    saved_artifacts = await page.xpath(
-        '//div[contains(., "I disagree")]/following-sibling::div/'
-        'span/span[contains(@class,"v-chip__content")]'
-    )
-    assert len(saved_artifacts) == 0
 
     # Go back to the project page
     await (await page.waitForXPath('//a[contains(., "Projects")]')).click()
