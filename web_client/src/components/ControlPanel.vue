@@ -411,10 +411,8 @@ export default {
                           :decision="decision"
                         />
                         <div
-                          v-if="
-                            currentViewData?.scanDecisions === undefined
-                              || currentViewData?.scanDecisions?.length === 0
-                          "
+                          v-if="!currentViewData.scanDecisions
+                            || currentViewData.scanDecisions.length === 0"
                           class="grey--text"
                         >
                           This scan has no prior comments.
