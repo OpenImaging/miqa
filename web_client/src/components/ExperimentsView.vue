@@ -5,6 +5,7 @@ import {
 } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';
+import { includeScan } from '@/store';
 import { API_URL, decisionOptions } from '../constants';
 
 export default {
@@ -72,6 +73,7 @@ export default {
     ...mapActions([
       'loadProject',
     ]),
+    includeScan,
     scansForExperiment(expId) {
       const expScanIds = this.experimentScans[expId];
       return expScanIds.filter(
@@ -244,6 +246,7 @@ export default {
                     <v-btn
                       v-bind="attrs"
                       :to="getURLForFirstFrameInScan(scan.id)"
+                      :disabled="!includeScan(scan.id)"
                       class="ml-0 px-1 scan-name"
                       href
                       text
