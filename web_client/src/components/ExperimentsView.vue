@@ -179,41 +179,30 @@ export default {
 
 <template>
   <v-card class="flex-card">
-    <v-subheader
-      v-if="!minimal"
+    <div
       class="d-flex"
-      style="justify-content: space-between"
+      style="justify-content: space-between; align-items: baseline"
     >
-      Experiments
-      <div
-        class="d-flex mode-toggle"
+      <v-subheader
+        v-if="!minimal"
+        style="display: inline"
+      >
+        Experiments
+      </v-subheader>
+      <v-subheader
+        class="mode-toggle"
       >
         <span>All scans</span>
         <v-switch
-          :value="reviewMode"
-          inset
+          :input-value="true"
           dense
           style="display: inline-block; max-height: 40px; max-width: 60px;"
           class="px-3 ma-0"
           @change="switchReviewMode"
         />
         <span>Scans for my review</span>
-      </div>
-    </v-subheader>
-    <v-subheader
-      v-if="minimal"
-      class="d-flex mode-toggle"
-    >
-      <span>All scans</span>
-      <v-switch
-        :value="reviewMode"
-        dense
-        style="display: inline-block; max-height: 40px; max-width: 60px;"
-        class="px-3 ma-0"
-        @change="switchReviewMode"
-      />
-      <span>Scans for my review</span>
-    </v-subheader>
+      </v-subheader>
+    </div>
     <div class="scans-view">
       <div v-if="orderedExperiments && orderedExperiments.length">
         <ul class="experiment">
@@ -459,6 +448,7 @@ ul.scans {
 }
 .mode-toggle {
   align-items: baseline;
+  display: inline-block;
 }
 .add-scans {
   min-width: 150px;
