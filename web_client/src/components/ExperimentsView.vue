@@ -281,6 +281,13 @@ export default {
         </ul>
       </div>
       <div
+        v-else-if="currentProject.experiments.length"
+        class="pa-5"
+        style="width: 60%; text-align: center"
+      >
+        <v-progress-circular indeterminate />
+      </div>
+      <div
         v-else
         class="pa-5"
         style="width: max-content"
