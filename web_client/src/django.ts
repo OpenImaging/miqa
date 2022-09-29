@@ -68,78 +68,79 @@ const djangoClient = {
   },
   async MIQAConfig() {
     const response = await apiClient.get('/configuration/');
-    return response ? response.data : undefined;
+    return response?.data;
   },
   async globalSettings() {
-    const { data } = await apiClient.get('/global/settings');
-    return data;
+    const response = await apiClient.get('/global/settings');
+    return response?.data;
   },
   async globalImport(): Promise<ResponseData> {
-    return (await apiClient.post('/global/import')).data;
+    const response = await apiClient.post('/global/import');
+    return response?.data;
   },
   async projectImport(projectId: string): Promise<ResponseData> {
-    return (await apiClient.post(`/projects/${projectId}/import`)).data;
+    const response = await apiClient.post(`/projects/${projectId}/import`);
+    return response?.data;
   },
   async globalExport(): Promise<ResponseData> {
-    return (await apiClient.post('/global/export')).data;
+    const response = await apiClient.post('/global/export');
+    return response?.data;
   },
   async projectExport(projectId: string): Promise<ResponseData> {
-    return (await apiClient.post(`/projects/${projectId}/export`)).data;
+    const response = await apiClient.post(`/projects/${projectId}/export`);
+    return response?.data;
   },
   async createProject(projectName: string): Promise<Project> {
-    const { data } = await apiClient.post('/projects', { name: projectName });
-    return data;
+    const response = await apiClient.post('/projects', { name: projectName });
+    return response?.data;
   },
   async deleteProject(projectId: string): Promise<ResponseData> {
-    const { data } = await apiClient.delete(`/projects/${projectId}`);
-    return data;
+    const response = await apiClient.delete(`/projects/${projectId}`);
+    return response?.data;
   },
   async projects(): Promise<Project[]> {
-    const { data } = await apiClient.get('/projects');
-    const { results } = data;
-    return results;
+    const response = await apiClient.get('/projects');
+    return response?.data?.results;
   },
   async project(projectId: string): Promise<Project> {
-    const { data } = await apiClient.get(`/projects/${projectId}`);
-    return data;
+    const response = await apiClient.get(`/projects/${projectId}`);
+    return response?.data;
   },
   async projectTaskOverview(projectId: string): Promise<ProjectTaskOverview> {
-    const { data } = await apiClient.get(`/projects/${projectId}/task_overview`);
-    return data;
+    const response = await apiClient.get(`/projects/${projectId}/task_overview`);
+    return response?.data;
   },
   async settings(projectId: string): Promise<ProjectSettings> {
-    const { data } = await apiClient.get(`/projects/${projectId}/settings`);
-    return data;
+    const response = await apiClient.get(`/projects/${projectId}/settings`);
+    return response?.data;
   },
   async setGlobalSettings(settings: ProjectSettings): Promise<ResponseData> {
-    const resp = await apiClient.put('/global/settings', settings);
-    return resp.status === 200 ? resp.data : null;
+    const response = await apiClient.put('/global/settings', settings);
+    return response?.data;
   },
   async setProjectSettings(projectId: string, settings: ProjectSettings): Promise<ResponseData> {
-    const resp = await apiClient.put(`/projects/${projectId}/settings`, settings);
-    return resp.status === 200 ? resp.data : null;
+    const response = await apiClient.put(`/projects/${projectId}/settings`, settings);
+    return response?.data;
   },
   async experiments(projectId: string): Promise<Experiment[]> {
-    const { data } = await apiClient.get('/experiments', {
+    const response = await apiClient.get('/experiments', {
       params: { project: projectId },
     });
-    const { results } = data;
-    return results;
+    return response?.data?.results;
   },
   async experiment(experimentId: string): Promise<Experiment> {
-    const { data } = await apiClient.get(`/experiments/${experimentId}`);
-    return data;
+    const response = await apiClient.get(`/experiments/${experimentId}`);
+    return response?.data;
   },
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
     const response = await apiClient.post('/experiments', {
       project: projectId,
       name: experimentName,
     });
-    const { data } = response;
-    if (response.status === 500 && data.detail) {
-      throw new ErrorResponseDetail(data.detail);
+    if (response.status === 500 && response?.data?.detail) {
+      throw new ErrorResponseDetail(response.data.detail);
     }
-    return data;
+    return response?.data;
   },
   async uploadToExperiment(experimentId: string, files: File[]) {
     // Promise.all maintains order so we can reference filenames by index
@@ -155,27 +156,26 @@ const djangoClient = {
     ));
   },
   async setExperimentNote(experimentId: string, note: string): Promise<ResponseData> {
-    const { data } = await apiClient.post(`/experiments/${experimentId}/note`, { note });
-    return data;
+    const response = await apiClient.post(`/experiments/${experimentId}/note`, { note });
+    return response?.data;
   },
   async lockExperiment(experimentId: string, force: boolean): Promise<ResponseData> {
-    const { data } = await apiClient.post(`/experiments/${experimentId}/lock`, { force });
-    return data;
+    const response = await apiClient.post(`/experiments/${experimentId}/lock`, { force });
+    return response?.data;
   },
   async unlockExperiment(experimentId: string): Promise<ResponseData> {
-    const { data } = await apiClient.delete(`/experiments/${experimentId}/lock`);
-    return data;
+    const response = await apiClient.delete(`/experiments/${experimentId}/lock`);
+    return response?.data;
   },
   async scans(experimentId: string): Promise<Scan[]> {
-    const { data } = await apiClient.get('/scans', {
+    const response = await apiClient.get('/scans', {
       params: { experiment: experimentId },
     });
-    const { results } = data;
-    return results;
+    return response?.data?.results;
   },
   async scan(scanId: string): Promise<Scan> {
-    const { data } = await apiClient.get(`/scans/${scanId}`);
-    return data;
+    const response = await apiClient.get(`/scans/${scanId}`);
+    return response?.data;
   },
   async setDecision(
     scanId: string,
@@ -184,29 +184,28 @@ const djangoClient = {
     userIdentifiedArtifacts: Object,
     location: Object,
   ): Promise<ResponseData> {
-    const { data } = await apiClient.post('/scan-decisions', {
+    const response = await apiClient.post('/scan-decisions', {
       scan: scanId, decision, note: comment, artifacts: userIdentifiedArtifacts, location,
     });
-    return data;
+    return response?.data;
   },
   async frames(scanId: string): Promise<Frame[]> {
-    const { data } = await apiClient.get('/frames', {
+    const response = await apiClient.get('/frames', {
       params: { scan: scanId },
     });
-    const { results } = data;
-    return results;
+    return response?.data?.results;
   },
   async frame(frameId: string): Promise<Frame> {
-    const { data } = await apiClient.get(`/frames/${frameId}`);
-    return data;
+    const response = await apiClient.get(`/frames/${frameId}`);
+    return response?.data;
   },
   async me(): Promise<User> {
-    const resp = await apiClient.get('/users/me');
-    return resp && resp.status === 200 ? resp.data : null;
+    const response = await apiClient.get('/users/me');
+    return response?.data;
   },
   async allUsers(): Promise<Paginated<User>> {
-    const resp = await apiClient.get('/users');
-    return resp.status === 200 ? resp.data : null;
+    const response = await apiClient.get('/users');
+    return response?.data;
   },
   async sendEmail(email: Email) {
     await apiClient.post('/email', email);
