@@ -156,7 +156,7 @@ def import_data(project_id: Optional[str]):
         raise APIException(f'MIQA lacks permission to read {import_path}.')
 
     import_dict, not_found_errors = validate_import_dict(import_dict, project)
-    perform_import.delay(import_dict)
+    perform_import(import_dict)
     return not_found_errors
 
 
