@@ -183,6 +183,11 @@ const djangoClient = {
     const response = await apiClient.delete(`/experiments/${experimentId}/lock`);
     return response?.data;
   },
+  async deleteExperiment(experimentId: string): Promise<ResponseData> {
+    if (!experimentId) return undefined;
+    const response = await apiClient.delete(`/experiments/${experimentId}`);
+    return response?.data;
+  },
   async scans(experimentId: string): Promise<Scan[]> {
     if (!experimentId) return undefined;
     const response = await apiClient.get('/scans', {
