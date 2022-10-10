@@ -62,12 +62,16 @@ class ExperimentCreateSerializer(serializers.ModelSerializer):
     )
 
 
-class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin):
-    # Our default serializer nests its experiment (not sure why though)
-
+class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.DestroyModelMixin):
     filter_backends = [filters.DjangoFilterBackend]
-    permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
     serializer_class = ExperimentSerializer
+
+    def get_permissions(self):
+        if self.action == 'destroy' or self.action == 'create':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticated, UserHoldsExperimentLock]
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         projects = get_objects_for_user(
