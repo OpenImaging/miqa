@@ -342,13 +342,7 @@ def perform_export(project_id: Optional[str]):
                     frame_object.scan.session_id,
                     frame_object.scan.scan_link,
                 ]
-                # if a last decision exists for the scan, encode that decision on this row
-                # ... U, reviewer@miqa.dev, note; with; commas; replaced, artifact_1;artifact_2
-                last_decision = (
-                    frame_object.scan.decisions.filter(created__isnull=False)
-                    .order_by('created')
-                    .last()
-                )
+                last_decision = frame_object.scan.decisions.order_by('created').last()
                 if last_decision:
                     location = ''
                     if last_decision.location:
@@ -365,11 +359,14 @@ def perform_export(project_id: Optional[str]):
                     creator = ''
                     if last_decision.creator:
                         creator = last_decision.creator.email
+                    created = None
+                    if last_decision.created:
+                        created = str(last_decision.created)
                     row_data += [
                         last_decision.decision,
                         creator,
                         last_decision.note.replace(',', ';'),
-                        str(last_decision.created),
+                        created,
                         ';'.join(artifacts),
                         location,
                     ]

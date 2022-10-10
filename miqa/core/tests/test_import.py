@@ -260,7 +260,6 @@ def test_import_export_unchanged(
 
     resp = user_api_client(project=project).post(f'/api/v1/projects/{project.id}/import')
     if get_perms(user, project):
-        assert resp.status_code == 204
         project.refresh_from_db()
         assert project.experiments.count() == 1
         assert project.experiments.all()[0].scans.count() == 1
