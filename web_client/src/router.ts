@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 import Projects from './views/Projects.vue';
-import Frame from './views/Frame.vue';
+import Scan from './views/Scan.vue';
 
 Vue.use(Router);
 
@@ -15,9 +15,9 @@ export default new Router({
     },
     // Order matters
     {
-      path: '/:projectId?/:frameId?',
-      name: 'frame',
-      component: Frame,
+      path: '/:projectId?/:scanId?',
+      name: 'scan',
+      component: Scan,
     },
     {
       path: '*',

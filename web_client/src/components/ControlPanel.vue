@@ -92,6 +92,7 @@ export default {
     ...mapMutations([
       'setShowCrosshairs',
       'setStoreCrosshairs',
+      'setCurrentFrameId',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -125,25 +126,25 @@ export default {
         }
       }
     },
-    navigateToFrame(frameId) {
-      if (frameId && frameId !== this.$route.params.frameId) {
+    navigateToScan(scanId) {
+      if (scanId && scanId !== this.$route.params.scanId) {
         this.$router
-          .push(`/${this.currentViewData.projectId}/${frameId}` || '')
+          .push(`/${this.currentViewData.projectId}/${scanId}` || '')
           .catch(this.handleNavigationError);
       }
     },
     slideToFrame(framePosition) {
-      this.navigateToFrame(this.currentViewData.scanFramesList[framePosition - 1]);
+      this.setCurrentFrameId(this.currentViewData.scanFramesList[framePosition - 1]);
     },
     updateImage() {
       if (this.direction === 'back') {
-        this.navigateToFrame(this.previousFrame);
+        this.setCurrentFrameId(this.previousFrame);
       } else if (this.direction === 'forward') {
-        this.navigateToFrame(this.nextFrame);
+        this.setCurrentFrameId(this.nextFrame);
       } else if (this.direction === 'previous') {
-        this.navigateToFrame(this.currentViewData.upTo);
+        this.navigateToScan(this.currentViewData.upTo);
       } else if (this.direction === 'next') {
-        this.navigateToFrame(this.currentViewData.downTo);
+        this.navigateToScan(this.currentViewData.downTo);
       }
     },
     handleKeyPress(direction) {

@@ -1,7 +1,7 @@
 <script>
 import _ from 'lodash';
 import {
-  mapState, mapActions, mapGetters,
+  mapState, mapActions,
 } from 'vuex';
 
 import Navbar from '@/components/Navbar.vue';
@@ -11,7 +11,7 @@ import VtkViewer from '@/components/VtkViewer.vue';
 import formatSize from '@/utils/helper';
 
 export default {
-  name: 'Frame',
+  name: 'Scan',
   components: {
     Navbar,
     ExperimentsView,
@@ -20,7 +20,8 @@ export default {
   },
   inject: ['user'],
   async beforeRouteUpdate(to, from, next) {
-    const toFrame = await this.getFrame({ frameId: to.params.frameId, projectId: undefined });
+    const toFrameId = this.scanFrames[to.params.scanId][0];
+    const toFrame = this.frames[toFrameId];
     next(true);
     if (toFrame) {
       this.swapToFrame({
@@ -40,13 +41,12 @@ export default {
   },
   computed: {
     ...mapState([
+      'currentFrameId',
       'vtkViews',
+      'frames',
       'scanFrames',
       'loadingFrame',
       'errorLoadingFrame',
-    ]),
-    ...mapGetters([
-      'currentFrame',
     ]),
     currentScanFrames() {
       return this.scanFrames[this.currentScan.id];
@@ -60,6 +60,9 @@ export default {
       }
       return `Downloading image ${formatSize(this.downloadLoaded)} / ${formatSize(this.downloadTotal)}`;
     },
+    currentFrame() {
+      return this.frames[this.currentFrameId];
+    },
   },
   watch: {
     currentScan(scan) {
@@ -70,14 +73,17 @@ export default {
         this.newNote = '';
       }
     },
+    async currentFrameId(frameId) {
+      await this.swapToFrame({
+        frame: this.frames[frameId],
+        onDownloadProgress: this.onFrameDownloadProgress,
+      });
+    },
   },
   async created() {
-    this.debouncedFrameSliderChange = _.debounce(
-      this.debouncedFrameSliderChange,
-      30,
-    );
-    const { projectId, frameId } = this.$route.params;
-    const frame = await this.getFrame({ frameId, projectId });
+    const { projectId, scanId } = this.$route.params;
+    const scan = await this.getScan({ scanId, projectId });
+    const frame = this.frames[this.scanFrames[scan.id][0]];
     if (frame) {
       await this.swapToFrame({
         frame,
@@ -99,18 +105,8 @@ export default {
     ...mapActions([
       'loadProject',
       'swapToFrame',
-      'getFrame',
+      'getScan',
     ]),
-    debouncedFrameSliderChange(index) {
-      const frameId = this.currentScanFrames[index];
-      this.$router.push(frameId).catch(this.handleNavigationError);
-    },
-    advanceLoop() {
-      if (this.scanning) {
-        this.updateFrame();
-        this.nextAnimRequest = window.requestAnimationFrame(this.advanceLoop);
-      }
-    },
     onFrameDownloadProgress(e) {
       this.downloadLoaded = e.loaded;
       this.downloadTotal = e.total;
@@ -179,7 +175,9 @@ export default {
       </v-col>
     </v-layout>
     <template v-if="currentFrame">
-      <v-flex class="layout-container">
+      <v-flex
+        class="layout-container"
+      >
         <div class="my-layout">
           <div
             v-for="(vtkView, index) in vtkViews"
