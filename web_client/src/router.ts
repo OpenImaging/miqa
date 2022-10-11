@@ -15,6 +15,11 @@ export default new Router({
     },
     // Order matters
     {
+      path: '/:projectId?/complete',
+      name: 'projectComplete',
+      component: Projects,
+    },
+    {
       path: '/:projectId?/:scanId?',
       name: 'scan',
       component: Scan,

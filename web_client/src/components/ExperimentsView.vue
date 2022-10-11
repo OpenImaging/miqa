@@ -205,7 +205,7 @@ export default {
       >
         <span>All scans</span>
         <v-switch
-          :input-value="true"
+          :input-value="reviewMode"
           dense
           style="display: inline-block; max-height: 40px; max-width: 60px;"
           class="px-3 ma-0"

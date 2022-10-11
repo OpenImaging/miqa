@@ -20,14 +20,18 @@ export default {
   },
   inject: ['user'],
   async beforeRouteUpdate(to, from, next) {
-    const toFrameId = this.scanFrames[to.params.scanId][0];
-    const toFrame = this.frames[toFrameId];
-    next(true);
-    if (toFrame) {
-      this.swapToFrame({
-        frame: toFrame,
-        onDownloadProgress: this.onFrameDownloadProgress,
-      });
+    if (to.params.scanId === 'complete') {
+      next(true);
+    } else {
+      const toFrameId = this.scanFrames[to.params.scanId][0];
+      const toFrame = this.frames[toFrameId];
+      next(true);
+      if (toFrame) {
+        this.swapToFrame({
+          frame: toFrame,
+          onDownloadProgress: this.onFrameDownloadProgress,
+        });
+      }
     }
   },
   async beforeRouteLeave(to, from, next) {

@@ -26,10 +26,13 @@ export default defineComponent({
   },
   inject: ['user', 'MIQAConfig'],
   setup() {
+    const { switchReviewMode } = store.commit;
     const loadingProjects = ref(true);
     store.dispatch.loadProjects().then(() => {
       loadingProjects.value = false;
     });
+    const reviewMode = computed(() => store.state.reviewMode);
+    const complete = window.location.hash.includes('complete');
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
@@ -37,9 +40,6 @@ export default defineComponent({
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
-    const selectProject = (project: Project) => {
-      store.dispatch.loadProject(project);
-    };
     const selectGlobal = () => {
       store.dispatch.loadGlobal();
     };
@@ -88,11 +88,26 @@ export default defineComponent({
       );
     }
 
+    async function getProjectFromURL() {
+      if (complete) {
+        const targetProjectIndex = projects.value.findIndex(
+          (project) => project.id === window.location.hash.split('/')[1],
+        );
+        const targetProject = projects.value[targetProjectIndex];
+        if (targetProject) store.commit.setCurrentProject(targetProject);
+        selectedProjectIndex.value = targetProjectIndex;
+      }
+    }
+
     const overviewPoll = setInterval(refreshTaskOverview, 10000);
     watch(currentTaskOverview, setOverviewSections);
     watch(currentProject, refreshTaskOverview);
+    watch(projects, getProjectFromURL);
 
     return {
+      reviewMode,
+      switchReviewMode,
+      complete,
       currentProject,
       loadingProjects,
       currentTaskOverview,
@@ -100,17 +115,24 @@ export default defineComponent({
       projects,
       isGlobal,
       overviewPoll,
-      selectProject,
       selectGlobal,
       overviewSections,
       setOverviewSections,
       refreshAllTaskOverviews,
+      getProjectFromURL,
     };
   },
   data: () => ({
     creating: false,
     newName: '',
   }),
+  watch: {
+    projects() {
+      this.$nextTick(() => {
+        if (this.$refs.proceed) this.$refs.proceed.$el.focus();
+      });
+    },
+  },
   mounted() {
     this.setOverviewSections();
     window.addEventListener('keydown', (event) => {
@@ -130,6 +152,12 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations(['setProjects', 'setCurrentProject']),
+    selectProject(project: Project) {
+      if (this.complete) {
+        this.complete = false;
+      }
+      store.dispatch.loadProject(project);
+    },
     async createProject() {
       if (this.creating && this.newName.length > 0) {
         try {
@@ -149,6 +177,26 @@ export default defineComponent({
           });
         }
       }
+    },
+    async proceedToNext() {
+      const nextProject = this.projects[this.selectedProjectIndex + 1];
+      store.dispatch.loadProject(nextProject);
+      this.selectedProjectIndex += 1;
+      await djangoRest.projectTaskOverview(nextProject.id).then(
+        (taskOverview) => {
+          let nextScanIndex = 0;
+          let nextScan;
+          let nextScanState;
+          while (
+            !nextScan || (nextScanState === 'complete' && this.reviewMode)
+          ) {
+            nextScan = nextProject.experiments[0].scans[nextScanIndex];
+            nextScanState = taskOverview.scan_states[nextScan.id];
+            nextScanIndex += 1;
+          }
+          this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
+        },
+      );
     },
   },
 });
@@ -240,7 +288,7 @@ export default defineComponent({
         </v-navigation-drawer>
       </v-card>
       <div
-        v-if="currentProject !== undefined"
+        v-if="currentProject !== undefined && !complete"
         class="flex-grow-1 ma-3 pa-5"
       >
         <v-card-title v-if="isGlobal">
@@ -304,7 +352,41 @@ export default defineComponent({
           fill-height
         >
           <div
-            v-if="projects.length > 0"
+            v-if="complete"
+            class="title text-center"
+          >
+            Viewed all scans in Project {{ currentProject.name }}.
+            <div
+              v-if="selectedProjectIndex + 1 < projects.length"
+            >
+              Proceed to next Project, {{ projects[selectedProjectIndex+1].name }}?
+              <br>
+              <v-form @submit.prevent="proceedToNext">
+                <v-btn
+                  ref="proceed"
+                  class="my-3"
+                  type="submit"
+                >
+                  Proceed
+                </v-btn>
+              </v-form>
+            </div>
+            <v-subheader
+              class="mode-toggle"
+            >
+              <span>All scans</span>
+              <v-switch
+                :input-value="reviewMode"
+                dense
+                style="display: inline-block; max-height: 40px; max-width: 60px;"
+                class="px-3 ma-0"
+                @change="switchReviewMode"
+              />
+              <span>Scans for my review</span>
+            </v-subheader>
+          </div>
+          <div
+            v-else-if="projects.length > 0"
             class="title"
           >
             Select a project
@@ -347,5 +429,9 @@ export default defineComponent({
   bottom: 10px;
   width: 100%;
   text-align: center;
+}
+.mode-toggle {
+  align-items: baseline;
+  display: inline-block;
 }
 </style>

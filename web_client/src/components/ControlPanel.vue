@@ -126,10 +126,11 @@ export default {
         }
       }
     },
-    navigateToScan(scanId) {
-      if (scanId && scanId !== this.$route.params.scanId) {
+    navigateToScan(location) {
+      if (!location) location = 'complete';
+      if (location && location !== this.$route.params.scanId) {
         this.$router
-          .push(`/${this.currentViewData.projectId}/${scanId}` || '')
+          .push(`/${this.currentViewData.projectId}/${location}` || '')
           .catch(this.handleNavigationError);
       }
     },
@@ -356,7 +357,6 @@ export default {
                             <v-icon>fa-caret-up</v-icon>
                           </v-btn>
                           <v-btn
-                            :disabled="!currentViewData.downTo"
                             small
                             depressed
                             class="transparent-btn"
