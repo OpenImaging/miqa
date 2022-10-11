@@ -96,8 +96,8 @@ export default {
       }
       return str;
     },
-    getURLForFirstFrameInScan(scanId) {
-      return `/${this.currentProject.id}/${this.scanFrames[scanId][0]}`;
+    getURLForScan(scanId) {
+      return `/${this.currentProject.id}/${scanId}`;
     },
     decisionToRating(decisions) {
       if (decisions.length === 0) return {};
@@ -205,7 +205,7 @@ export default {
       >
         <span>All scans</span>
         <v-switch
-          :input-value="true"
+          :input-value="reviewMode"
           dense
           style="display: inline-block; max-height: 40px; max-width: 60px;"
           class="px-3 ma-0"
@@ -304,7 +304,7 @@ export default {
                   <template #activator="{ on, attrs }">
                     <v-btn
                       v-bind="attrs"
-                      :to="getURLForFirstFrameInScan(scan.id)"
+                      :to="getURLForScan(scan.id)"
                       :disabled="!includeScan(scan.id)"
                       class="ml-0 px-1 scan-name"
                       href

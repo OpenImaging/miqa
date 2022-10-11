@@ -387,10 +387,8 @@ const {
         scanFramesList,
         scanPosition: experimentScansList.indexOf(scan.id) + 1,
         framePosition: scanFramesList.indexOf(currentFrame.id) + 1,
-        backTo: currentFrame.previousFrame,
-        forwardTo: currentFrame.nextFrame,
-        upTo: state.scanFrames[upTo] ? state.scanFrames[upTo][0] : undefined,
-        downTo: state.scanFrames[downTo] ? state.scanFrames[downTo][0] : undefined,
+        upTo,
+        downTo,
         currentFrame,
         currentAutoEvaluation: currentFrame.frame_evaluation,
       };
@@ -731,16 +729,16 @@ const {
         },
       });
     },
-    async getFrame({ state, dispatch }, { frameId, projectId }) {
-      if (!frameId) {
+    async getScan({ state, dispatch }, { scanId, projectId }) {
+      if (!scanId) {
         return undefined;
       }
-      if (!state.frames[frameId]) {
+      if (!state.scans[scanId]) {
         await dispatch('loadProjects');
         const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
         await dispatch('loadProject', targetProject);
       }
-      return state.frames[frameId];
+      return state.scans[scanId];
     },
     async setCurrentFrame({ commit }, frameId) {
       commit('setCurrentFrameId', frameId);
@@ -750,9 +748,6 @@ const {
     }, { frame, onDownloadProgress = null }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
-      }
-      if (getters.currentFrame === frame) {
-        return;
       }
       commit('setLoadingFrame', true);
       commit('setErrorLoadingFrame', false);
