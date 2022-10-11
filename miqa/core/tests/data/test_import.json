@@ -1,0 +1,32 @@
+{
+    "projects": {
+        "ucsd": {
+            "experiments": {
+                "3_experiment": {
+                    "scans": {
+                        "3": {
+                            "type": "ncanda-t1spgr-v1",
+                            "frames": {
+                                "0": {
+                                    "file_location": "/opt/django-project/samples/datasnap-2019-01-23/fs/storage/XNAT/archive/ucsd_incoming/arc001/E-99999-P-9-20190121/RESOURCES/nifti/3_ncanda-t1spgr-v1/image.nii.gz"
+                                }
+                            },
+                            "subject_id": null,
+                            "session_id": null,
+                            "scan_link": null,
+                            "last_decision": {
+                                "decision": "Q?",
+                                "creator": null,
+                                "note": "MP(2022-09-16): Damaged Phantom",
+                                "created": null,
+                                "user_identified_artifacts": null,
+                                "location": null
+                            }
+                        }
+                    },
+                    "notes": ""
+                }
+            }
+        }
+    }
+}

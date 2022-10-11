@@ -238,3 +238,36 @@ def test_import_s3_preserves_path(project_factory):
         frame.raw_path
         == 's3://miqa-sample/IXI_small/Guys/IXI002/0828-DTI/IXI002-Guys-0828-DTI-00.nii.gz'
     )
+
+
+@pytest.mark.django_db
+def test_import_export_unchanged(
+    tmp_path: Path,
+    user,
+    project_factory,
+    samples_dir: Path,
+    sample_scans,
+    user_api_client,
+):
+    with open(Path(__file__).parent / 'data' / 'test_import.json') as f:
+        json_contents = json.load(f)
+    import_file = str(tmp_path / 'import.json')
+    export_file = str(tmp_path / 'export.json')
+    with open(import_file, 'w') as f:
+        json.dump(json_contents, f)
+
+    project = project_factory(name='ucsd', import_path=import_file, export_path=export_file)
+
+    resp = user_api_client(project=project).post(f'/api/v1/projects/{project.id}/import')
+    if get_perms(user, project):
+        project.refresh_from_db()
+        assert project.experiments.count() == 1
+        assert project.experiments.all()[0].scans.count() == 1
+
+        user_api_client(project=project).post(f'/api/v1/projects/{project.id}/export')
+        with open(export_file) as f:
+            export_contents = json.load(f)
+            assert export_contents == json_contents
+
+    else:
+        assert resp.status_code == 403
