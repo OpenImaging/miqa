@@ -19,24 +19,6 @@ export default {
     ControlPanel,
   },
   inject: ['user'],
-  async beforeRouteUpdate(to, from, next) {
-    if (to.params.scanId === 'complete') {
-      next(true);
-    } else {
-      const toFrameId = this.scanFrames[to.params.scanId][0];
-      const toFrame = this.frames[toFrameId];
-      next(true);
-      if (toFrame) {
-        this.swapToFrame({
-          frame: toFrame,
-          onDownloadProgress: this.onFrameDownloadProgress,
-        });
-      }
-    }
-  },
-  async beforeRouteLeave(to, from, next) {
-    next(true);
-  },
   data() {
     return {
       downloadLoaded: 0,
@@ -83,19 +65,10 @@ export default {
         onDownloadProgress: this.onFrameDownloadProgress,
       });
     },
-  },
-  async created() {
-    const { projectId, scanId } = this.$route.params;
-    const scan = await this.getScan({ scanId, projectId });
-    const frame = this.frames[this.scanFrames[scan.id][0]];
-    if (frame) {
-      await this.swapToFrame({
-        frame,
-        onDownloadProgress: this.onFrameDownloadProgress,
-      });
-    } else {
-      this.$router.replace('/').catch(this.handleNavigationError);
-    }
+    '$route.params.scanId': {
+      handler: 'loadScan',
+      immediate: true,
+    },
   },
   mounted() {
     window.addEventListener('unauthorized', () => {
@@ -114,6 +87,21 @@ export default {
     onFrameDownloadProgress(e) {
       this.downloadLoaded = e.loaded;
       this.downloadTotal = e.total;
+    },
+    // Loads a specific frame
+    async loadScan() {
+      // Get the project/frame id's from the URL
+      const { projectId, scanId } = this.$route.params;
+      const scan = await this.getScan({ scanId, projectId });
+      const frame = this.frames[this.scanFrames[scan.id][0]];
+      if (frame) {
+        await this.swapToFrame({
+          frame,
+          onDownloadProgress: this.onFrameDownloadProgress,
+        });
+      } else {
+        this.$router.replace('/').catch(this.handleNavigationError);
+      }
     },
   },
 };
