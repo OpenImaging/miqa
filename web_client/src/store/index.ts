@@ -63,10 +63,10 @@ function getArrayName(filename) {
   return `Scalars ${name}`;
 }
 
-function getData(id, file, webWorker = null) {
+function getData(frameId, file, webWorker = null) {
   return new Promise((resolve, reject) => {
-    if (frameCache.has(id)) {
-      resolve({ frameData: frameCache.get(id), webWorker });
+    if (frameCache.has(frameId)) {
+      resolve({ frameData: frameCache.get(frameId), webWorker });
     } else {
       const fileName = file.name;
       const io = new FileReader();
@@ -81,9 +81,9 @@ function getData(id, file, webWorker = null) {
               .getPointData()
               .getArray(0)
               .getRange();
-            frameCache.set(id, { frameData });
+            frameCache.set(frameId, { frameData });
             // eslint-disable-next-line no-use-before-define
-            expandScanRange(id, dataRange);
+            expandScanRange(frameId, dataRange);
             resolve({ frameData, webWorker });
           })
           .catch((error) => {
@@ -98,7 +98,7 @@ function getData(id, file, webWorker = null) {
 
 function loadFile(frame, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frame.id)) {
-    return { frameId: frame.id, fileP: fileCache.get(frame.id) };
+    return { frameId: frame.id, cachedFile: fileCache.get(frame.id) };
   }
   let client = apiClient;
   let downloadURL = `/frames/${frame.id}/download`;
@@ -113,12 +113,13 @@ function loadFile(frame, { onDownloadProgress = null } = {}) {
     { onDownloadProgress },
   );
   fileCache.set(frame.id, promise);
-  return { frameId: frame.id, fileP: promise };
+  return { frameId: frame.id, cachedFile: promise };
 }
 
 function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
   const loadResult = loadFile(frame, { onDownloadProgress });
-  return loadResult.fileP.then((file) => getData(frame.id, file, savedWorker)
+  return loadResult.cachedFile
+    .then((file) => getData(frame.id, file, savedWorker))
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
@@ -132,7 +133,7 @@ function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
         savedWorker.terminate();
         savedWorker = null;
       }
-    }));
+    });
 }
 
 function poolFunction(webWorker, taskInfo) {
@@ -158,8 +159,9 @@ function poolFunction(webWorker, taskInfo) {
       filePromise = download.promise;
       fileCache.set(frame.id, filePromise);
       pendingFrameDownloads.add(download);
-      filePromise.then(() => {
-        pendingFrameDownloads.delete(download);
+      filePromise
+        .then(() => {
+          pendingFrameDownloads.delete(download);
       }).catch(() => {
         pendingFrameDownloads.delete(download);
       });
@@ -246,23 +248,23 @@ function queueLoadScan(scan, loadNext = 0) {
 }
 
 // get next frame (across experiments and scans)
-function getNextFrame(experiments, i, j) {
-  const experiment = experiments[i];
+function getNextFrame(experiments, experimentIndex, scanIndex) {
+  const experiment = experiments[experimentIndex];
   const { scans } = experiment;
 
-  if (j === scans.length - 1) {
+  if (scanIndex === scans.length - 1) {
     // last scan, go to next experiment
-    if (i === experiments.length - 1) {
+    if (experimentIndex === experiments.length - 1) {
       // last experiment, nowhere to go
       return null;
     }
     // get first scan in next experiment
-    const nextExperiment = experiments[i + 1];
+    const nextExperiment = experiments[experimentIndex + 1];
     const nextScan = nextExperiment.scans[0];
     return nextScan.frames[0];
   }
   // get next scan in current experiment
-  const nextScan = scans[j + 1];
+  const nextScan = scans[scanIndex + 1];
   return nextScan.frames[0];
 }
 
@@ -504,8 +506,8 @@ const {
     setProjects(state, projects: Project[]) {
       state.projects = projects;
     },
-    addScanDecision(state, { currentScan, newDecision }) {
-      state.scans[currentScan].decisions.push(newDecision);
+    addScanDecision(state, { currentScanId, newDecision }) {
+      state.scans[currentScanId].decisions.push(newDecision);
     },
     setFrameEvaluation(state, evaluation) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
@@ -525,25 +527,25 @@ const {
     updateLastApiRequestTime(state) {
       state.lastApiRequestTime = Date.now();
     },
-    setLoadingFrame(state, value) {
-      state.loadingFrame = value;
+    setLoadingFrame(state, isLoading) {
+      state.loadingFrame = isLoading;
     },
-    setErrorLoadingFrame(state, value) {
-      state.errorLoadingFrame = value;
+    setErrorLoadingFrame(state, isErrorLoading) {
+      state.errorLoadingFrame = isErrorLoading;
     },
-    addScanFrames(state, { sid, id }) {
-      state.scanFrames[sid].push(id);
+    addScanFrames(state, { scanId, frameId }) {
+      state.scanFrames[scanId].push(frameId);
     },
-    addExperimentScans(state, { eid, sid }) {
-      state.scanFrames[sid] = [];
-      state.experimentScans[eid].push(sid);
+    addExperimentScans(state, { experimentId, scanId }) {
+      state.scanFrames[scanId] = []; // Why?
+      state.experimentScans[experimentId].push(scanId);
     },
-    addExperiment(state, { id, value }) {
-      state.experimentScans[id] = [];
-      if (!state.experimentIds.includes(id)) {
-        state.experimentIds.push(id);
+    addExperiment(state, { experimentId, experiment }) {
+      state.experimentScans[experimentId] = [];
+      if (!state.experimentIds.includes(experimentId)) {
+        state.experimentIds.push(experimentId);
       }
-      state.experiments[id] = value;
+      state.experiments[experimentId] = experiment;
     },
     updateExperiment(state, experiment) {
       // Necessary for reactivity
@@ -640,8 +642,8 @@ const {
         // set experimentScans[experiment.id] before registering the experiment.id
         // so ExperimentsView doesn't update prematurely
         commit('addExperiment', {
-          id: experiment.id,
-          value: {
+          experimentId: experiment.id,
+          experiment: {
             id: experiment.id,
             name: experiment.name,
             note: experiment.note,
@@ -656,7 +658,7 @@ const {
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
-          commit('addExperimentScans', { eid: experiment.id, sid: scan.id });
+          commit('addExperimentScans', { experimentId: experiment.id, scanId: scan.id });
 
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
           // eslint-disable-next-line no-await-in-loop
@@ -680,7 +682,7 @@ const {
 
           for (let k = 0; k < frames.length; k += 1) {
             const frame = frames[k];
-            commit('addScanFrames', { sid: scan.id, id: frame.id });
+            commit('addScanFrames', { scanId: scan.id, frameId: frame.id });
             commit('setFrame', {
               frameId: frame.id,
               frame: {
@@ -767,7 +769,7 @@ const {
         // slices displayed, even though we have the data and attempted
         // to render it.  This may be due to frame extents changing between
         // scans, which is not the case from one timestep of a single scan
-        // to tne next.
+        // to the next.
         shrinkProxyManager(state.proxyManager);
         newProxyManager = true;
       }
