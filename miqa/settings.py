@@ -12,6 +12,7 @@ from composed_configuration import (
     ProductionBaseConfiguration,
     SmtpEmailMixin,
     TestingBaseConfiguration,
+    S3StorageMixin,
 )
 from composed_configuration._configuration import _BaseConfiguration
 from configurations import values
@@ -107,11 +108,18 @@ class DockerComposeProductionConfiguration(
     MiqaMixin,
     SmtpEmailMixin,
     HttpsMixin,
+    S3StorageMixin,
     _BaseConfiguration,
 ):
     """For the production deployment using docker-compose."""
 
     MIQA_URL_PREFIX = values.Value(environ=True, default='/')
+
+    # Configure connection to S3 bucket by setting the following environment variables:
+    # AWS_DEFAULT_REGION
+    # AWS_ACCESS_KEY_ID
+    # AWS_SECRET_ACCESS_KEY
+    # DJANGO_STORAGE_BUCKET_NAME
 
     # Needed to support the reverse proxy configuration
     USE_X_FORWARDED_HOST = True
