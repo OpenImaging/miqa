@@ -116,10 +116,10 @@ class DockerComposeProductionConfiguration(
     MIQA_URL_PREFIX = values.Value(environ=True, default='/')
 
     # Configure connection to S3 bucket by setting the following environment variables:
-    # AWS_S3_REGION_NAME
-    # AWS_S3_ACCESS_KEY_ID
-    # AWS_S3_SECRET_ACCESS_KEY
-    # AWS_STORAGE_BUCKET_NAME
+    # AWS_DEFAULT_REGION
+    # AWS_ACCESS_KEY_ID
+    # AWS_SECRET_ACCESS_KEY
+    # DJANGO_STORAGE_BUCKET_NAME
 
     # Needed to support the reverse proxy configuration
     USE_X_FORWARDED_HOST = True
