@@ -99,6 +99,13 @@ export default {
           color: 'green darken-3 white--text',
         },
       ];
+      if (this.myCurrentProjectRoles.includes('tier_1_reviewer') || this.myCurrentProjectRoles.includes('superuser')) {
+        myOptions.push({
+          label: 'Questionable',
+          code: 'Q?',
+          color: 'grey darken-3 white--text',
+        });
+      }
       if (this.myCurrentProjectRoles.includes('tier_2_reviewer')) {
         myOptions.push({
           label: 'Usable-Extra',
@@ -109,12 +116,6 @@ export default {
           label: 'Unusable',
           code: 'UN',
           color: 'red darken-3 white--text',
-        });
-      } else if (this.myCurrentProjectRoles.includes('tier_1_reviewer') || this.myCurrentProjectRoles.includes('superuser')) {
-        myOptions.push({
-          label: 'Questionable',
-          code: 'Q?',
-          color: 'grey darken-3 white--text',
         });
       }
       return myOptions;
