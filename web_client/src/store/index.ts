@@ -13,7 +13,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, ProjectSettings, Scan,
+  Project, ProjectTaskOverview, User, ProjectSettings,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -494,11 +494,6 @@ const {
       }
       if (state.currentProject && taskOverview.project_id === state.currentProject.id) {
         state.currentTaskOverview = taskOverview;
-        Object.values(store.state.scans).forEach((scan: Scan) => {
-          if (taskOverview.scan_states[scan.id] && taskOverview.scan_states[scan.id] !== 'unreviewed') {
-            store.dispatch.reloadScan(scan.id);
-          }
-        });
       }
     },
     setProjects(state, projects: Project[]) {
