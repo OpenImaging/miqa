@@ -316,7 +316,7 @@ export default defineComponent({
             </v-layout>
           </v-card>
           <v-card
-            v-if="currentTaskOverview && currentTaskOverview.total_scans > 0"
+            v-if="currentTaskOverview && currentTaskOverview.total_scans > 0 && !isGlobal"
             class="flex-card"
           >
             <v-subheader>Overview</v-subheader>

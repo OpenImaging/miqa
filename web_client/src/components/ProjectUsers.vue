@@ -136,6 +136,15 @@ export default {
         class="pb-3"
       >
         <v-col cols="12">
+          Project Creator:
+          {{ currentProject.creator }}
+        </v-col>
+      </v-row>
+      <v-row
+        no-gutters
+        class="pb-3"
+      >
+        <v-col cols="12">
           Members
           <v-tooltip
             v-if="userCanEditProject"
