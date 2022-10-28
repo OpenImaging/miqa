@@ -191,6 +191,7 @@ export default {
 <template>
   <v-card class="flex-card">
     <div
+      v-if="currentProject"
       class="d-flex"
       style="justify-content: space-between; align-items: baseline"
     >
