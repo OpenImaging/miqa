@@ -732,7 +732,7 @@ const {
       });
     },
     async getScan({ state, dispatch }, { scanId, projectId }) {
-      if (!scanId) {
+      if (!scanId || !state.projects) {
         return undefined;
       }
       if (!state.scans[scanId]) {
