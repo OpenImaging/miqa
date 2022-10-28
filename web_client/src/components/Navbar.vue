@@ -61,6 +61,7 @@ export default defineComponent({
 
 <template>
   <v-app-bar
+    v-if="MIQAConfig"
     app
     dense
   >
