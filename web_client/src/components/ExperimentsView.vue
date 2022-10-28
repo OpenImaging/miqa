@@ -97,6 +97,7 @@ export default {
       return str;
     },
     getURLForScan(scanId) {
+      if (!this.currentProject) return '/';
       return `/${this.currentProject.id}/${scanId}`;
     },
     decisionToRating(decisions) {
@@ -194,7 +195,6 @@ export default {
     class="flex-card"
   >
     <div
-      v-if="currentProject"
       class="d-flex"
       style="justify-content: space-between; align-items: baseline"
     >

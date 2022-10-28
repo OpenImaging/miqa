@@ -446,14 +446,6 @@ const {
     setAllUsers(state, allUsers) {
       state.allUsers = allUsers;
     },
-    resetProject(state) {
-      state.experimentIds = [];
-      state.experiments = {};
-      state.experimentScans = {};
-      state.scans = {};
-      state.scanFrames = {};
-      state.frames = {};
-    },
     setCurrentFrameId(state, frameId) {
       state.currentFrameId = frameId;
     },
@@ -623,8 +615,6 @@ const {
       commit('setProjects', projects);
     },
     async loadProject({ commit }, project: Project) {
-      commit('resetProject');
-
       // Build navigation links throughout the frame to improve performance.
       let firstInPrev = null;
 
