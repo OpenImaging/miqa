@@ -231,13 +231,15 @@ function queueLoadScan(scan, loadNext = 0) {
         ];
       }
     } else {
-      let offset = 1;
-      while (!nextScan || !includeScan(nextScan.id)) {
+      let newIndex = scansInSameExperiment.indexOf(scan.id) + 1;
+      while (
+        (!nextScan || !includeScan(nextScan.id))
+         && newIndex < scansInSameExperiment.length
+         && newIndex > 0
+      ) {
         // load next scan in same experiment
-        nextScan = store.state.scans[scansInSameExperiment[
-          scansInSameExperiment.indexOf(scan.id) + offset
-        ]];
-        offset += 1;
+        nextScan = store.state.scans[scansInSameExperiment[newIndex]];
+        newIndex += 1;
       }
     }
     if (nextScan) queueLoadScan(nextScan, loadNext - 1);
