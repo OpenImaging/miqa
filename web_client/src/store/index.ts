@@ -232,8 +232,10 @@ function queueLoadScan(scan, loadNext = 0) {
       }
     } else {
       let newIndex = scansInSameExperiment.indexOf(scan.id);
-      while (!nextScan || !includeScan(nextScan.id)) {
-        if (newIndex >= scansInSameExperiment.length) break;
+      while (
+        (!nextScan || !includeScan(nextScan.id))
+         && newIndex < scansInSameExperiment.length
+      ) {
         // load next scan in same experiment
         nextScan = store.state.scans[scansInSameExperiment[newIndex]];
         newIndex += 1;
