@@ -188,13 +188,19 @@ export default defineComponent({
           let nextScan;
           let nextScanState;
           while (
-            !nextScan || (nextScanState === 'complete' && this.reviewMode)
+            (!nextScan
+            || (nextScanState === 'complete' && this.reviewMode))
+            && nextProject.experiments[0].scans
           ) {
             nextScan = nextProject.experiments[0].scans[nextScanIndex];
             nextScanState = taskOverview.scan_states[nextScan.id];
             nextScanIndex += 1;
           }
-          this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
+          if (nextScan) {
+            this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
+          } else {
+            this.$router.push('/');
+          }
         },
       );
     },
