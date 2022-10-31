@@ -298,7 +298,9 @@ export function includeScan(scanId) {
 }
 
 const initState = {
-  MIQAConfig: {},
+  MIQAConfig: {
+    version: '',
+  },
   me: null,
   allUsers: [],
   reviewMode: true,
@@ -440,6 +442,7 @@ const {
       Object.assign(state, { ...state, ...initState });
     },
     setMIQAConfig(state, configuration) {
+      if (!configuration.version) configuration.version = '';
       state.MIQAConfig = configuration;
     },
     setMe(state, me) {
@@ -732,13 +735,17 @@ const {
       });
     },
     async getScan({ state, dispatch }, { scanId, projectId }) {
-      if (!scanId) {
+      if (!scanId || !state.projects) {
         return undefined;
       }
-      if (!state.scans[scanId]) {
+      if (!state.scans[scanId] && state.projects) {
         await dispatch('loadProjects');
-        const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
-        await dispatch('loadProject', targetProject);
+        if (state.projects) {
+          const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
+          await dispatch('loadProject', targetProject);
+        } else {
+          return undefined;
+        }
       }
       return state.scans[scanId];
     },

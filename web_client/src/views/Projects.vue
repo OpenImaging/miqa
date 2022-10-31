@@ -188,13 +188,20 @@ export default defineComponent({
           let nextScan;
           let nextScanState;
           while (
-            !nextScan || (nextScanState === 'complete' && this.reviewMode)
+            (!nextScan
+            || (nextScanState === 'complete' && this.reviewMode))
+            && nextProject.experiments[0].scans
+            && nextScanIndex < nextProject.experiments[0].scans.length
           ) {
             nextScan = nextProject.experiments[0].scans[nextScanIndex];
             nextScanState = taskOverview.scan_states[nextScan.id];
             nextScanIndex += 1;
           }
-          this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
+          if (nextScan) {
+            this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
+          } else {
+            this.$router.push('/');
+          }
         },
       );
     },
@@ -274,7 +281,7 @@ export default defineComponent({
               </v-btn>
             </v-list-item>
             <div
-              v-if="projects.length > 0"
+              v-if="projects && projects.length > 0"
               class="global-settings"
             >
               <v-btn

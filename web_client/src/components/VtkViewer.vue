@@ -304,6 +304,7 @@ export default {
       return Math.round(value * 100) / 100;
     },
     drawLine(ctx, displayLine) {
+      if (!displayLine) return;
       ctx.strokeStyle = displayLine.color;
       ctx.beginPath();
       ctx.moveTo(...displayLine.start);
