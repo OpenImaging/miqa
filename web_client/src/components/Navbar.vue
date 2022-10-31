@@ -72,10 +72,7 @@ export default defineComponent({
         <template #activator="{ on }">
           <span v-on="on">MIQA</span>
         </template>
-        <span>{{ MIQAConfig.version.length > 0
-          ? MIQAConfig.version
-          : "Demo Instance"
-        }}</span>
+        <span>{{ MIQAConfig.version || "Demo Instance" }}</span>
       </v-tooltip>
     </v-toolbar-title>
     <v-tabs
