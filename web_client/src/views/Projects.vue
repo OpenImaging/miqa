@@ -191,6 +191,7 @@ export default defineComponent({
             (!nextScan
             || (nextScanState === 'complete' && this.reviewMode))
             && nextProject.experiments[0].scans
+            && nextScanIndex < nextProject.experiments[0].scans.length
           ) {
             nextScan = nextProject.experiments[0].scans[nextScanIndex];
             nextScanState = taskOverview.scan_states[nextScan.id];
