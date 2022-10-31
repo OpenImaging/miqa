@@ -8,9 +8,13 @@ Once the email verification process has been completed, a second email will be s
 All users in MIQA have both a global role and a role on every project to which they are added. Possible roles are as follows:
 
 Global roles
+
 - Superuser
 - Normal user
+
+
 Project Roles
+
 - Creator
 - Tier 2 reviewer
 - Tier 1 Reviewer

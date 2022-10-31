@@ -99,7 +99,7 @@ The previous decisions displayed in this box are shown in reverse chronological 
 6. *The date*. This is the date on which the decision was saved.
 
 #### Additional items on the scan viewing page
-1.  *The context sidebar*. The left edge of this page includes a sidebar that expands upon hovering. This sidebar shows the same content as the experiments list on the project page. This acts as a navigational tool as the user continues down the list of scans in each experiment. The user’s icon will be shown next to the experiment they are currently viewing to represent that they have exclusive edit access (see Control Panel > Exclusive edit access for an experiment for details). Clicking any scan in this list will bring the user to that scan. Note that the review mode toggle exists here, too, so the user may filter/unfilter the queue of scans to flip through.
+1.  *The context sidebar*. The left edge of this page includes a sidebar that expands upon hovering. This sidebar shows the same content as the experiments list on the project page. This acts as a navigational tool as the user continues down the list of scans in each experiment. The user’s icon will be shown next to the experiment they are currently viewing to represent that they have exclusive edit access (see Control Panel > Exclusive edit access for an experiment for details). Clicking any scan in this list will bring the user to that scan. Note that the review mode toggle exists here, too, so the user may filter/unfilter the queue of scans to flip through. By default, this toggle is enabled, so complete scans will be disabled and written in gray text. To access these scans, simply turn off the filtering by switching the toggle to "All scans".
 
     **![](images/site_16.png)**
 
