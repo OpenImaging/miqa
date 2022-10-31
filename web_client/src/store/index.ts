@@ -298,7 +298,9 @@ export function includeScan(scanId) {
 }
 
 const initState = {
-  MIQAConfig: {},
+  MIQAConfig: {
+    version: '',
+  },
   me: null,
   allUsers: [],
   reviewMode: true,
@@ -440,6 +442,7 @@ const {
       Object.assign(state, { ...state, ...initState });
     },
     setMIQAConfig(state, configuration) {
+      if (!configuration.version) configuration.version = '';
       state.MIQAConfig = configuration;
     },
     setMe(state, me) {
