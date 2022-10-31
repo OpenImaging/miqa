@@ -735,10 +735,14 @@ const {
       if (!scanId || !state.projects) {
         return undefined;
       }
-      if (!state.scans[scanId]) {
+      if (!state.scans[scanId] && state.projects) {
         await dispatch('loadProjects');
-        const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
-        await dispatch('loadProject', targetProject);
+        if (state.projects) {
+          const targetProject = state.projects.filter((proj) => proj.id === projectId)[0];
+          await dispatch('loadProject', targetProject);
+        } else {
+          return undefined;
+        }
       }
       return state.scans[scanId];
     },
