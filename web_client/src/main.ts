@@ -49,7 +49,11 @@ Sentry.init({
   // If user closes the tab, we want them to be logged out if they return to the page
   await setupHeartbeat('miqa_logout_heartbeat', async () => { oauthClient.logout(); });
   await djangoRest.restoreLogin(store);
-  await Promise.all([store.dispatch.loadMe(), store.dispatch.loadConfiguration()]);
+  await Promise.all([
+    store.dispatch.reset(),
+    store.dispatch.loadMe(),
+    store.dispatch.loadConfiguration(),
+  ]);
 
   new Vue({
     vuetify,
