@@ -21,7 +21,7 @@ Some helpful hints for using docker-compose:
 
 ### Mail server
 
-MIQA has an email feature that allows users to send screenshots of scan slices to colleagues. As such, the MIQA server needs a specialized mail server to send those emails. There are many options for free open source mail servers for enterprise or personal use. Our documentation (see [production instructions](https://github.com/OpenImaging/miqa/tree/master/prod)) recommends Mailtrap, which only requires an account for their online portal . If your organization has some other standard for mail servers, that option is equally compatible with MIQA. You simply need to obtain the values for `host`, `port`, `user`, and `password` for the mail server you choose. The production instructions will specify how to use these values in the configuration.
+MIQA has an email feature that allows users to send screenshots of scan slices to colleagues. As such, the MIQA server needs a specialized mail server to send those emails. There are many options for free open source mail servers for enterprise or personal use. Our documentation (see [production instructions](https://github.com/OpenImaging/miqa/tree/master/prod)) recommends Mailtrap, which only requires an account for their online portal. If your organization has some other standard for mail servers, that option is equally compatible with MIQA. You simply need to obtain the values for `host`, `port`, `user`, and `password` for the SMTP server you choose. The production instructions will specify how to use these values in the configuration.
 
 ### SSL certificates
 
