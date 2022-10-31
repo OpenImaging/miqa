@@ -281,7 +281,7 @@ export default defineComponent({
               </v-btn>
             </v-list-item>
             <div
-              v-if="projects.length > 0"
+              v-if="projects && projects.length > 0"
               class="global-settings"
             >
               <v-btn
