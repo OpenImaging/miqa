@@ -442,6 +442,7 @@ const {
       Object.assign(state, { ...state, ...initState });
     },
     setMIQAConfig(state, configuration) {
+      if (!configuration) configuration = {};
       if (!configuration.version) configuration.version = '';
       state.MIQAConfig = configuration;
     },
