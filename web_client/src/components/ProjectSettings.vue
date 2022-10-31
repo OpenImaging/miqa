@@ -77,7 +77,7 @@ export default defineComponent({
           exportPathError.value = '';
         }, 3000);
       }
-      if (callback) callback();
+      if (callback && callback instanceof Function) callback();
     }
 
     return {
