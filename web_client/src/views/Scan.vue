@@ -51,6 +51,7 @@ export default {
       'scanFrames',
       'loadingFrame',
       'errorLoadingFrame',
+      'currentScan',
     ]),
     currentScanFrames() {
       return this.scanFrames[this.currentScan.id];
