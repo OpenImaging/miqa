@@ -53,6 +53,9 @@ function prepareProxyManager(proxyManager) {
         representation.onModified(macro.debounce(() => {
           view.render(true);
         }, 0));
+        // debounce timer doesn't need a wait time because
+        // the many onModified changes that it needs to collapse to a single rerender
+        // all happen simultaneously when the input data is changed.
       });
     });
   }
@@ -812,7 +815,6 @@ const {
           );
           frameData = result.frameData;
         }
-        const start = Date.now();
         sourceProxy.setInputData(frameData);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
