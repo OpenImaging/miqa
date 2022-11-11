@@ -82,6 +82,7 @@ export default {
       await this.swapToFrame({
         frame: this.frames[frameId],
         onDownloadProgress: this.onFrameDownloadProgress,
+        loadAll: false,
       });
     },
   },

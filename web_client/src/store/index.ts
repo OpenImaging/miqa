@@ -4,6 +4,7 @@ import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
+import macro from 'vtk.js/Sources/macros';
 import { InterpolationType } from 'vtk.js/Sources/Rendering/Core/ImageProperty/Constants';
 
 import '../utils/registerReaders';
@@ -49,9 +50,9 @@ function prepareProxyManager(proxyManager) {
       view.setOrientationAxesVisibility(false);
       view.getRepresentations().forEach((representation) => {
         representation.setInterpolationType(InterpolationType.NEAREST);
-        representation.onModified(() => {
+        representation.onModified(macro.debounce(() => {
           view.render(true);
-        });
+        }, 0));
       });
     });
   }
@@ -755,38 +756,39 @@ const {
     },
     async swapToFrame({
       state, dispatch, getters, commit,
-    }, { frame, onDownloadProgress = null }) {
+    }, { frame, onDownloadProgress = null, loadAll = true }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
       }
       commit('setLoadingFrame', true);
       commit('setErrorLoadingFrame', false);
-      const oldScan = getters.currentScan;
-      const newScan = state.scans[frame.scan];
 
-      if (newScan !== oldScan && newScan) {
-        queueLoadScan(
-          newScan, 3,
-        );
-      }
+      if (loadAll) {
+        const oldScan = getters.currentScan;
+        const newScan = state.scans[frame.scan];
 
-      let newProxyManager = false;
-      if (oldScan !== newScan && state.proxyManager) {
-        // If we don't "shrinkProxyManager()" and reinitialize it between
-        // scans, then we can end up with no frame
-        // slices displayed, even though we have the data and attempted
-        // to render it.  This may be due to frame extents changing between
-        // scans, which is not the case from one timestep of a single scan
-        // to tne next.
-        shrinkProxyManager(state.proxyManager);
-        newProxyManager = true;
-      }
-
-      if (!state.proxyManager || newProxyManager) {
-        state.proxyManager = vtkProxyManager.newInstance({
-          proxyConfiguration: proxy,
-        });
-        state.vtkViews = [];
+        if (newScan !== oldScan && newScan) {
+          queueLoadScan(
+            newScan, 3,
+          );
+        }
+        let newProxyManager = false;
+        if (oldScan !== newScan && state.proxyManager) {
+          // If we don't "shrinkProxyManager()" and reinitialize it between
+          // scans, then we can end up with no frame
+          // slices displayed, even though we have the data and attempted
+          // to render it.  This may be due to frame extents changing between
+          // scans, which is not the case from one timestep of a single scan
+          // to tne next.
+          shrinkProxyManager(state.proxyManager);
+          newProxyManager = true;
+        }
+        if (!state.proxyManager || newProxyManager) {
+          state.proxyManager = vtkProxyManager.newInstance({
+            proxyConfiguration: proxy,
+          });
+          state.vtkViews = [];
+        }
       }
 
       let sourceProxy = state.proxyManager.getActiveSource();
@@ -810,7 +812,9 @@ const {
           );
           frameData = result.frameData;
         }
+        const start = Date.now();
         sourceProxy.setInputData(frameData);
+        console.log('diff after set', Date.now() - start);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
@@ -829,7 +833,7 @@ const {
       }
 
       // check for window lock expiry
-      if (state.windowLocked.lock) {
+      if (loadAll && state.windowLocked.lock) {
         const { currentViewData } = getters;
         const unlock = () => {
           commit('setWindowLocked', {
