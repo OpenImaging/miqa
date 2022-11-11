@@ -814,7 +814,6 @@ const {
         }
         const start = Date.now();
         sourceProxy.setInputData(frameData);
-        console.log('diff after set', Date.now() - start);
         if (needPrep || !state.proxyManager.getViews().length) {
           prepareProxyManager(state.proxyManager);
           state.vtkViews = state.proxyManager.getViews();
