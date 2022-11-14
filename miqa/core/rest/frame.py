@@ -125,6 +125,10 @@ class FrameViewSet(
             scan.save()
         elif 'scan' in serializer.data:
             scan = Scan.objects.get(id=serializer.data['scan'])
+            if not scan:
+                raise APIException(
+                    'Could not create new Frame.'
+                )
             if not get_perms(request.user, scan.experiment.project):
                 Response(status=status.HTTP_403_FORBIDDEN)
         else:
@@ -132,6 +136,10 @@ class FrameViewSet(
                 'Provide either a parent scan or grandparent experiment for this frame.'
             )
 
+        if not scan:
+            raise APIException(
+                'Could not create new Frame.'
+            )
         content_serializer = FrameContentSerializer(data=dict(request.data, scan=scan.id))
         content_serializer.is_valid(raise_exception=True)
         new_frame = content_serializer.save()
