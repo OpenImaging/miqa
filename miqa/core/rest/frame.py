@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from guardian.shortcuts import get_objects_for_user, get_perms
 from rest_framework import mixins, serializers, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -126,10 +126,7 @@ class FrameViewSet(
         elif 'scan' in serializer.data:
             scan = Scan.objects.get(id=serializer.data['scan'])
             if not scan:
-                raise APIException(
-                    'Could not create new Frame; Scan not found.',
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                )
+                raise ValidationError('Could not create new Frame; Scan not found.')
             if not get_perms(request.user, scan.experiment.project):
                 Response(status=status.HTTP_403_FORBIDDEN)
         else:
@@ -138,10 +135,7 @@ class FrameViewSet(
             )
 
         if not scan:
-            raise APIException(
-                'Could not create new Frame; Scan not found.',
-                status_code=status.HTTP_400_BAD_REQUEST,
-            )
+            raise ValidationError('Could not create new Frame; Scan not found.')
         content_serializer = FrameContentSerializer(data=dict(request.data, scan=scan.id))
         content_serializer.is_valid(raise_exception=True)
         new_frame = content_serializer.save()
