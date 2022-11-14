@@ -88,11 +88,11 @@ export default {
   methods: {
     ...mapActions([
       'setLock',
+      'setCurrentFrame',
     ]),
     ...mapMutations([
       'setShowCrosshairs',
       'setStoreCrosshairs',
-      'setCurrentFrameId',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -135,13 +135,13 @@ export default {
       }
     },
     slideToFrame(framePosition) {
-      this.setCurrentFrameId(this.currentViewData.scanFramesList[framePosition - 1]);
+      this.setCurrentFrame(this.currentViewData.scanFramesList[framePosition - 1]);
     },
     updateImage() {
       if (this.direction === 'back') {
-        this.setCurrentFrameId(this.previousFrame);
+        this.setCurrentFrame(this.previousFrame);
       } else if (this.direction === 'forward') {
-        this.setCurrentFrameId(this.nextFrame);
+        this.setCurrentFrame(this.nextFrame);
       } else if (this.direction === 'previous') {
         this.navigateToScan(this.currentViewData.upTo);
       } else if (this.direction === 'next') {
@@ -379,8 +379,6 @@ export default {
                         </div>
                         <v-slider
                           :value="currentViewData.framePosition"
-                          ticks="always"
-                          tick-size="4"
                           :min="1"
                           :max="currentViewData.scanFramesList.length"
                           @input="slideToFrame"
