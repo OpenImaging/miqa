@@ -215,7 +215,8 @@ def perform_import(import_dict):
                         note = ''
                         created = (
                             datetime.now().strftime('%Y-%m-%d %H:%M')
-                            if settings.REPLACE_NULL_CREATION_DATETIMES else None
+                            if settings.REPLACE_NULL_CREATION_DATETIMES
+                            else None
                         )
                         location = {}
                         if last_decision_dict['note']:
@@ -343,7 +344,11 @@ def perform_export(project_id: Optional[str]):
                     frame_object.scan.session_id,
                     frame_object.scan.scan_link,
                 ]
-                last_decision = frame_object.scan.decisions.exclude(created__isnull=True).order_by('created').last()
+                last_decision = (
+                    frame_object.scan.decisions.exclude(created__isnull=True)
+                    .order_by('created')
+                    .last()
+                )
                 if not last_decision:
                     last_decision = frame_object.scan.decisions.order_by('created').last()
                 if last_decision:

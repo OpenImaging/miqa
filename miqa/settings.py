@@ -10,9 +10,9 @@ from composed_configuration import (
     HerokuProductionBaseConfiguration,
     HttpsMixin,
     ProductionBaseConfiguration,
+    S3StorageMixin,
     SmtpEmailMixin,
     TestingBaseConfiguration,
-    S3StorageMixin,
 )
 from composed_configuration._configuration import _BaseConfiguration
 from configurations import values
