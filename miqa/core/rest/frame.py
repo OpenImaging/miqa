@@ -127,7 +127,8 @@ class FrameViewSet(
             scan = Scan.objects.get(id=serializer.data['scan'])
             if not scan:
                 raise APIException(
-                    'Could not create new Frame.', status_code=status.HTTP_400_BAD_REQUEST
+                    'Could not create new Frame; Scan not found.',
+                    status_code=status.HTTP_400_BAD_REQUEST,
                 )
             if not get_perms(request.user, scan.experiment.project):
                 Response(status=status.HTTP_403_FORBIDDEN)
@@ -138,7 +139,8 @@ class FrameViewSet(
 
         if not scan:
             raise APIException(
-                'Could not create new Frame.', status_code=status.HTTP_400_BAD_REQUEST
+                'Could not create new Frame; Scan not found.',
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
         content_serializer = FrameContentSerializer(data=dict(request.data, scan=scan.id))
         content_serializer.is_valid(raise_exception=True)
