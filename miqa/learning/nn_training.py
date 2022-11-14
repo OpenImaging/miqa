@@ -588,7 +588,7 @@ def train_and_save_model(df, count_train, save_path, num_epochs, val_interval, o
         logger.info('-' * 25)
         logger.info(f'epoch {epoch + 1}/{num_epochs}')
         model.train()
-        epoch_loss = 0
+        epoch_loss = 0.0
         step = 0
         epoch_len = len(train_loader.dataset) // train_loader.batch_size
         logger.info(f'epoch_len: {epoch_len}')
