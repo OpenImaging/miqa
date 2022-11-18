@@ -51,12 +51,7 @@ def _download_from_s3(path: str, public: bool) -> bytes:
 
 @shared_task
 def reset_demo():
-    if not settings.DEMO_MODE:
-        raise Exception('Demo Mode is false; noop.')
-    try:
-        demo_project = Project.objects.get(name='Demo Project')
-    except Project.DoesNotExist:
-        raise Exception('No Demo Project; noop.')
+    demo_project = Project.objects.get(name='Demo Project')
     demo_project.import_path = 's3://miqa-storage/miqa.csv'
     demo_project.export_path = 'samples/demo.json'
     demo_project.save()
