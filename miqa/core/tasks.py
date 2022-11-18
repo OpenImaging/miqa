@@ -50,6 +50,16 @@ def _download_from_s3(path: str, public: bool) -> bytes:
 
 
 @shared_task
+def reset_demo():
+    demo_project = Project.objects.get(name='Demo Project')
+    demo_project.import_path = 's3://miqa-storage/miqa.csv'
+    demo_project.export_path = 'samples/demo.json'
+    demo_project.save()
+    import_data(demo_project.id)
+    Project.objects.exclude(id=demo_project.id).delete()
+
+
+@shared_task
 def evaluate_frame_content(frame_id):
     from miqa.learning.evaluation_models import available_evaluation_models
     from miqa.learning.nn_inference import evaluate1
