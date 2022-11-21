@@ -1,3 +1,5 @@
+from datetime import datetime
+import pandas
 from pathlib import Path
 from typing import List, Optional as TypingOptional
 
@@ -63,7 +65,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                     Optional('session_id'): Or(str, None),
                                     Optional('scan_link'): Or(str, None),
                                     'frames': {And(Use(int)): {'file_location': And(str)}},
-                                    Optional('last_decision'): Or(
+                                    Optional('decisions'): [
                                         {
                                             'decision': And(str),
                                             'creator': Or(str, None),
@@ -72,8 +74,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                             'user_identified_artifacts': Or(str, None),
                                             'location': Or(str, None),
                                         },
-                                        None,
-                                    ),
+                                    ],
                                 }
                             },
                         }
@@ -133,6 +134,7 @@ def import_dataframe_to_dict(df, project):
                                     }
                                     for row in scan_df.iterrows()
                                 },
+                                'decisions': [],
                             }
                         except ValueError as e:
                             raise APIException(
@@ -158,9 +160,7 @@ def import_dataframe_to_dict(df, project):
                                 'location': scan_df['location_of_interest'].iloc[0] or None,
                             }
                             decision_dict = {k: (v or None) for k, v in decision_dict.items()}
-                            scan_dict['last_decision'] = decision_dict
-                        else:
-                            scan_dict['last_decision'] = None
+                            scan_dict['decisions'].append(decision_dict)
 
                         # added for BIDS import
                         if 'subject_ID' in scan_df.columns:
@@ -173,3 +173,41 @@ def import_dataframe_to_dict(df, project):
                 project_dict['experiments'][experiment_name] = experiment_dict
         ingest_dict['projects'][project_name] = project_dict
     return ingest_dict
+
+
+def import_dict_to_dataframe(data):
+    row_data = []
+    for project_name, project_data in data.get('projects', {}).items():
+        for experiment_name, experiment_data in project_data.get('experiments', {}).items():
+            for scan_name, scan_data in experiment_data.get('scans', {}).items():
+                for frame_number, frame_data in scan_data.get('frames', {}).items():
+                    row = [
+                        project_name,
+                        experiment_name,
+                        scan_name,
+                        scan_data.get('type', ''),
+                        frame_number,
+                        frame_data.get('file_location', ''),
+                        experiment_data.get('notes', ''),
+                        scan_data.get('subject_id', ''),
+                        scan_data.get('session_id', ''),
+                        scan_data.get('scan_link', ''),
+                    ]
+                    sorted_decisions = sorted(
+                        scan_data.get('decisions', []),
+                        key=lambda d: datetime.strptime(d['created'].split('+')[0], '%Y-%m-%d %H:%M:%S'),
+                        reverse=True
+                    )
+                    if len(sorted_decisions) > 0:
+                        last_decision_data = sorted_decisions[0]
+                        if last_decision_data:
+                            row += [
+                                last_decision_data.get('decision', ''),
+                                last_decision_data.get('creator', ''),
+                                last_decision_data.get('note', ''),
+                                last_decision_data.get('created', ''),
+                                last_decision_data.get('user_identified_artifacts', ''),
+                                last_decision_data.get('location', '')
+                            ]
+                    row_data.append(row)
+    return pandas.DataFrame(row_data, columns=IMPORT_CSV_COLUMNS)

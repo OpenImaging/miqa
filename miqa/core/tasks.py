@@ -16,9 +16,9 @@ import pandas
 from rest_framework.exceptions import APIException
 
 from miqa.core.conversion.import_export_csvs import (
-    IMPORT_CSV_COLUMNS,
     import_dataframe_to_dict,
-    validate_import_dict,
+    import_dict_to_dataframe,
+    validate_import_dict
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import (
@@ -210,61 +210,53 @@ def perform_import(import_dict):
                     session_id=session_id,
                     scan_link=scan_link,
                 )
-
-                if 'last_decision' in scan_data:
-                    last_decision_dict = scan_data['last_decision']
-                    if (
-                        last_decision_dict
-                        and 'decision' in last_decision_dict
-                        and len(last_decision_dict['decision']) > 0
-                    ):
-                        try:
-                            creator = User.objects.get(email=last_decision_dict['creator'])
-                        except User.DoesNotExist:
-                            creator = None
-                        note = ''
-                        created = (
-                            datetime.now().strftime('%Y-%m-%d %H:%M')
-                            if settings.REPLACE_NULL_CREATION_DATETIMES
-                            else None
+                for decision_data in scan_data['decisions']:
+                    try:
+                        creator = User.objects.get(email=decision_data['creator'])
+                    except User.DoesNotExist:
+                        creator = None
+                    note = ''
+                    created = (
+                        datetime.now().strftime('%Y-%m-%d %H:%M')
+                        if settings.REPLACE_NULL_CREATION_DATETIMES
+                        else None
+                    )
+                    location = {}
+                    note = decision_data.get('note', '')
+                    if decision_data['created']:
+                        valid_dt = dateparser.parse(decision_data['created'])
+                        if valid_dt:
+                            created = valid_dt.strftime('%Y-%m-%d %H:%M')
+                    if decision_data['location'] and decision_data['location'] != '':
+                        slices = [
+                            axis.split('=')[1]
+                            for axis in decision_data['location'].split(';')
+                        ]
+                        location = {
+                            'i': slices[0],
+                            'j': slices[1],
+                            'k': slices[2],
+                        }
+                    if decision_data['decision'] in [dec[0] for dec in DECISION_CHOICES]:
+                        decision = ScanDecision(
+                            decision=decision_data['decision'],
+                            creator=creator,
+                            created=created,
+                            note=note or '',
+                            user_identified_artifacts={
+                                artifact_name: (
+                                    1
+                                    if decision_data['user_identified_artifacts']
+                                    and artifact_name
+                                    in decision_data['user_identified_artifacts']
+                                    else 0
+                                )
+                                for artifact_name in default_identified_artifacts().keys()
+                            },
+                            location=location,
+                            scan=scan_object,
                         )
-                        location = {}
-                        if last_decision_dict['note']:
-                            note = last_decision_dict['note'].replace(';', ',')
-                        if last_decision_dict['created']:
-                            valid_dt = dateparser.parse(last_decision_dict['created'])
-                            if valid_dt:
-                                created = valid_dt.strftime('%Y-%m-%d %H:%M')
-                        if last_decision_dict['location'] and last_decision_dict['location'] != '':
-                            slices = [
-                                axis.split('=')[1]
-                                for axis in last_decision_dict['location'].split(';')
-                            ]
-                            location = {
-                                'i': slices[0],
-                                'j': slices[1],
-                                'k': slices[2],
-                            }
-                        if last_decision_dict['decision'] in [dec[0] for dec in DECISION_CHOICES]:
-                            last_decision = ScanDecision(
-                                decision=last_decision_dict['decision'],
-                                creator=creator,
-                                created=created,
-                                note=note,
-                                user_identified_artifacts={
-                                    artifact_name: (
-                                        1
-                                        if last_decision_dict['user_identified_artifacts']
-                                        and artifact_name
-                                        in last_decision_dict['user_identified_artifacts']
-                                        else 0
-                                    )
-                                    for artifact_name in default_identified_artifacts().keys()
-                                },
-                                location=location,
-                                scan=scan_object,
-                            )
-                            new_scan_decisions.append(last_decision)
+                        new_scan_decisions.append(decision)
                 new_scans.append(scan_object)
                 for frame_number, frame_data in scan_data['frames'].items():
 
@@ -322,7 +314,7 @@ def export_data(project_id: Optional[str]):
 
 @shared_task
 def perform_export(project_id: Optional[str]):
-    data: List[List[Optional[str]]] = []
+    data = {'projects': {}}
     export_warnings = []
 
     if project_id is None:
@@ -337,73 +329,55 @@ def perform_export(project_id: Optional[str]):
         export_path = project.export_path
 
     for project_object in projects:
-        project_frames = Frame.objects.filter(scan__experiment__project=project_object)
-        if project_frames.count() == 0:
-            data.append([project_object.name])
-        for frame_object in project_frames:
-            if frame_object.storage_mode == StorageMode.LOCAL_PATH:
-                row_data = [
-                    project_object.name,
-                    frame_object.scan.experiment.name,
-                    frame_object.scan.name,
-                    frame_object.scan.scan_type,
-                    str(frame_object.frame_number),
-                    frame_object.raw_path,
-                    frame_object.scan.experiment.note,
-                    frame_object.scan.subject_id,
-                    frame_object.scan.session_id,
-                    frame_object.scan.scan_link,
-                ]
-                last_decision = (
-                    frame_object.scan.decisions.exclude(created__isnull=True)
-                    .order_by('created')
-                    .last()
-                )
-                if not last_decision:
-                    last_decision = frame_object.scan.decisions.order_by('created').last()
-                if last_decision:
+        project_data = {'experiments': {}}
+        for experiment_object in project_object.experiments.all():
+            experiment_data = {'scans': {}, 'notes': experiment_object.note}
+            for scan_object in experiment_object.scans.all():
+                scan_data = {
+                    'frames': {},
+                    'decisions': [],
+                    'type': scan_object.scan_type,
+                    'subject_id': scan_object.subject_id,
+                    'session_id': scan_object.session_id,
+                    'scan_link': scan_object.scan_link,
+                }
+                for frame_object in scan_object.frames.all():
+                    scan_data['frames'][frame_object.frame_number] = {'file_location': frame_object.raw_path}
+                for decision_object in scan_object.decisions.all():
                     location = ''
-                    if last_decision.location:
+                    if decision_object.location:
                         location = (
-                            f'i={last_decision.location["i"]};'
-                            f'j={last_decision.location["j"]};'
-                            f'k={last_decision.location["k"]}'
+                            f'i={decision_object.location["i"]};'
+                            f'j={decision_object.location["j"]};'
+                            f'k={decision_object.location["k"]}'
                         )
-                    artifacts = [
+                    artifacts = ';'.join([
                         artifact
-                        for artifact, value in last_decision.user_identified_artifacts.items()
+                        for artifact, value in decision_object.user_identified_artifacts.items()
                         if value == 1
-                    ]
-                    creator = ''
-                    if last_decision.creator:
-                        creator = last_decision.creator.email
-                    created = None
-                    if last_decision.created:
-                        created = str(last_decision.created)
-                    row_data += [
-                        last_decision.decision,
-                        creator,
-                        last_decision.note.replace(',', ';'),
-                        created,
-                        ';'.join(artifacts),
-                        location,
-                    ]
-                else:
-                    row_data += ['' for i in range(6)]
-                data.append(row_data)
-            else:
-                export_warnings.append(
-                    f'{frame_object.scan.name} not exported; this scan was uploaded, not imported.'
-                )
-    export_df = pandas.DataFrame(data, columns=IMPORT_CSV_COLUMNS)
+                    ])
+                    scan_data['decisions'].append(
+                        {
+                            'decision': decision_object.decision,
+                            'creator': decision_object.creator.username,
+                            'note': decision_object.note,
+                            'created': datetime.strftime(decision_object.created, '%Y-%m-%d %H:%M:%S'),
+                            'user_identified_artifacts': artifacts,
+                            'location': location,
+                        }
+                    )
+                experiment_data['scans'][scan_object.name] = scan_data
+            project_data['experiments'][experiment_object.name] = experiment_data
+        data['projects'][project_object.name] = project_data
+    data, export_warnings = validate_import_dict(data, project)
 
     try:
         if export_path.endswith('csv'):
+            export_df = import_dict_to_dataframe(data)
             export_df.to_csv(export_path, index=False)
         elif export_path.endswith('json'):
-            json_contents = import_dataframe_to_dict(export_df, project)
             with open(export_path, 'w') as fd:
-                json.dump(json_contents, fd)
+                json.dump(data, fd)
         else:
             raise APIException(
                 f'Unknown format for export path {export_path}. Expected csv or json.'
