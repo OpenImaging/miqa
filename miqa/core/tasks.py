@@ -210,6 +210,8 @@ def perform_import(import_dict):
                     session_id=session_id,
                     scan_link=scan_link,
                 )
+                if 'last_decision' in scan_data:
+                    scan_data['decisions'] = [scan_data['last_decision']]
                 for decision_data in scan_data['decisions']:
                     try:
                         creator = User.objects.get(email=decision_data['creator'])
