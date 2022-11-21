@@ -1,8 +1,8 @@
 from datetime import datetime
-import pandas
 from pathlib import Path
 from typing import List, Optional as TypingOptional
 
+import pandas
 from rest_framework.exceptions import APIException
 from schema import And, Optional, Or, Schema, SchemaError, Use
 
@@ -195,8 +195,10 @@ def import_dict_to_dataframe(data):
                     ]
                     sorted_decisions = sorted(
                         scan_data.get('decisions', []),
-                        key=lambda d: datetime.strptime(d['created'].split('+')[0], '%Y-%m-%d %H:%M:%S'),
-                        reverse=True
+                        key=lambda d: datetime.strptime(
+                            d['created'].split('+')[0], '%Y-%m-%d %H:%M:%S'
+                        ),
+                        reverse=True,
                     )
                     if len(sorted_decisions) > 0:
                         last_decision_data = sorted_decisions[0]
@@ -207,7 +209,7 @@ def import_dict_to_dataframe(data):
                                 last_decision_data.get('note', ''),
                                 last_decision_data.get('created', ''),
                                 last_decision_data.get('user_identified_artifacts', ''),
-                                last_decision_data.get('location', '')
+                                last_decision_data.get('location', ''),
                             ]
                     row_data.append(row)
     return pandas.DataFrame(row_data, columns=IMPORT_CSV_COLUMNS)

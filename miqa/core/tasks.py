@@ -18,7 +18,7 @@ from rest_framework.exceptions import APIException
 from miqa.core.conversion.import_export_csvs import (
     import_dataframe_to_dict,
     import_dict_to_dataframe,
-    validate_import_dict
+    validate_import_dict,
 )
 from miqa.core.conversion.nifti_to_zarr_ngff import nifti_to_zarr_ngff
 from miqa.core.models import (
@@ -231,8 +231,7 @@ def perform_import(import_dict):
                             created = valid_dt.strftime('%Y-%m-%d %H:%M')
                     if decision_data['location'] and decision_data['location'] != '':
                         slices = [
-                            axis.split('=')[1]
-                            for axis in decision_data['location'].split(';')
+                            axis.split('=')[1] for axis in decision_data['location'].split(';')
                         ]
                         location = {
                             'i': slices[0],
@@ -249,8 +248,7 @@ def perform_import(import_dict):
                                 artifact_name: (
                                     1
                                     if decision_data['user_identified_artifacts']
-                                    and artifact_name
-                                    in decision_data['user_identified_artifacts']
+                                    and artifact_name in decision_data['user_identified_artifacts']
                                     else 0
                                 )
                                 for artifact_name in default_identified_artifacts().keys()
@@ -344,7 +342,9 @@ def perform_export(project_id: Optional[str]):
                     'scan_link': scan_object.scan_link,
                 }
                 for frame_object in scan_object.frames.all():
-                    scan_data['frames'][frame_object.frame_number] = {'file_location': frame_object.raw_path}
+                    scan_data['frames'][frame_object.frame_number] = {
+                        'file_location': frame_object.raw_path
+                    }
                 for decision_object in scan_object.decisions.all():
                     location = ''
                     if decision_object.location:
@@ -353,17 +353,21 @@ def perform_export(project_id: Optional[str]):
                             f'j={decision_object.location["j"]};'
                             f'k={decision_object.location["k"]}'
                         )
-                    artifacts = ';'.join([
-                        artifact
-                        for artifact, value in decision_object.user_identified_artifacts.items()
-                        if value == 1
-                    ])
+                    artifacts = ';'.join(
+                        [
+                            artifact
+                            for artifact, value in decision_object.user_identified_artifacts.items()
+                            if value == 1
+                        ]
+                    )
                     scan_data['decisions'].append(
                         {
                             'decision': decision_object.decision,
                             'creator': decision_object.creator.username,
                             'note': decision_object.note,
-                            'created': datetime.strftime(decision_object.created, '%Y-%m-%d %H:%M:%S'),
+                            'created': datetime.strftime(
+                                decision_object.created, '%Y-%m-%d %H:%M:%S'
+                            ),
                             'user_identified_artifacts': artifacts,
                             'location': location,
                         }
