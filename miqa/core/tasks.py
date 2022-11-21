@@ -346,7 +346,7 @@ def perform_export(project_id: Optional[str]):
                         'file_location': frame_object.raw_path
                     }
                 for decision_object in scan_object.decisions.all():
-                    location = ''
+                    location = None
                     if decision_object.location:
                         location = (
                             f'i={decision_object.location["i"]};'
@@ -363,12 +363,16 @@ def perform_export(project_id: Optional[str]):
                     scan_data['decisions'].append(
                         {
                             'decision': decision_object.decision,
-                            'creator': decision_object.creator.username,
+                            'creator': decision_object.creator.username
+                            if decision_object.creator
+                            else None,
                             'note': decision_object.note,
                             'created': datetime.strftime(
                                 decision_object.created, '%Y-%m-%d %H:%M:%S'
-                            ),
-                            'user_identified_artifacts': artifacts,
+                            )
+                            if decision_object.created
+                            else None,
+                            'user_identified_artifacts': artifacts if len(artifacts) > 0 else None,
                             'location': location,
                         }
                     )
