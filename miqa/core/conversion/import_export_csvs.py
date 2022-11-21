@@ -75,6 +75,17 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                             'location': Or(str, None),
                                         },
                                     ],
+                                    Optional('last_decision'): Or(
+                                        {
+                                            'decision': And(str),
+                                            'creator': Or(str, None),
+                                            'note': Or(str, None),
+                                            'created': Or(str, None),
+                                            'user_identified_artifacts': Or(str, None),
+                                            'location': Or(str, None),
+                                        },
+                                        None,
+                                    ),
                                 }
                             },
                         }

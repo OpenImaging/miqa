@@ -210,11 +210,11 @@ def perform_import(import_dict):
                     session_id=session_id,
                     scan_link=scan_link,
                 )
-                if 'last_decision' in scan_data:
+                if 'last_decision' in scan_data and scan_data['last_decision']:
                     scan_data['decisions'] = [scan_data['last_decision']]
-                for decision_data in scan_data['decisions']:
+                for decision_data in scan_data.get('decisions', []):
                     try:
-                        creator = User.objects.get(email=decision_data['creator'])
+                        creator = User.objects.get(email=decision_data.get('creator', ''))
                     except User.DoesNotExist:
                         creator = None
                     note = ''
