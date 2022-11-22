@@ -222,5 +222,9 @@ def import_dict_to_dataframe(data):
                                 last_decision_data.get('user_identified_artifacts', ''),
                                 last_decision_data.get('location', ''),
                             ]
+                        else:
+                            row += ['' for i in range(6)]
+                    else:
+                        row += ['' for i in range(6)]
                     row_data.append(row)
     return pandas.DataFrame(row_data, columns=IMPORT_CSV_COLUMNS)
