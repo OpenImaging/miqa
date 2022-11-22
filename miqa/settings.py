@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from celery.schedules import crontab
 from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
@@ -16,7 +17,6 @@ from composed_configuration import (
 )
 from composed_configuration._configuration import _BaseConfiguration
 from configurations import values
-from celery.schedules import crontab
 
 
 class MiqaMixin(ConfigMixin):
@@ -47,7 +47,6 @@ class MiqaMixin(ConfigMixin):
     ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
 
     CELERY_BEAT_SCHEDULE = {}
-
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
@@ -90,12 +89,14 @@ class MiqaMixin(ConfigMixin):
         ] = 'miqa.core.rest.exceptions.custom_exception_handler'
 
         if configuration.DEMO_MODE:
-            configuration.CELERY_BEAT_SCHEDULE.update({
-                'reset-demo': {
-                    'task': 'miqa.core.tasks.reset_demo',
-                    'schedule': crontab(minute=0, hour=0),  # daily at midnight
+            configuration.CELERY_BEAT_SCHEDULE.update(
+                {
+                    'reset-demo': {
+                        'task': 'miqa.core.tasks.reset_demo',
+                        'schedule': crontab(minute=0, hour=0),  # daily at midnight
+                    }
                 }
-            })
+            )
 
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):

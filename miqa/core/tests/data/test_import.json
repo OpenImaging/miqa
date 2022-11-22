@@ -14,14 +14,16 @@
                             "subject_id": null,
                             "session_id": null,
                             "scan_link": null,
-                            "last_decision": {
-                                "decision": "Q?",
-                                "creator": null,
-                                "note": "MP(2022-09-16): Damaged Phantom",
-                                "created": null,
-                                "user_identified_artifacts": null,
-                                "location": null
-                            }
+                            "decisions": [
+                                {
+                                    "decision": "Q?",
+                                    "creator": null,
+                                    "note": "MP(2022-09-16): Damaged Phantom",
+                                    "created": null,
+                                    "user_identified_artifacts": null,
+                                    "location": null
+                                }
+                            ]
                         }
                     },
                     "notes": ""

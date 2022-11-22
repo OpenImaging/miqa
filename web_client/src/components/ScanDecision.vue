@@ -115,7 +115,7 @@ export default {
     </v-flex>
     <div
       class="grey--text"
-      style="text-align: right"
+      style="text-align: right; max-width: 100px"
     >
       {{ decision.created }}
     </div>

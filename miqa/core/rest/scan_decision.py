@@ -28,7 +28,7 @@ class ScanDecisionSerializer(serializers.ModelSerializer):
         ref_name = 'scan_decision'
 
     creator = UserSerializer()
-    created = serializers.DateTimeField(format='%d-%m-%Y')
+    created = serializers.DateTimeField(format='%Y-%m-%d %H:%M:%S')
 
 
 class ScanDecisionViewSet(
