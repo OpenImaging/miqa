@@ -4,7 +4,7 @@ from typing import List, Optional as TypingOptional
 
 import pandas
 from rest_framework.exceptions import APIException
-from schema import And, Optional, Or, Schema, SchemaError, Use
+from schema import Optional, Or, Schema, SchemaError, Use
 
 from miqa.core.models import GlobalSettings, Project
 
@@ -60,14 +60,14 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                             Optional('notes'): Optional(str, None),
                             'scans': {
                                 Optional(Use(str)): {
-                                    'type': And(Use(str)),
+                                    'type': Use(str),
                                     Optional('subject_id'): Or(str, None),
                                     Optional('session_id'): Or(str, None),
                                     Optional('scan_link'): Or(str, None),
-                                    'frames': {And(Use(int)): {'file_location': And(str)}},
+                                    'frames': {Use(int): {'file_location': Use(str)}},
                                     Optional('decisions'): [
                                         {
-                                            'decision': And(str),
+                                            'decision': Use(str),
                                             'creator': Or(str, None),
                                             'note': Or(str, None),
                                             'created': Or(str, None),
@@ -77,7 +77,7 @@ def validate_import_dict(import_dict, project: TypingOptional[Project]):
                                     ],
                                     Optional('last_decision'): Or(
                                         {
-                                            'decision': And(str),
+                                            'decision': Use(str),
                                             'creator': Or(str, None),
                                             'note': Or(str, None),
                                             'created': Or(str, None),
