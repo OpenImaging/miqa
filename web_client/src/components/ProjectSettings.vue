@@ -268,6 +268,6 @@ export default defineComponent({
   min-height: 10vw;
   padding: 20px;
   background-color: white!important;
-  color: '#333333'!important;
+  color: #333333 !important;
 }
 </style>

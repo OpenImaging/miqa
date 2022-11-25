@@ -199,7 +199,7 @@ export default {
           justify-center
           fill-height
         >
-          <div class="title">
+          <div class="text-h6">
             Error loading this frame
           </div>
         </v-layout>
@@ -220,7 +220,7 @@ export default {
 
   .view {
     position: relative;
-    flex: 1 0 0px;
+    flex: 1 0 0;
 
     border: 1.5px solid white;
     border-top: none;
