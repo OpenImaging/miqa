@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from celery.schedules import crontab
 from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
@@ -15,6 +14,7 @@ from composed_configuration import (
     SmtpEmailMixin,
     TestingBaseConfiguration,
 )
+from datetime import timedelta
 from composed_configuration._configuration import _BaseConfiguration
 from configurations import values
 
@@ -46,7 +46,17 @@ class MiqaMixin(ConfigMixin):
     # Override default signup sheet to ask new users for first and last name
     ACCOUNT_FORMS = {'signup': 'miqa.core.rest.accounts.AccountSignupForm'}
 
-    CELERY_BEAT_SCHEDULE = {}
+    @property
+    def CELERY_BEAT_SCHEDULE(self):
+        if self.DEMO_MODE:
+            return {
+                'reset-demo': {
+                    'task': 'miqa.core.tasks.reset_demo',
+                    'schedule': timedelta(days=1),
+                }
+            }
+        else:
+            return {}
 
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
@@ -87,16 +97,6 @@ class MiqaMixin(ConfigMixin):
         configuration.REST_FRAMEWORK[
             'EXCEPTION_HANDLER'
         ] = 'miqa.core.rest.exceptions.custom_exception_handler'
-
-        if configuration.DEMO_MODE:
-            configuration.CELERY_BEAT_SCHEDULE.update(
-                {
-                    'reset-demo': {
-                        'task': 'miqa.core.tasks.reset_demo',
-                        'schedule': crontab(minute=0, hour=0),  # daily at midnight
-                    }
-                }
-            )
 
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):

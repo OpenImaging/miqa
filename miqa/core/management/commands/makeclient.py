@@ -22,16 +22,19 @@ def command(username, uri):
     if username:
         user = User.objects.get(username=username)
     else:
-        user = User.objects.first()
+        first_user = User.objects.first()
+        if first_user:
+            user = first_user
 
-    application = Application(
-        name='miqa-client',
-        client_id=CLIENT_ID,
-        client_secret='',
-        client_type='public',
-        redirect_uris=uri,
-        authorization_grant_type='authorization-code',
-        user_id=user.id,
-        skip_authorization=True,
-    )
-    application.save()
+    if user:
+        application = Application(
+            name='miqa-client',
+            client_id=CLIENT_ID,
+            client_secret='',
+            client_type='public',
+            redirect_uris=uri,
+            authorization_grant_type='authorization-code',
+            user_id=user.username,
+            skip_authorization=True,
+        )
+        application.save()

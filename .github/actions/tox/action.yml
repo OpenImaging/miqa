@@ -5,15 +5,15 @@ runs:
     - uses: actions/setup-python@v2
       with:
         python-version: "3.8"
-    - name: cache-tox
-      id: cache-tox
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-tox
-      with:
-        path: ./.tox/
-        key: ${{ runner.os }}-tox-${{ hashFiles('**/requirements*.txt') }}
-        restore-keys: ${{ runner.os }}-tox-
+    # - name: cache-tox
+    #   id: cache-tox
+    #   uses: actions/cache@v3
+    #   env:
+    #     cache-name: cache-tox
+    #   with:
+    #     path: ./.tox/
+    #     key: ${{ runner.os }}-tox-${{ hashFiles('**/requirements*.txt') }}
+    #     restore-keys: ${{ runner.os }}-tox-
     - name: install-tox
       shell: bash
       run: |
