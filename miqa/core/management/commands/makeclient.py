@@ -34,7 +34,7 @@ def command(username, uri):
             client_type='public',
             redirect_uris=uri,
             authorization_grant_type='authorization-code',
-            user_id=user.username,
+            user=user,
             skip_authorization=True,
         )
         application.save()
