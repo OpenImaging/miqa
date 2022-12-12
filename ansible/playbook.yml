@@ -38,3 +38,12 @@
         key: "{{ item }}"
       with_items:
         - "{{ lookup('file', 'anne.pub') }}"
+    - name: Enable celery beat to run on worker
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/system/celery.service
+        state: present
+        insertafter: "  worker "
+        line: "  -B \\"
+      become: true
+      become_user: root
+      notify: Restart Celery
