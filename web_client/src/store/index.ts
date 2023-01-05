@@ -51,7 +51,9 @@ function prepareProxyManager(proxyManager) {
       view.getRepresentations().forEach((representation) => {
         representation.setInterpolationType(InterpolationType.NEAREST);
         representation.onModified(macro.debounce(() => {
-          view.render(true);
+          if (view.getRepresentations()) {
+            view.render(true);
+          }
         }, 0));
         // debounce timer doesn't need a wait time because
         // the many onModified changes that it needs to collapse to a single rerender

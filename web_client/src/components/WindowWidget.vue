@@ -32,10 +32,10 @@ export default defineComponent({
       width: currentWindowWidth.value,
       level: currentWindowLevel.value,
     }));
-    const data = props.representation.getInputDataSet();
-    const distribution = data.computeHistogram(data.getBounds());
-    const widthMin = computed(() => distribution.minimum || 0);
-    const widthMax = computed(() => distribution.maximum || 0);
+    const data = computed(() => props.representation.getInputDataSet());
+    const distribution = computed(() => data.value.computeHistogram(data.value.getBounds()));
+    const widthMin = computed(() => distribution.value.minimum || 0);
+    const widthMax = computed(() => distribution.value.maximum || 0);
     const selectedPreset = ref();
     const windowLocked = computed(() => store.state.windowLocked.lock);
     const windowLockImage = computed(() => store.state.windowLocked.associatedImage);
@@ -71,8 +71,8 @@ export default defineComponent({
     function autoRange() {
       if (windowLocked.value) return;
       currentRange.value = [
-        Math.floor(distribution.minimum + distribution.sigma),
-        Math.floor(distribution.maximum - distribution.sigma),
+        Math.floor(distribution.value.minimum + distribution.value.sigma),
+        Math.floor(distribution.value.maximum - distribution.value.sigma),
       ];
       const ww = currentRange.value[1] - currentRange.value[0];
       const wl = currentRange.value[0] + Math.floor(ww / 2);
