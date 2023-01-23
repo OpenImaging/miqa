@@ -4,7 +4,7 @@ import math
 import itk
 import monai
 import numpy as np
-from scikit-learn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
+from scikit_learn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
 import torch
 from torch.utils.data import DataLoader
 import torchio
