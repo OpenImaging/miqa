@@ -21,7 +21,7 @@ from nn_inference import (
 )
 import numpy as np
 import pandas as pd
-from sklearn.metrics import confusion_matrix
+from scikit-learn.metrics import confusion_matrix
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter

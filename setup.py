@@ -73,7 +73,7 @@ setup(
         'learning': [
             'itk>=5.3rc4',
             'monai',
-            'sklearn',
+            'scikit-learn',
             'torch',
             'torchio',
             'wandb',
