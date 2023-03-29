@@ -124,7 +124,7 @@ export default {
 
 <style scoped>
 .col{
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
 </style>

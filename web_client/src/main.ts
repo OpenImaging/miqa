@@ -12,9 +12,6 @@ import router from './router';
 import store from './store';
 import { STATIC_PATH } from './constants';
 
-import 'vuetify/dist/vuetify.min.css';
-import '@mdi/font/css/materialdesignicons.min.css';
-
 import './vtk/ColorMaps';
 import vMousetrap from './vue-utilities/v-mousetrap';
 import snackbarService from './vue-utilities/snackbar-service';

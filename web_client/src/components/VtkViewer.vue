@@ -457,8 +457,8 @@ export default {
     position: fixed;
     top: 48px;
     left: 55px;
-    bottom: 0px;
-    right: 0px;
+    bottom: 0;
+    right: 0;
     z-index: 2;
   }
 
@@ -526,7 +526,7 @@ export default {
   }
 
   .viewer {
-    flex: 1 1 0px;
+    flex: 1 1 0;
     position: relative;
     overflow-y: hidden;
     display: flex;
@@ -534,7 +534,7 @@ export default {
   }
 
   .viewer > div {
-    flex: 1 1 0px;
+    flex: 1 1 0;
     position: relative;
     overflow-y: hidden;
     cursor: crosshair!important;
