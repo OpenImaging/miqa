@@ -94,7 +94,7 @@ async def test_save_decisions_tier_1(
 
     # confirm that the number of scans awaiting tier 2 review is 1;
     # only the second scan does not have "Usable" as the latest decision
-    complete_span = await (page.waitForXPath('//span[contains(., "tier 2 review (")]'))
+    complete_span = await page.waitForXPath('//span[contains(., "tier 2 review (")]')
     complete_text = (await page.evaluate('(element) => element.textContent', complete_span)).strip()
     assert complete_text == 'needs tier 2 review (1)'
 
@@ -151,6 +151,6 @@ async def test_save_decisions_tier_2(
     await page.waitFor(3_000)
 
     # confirm that the number of complete scans is 2
-    complete_span = await (page.waitForXPath('//span[contains(., "complete (")]'))
+    complete_span = await page.waitForXPath('//span[contains(., "complete (")]')
     complete_text = (await page.evaluate('(element) => element.textContent', complete_span)).strip()
     assert complete_text == 'complete (2)'

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.utils import timezone
@@ -136,7 +138,7 @@ class ExperimentViewSet(ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.De
                 )
                 and (
                     experiment.lock_time is None
-                    or timezone.now() - experiment.lock_time < timezone.timedelta(minutes=5)
+                    or timezone.now() - experiment.lock_time < timedelta(minutes=5)
                 )
             ):
                 raise LockContention()

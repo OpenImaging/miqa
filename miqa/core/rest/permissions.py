@@ -1,8 +1,8 @@
+from functools import wraps
 from typing import Union
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from django.utils.functional import wraps
 from django.views.generic import View
 from guardian.shortcuts import get_perms
 from rest_framework import status

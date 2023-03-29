@@ -12,7 +12,6 @@ from rest_framework.views import APIView
 
 class EmailView(APIView):
     def post(self, request, format=None):
-
         msg = EmailMultiAlternatives(
             request.data['subject'],
             request.data['body'],
@@ -24,7 +23,6 @@ class EmailView(APIView):
         )
 
         for index, screenshot in enumerate(request.data['screenshots']):
-
             # parse data uri to extract mime type and base64 data
             # assumptions: mime type is image/jpeg or image/png
             match = re.fullmatch(
