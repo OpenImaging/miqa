@@ -11,7 +11,6 @@ def default_evaluation_model_mapping():
 
 
 class Migration(migrations.Migration):
-
     replaces = [
         ('core', '0013_auto_20210917_1235'),
         ('core', '0014_evaluation'),
