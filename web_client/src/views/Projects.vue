@@ -360,7 +360,7 @@ export default defineComponent({
         >
           <div
             v-if="complete"
-            class="title text-center"
+            class="text-h6 text-center"
           >
             Viewed all scans in Project {{ currentProject.name }}.
             <div
@@ -394,13 +394,13 @@ export default defineComponent({
           </div>
           <div
             v-else-if="projects.length > 0"
-            class="title"
+            class="text-h6"
           >
             Select a project
           </div>
           <div
             v-else
-            class="title"
+            class="text-h6"
           >
             <v-progress-circular
               v-if="loadingProjects"

@@ -388,6 +388,6 @@ export default {
   min-height: 20vw;
   padding: 20px;
   background-color: white!important;
-  color: '#333333'!important;
+  color: #333333 !important;
 }
 </style>

@@ -187,7 +187,7 @@ export default defineComponent({
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-card-title class="title">
+        <v-card-title class="text-h6">
           Import
         </v-card-title>
         <v-card-text v-if="isGlobal">
@@ -232,7 +232,7 @@ export default defineComponent({
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
-        <v-card-title class="title">
+        <v-card-title class="text-h6">
           Messages Encountered
         </v-card-title>
         <div class="px-5">

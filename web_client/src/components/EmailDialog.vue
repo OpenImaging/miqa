@@ -158,7 +158,7 @@ export default defineComponent({
       @submit.prevent="send"
     >
       <v-card>
-        <v-card-title class="headline grey lighten-4">
+        <v-card-title class="text-h5 grey lighten-4">
           Send email
           <v-spacer />
           <v-btn

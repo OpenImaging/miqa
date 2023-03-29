@@ -6,7 +6,7 @@
     <v-card>
       <v-card-title
         v-if="title"
-        class="title"
+        class="text-h6"
       >
         {{ title }}
       </v-card-title>

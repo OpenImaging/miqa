@@ -48,7 +48,7 @@ export default defineComponent({
   >
     <v-card>
       <v-card-title
-        class="title"
+        class="text-h6"
         primary-title
       >
         Keyboard shortcuts & Viewer Interaction
