@@ -58,6 +58,7 @@
     "eslint-plugin-vue": "^9.10.0",
     "eslint-plugin-vuetify": "^1.1.0",
     "jest": "^27.0.5",
+    "jest-transform-stub": "^2.0.0",
     "postcss-loader": "^3.0.0",
     "pug": "^2.0.1",
     "pug-loader": "^2.4.0",
