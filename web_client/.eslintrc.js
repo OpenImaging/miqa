@@ -5,6 +5,8 @@ module.exports = {
   },
   extends: [
     'plugin:vue/recommended',
+    'plugin:vuetify/recommended',
+    '@vue/typescript/recommended',
     '@vue/airbnb',
   ],
   parser: 'vue-eslint-parser',
@@ -21,6 +23,7 @@ module.exports = {
     'func-names': 'off',
     'vue/valid-template-root': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'import/extensions': 'off',
   },
   ignorePatterns: [
     'src/shims-*.d.ts',
