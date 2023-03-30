@@ -204,8 +204,8 @@ const djangoClient = {
     scanId: string,
     decision: string,
     comment: string,
-    userIdentifiedArtifacts: Object,
-    location: Object,
+    userIdentifiedArtifacts: object,
+    location: object,
   ): Promise<ResponseData> {
     if (!scanId) return undefined;
     const response = await apiClient.post('/scan-decisions', {

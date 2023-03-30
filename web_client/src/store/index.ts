@@ -424,7 +424,7 @@ export const storeConfig = {
     },
     myCurrentProjectRoles(state) {
       const projectPerms = Object.entries(state.currentProjectPermissions)
-        .filter((entry: [string, Array<User>]): Boolean => entry[1].map(
+        .filter((entry: [string, Array<User>]): boolean => entry[1].map(
           (user) => user.username,
         ).includes(state.me.username))
         .map((entry) => entry[0]);

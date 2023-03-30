@@ -1,7 +1,7 @@
 <script>
 import { mapMutations } from 'vuex';
 import UserAvatar from './UserAvatar.vue';
-import { decisionOptions } from '../constants';
+import { decisionOptions } from '@/constants';
 
 export default {
   name: 'ScanDecision',
