@@ -6,7 +6,6 @@ import miqa.core.models.scan_decision
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0022_project_global_import_export'),
     ]

@@ -43,7 +43,6 @@ def migrate_sessions_to_projects(apps: StateApps, schema_editor: BaseDatabaseSch
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('core', '0013_evaluations'),

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('core', '0030_scan_subject_session'),
         ('core', '0031_merge_20220414_1433'),
