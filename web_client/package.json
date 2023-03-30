@@ -53,6 +53,7 @@
     "babel-jest": "^27.0.6",
     "copy-webpack-plugin": "^6.1.0",
     "eslint": "^8.37.0",
+    "eslint-import-resolver-typescript": "^3.5.4",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-vue": "^9.10.0",
     "eslint-plugin-vuetify": "^1.1.0",
