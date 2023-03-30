@@ -256,7 +256,7 @@ export default {
                     <v-btn
                       icon
                       style="float:right"
-                      @click="showDeleteModal=false"
+                      @click="showDeleteModal = false"
                     >
                       <v-icon>mdi-close</v-icon>
                     </v-btn>
@@ -326,7 +326,7 @@ export default {
                     </v-btn>
                   </template>
                   <span>
-                    {{ scan.decision ? decisionOptions[scan.decision] +', ' : '' }}
+                    {{ scan.decision ? decisionOptions[scan.decision] + ', ' : '' }}
                     {{ scanState(scan) }}
                   </span>
                 </v-tooltip>
@@ -362,7 +362,7 @@ export default {
           >
             <v-btn
               class="green white--text"
-              @click="() => {experimentNameForUpload = ''}"
+              @click="() => { experimentNameForUpload = '' }"
             >
               + Add Scans...
             </v-btn>
@@ -373,7 +373,7 @@ export default {
           <v-btn
             icon
             style="float:right"
-            @click="showUploadModal=false"
+            @click="showUploadModal = false"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -395,7 +395,7 @@ export default {
                 dense
                 style="display: inline-block; max-height: 40px; max-width: 60px;"
                 class="px-3 ma-0"
-                @change="(value) => {uploadToExisting = value; experimentNameForUpload = ''}"
+                @change="(value) => { uploadToExisting = value; experimentNameForUpload = '' }"
               />
               <span
                 :class="!(orderedExperiments && orderedExperiments.length) ? 'grey--text' : ''"
@@ -441,7 +441,7 @@ export default {
                   class="text-overline grey--text text--darken-3 mx-2"
                 >
                   +{{ fileSetForUpload.length - 2 }}
-                  file{{ fileSetForUpload.length - 2 > 1 ? 's' :'' }}
+                  file{{ fileSetForUpload.length - 2 > 1 ? 's' : '' }}
                 </span>
               </template>
             </v-file-input>

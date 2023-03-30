@@ -45,7 +45,7 @@ export default defineComponent({
     :rules="[
       allValid,
       v =>
-        !!v.length || (required ? `at least one recipient is required` : true)
+        !!v.length || (required ? `at least one recipient is required` : true),
     ]"
     multiple
     deletable-chips

@@ -131,10 +131,10 @@ export default defineComponent({
       v-model="importPath"
       :rules="[
         v =>
-          !v ||
-          v.endsWith('.json') ||
-          v.endsWith('.csv') ||
-          'Needs to be a json or csv file'
+          !v
+          || v.endsWith('.json')
+          || v.endsWith('.csv')
+          || 'Needs to be a json or csv file',
       ]"
       :disabled="!userCanEditProject"
       :error-messages="importPathError"
@@ -161,10 +161,10 @@ export default defineComponent({
       v-model="exportPath"
       :rules="[
         v =>
-          !v ||
-          v.endsWith('.json') ||
-          v.endsWith('.csv') ||
-          'Needs to be a json or csv file'
+          !v
+          || v.endsWith('.json')
+          || v.endsWith('.csv')
+          || 'Needs to be a json or csv file',
       ]"
       :disabled="!userCanEditProject"
       :error-messages="exportPathError"
@@ -191,7 +191,7 @@ export default defineComponent({
       v-if="!isGlobal"
       v-model="anatomyOrientation"
       label="Project scans orientation"
-      :items="[{text: 'Neurology (LPS)', value: 'LPS'}, {text: 'Radiology (RAS)', value: 'RAS'}]"
+      :items="[{ text: 'Neurology (LPS)', value: 'LPS' }, { text: 'Radiology (RAS)', value: 'RAS' }]"
       @change="changed = true"
     />
     <v-flex

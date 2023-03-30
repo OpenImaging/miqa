@@ -251,7 +251,7 @@ export default defineComponent({
                 <v-hover v-slot="{ hover }">
                   <v-card
                     :style="{
-                      borderColor: getBorder(screenshot)
+                      borderColor: getBorder(screenshot),
                     }"
                     class="screenshot"
                     @click="toggleScreenshotSelection(screenshot)"

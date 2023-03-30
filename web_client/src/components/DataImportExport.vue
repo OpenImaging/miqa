@@ -183,7 +183,7 @@ export default defineComponent({
         <v-btn
           icon
           style="float:right"
-          @click="importDialog=false"
+          @click="importDialog = false"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>
@@ -228,7 +228,7 @@ export default defineComponent({
         <v-spacer />
         <v-btn
           icon
-          @click="importErrors=false"
+          @click="importErrors = false"
         >
           <v-icon>mdi-close</v-icon>
         </v-btn>

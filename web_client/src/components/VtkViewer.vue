@@ -264,9 +264,14 @@ export default {
 
       if (this.showCrosshairs) {
         const crosshairSet = new CrosshairSet(
-          this.name, this.ijkName,
-          this.representation, this.view, canvas,
-          this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+          this.name,
+          this.ijkName,
+          this.representation,
+          this.view,
+          canvas,
+          this.iIndexSlice,
+          this.jIndexSlice,
+          this.kIndexSlice,
         );
         const originalColors = {
           x: '#fdd835',
@@ -319,9 +324,14 @@ export default {
 
         if (this.showCrosshairs) {
           const crosshairSet = new CrosshairSet(
-            this.name, this.ijkName,
-            this.representation, this.view, myCanvas,
-            this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+            this.name,
+            this.ijkName,
+            this.representation,
+            this.view,
+            myCanvas,
+            this.iIndexSlice,
+            this.jIndexSlice,
+            this.kIndexSlice,
           );
           const originalColors = {
             x: '#fdd835',
@@ -341,9 +351,14 @@ export default {
     },
     placeCrosshairs(clickEvent) {
       const crosshairSet = new CrosshairSet(
-        this.name, this.ijkName,
-        this.representation, this.view, null,
-        this.iIndexSlice, this.jIndexSlice, this.kIndexSlice,
+        this.name,
+        this.ijkName,
+        this.representation,
+        this.view,
+        null,
+        this.iIndexSlice,
+        this.jIndexSlice,
+        this.kIndexSlice,
       );
       const location = crosshairSet.locationOfClick(clickEvent);
       this.setSliceLocation(location);
@@ -375,8 +390,8 @@ export default {
       <v-layout align-center>
         <v-slider
           v-mousetrap="[
-            { bind: keyboardBindings[1], handler: () => changeSlice(slice + 1)},
-            { bind: keyboardBindings[0], handler: () => changeSlice(slice - 1) }
+            { bind: keyboardBindings[1], handler: () => changeSlice(slice + 1) },
+            { bind: keyboardBindings[0], handler: () => changeSlice(slice - 1) },
           ]"
           :value="slice"
           :min="sliceDomain.min"
@@ -399,7 +414,7 @@ export default {
         :style="{ visibility: resized ? 'unset' : 'hidden' }"
       />
       <canvas
-        :id="'crosshairs-'+name"
+        :id="'crosshairs-' + name"
         ref="crosshairsCanvas"
         class="crosshairs"
       />

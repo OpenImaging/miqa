@@ -97,7 +97,7 @@ export default {
     >
       <v-tooltip
         v-for="chip in artifactChips"
-        :key="'chip_'+ chip.value"
+        :key="'chip_' + chip.value"
         :v-bind="chip.code"
         bottom
       >

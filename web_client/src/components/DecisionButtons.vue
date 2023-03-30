@@ -398,7 +398,7 @@ export default {
           :outlined="chipState.outlined"
           :color="chipState.color"
           :text-color="chipState.textColor"
-          :style="'text-decoration: '+chipState.textDecoration +'; margin-bottom: 3px;'"
+          :style="'text-decoration: ' + chipState.textDecoration + '; margin-bottom: 3px;'"
           small
           @click="clickChip(artifact, chipState.state)"
         >
@@ -454,8 +454,10 @@ export default {
           >
             <v-btn
               v-mousetrap="[
-                { bind: decisionShortcuts[option.code],
-                  handler: () => handleCommentSave(option.code) },
+                {
+                  bind: decisionShortcuts[option.code],
+                  handler: () => handleCommentSave(option.code),
+                },
               ]"
               :color="option.color"
               @click="handleCommentSave(option.code)"
@@ -472,7 +474,7 @@ export default {
           class="uneditable-notice pa-3"
         >
           <v-icon>mdi-lock</v-icon>
-          You {{ editRights ?'have not claimed' :'do not have' }}
+          You {{ editRights ? 'have not claimed' : 'do not have' }}
           edit access on this Experiment.
           <div
             v-if="lockOwner"
@@ -495,7 +497,7 @@ export default {
             color="primary"
             @click="switchLock"
           >
-            {{ lockOwner ?"Steal edit access" :"Claim edit access" }}
+            {{ lockOwner ? "Steal edit access" : "Claim edit access" }}
           </v-btn>
         </div>
       </v-col>
