@@ -347,13 +347,7 @@ const initState = {
   renderOrientation: 'LPS',
 };
 
-const {
-  store,
-  rootActionContext,
-  moduleActionContext,
-  rootGetterContext,
-  moduleGetterContext,
-} = createDirectStore({
+export const storeConfig = {
   state: {
     ...initState,
     workerPool: new WorkerPool(poolSize, poolFunction),
@@ -773,9 +767,7 @@ const {
         const newScan = state.scans[frame.scan];
 
         if (newScan !== oldScan && newScan) {
-          queueLoadScan(
-            newScan, 3,
-          );
+          queueLoadScan(newScan, 3);
         }
         let newProxyManager = false;
         if (oldScan !== newScan && state.proxyManager) {
@@ -812,9 +804,7 @@ const {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(
-            frame, { onDownloadProgress },
-          );
+          const result = await loadFileAndGetData(frame, { onDownloadProgress });
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
@@ -875,18 +865,11 @@ const {
       }
     },
   },
-});
+};
+
+const { store } = createDirectStore(storeConfig);
 
 // Export the direct-store instead of the classic Vuex store.
 export default store;
-
-// The following exports will be used to enable types in the
-// implementation of actions and getters.
-export {
-  rootActionContext,
-  moduleActionContext,
-  rootGetterContext,
-  moduleGetterContext,
-};
 
 export type AppStore = typeof store;
