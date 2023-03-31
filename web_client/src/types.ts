@@ -109,7 +109,68 @@ interface Email {
   screenshots: any[],
 }
 
+interface MIQAConfig {
+  version: string;
+}
+
+interface WindowLock {
+  lock: boolean;
+  duration?: number;
+  target?: string;
+  associatedImage?: string;
+}
+
+interface MIQAStore {
+  MIQAConfig: MIQAConfig;
+  me: User | null;
+  allUsers: User[];
+  reviewMode: boolean;
+  globalSettings?: ProjectSettings;
+  currentProject: Project | null;
+  currentTaskOverview: ProjectTaskOverview | null;
+  currentProjectPermissions: {
+    [key: string]: User[];
+  };
+  projects: Project[];
+  experimentIds: string[];
+  experiments: {
+    [key: string]: Experiment;
+  };
+  experimentScans: {
+    [key: string]: string[];
+  },
+  scans: {
+    [key: string]: string[];
+  };
+  scanFrames: any;
+  frames: {
+    [key: string]: Frame;
+  };
+  proxyManager: any;
+  vtkViews: any[];
+  currentFrameId: string | null;
+  loadingFrame: boolean;
+  errorLoadingFrame: boolean;
+  loadingExperiment: boolean;
+  currentScreenshot: any;
+  screenshots: any[];
+  scanCachedPercentage: number;
+  showCrosshairs: boolean;
+  storeCrosshairs: boolean;
+  sliceLocation: {
+    [key: string]: number;
+  };
+  iIndexSlice: number;
+  jIndexSlice: number;
+  kIndexSlice: number;
+  currentWindowWidth: number;
+  currentWindowLevel: number;
+  renderOrientation: string;
+  windowLocked: WindowLock;
+}
+
 export {
   User, ResponseData, Project, ProjectTaskOverview, ProjectSettings,
-  Scan, ScanDecision, Frame, ScanState, Email, Experiment,
+  Scan, ScanDecision, Frame, ScanState, Email, Experiment, MIQAConfig,
+  WindowLock, MIQAStore,
 };

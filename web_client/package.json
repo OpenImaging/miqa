@@ -15,7 +15,6 @@
     "@vue/composition-api": "^1.1.4",
     "axios": "^0.24.0",
     "core-js": "^3.29.1",
-    "direct-vuex": "^0.12.1",
     "django-s3-file-field": "^0.3.0",
     "gl-matrix": "^3.4.3",
     "idle-js": "^1.2.0",

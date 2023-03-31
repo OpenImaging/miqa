@@ -1,6 +1,4 @@
 /* eslint-disable no-use-before-define */
-
-import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
 import Vuex from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
@@ -14,7 +12,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, ProjectSettings, Scan,
+  MIQAStore, Project, ProjectTaskOverview, User, ProjectSettings, Scan,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -303,7 +301,7 @@ export function includeScan(scanId) {
   return true;
 }
 
-const initState = {
+const initState: MIQAStore = {
   MIQAConfig: {
     version: '',
   },
@@ -867,9 +865,6 @@ export const storeConfig = {
   },
 };
 
-const { store } = createDirectStore(storeConfig);
+const store = new Vuex.Store(storeConfig);
 
-// Export the direct-store instead of the classic Vuex store.
 export default store;
-
-export type AppStore = typeof store;
