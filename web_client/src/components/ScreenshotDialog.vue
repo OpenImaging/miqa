@@ -77,7 +77,7 @@ export default {
       <v-btn
         icon
         style="float:right"
-        @click="show=false"
+        @click="show = false"
       >
         <v-icon>mdi-close</v-icon>
       </v-btn>

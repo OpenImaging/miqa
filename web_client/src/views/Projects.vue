@@ -302,7 +302,7 @@ export default defineComponent({
           Perform Global Import / Export
         </v-card-title>
         <v-card-title v-else>
-          Project: {{ currentProject ?currentProject.name :'Global' }}
+          Project: {{ currentProject ? currentProject.name : 'Global' }}
         </v-card-title>
         <div class="flex-container">
           <v-card
@@ -366,7 +366,7 @@ export default defineComponent({
             <div
               v-if="selectedProjectIndex + 1 < projects.length"
             >
-              Proceed to next Project, {{ projects[selectedProjectIndex+1].name }}?
+              Proceed to next Project, {{ projects[selectedProjectIndex + 1].name }}?
               <br>
               <v-form @submit.prevent="proceedToNext">
                 <v-btn

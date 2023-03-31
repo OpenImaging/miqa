@@ -22,8 +22,6 @@ import { setupHeartbeat } from './heartbeat';
 
 Vue.use(Vuetify);
 
-// import proxyConfigGenerator from './store/proxyConfigGenerator';
-
 Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
 Vue.use(vMousetrap);

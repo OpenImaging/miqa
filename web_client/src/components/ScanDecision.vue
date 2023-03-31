@@ -1,7 +1,7 @@
 <script>
 import { mapMutations } from 'vuex';
 import UserAvatar from './UserAvatar.vue';
-import { decisionOptions } from '../constants';
+import { decisionOptions } from '@/constants';
 
 export default {
   name: 'ScanDecision',
@@ -97,7 +97,7 @@ export default {
     >
       <v-tooltip
         v-for="chip in artifactChips"
-        :key="'chip_'+ chip.value"
+        :key="'chip_' + chip.value"
         :v-bind="chip.code"
         bottom
       >

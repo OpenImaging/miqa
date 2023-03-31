@@ -167,7 +167,7 @@ export default {
       </v-row>
       <div
         v-for="(user, index) in members"
-        :key="'member_'+index"
+        :key="'member_' + index"
         class="py-1 d-flex"
       >
         <UserAvatar :target-user="user" />
@@ -203,7 +203,7 @@ export default {
       </v-row>
       <div
         v-for="(user, index) in collaborators"
-        :key="'collaborator_'+index"
+        :key="'collaborator_' + index"
         class="py-1 d-flex"
       >
         <UserAvatar :target-user="user" />
@@ -242,7 +242,7 @@ export default {
             v-model="emailList"
             :items="emailOptions"
             :disabled="!userCanEditProject"
-            :label="userCanEditProject ?'Select or type an email' :''"
+            :label="userCanEditProject ? 'Select or type an email' : ''"
             :rules="[allEmails]"
             multiple
             chips
