@@ -1,8 +1,7 @@
 <script lang="ts">
-import Vue from 'vue';
-import {
+import Vue, {
   computed, defineComponent, ref, reactive, watch,
-} from '@vue/composition-api';
+} from 'vue';
 import Donut from 'vue-css-donut-chart';
 import 'vue-css-donut-chart/dist/vcdonut.css';
 import { mapMutations } from 'vuex';

@@ -228,7 +228,7 @@ export default {
       if (this.currentProject) {
         const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit.setTaskOverview(taskOverview);
+          store.commit('setTaskOverview', taskOverview);
         }
       }
     },

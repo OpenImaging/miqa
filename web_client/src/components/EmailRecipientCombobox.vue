@@ -1,6 +1,5 @@
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
-import { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
   name: 'EmailRecipientCombobox',

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { mapState, mapGetters } from 'vuex';
-import { defineComponent } from '@vue/composition-api';
+import { defineComponent } from 'vue';
 
 import UserButton from '@/components/UserButton.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';

@@ -2,7 +2,7 @@
 import IdleJS from 'idle-js';
 import {
   computed, defineComponent, ref,
-} from '@vue/composition-api';
+} from 'vue';
 import djangoRest from '@/django';
 import store from '@/store';
 
