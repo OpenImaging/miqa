@@ -1,6 +1,6 @@
 /* eslint-disable no-use-before-define */
 import Vue from 'vue';
-import Vuex from 'vuex';
+import Vuex, { StoreOptions } from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
 import macro from 'vtk.js/Sources/macros';
 import { InterpolationType } from 'vtk.js/Sources/Rendering/Core/ImageProperty/Constants';
@@ -12,7 +12,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  MIQAStore, Project, ProjectTaskOverview, User, ProjectSettings, Scan,
+  MIQAStore, Project, ProjectTaskOverview, ProjectSettings, Scan, User,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -181,7 +181,7 @@ function poolFunction(webWorker, taskInfo) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit.setScanCachedPercentage(percentComplete);
+  store.commit('setScanCachedPercentage', percentComplete);
 }
 
 function startReaderWorkerPool() {
@@ -345,7 +345,7 @@ const initState: MIQAStore = {
   renderOrientation: 'LPS',
 };
 
-export const storeConfig = {
+export const storeConfig:StoreOptions<MIQAStore> = {
   state: {
     ...initState,
     workerPool: new WorkerPool(poolSize, poolFunction),
@@ -500,7 +500,7 @@ export const storeConfig = {
         state.currentTaskOverview = taskOverview;
         Object.values(store.state.scans).forEach((scan: Scan) => {
           if (taskOverview.scan_states[scan.id] && taskOverview.scan_states[scan.id] !== 'unreviewed') {
-            store.dispatch.reloadScan(scan.id);
+            store.dispatch('reloadScan', scan.id);
           }
         });
       }
