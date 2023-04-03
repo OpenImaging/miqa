@@ -52,7 +52,10 @@ interface Frame {
 }
 
 interface MIQAConfig {
-  version: string;
+  version: string,
+  artifact_states: {
+    PRESENT: boolean,
+  }
 }
 
 interface Project {
