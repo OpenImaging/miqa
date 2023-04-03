@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import {
   mapState, mapGetters, mapMutations, mapActions,

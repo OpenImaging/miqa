@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import {
-  mapState, mapActions,
+  mapActions,
+  mapState,
 } from 'vuex';
 
 import Navbar from '@/components/Navbar.vue';
@@ -289,7 +290,6 @@ export default {
 <style lang="scss">
 .load-completion {
   font-size: 1.1em;
-  /*font-weight: bold;*/
 }
 
 .justifyRight {

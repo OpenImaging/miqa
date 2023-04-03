@@ -1,5 +1,4 @@
-<script>
-
+<script lang="ts">
 export default {
   name: 'UserAvatar',
   inject: ['user'],

@@ -24,7 +24,8 @@ export default {
     screenshotContainer: document.createElement('div'),
   }),
   computed: {
-    ...mapState(['proxyManager',
+    ...mapState([
+      'proxyManager',
       'loadingFrame',
       'showCrosshairs',
       'sliceLocation',
@@ -36,7 +37,11 @@ export default {
       'currentWindowLevel',
       'renderOrientation',
     ]),
-    ...mapGetters(['currentFrame', 'currentScan', 'currentViewData']),
+    ...mapGetters([
+      'currentFrame',
+      'currentScan',
+      'currentViewData',
+    ]),
     representation() {
       return (
         // force add dependency on currentFrame
@@ -342,7 +347,8 @@ export default {
             Object.entries(originalColors).map(([axisName, hex]) => [this.trueAxis(axisName), hex]),
           );
           const [displayLine1, displayLine2] = crosshairSet.getCrosshairsForAxis(
-            this.trueAxis(this.name), trueColors,
+            this.trueAxis(this.name),
+            trueColors,
           );
           this.drawLine(ctx, displayLine1);
           this.drawLine(ctx, displayLine2);

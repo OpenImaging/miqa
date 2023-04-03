@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapState, mapActions, mapMutations } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapState, mapMutations } from 'vuex';
 
 export default {
