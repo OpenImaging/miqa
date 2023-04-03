@@ -10,7 +10,7 @@ export default VRangeSlider.extend({
       } else {
         this._middleDragStart = null;
       }
-      VRangeSlider.options.methods.onSliderMouseDown.call(this, e);
+      (VRangeSlider as any).options.methods.onSliderMouseDown.call(this, e);
     },
     // override
     onSliderClick() {
