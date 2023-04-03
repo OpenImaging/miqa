@@ -48,13 +48,18 @@ interface Frame {
   scan: string,
   extension: string,
   experiment?: string,
-  frame_evaluation: string,
+  frame_evaluation?: string,
 }
 
 interface MIQAConfig {
   version: string,
   artifact_states: {
     PRESENT: boolean,
+  }
+  artifact_options?: {
+    [key: string]: {
+      name: string,
+    }
   }
 }
 
