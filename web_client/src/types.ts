@@ -72,7 +72,11 @@ interface ProjectSettings {
   import_path: string,
   export_path: string,
   anatomy_orientation?: string,
-  permissions?: object,
+  permissions?: {
+    collaborator: [],
+    tier_1_reviewer: [],
+    tier_2_reviewer: [],
+  },
 }
 
 interface ProjectTaskOverview {
