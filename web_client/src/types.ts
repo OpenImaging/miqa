@@ -21,6 +21,8 @@ interface Frame {
   name: string,
   scan: string,
   extension: string,
+  experiment?: string,
+  frame_evaluation: string,
 }
 
 interface ScanDecision {
@@ -48,16 +50,24 @@ interface Scan {
   experiment: string,
   decisions: ScanDecision[],
   frames: Frame[],
-  subject_id: string,
-  session_id: string,
-  scan_link: string,
+  subject_id: string, // TODO: Can remove?
+  subjectID: string,
+  session_id: string, // TODO: Can remove?
+  sessionID: string,
+  scan_link: string, // TODO: Can remove?
+  link: string,
   notes: string,
+  cumulativeRange?: number,
 }
 
 interface Experiment {
   id: string,
   name: string,
-  lock_owner: {
+  lock_owner: { // TODO: Can remove?
+    id: number,
+    username: string,
+  },
+  lockOwner: {
     id: number,
     username: string,
   },
@@ -141,7 +151,7 @@ interface MIQAStore {
     [key: string]: string[];
   },
   scans: {
-    [key: string]: string[];
+    [key: string]: Scan;
   };
   scanFrames: any;
   frames: {
