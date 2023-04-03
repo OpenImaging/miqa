@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
@@ -146,6 +146,7 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'addScanDecision',
       'updateExperiment',
       'setFrameEvaluation',
     ]),
@@ -246,7 +247,6 @@ export default {
             present: this.confirmedPresent,
             absent: this.confirmedAbsent,
           };
-          const { addScanDecision } = store.commit;
           const zxyLocation = this.vtkViews.map(
             (view) => this.proxyManager.getRepresentation(null, view).getSlice(),
           );
@@ -261,7 +261,7 @@ export default {
               k: zxyLocation[0],
             } : {}),
           );
-          addScanDecision({
+          this.addScanDecision({
             currentScan: this.currentViewData.scanId,
             newDecision: savedObj,
           });

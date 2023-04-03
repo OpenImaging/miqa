@@ -26,9 +26,9 @@ export default defineComponent({
   },
   inject: ['user', 'MIQAConfig'],
   setup() {
-    const { switchReviewMode } = store.commit;
+    const switchReviewMode = store.commit('switchReviewMode');
     const loadingProjects = ref(true);
-    store.dispatch.loadProjects().then(() => {
+    store.dispatch('loadProjects').then(() => {
       loadingProjects.value = false;
     });
     const reviewMode = computed(() => store.state.reviewMode);
@@ -41,7 +41,7 @@ export default defineComponent({
       (project) => project.id === currentProject.value?.id,
     ));
     const selectGlobal = () => {
-      store.dispatch.loadGlobal();
+      store.dispatch('loadGlobal');
     };
 
     const overviewSections = ref([]);
@@ -74,7 +74,7 @@ export default defineComponent({
       if (currentProject.value) {
         const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit.setTaskOverview(taskOverview);
+          store.commit('setTaskOverview', taskOverview);
         }
       }
     }
@@ -83,7 +83,7 @@ export default defineComponent({
       projects.value.forEach(
         async (project: Project) => {
           const taskOverview = await djangoRest.projectTaskOverview(project.id);
-          store.commit.setTaskOverview(taskOverview);
+          store.commit('setTaskOverview', taskOverview);
         },
       );
     }
@@ -94,7 +94,7 @@ export default defineComponent({
           (project) => project.id === window.location.hash.split('/')[1],
         );
         const targetProject = projects.value[targetProjectIndex];
-        if (targetProject) store.commit.setCurrentProject(targetProject);
+        if (targetProject) store.commit('setCurrentProject', targetProject);
         selectedProjectIndex.value = targetProjectIndex;
       }
     }
@@ -151,19 +151,22 @@ export default defineComponent({
     clearInterval(this.overviewPoll);
   },
   methods: {
-    ...mapMutations(['setProjects', 'setCurrentProject']),
+    ...mapMutations([
+      'setProjects',
+      'setCurrentProject',
+    ]),
     selectProject(project: Project) {
       if (this.complete) {
         this.complete = false;
       }
-      store.dispatch.loadProject(project);
+      store.dispatch('loadProject', project);
     },
     async createProject() {
       if (this.creating && this.newName.length > 0) {
         try {
           const newProject = await djangoRest.createProject(this.newName);
           this.setProjects(this.projects.concat([newProject]));
-          store.dispatch.loadProject(newProject);
+          store.dispatch('loadProject', newProject);
           this.creating = false;
           this.newName = '';
 
@@ -180,7 +183,7 @@ export default defineComponent({
     },
     async proceedToNext() {
       const nextProject = this.projects[this.selectedProjectIndex + 1];
-      store.dispatch.loadProject(nextProject);
+      store.dispatch('loadProject', nextProject);
       this.selectedProjectIndex += 1;
       await djangoRest.projectTaskOverview(nextProject.id).then(
         (taskOverview) => {

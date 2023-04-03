@@ -25,7 +25,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
-    const { removeScreenshot } = store.commit;
+    const removeScreenshot = store.commit('removeScreenshot');
 
     const user = inject('user') as User;
 

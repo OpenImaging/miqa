@@ -1,9 +1,8 @@
-<script>
+<script lang="ts">
 import {
   mapState, mapGetters, mapMutations, mapActions,
 } from 'vuex';
 import djangoRest from '@/django';
-import store from '@/store';
 
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
@@ -93,6 +92,7 @@ export default {
     ...mapMutations([
       'setShowCrosshairs',
       'setStoreCrosshairs',
+      'updateExperiment',
     ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
@@ -158,7 +158,6 @@ export default {
     async handleExperimentNoteSave() {
       if (this.newExperimentNote.length > 0) {
         try {
-          const { updateExperiment } = store.commit;
           const newExpData = await djangoRest.setExperimentNote(
             this.currentViewData.experimentId, this.newExperimentNote,
           );
@@ -167,7 +166,7 @@ export default {
             timeout: 6000,
           });
           this.newExperimentNote = '';
-          updateExperiment(newExpData);
+          this.updateExperiment(newExpData);
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
@@ -415,7 +414,7 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 100px; overflow:auto; margin: 15px 0px"
+                        style="height: 100px; overflow:auto; margin: 15px 0"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"

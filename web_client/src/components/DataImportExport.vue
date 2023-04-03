@@ -20,7 +20,7 @@ export default defineComponent({
   setup() {
     const currentProject = computed(() => store.state.currentProject);
     const projects = computed(() => store.state.projects);
-    const loadProject = (project: Project) => store.dispatch.loadProject(project);
+    const loadProject = (project: Project) => store.dispatch('loadProject', project);
     const isGlobal = computed(() => store.getters.isGlobal);
 
     const importing = ref(false);
@@ -60,7 +60,7 @@ export default defineComponent({
             projects.value.forEach(
               async (project: Project) => {
                 const taskOverview = await djangoRest.projectTaskOverview(project.id);
-                store.commit.setTaskOverview(taskOverview);
+                store.commit('setTaskOverview', taskOverview);
               },
             );
           }
