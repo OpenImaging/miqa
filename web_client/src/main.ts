@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import VueCompositionAPI from '@vue/composition-api';
 import Vuetify from 'vuetify';
 import 'polyfill-object.fromentries';
 
@@ -22,7 +21,6 @@ import { setupHeartbeat } from './heartbeat';
 
 Vue.use(Vuetify);
 
-Vue.use(VueCompositionAPI);
 Vue.use(AsyncComputed);
 Vue.use(vMousetrap);
 
