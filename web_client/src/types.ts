@@ -1,6 +1,7 @@
 /* eslint camelcase: "off" */
 /* eslint no-unused-vars: "off" */
 /* eslint no-shadow: "off" */
+import type { WorkerPool } from 'itk/WorkerPool';
 
 interface User {
   id: number,
@@ -26,7 +27,7 @@ interface ScanDecision {
   id: string,
   creator: User,
   created: string,
-  decision: string,
+  decisions: [],
   note: string,
   user_identified_artifacts: {
     present: string[],
@@ -167,6 +168,8 @@ interface MIQAStore {
   currentWindowLevel: number;
   renderOrientation: string;
   windowLocked: WindowLock;
+  workerPool: WorkerPool;
+  lastApiRequestTime: number;
 }
 
 export {
