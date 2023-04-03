@@ -1,7 +1,6 @@
 <script lang="ts">
-import {
-  mapState, mapGetters, mapMutations, mapActions,
-} from 'vuex';
+import { computed, defineComponent } from 'vue';
+import store from '@/store';
 import djangoRest from '@/django';
 
 import UserAvatar from './UserAvatar.vue';
@@ -9,7 +8,7 @@ import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
 import WindowWidget from './WindowWidget.vue';
 
-export default {
+export default defineComponent({
   name: 'Frame',
   components: {
     UserAvatar,
@@ -18,24 +17,46 @@ export default {
     WindowWidget,
   },
   inject: ['user'],
+  setup() {
+    const proxyManager = computed(() => store.state.proxyManager);
+    const scanCachedPercentage = computed(() => store.state.scanCachedPercentage);
+    const showCrosshairs = computed(() => store.state.showCrosshairs);
+    const storeCrosshairs = computed(() => store.state.storeCrosshairs);
+
+    const currentViewData = computed(() => store.getters.currentViewData);
+    const nextFrame = computed(() => store.getters.nextFrame);
+    const previousFrame = computed(() => store.getters.previousFrame);
+    const currentFrame = computed(() => store.getters.currentFrame);
+    const myCurrentProjectRoles = computed(() => store.getters.myCurrentProjectRoles);
+
+    const setLock = (lockParameters) => store.dispatch('setLock', lockParameters);
+    const setCurrentFrame = (frame) => store.commit('setCurrentFrame', frame);
+    const setShowCrosshairs = () => store.commit('setShowCrosshairs', showCrosshairs);
+    const setStoreCrosshairs = () => store.commit('setStoreCrosshairs', storeCrosshairs);
+    const updateExperiment = (experiment) => store.commit('updateExperiment', experiment);
+    return {
+      proxyManager,
+      scanCachedPercentage,
+      showCrosshairs,
+      storeCrosshairs,
+      currentViewData,
+      nextFrame,
+      previousFrame,
+      currentFrame,
+      myCurrentProjectRoles,
+      setLock,
+      setCurrentFrame,
+      setShowCrosshairs,
+      setStoreCrosshairs,
+      updateExperiment,
+    };
+  },
   data: () => ({
     newExperimentNote: '',
     loadingLock: undefined,
+    lockCycle: undefined,
   }),
   computed: {
-    ...mapState([
-      'proxyManager',
-      'scanCachedPercentage',
-      'showCrosshairs',
-      'storeCrosshairs',
-    ]),
-    ...mapGetters([
-      'currentViewData',
-      'nextFrame',
-      'previousFrame',
-      'currentFrame',
-      'myCurrentProjectRoles',
-    ]),
     experimentId() {
       return this.currentViewData.experimentId;
     },
@@ -85,15 +106,6 @@ export default {
     clearInterval(this.lockCycle);
   },
   methods: {
-    ...mapActions([
-      'setLock',
-      'setCurrentFrame',
-    ]),
-    ...mapMutations([
-      'setShowCrosshairs',
-      'setStoreCrosshairs',
-      'updateExperiment',
-    ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
     },
@@ -130,8 +142,8 @@ export default {
       if (!location) location = 'complete';
       if (location && location !== this.$route.params.scanId) {
         this.$router
-          .push(`/${this.currentViewData.projectId}/${location}` || '')
-          .catch(this.handleNavigationError);
+          .push(`/${this.currentViewData.projectId}/${location}` || '');
+      // .catch(this.handleNavigationError);
       }
     },
     slideToFrame(framePosition) {
@@ -183,7 +195,7 @@ export default {
       return false;
     },
   },
-};
+});
 </script>
 
 <template>
