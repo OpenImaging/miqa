@@ -88,7 +88,8 @@ export default defineComponent({
     if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
       window.addEventListener('keydown', (event) => {
-        if (['textarea', 'input'].includes(document.activeElement.type)) return;
+        const activeElement = document.activeElement as HTMLElement;
+        if (['textarea', 'input'].includes(activeElement.tagName.toLowerCase())) return;
         if (event.key === 'ArrowUp') {
           this.handleKeyPress('previous');
         } else if (event.key === 'ArrowDown') {
