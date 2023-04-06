@@ -7,6 +7,9 @@ interface ResponseData {
   detail: string,
   errors: string[],
   warnings: string[],
+  default_email_recipients?: string[],
+  permissions?: string[],
+  id?: string,
 }
 
 interface User {
