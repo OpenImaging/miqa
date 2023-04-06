@@ -56,6 +56,7 @@ export default {
     currentScan(scan) {
       if (scan) {
         const last = _.head(scan.decisions);
+        // @ts-ignore: TODO: Fix this
         this.decision = last ? last.decision : null;
         this.decisionChanged = false;
         this.newNote = '';

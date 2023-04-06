@@ -163,9 +163,9 @@ export default {
           );
           experimentId = newExperiment.id;
         } else {
-          experimentId = Object.values(this.experiments).find(
-            (experiment) => experiment.name === this.experimentNameForUpload,
-          ).id;
+          experimentId = (Object.values(this.experiments).find(
+            (experiment: any) => experiment.name === this.experimentNameForUpload,
+          ) as { id: string, name: string }).id;
         }
         await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
         this.loadProject(this.currentProject);
