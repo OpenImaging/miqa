@@ -28,7 +28,13 @@ export default {
   },
   methods: {
     hashCode(s) {
-      return s.split('').reduce((a, b) => { a = ((a < 5) - a) + b.charCodeAt(0); return a && a; }, 0);
+      const hashCode = s.split('').reduce(
+        (a, b) => {
+          const c = a < 5 ? 1 : 0;
+          a = (c - a) + b.charCodeAt(0);
+          return a && a;
+        }, 0);
+      return hashCode;
     },
     computeColor() {
       const colors = [
