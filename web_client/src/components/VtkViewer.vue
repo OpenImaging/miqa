@@ -104,13 +104,17 @@ export default {
       this.initializeSlice();
       this.initializeView();
     },
-    currentFrame() {
-      this.prepareViewer();
+    currentFrame(oldFrame, newFrame) {
       this.representation.setSlice(this.slice);
-    },
-    currentScan() {
-      this.initializeSlice();
-      this.initializeCamera();
+      this.applyCurrentWindowLevel();
+      this.updateCrosshairs();
+      // use this instead of currentScan watcher
+      // currentScan is computed from currentFrame and technically
+      // will change every time currentFrame has changed
+      if (oldFrame.scan !== newFrame.scan) {
+        this.initializeSlice();
+        this.initializeCamera();
+      }
     },
     showCrosshairs() {
       this.updateCrosshairs();
@@ -150,9 +154,7 @@ export default {
         }
       });
       this.resizeObserver.observe(this.$refs.viewer);
-      const representationProperty = this.representation.getActors()[0].getProperty();
-      representationProperty.setColorWindow(this.currentWindowWidth);
-      representationProperty.setColorLevel(this.currentWindowLevel);
+      this.applyCurrentWindowLevel();
     },
     initializeSlice() {
       if (this.name !== 'default') {
@@ -162,13 +164,12 @@ export default {
     initializeView() {
       this.view.setContainer(this.$refs.viewer);
       fill2DView(this.view);
-      if (this.name !== 'default') {
-        this.modifiedSubscription = this.representation.onModified(() => {
-          if (!this.loadingFrame) {
-            this.slice = this.representation.getSlice();
-          }
-        });
-      }
+      // add scroll interaction to change slice
+      this.view.getInteractor().onMouseWheel(() => {
+        if (!this.loadingFrame) {
+          this.slice = this.representation.getSlice();
+        }
+      });
       // add click interaction to place crosshairs
       this.view.getInteractor().onLeftButtonPress((event) => this.placeCrosshairs(event));
       // remove drag interaction to change window
@@ -205,6 +206,11 @@ export default {
 
       this.view.resetCamera();
       fill2DView(this.view);
+    },
+    applyCurrentWindowLevel() {
+      const representationProperty = this.representation.getActors()[0].getProperty();
+      representationProperty.setColorWindow(this.currentWindowWidth);
+      representationProperty.setColorLevel(this.currentWindowLevel);
     },
     findClosestColumnToVector(inputVector, matrix) {
       let currClosest = null;
