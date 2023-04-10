@@ -105,8 +105,8 @@ export default {
       this.initializeView();
     },
     currentFrame() {
-      this.prepareViewer();
-      this.representation.setSlice(this.slice);
+      this.applyCurrentWindowLevel();
+      this.updateCrosshairs();
     },
     currentScan() {
       this.initializeSlice();
@@ -150,9 +150,7 @@ export default {
         }
       });
       this.resizeObserver.observe(this.$refs.viewer);
-      const representationProperty = this.representation.getActors()[0].getProperty();
-      representationProperty.setColorWindow(this.currentWindowWidth);
-      representationProperty.setColorLevel(this.currentWindowLevel);
+      this.applyCurrentWindowLevel();
     },
     initializeSlice() {
       if (this.name !== 'default') {
@@ -165,7 +163,7 @@ export default {
       if (this.name !== 'default') {
         this.modifiedSubscription = this.representation.onModified(() => {
           if (!this.loadingFrame) {
-            this.slice = this.representation.getSlice();
+            this.representation.setSlice(this.slice);
           }
         });
       }
@@ -205,6 +203,11 @@ export default {
 
       this.view.resetCamera();
       fill2DView(this.view);
+    },
+    applyCurrentWindowLevel() {
+      const representationProperty = this.representation.getActors()[0].getProperty();
+      representationProperty.setColorWindow(this.currentWindowWidth);
+      representationProperty.setColorLevel(this.currentWindowLevel);
     },
     findClosestColumnToVector(inputVector, matrix) {
       let currClosest = null;
