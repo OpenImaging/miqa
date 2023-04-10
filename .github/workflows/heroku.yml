@@ -23,4 +23,4 @@ jobs:
       - name: Add a Git remote for Heroku
         run: heroku git:remote --app miqa-demo
       - name: Push to Heroku
-        run: git push heroku master
+        run: git push -f heroku master
