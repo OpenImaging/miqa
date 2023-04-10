@@ -10,7 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          lfs: true
           # Don't shallow checkout; pushing to Heroku requires the full repo history
           fetch-depth: 0
       # This Action attempts to do much by default (including making new commits and
