@@ -12,7 +12,7 @@ import VtkViewer from '@/components/VtkViewer.vue';
 import formatSize from '@/utils/helper';
 
 export default {
-  name: 'Scan',
+  name: 'ScanView',
   components: {
     Navbar,
     ExperimentsView,

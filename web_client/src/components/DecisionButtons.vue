@@ -68,9 +68,9 @@ export default {
     },
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
-        const lastDecision = _.sortBy(
-          this.currentViewData.scanDecisions, (dec) => { Date.parse(dec.created); },
-        )[0];
+        const lastDecision = _.sortBy(this.currentViewData.scanDecisions, (dec) => {
+          Date.parse(dec.created);
+        })[0];
         const lastDecisionArtifacts = lastDecision.user_identified_artifacts;
         // Of the artifacts chosen in the last scandecision,
         // include only those marked as present.

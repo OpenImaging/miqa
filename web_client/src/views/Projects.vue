@@ -16,7 +16,7 @@ import ProjectUsers from '@/components/ProjectUsers.vue';
 Vue.use(Donut);
 
 export default defineComponent({
-  name: 'Projects',
+  name: 'ProjectsView',
   components: {
     ExperimentsView,
     Navbar,

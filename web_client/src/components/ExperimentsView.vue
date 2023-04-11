@@ -90,9 +90,8 @@ export default {
     ellipsisText(str) {
       if (!this.minimal) return str;
       if (str.length > 25) {
-        return `${str.substr(0, 10)}...${str.substr(
-          str.length - 10, str.length,
-        )}`;
+        return `${str.substr(0, 10)}...${
+          str.substr(str.length - 10, str.length)}`;
       }
       return str;
     },
@@ -159,7 +158,8 @@ export default {
       try {
         if (!this.uploadToExisting) {
           const newExperiment = await djangoRest.createExperiment(
-            this.currentProject.id, this.experimentNameForUpload,
+            this.currentProject.id,
+            this.experimentNameForUpload,
           );
           experimentId = newExperiment.id;
         } else {

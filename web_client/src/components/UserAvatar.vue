@@ -28,8 +28,8 @@ export default {
   },
   methods: {
     hashCode(s) {
-      const hashCode = s.split('').reduce(
-        (a, b) => {
+      const hashCode = s.split('')
+        .reduce((a, b) => {
           const c = a < 5 ? 1 : 0;
           a = (c - a) + b.charCodeAt(0);
           return a && a;

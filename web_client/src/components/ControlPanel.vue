@@ -9,7 +9,7 @@ import DecisionButtons from './DecisionButtons.vue';
 import WindowWidget from './WindowWidget.vue';
 
 export default defineComponent({
-  name: 'Frame',
+  name: 'ControlPanel',
   components: {
     UserAvatar,
     ScanDecision,
@@ -172,7 +172,8 @@ export default defineComponent({
       if (this.newExperimentNote.length > 0) {
         try {
           const newExpData = await djangoRest.setExperimentNote(
-            this.currentViewData.experimentId, this.newExperimentNote,
+            this.currentViewData.experimentId,
+            this.newExperimentNote,
           );
           this.$snackbar({
             text: 'Saved note successfully.',
@@ -432,6 +433,7 @@ export default defineComponent({
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
                           :key="decision.id"
+                          class="scan-decision"
                           :decision="decision"
                         />
                         <div

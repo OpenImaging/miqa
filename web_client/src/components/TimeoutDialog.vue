@@ -28,7 +28,8 @@ export default defineComponent({
     });
 
     window.addEventListener(
-      'unauthorized', () => {
+      'unauthorized',
+      () => {
         show.value = true;
         unauthorizedTriggered.value = true;
         timeRemaining.value = 30000;
