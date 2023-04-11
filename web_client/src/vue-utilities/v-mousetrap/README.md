@@ -4,7 +4,7 @@ A Vue plugin that provide binding to [mousetrap](https://craig.is/killing/mice) 
 The key benefit of this library is that the keyboard binding will share the same life cycle as the bound element. it will be created and destroyed as the element created and destroyed.
 
 ### Install
-Install peer dependancy
+Install peer dependency
 
 ```npm install mousetrap```
 

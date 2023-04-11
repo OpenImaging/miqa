@@ -55,7 +55,7 @@ function getView(proxyManager, viewType) {
   if (!view) {
     view = proxyManager.createProxy('Views', type, { name });
 
-    // Make sure represention is created for new view
+    // Make sure representation is created for new view
     proxyManager
       .getSources()
       .forEach((s) => proxyManager.getRepresentation(s, view));

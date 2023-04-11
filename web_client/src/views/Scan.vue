@@ -9,6 +9,7 @@ import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import VtkViewer from '@/components/VtkViewer.vue';
+import { ScanDecision } from '@/types';
 import formatSize from '@/utils/helper';
 
 export default {
@@ -55,8 +56,7 @@ export default {
   watch: {
     currentScan(scan) {
       if (scan) {
-        const last = _.head(scan.decisions);
-        // @ts-ignore: TODO: Fix this
+        const last: ScanDecision = _.head(scan.decisions);
         this.decision = last ? last.decision : null;
         this.decisionChanged = false;
         this.newNote = '';

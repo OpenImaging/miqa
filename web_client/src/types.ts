@@ -123,7 +123,7 @@ interface ScanDecision {
   id: string,
   creator: User,
   created: string,
-  decisions: [],
+  decision: string,
   note: string,
   user_identified_artifacts: {
     present: string[],

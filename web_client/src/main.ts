@@ -59,7 +59,7 @@ Sentry.init({
     render: (h) => h(App),
   })
     .$mount('#app')
-    // @ts-ignore
+    // @ts-ignore-next-line
     .$snackbarAttach()
     .$promptAttach();
 })();
