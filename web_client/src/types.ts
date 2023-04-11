@@ -59,11 +59,10 @@ interface MIQAConfig {
   artifact_states: {
     PRESENT: boolean,
   }
-  artifact_options?: {
-    [key: string]: {
-      name: string,
-    }
-  }
+  artifact_options?: string[],
+  auto_artifact_threshold: number,
+  NORMAL_USERS_CAN_CREATE_PROJECTS: boolean,
+  S3_SUPPORT: boolean,
 }
 
 interface Project {

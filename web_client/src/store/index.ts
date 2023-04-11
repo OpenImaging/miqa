@@ -304,9 +304,13 @@ export function includeScan(scanId) {
 const initState = {
   MIQAConfig: {
     version: '',
+    artifact_options: [],
     artifact_states: {
       PRESENT: false,
     },
+    auto_artifact_threshold: 0,
+    NORMAL_USERS_CAN_CREATE_PROJECTS: false,
+    S3_SUPPORT: true,
   },
   me: null,
   allUsers: [],
