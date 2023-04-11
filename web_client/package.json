@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.21.3",
+    "@playwright/test": "^1.32.2",
     "@types/idle-js": "^1.2.1",
     "@types/jest": "^27.0.1",
     "@types/lodash": "^4.14.172",
