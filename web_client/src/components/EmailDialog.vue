@@ -188,11 +188,13 @@ export default defineComponent({
                 v-if="!showCC"
                 class="px-2"
                 @click="showCC = true"
+                @keydown="showCC = true"
               >cc</a>
               <a
                 v-if="!showBCC"
                 class="px-2"
                 @click="showBCC = true"
+                @keydown="showBCC = true"
               >bcc</a>
             </v-flex>
           </v-layout>

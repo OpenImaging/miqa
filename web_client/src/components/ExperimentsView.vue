@@ -247,6 +247,7 @@ export default {
                       v-bind="attrs"
                       style="display: inline"
                       @click="showDeleteModal = experiment.id"
+                      @keydown="showDeleteModal = experiment.id"
                     >
                       <v-icon>mdi-delete</v-icon>
                     </div>

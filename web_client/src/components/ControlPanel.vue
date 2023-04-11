@@ -348,6 +348,7 @@ export default defineComponent({
                             :class="currentViewData.scanLink ? 'link' : 'grey--text'"
                             style="display:inline"
                             @click="openScanLink"
+                            @keydown="openScanLink"
                           >
                             <b>{{ currentViewData.scanName }}</b>
                           </p>
