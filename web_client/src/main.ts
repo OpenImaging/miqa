@@ -56,10 +56,12 @@ Sentry.init({
       user: store.state.me,
       MIQAConfig: store.state.MIQAConfig,
     },
+    mounted() {
+      this.$snackbarAttach();
+      this.$promptAttach();
+    },
     render: (h) => h(App),
+
   })
-    .$mount('#app')
-    // @ts-ignore-next-line
-    .$snackbarAttach()
-    .$promptAttach();
+    .$mount('#app');
 })();
