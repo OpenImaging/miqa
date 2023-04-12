@@ -143,7 +143,7 @@ enum ScanState {
 
 interface WindowLock {
   lock: boolean;
-  duration?: number;
+  duration?: string;
   target?: string;
   associatedImage?: string;
 }

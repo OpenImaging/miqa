@@ -841,20 +841,13 @@ export const storeConfig:StoreOptions<MIQAStore> = {
             associatedImage: undefined,
           });
         };
-        // TODO: It seems unlikely this code is ever run as intended
-        // Note that we are getting the time that a window is locked but then
-        // attempting to match against the type of entity we are working with
-        // e.g., scan, experiment, or project
         switch (state.windowLocked.duration) {
-          // @ts-ignore
           case 'scan':
             if (currentViewData.scanId !== state.windowLocked.target) unlock();
             break;
-          // @ts-ignore
           case 'experiment':
             if (currentViewData.experimentId !== state.windowLocked.target) unlock();
             break;
-          // @ts-ignore
           case 'project':
             if (currentViewData.projectId !== state.windowLocked.target) unlock();
             break;
