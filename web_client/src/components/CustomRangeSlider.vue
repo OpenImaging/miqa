@@ -1,5 +1,5 @@
 <script lang="ts">
-import { VRangeSlider } from 'vuetify/lib';
+import { VRangeSlider } from 'vuetify/lib/components/VRangeSlider/';
 
 export default VRangeSlider.extend({
   methods: {
@@ -10,7 +10,7 @@ export default VRangeSlider.extend({
       } else {
         this._middleDragStart = null;
       }
-      (VRangeSlider as any).options.methods.onSliderMouseDown.call(this, e);
+      VRangeSlider.options.methods.onSliderMouseDown.call(this, e);
     },
     // override
     onSliderClick() {
