@@ -51,5 +51,3 @@ jobs:
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
-        with:
-          fail_ci_if_error: true
