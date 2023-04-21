@@ -1,8 +1,6 @@
 /* eslint-disable no-use-before-define */
-
-import { createDirectStore } from 'direct-vuex';
 import Vue from 'vue';
-import Vuex from 'vuex';
+import Vuex, { StoreOptions } from 'vuex';
 import vtkProxyManager from 'vtk.js/Sources/Proxy/Core/ProxyManager';
 import macro from 'vtk.js/Sources/macros';
 import { InterpolationType } from 'vtk.js/Sources/Rendering/Core/ImageProperty/Constants';
@@ -14,7 +12,7 @@ import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import djangoRest, { apiClient } from '@/django';
 import {
-  Project, ProjectTaskOverview, User, ProjectSettings, Scan,
+  MIQAStore, Project, ProjectTaskOverview, ProjectSettings, Scan, User,
 } from '@/types';
 import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
@@ -183,7 +181,7 @@ function poolFunction(webWorker, taskInfo) {
 
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit.setScanCachedPercentage(percentComplete);
+  store.commit('setScanCachedPercentage', percentComplete);
 }
 
 function startReaderWorkerPool() {
@@ -306,6 +304,13 @@ export function includeScan(scanId) {
 const initState = {
   MIQAConfig: {
     version: '',
+    artifact_options: [],
+    artifact_states: {
+      PRESENT: false,
+    },
+    auto_artifact_threshold: 0,
+    NORMAL_USERS_CAN_CREATE_PROJECTS: false,
+    S3_SUPPORT: true,
   },
   me: null,
   allUsers: [],
@@ -347,7 +352,7 @@ const initState = {
   renderOrientation: 'LPS',
 };
 
-export const storeConfig = {
+export const storeConfig:StoreOptions<MIQAStore> = {
   state: {
     ...initState,
     workerPool: new WorkerPool(poolSize, poolFunction),
@@ -502,7 +507,7 @@ export const storeConfig = {
         state.currentTaskOverview = taskOverview;
         Object.values(store.state.scans).forEach((scan: Scan) => {
           if (taskOverview.scan_states[scan.id] && taskOverview.scan_states[scan.id] !== 'unreviewed') {
-            store.dispatch.reloadScan(scan.id);
+            store.dispatch('reloadScan', scan.id);
           }
         });
       }
@@ -867,9 +872,6 @@ export const storeConfig = {
   },
 };
 
-const { store } = createDirectStore(storeConfig);
+const store = new Vuex.Store(storeConfig);
 
-// Export the direct-store instead of the classic Vuex store.
 export default store;
-
-export type AppStore = typeof store;

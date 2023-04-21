@@ -1,17 +1,19 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import {
-  mapState, mapActions,
+  mapActions,
+  mapState,
 } from 'vuex';
 
 import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import VtkViewer from '@/components/VtkViewer.vue';
+import { ScanDecision } from '@/types';
 import formatSize from '@/utils/helper';
 
 export default {
-  name: 'Scan',
+  name: 'ScanView',
   components: {
     Navbar,
     ExperimentsView,
@@ -54,7 +56,7 @@ export default {
   watch: {
     currentScan(scan) {
       if (scan) {
-        const last = _.head(scan.decisions);
+        const last: ScanDecision = _.head(scan.decisions);
         this.decision = last ? last.decision : null;
         this.decisionChanged = false;
         this.newNote = '';
@@ -289,7 +291,6 @@ export default {
 <style lang="scss">
 .load-completion {
   font-size: 1.1em;
-  /*font-weight: bold;*/
 }
 
 .justifyRight {

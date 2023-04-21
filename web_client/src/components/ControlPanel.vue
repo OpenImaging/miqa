@@ -1,17 +1,15 @@
-<script>
-import {
-  mapState, mapGetters, mapMutations, mapActions,
-} from 'vuex';
-import djangoRest from '@/django';
+<script lang="ts">
+import { computed, defineComponent } from 'vue';
 import store from '@/store';
+import djangoRest from '@/django';
 
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
 import WindowWidget from './WindowWidget.vue';
 
-export default {
-  name: 'Frame',
+export default defineComponent({
+  name: 'ControlPanel',
   components: {
     UserAvatar,
     ScanDecision,
@@ -19,24 +17,46 @@ export default {
     WindowWidget,
   },
   inject: ['user'],
+  setup() {
+    const proxyManager = computed(() => store.state.proxyManager);
+    const scanCachedPercentage = computed(() => store.state.scanCachedPercentage);
+    const showCrosshairs = computed(() => store.state.showCrosshairs);
+    const storeCrosshairs = computed(() => store.state.storeCrosshairs);
+
+    const currentViewData = computed(() => store.getters.currentViewData);
+    const nextFrame = computed(() => store.getters.nextFrame);
+    const previousFrame = computed(() => store.getters.previousFrame);
+    const currentFrame = computed(() => store.getters.currentFrame);
+    const myCurrentProjectRoles = computed(() => store.getters.myCurrentProjectRoles);
+
+    const setLock = (lockParameters) => store.dispatch('setLock', lockParameters);
+    const setCurrentFrame = (frame) => store.commit('setCurrentFrame', frame);
+    const setShowCrosshairs = () => store.commit('setShowCrosshairs', showCrosshairs);
+    const setStoreCrosshairs = () => store.commit('setStoreCrosshairs', storeCrosshairs);
+    const updateExperiment = (experiment) => store.commit('updateExperiment', experiment);
+    return {
+      proxyManager,
+      scanCachedPercentage,
+      showCrosshairs,
+      storeCrosshairs,
+      currentViewData,
+      nextFrame,
+      previousFrame,
+      currentFrame,
+      myCurrentProjectRoles,
+      setLock,
+      setCurrentFrame,
+      setShowCrosshairs,
+      setStoreCrosshairs,
+      updateExperiment,
+    };
+  },
   data: () => ({
     newExperimentNote: '',
     loadingLock: undefined,
+    lockCycle: undefined,
   }),
   computed: {
-    ...mapState([
-      'proxyManager',
-      'scanCachedPercentage',
-      'showCrosshairs',
-      'storeCrosshairs',
-    ]),
-    ...mapGetters([
-      'currentViewData',
-      'nextFrame',
-      'previousFrame',
-      'currentFrame',
-      'myCurrentProjectRoles',
-    ]),
     experimentId() {
       return this.currentViewData.experimentId;
     },
@@ -68,7 +88,8 @@ export default {
     if (!this.navigateToNextIfCurrentScanNull()) {
       this.switchLock(this.experimentId);
       window.addEventListener('keydown', (event) => {
-        if (['textarea', 'input'].includes(document.activeElement.type)) return;
+        const activeElement = document.activeElement as HTMLElement;
+        if (['textarea', 'input'].includes(activeElement.tagName.toLowerCase())) return;
         if (event.key === 'ArrowUp') {
           this.handleKeyPress('previous');
         } else if (event.key === 'ArrowDown') {
@@ -86,14 +107,6 @@ export default {
     clearInterval(this.lockCycle);
   },
   methods: {
-    ...mapActions([
-      'setLock',
-      'setCurrentFrame',
-    ]),
-    ...mapMutations([
-      'setShowCrosshairs',
-      'setStoreCrosshairs',
-    ]),
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
     },
@@ -130,8 +143,8 @@ export default {
       if (!location) location = 'complete';
       if (location && location !== this.$route.params.scanId) {
         this.$router
-          .push(`/${this.currentViewData.projectId}/${location}` || '')
-          .catch(this.handleNavigationError);
+          .push(`/${this.currentViewData.projectId}/${location}` || '');
+      // .catch(this.handleNavigationError);
       }
     },
     slideToFrame(framePosition) {
@@ -158,16 +171,16 @@ export default {
     async handleExperimentNoteSave() {
       if (this.newExperimentNote.length > 0) {
         try {
-          const { updateExperiment } = store.commit;
           const newExpData = await djangoRest.setExperimentNote(
-            this.currentViewData.experimentId, this.newExperimentNote,
+            this.currentViewData.experimentId,
+            this.newExperimentNote,
           );
           this.$snackbar({
             text: 'Saved note successfully.',
             timeout: 6000,
           });
           this.newExperimentNote = '';
-          updateExperiment(newExpData);
+          this.updateExperiment(newExpData);
         } catch (err) {
           this.$snackbar({
             text: `Save failed: ${err.response.data.detail || 'Server error'}`,
@@ -184,7 +197,7 @@ export default {
       return false;
     },
   },
-};
+});
 </script>
 
 <template>
@@ -335,6 +348,7 @@ export default {
                             :class="currentViewData.scanLink ? 'link' : 'grey--text'"
                             style="display:inline"
                             @click="openScanLink"
+                            @keydown="openScanLink"
                           >
                             <b>{{ currentViewData.scanName }}</b>
                           </p>
@@ -415,11 +429,12 @@ export default {
                       <v-col
                         cols="12"
                         class="grey lighten-4"
-                        style="height: 100px; overflow:auto; margin: 15px 0px"
+                        style="height: 100px; overflow:auto; margin: 15px 0"
                       >
                         <ScanDecision
                           v-for="decision in currentViewData.scanDecisions"
                           :key="decision.id"
+                          class="scan-decision"
                           :decision="decision"
                         />
                         <div

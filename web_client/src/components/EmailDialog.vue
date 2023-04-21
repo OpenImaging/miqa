@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   defineComponent, inject, computed,
-} from '@vue/composition-api';
+} from 'vue';
 import store from '@/store';
 import { User } from '@/types';
 import djangoRest from '@/django';
@@ -25,7 +25,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
-    const { removeScreenshot } = store.commit;
+    const removeScreenshot = store.commit('removeScreenshot');
 
     const user = inject('user') as User;
 
@@ -188,11 +188,13 @@ export default defineComponent({
                 v-if="!showCC"
                 class="px-2"
                 @click="showCC = true"
+                @keydown="showCC = true"
               >cc</a>
               <a
                 v-if="!showBCC"
                 class="px-2"
                 @click="showBCC = true"
+                @keydown="showBCC = true"
               >bcc</a>
             </v-flex>
           </v-layout>

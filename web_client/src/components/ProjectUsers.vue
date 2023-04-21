@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { mapState, mapActions, mapMutations } from 'vuex';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';
@@ -66,7 +66,7 @@ export default {
     ...mapMutations(['setCurrentProject']),
     getGroup(user) {
       return Object.entries(this.permissions).filter(
-        ([, value]) => value.includes(user),
+        ([, value]) => (value as any).includes(user),
       )[0][0].replace(/_/g, ' ');
     },
     userDisplayName(user) {
@@ -90,7 +90,7 @@ export default {
       const newSettings = { ...this.currentProject.settings };
       newSettings.permissions = Object.fromEntries(
         Object.entries(this.selectedPermissionSet).map(
-          ([group, list]) => [group, list.map((user) => user.username || user)],
+          ([group, list]) => [group, (list as any[]).map((user) => user.username || user)],
         ),
       );
       try {

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import {
   mapState, mapGetters, mapMutations, mapActions,
@@ -90,9 +90,8 @@ export default {
     ellipsisText(str) {
       if (!this.minimal) return str;
       if (str.length > 25) {
-        return `${str.substr(0, 10)}...${str.substr(
-          str.length - 10, str.length,
-        )}`;
+        return `${str.substr(0, 10)}...${
+          str.substr(str.length - 10, str.length)}`;
       }
       return str;
     },
@@ -159,13 +158,14 @@ export default {
       try {
         if (!this.uploadToExisting) {
           const newExperiment = await djangoRest.createExperiment(
-            this.currentProject.id, this.experimentNameForUpload,
+            this.currentProject.id,
+            this.experimentNameForUpload,
           );
           experimentId = newExperiment.id;
         } else {
-          experimentId = Object.values(this.experiments).find(
-            (experiment) => experiment.name === this.experimentNameForUpload,
-          ).id;
+          experimentId = (Object.values(this.experiments).find(
+            (experiment: any) => experiment.name === this.experimentNameForUpload,
+          ) as { id: string, name: string }).id;
         }
         await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
         this.loadProject(this.currentProject);
@@ -247,6 +247,7 @@ export default {
                       v-bind="attrs"
                       style="display: inline"
                       @click="showDeleteModal = experiment.id"
+                      @keydown="showDeleteModal = experiment.id"
                     >
                       <v-icon>mdi-delete</v-icon>
                     </div>

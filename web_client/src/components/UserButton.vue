@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, inject } from '@vue/composition-api';
+import { defineComponent, inject } from 'vue';
 import { User } from '@/types';
 
 export default defineComponent({

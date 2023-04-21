@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import _ from 'lodash';
 import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
@@ -68,9 +68,9 @@ export default {
     },
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
-        const lastDecision = _.sortBy(
-          this.currentViewData.scanDecisions, (dec) => { Date.parse(dec.created); },
-        )[0];
+        const lastDecision = _.sortBy(this.currentViewData.scanDecisions, (dec) => {
+          Date.parse(dec.created);
+        })[0];
         const lastDecisionArtifacts = lastDecision.user_identified_artifacts;
         // Of the artifacts chosen in the last scandecision,
         // include only those marked as present.
@@ -146,6 +146,7 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'addScanDecision',
       'updateExperiment',
       'setFrameEvaluation',
     ]),
@@ -227,7 +228,7 @@ export default {
       if (this.currentProject) {
         const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit.setTaskOverview(taskOverview);
+          store.commit('setTaskOverview', taskOverview);
         }
       }
     },
@@ -246,7 +247,6 @@ export default {
             present: this.confirmedPresent,
             absent: this.confirmedAbsent,
           };
-          const { addScanDecision } = store.commit;
           const zxyLocation = this.vtkViews.map(
             (view) => this.proxyManager.getRepresentation(null, view).getSlice(),
           );
@@ -261,7 +261,7 @@ export default {
               k: zxyLocation[0],
             } : {}),
           );
-          addScanDecision({
+          this.addScanDecision({
             currentScan: this.currentViewData.scanId,
             newDecision: savedObj,
           });

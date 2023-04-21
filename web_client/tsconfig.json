@@ -36,5 +36,11 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "extensions": [
+      ".vue"
+    ],
+    "target": 2.7
+  }
 }

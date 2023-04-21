@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 export default {
   name: 'EvaluationResults',
   components: {},
@@ -10,7 +10,8 @@ export default {
   },
   computed: {
     orderedResults() {
-      return Object.entries(this.results).sort((first, second) => first[1] < second[1]);
+      return Object.entries(this.results)
+        .sort((first, second) => Number(first[1]) - Number(second[1]));
     },
   },
   methods: {

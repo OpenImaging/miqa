@@ -2,7 +2,7 @@
 import IdleJS from 'idle-js';
 import {
   computed, defineComponent, ref,
-} from '@vue/composition-api';
+} from 'vue';
 import djangoRest from '@/django';
 import store from '@/store';
 
@@ -28,7 +28,8 @@ export default defineComponent({
     });
 
     window.addEventListener(
-      'unauthorized', () => {
+      'unauthorized',
+      () => {
         show.value = true;
         unauthorizedTriggered.value = true;
         timeRemaining.value = 30000;

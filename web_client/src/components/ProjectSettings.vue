@@ -1,7 +1,7 @@
 <script lang="ts">
 import {
   computed, defineComponent, ref, watchEffect, inject,
-} from '@vue/composition-api';
+} from 'vue';
 import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
@@ -62,7 +62,7 @@ export default defineComponent({
             export_path: exportPath.value.trim(),
             anatomy_orientation: anatomyOrientation.value,
           });
-          store.commit.setRenderOrientation(anatomyOrientation.value);
+          store.commit('setRenderOrientation', anatomyOrientation.value);
         }
         changed.value = false;
       } catch (e) {

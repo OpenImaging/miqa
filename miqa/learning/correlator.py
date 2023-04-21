@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import pandas as pd
-from scikit_learn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix
 
 df = pd.read_csv('M:/MIQA/data.csv')  # manually converted TRUE/FALSE into 1/0
 print(f'count NaN: {df.isnull().sum().sum()}')

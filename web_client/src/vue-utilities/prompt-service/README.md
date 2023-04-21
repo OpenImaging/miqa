@@ -1,5 +1,5 @@
 ## prompt-service
-A Vue plugin that provides a simple prompt service with Vutify components in Vue components. It's functionality is similar to native alert() and confirm(), prompt() is not supported.
+A Vue plugin that provides a simple prompt service with Vuetify components in Vue components. It's functionality is similar to native alert() and confirm(), prompt() is not supported.
 
 ### Install
 Install plugin

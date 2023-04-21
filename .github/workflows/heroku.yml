@@ -10,7 +10,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          lfs: true
           # Don't shallow checkout; pushing to Heroku requires the full repo history
           fetch-depth: 0
       # This Action attempts to do much by default (including making new commits and
@@ -24,4 +23,4 @@ jobs:
       - name: Add a Git remote for Heroku
         run: heroku git:remote --app miqa-demo
       - name: Push to Heroku
-        run: git push heroku master
+        run: git push -f heroku master
