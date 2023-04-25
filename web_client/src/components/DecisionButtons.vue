@@ -4,6 +4,7 @@ import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 import EvaluationResults from '@/components/EvaluationResults.vue';
+import { AUTO_ADVANCE } from '@/constants';
 import UserAvatar from './UserAvatar.vue';
 
 export default {
@@ -33,6 +34,7 @@ export default {
   },
   data() {
     return {
+      autoAdvance: AUTO_ADVANCE,
       warnDecision: false,
       newComment: '',
       confirmedPresent: [],
@@ -47,7 +49,6 @@ export default {
   },
   computed: {
     ...mapState([
-      'currentViewData',
       'currentProject',
       'proxyManager',
       'vtkViews',
@@ -57,6 +58,7 @@ export default {
       'currentViewData',
       'myCurrentProjectRoles',
     ]),
+    // The list of artifacts generally should not change unless the project changes
     artifacts() {
       return this.MIQAConfig.artifact_options.map((name) => ({
         value: name,
@@ -68,15 +70,18 @@ export default {
     },
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
-        const lastDecision = _.sortBy(this.currentViewData.scanDecisions, (dec) => {
-          Date.parse(dec.created);
-        })[0];
+        const lastDecision = _.sortBy(
+          this.currentViewData.scanDecisions,
+          (decision) => { Date.parse(decision.created); },
+        )[0];
+        // Gets the artifacts associated with the most recent decision
         const lastDecisionArtifacts = lastDecision.user_identified_artifacts;
-        // Of the artifacts chosen in the last scandecision,
+        // Of the artifacts chosen in the last scanDecision,
         // include only those marked as present.
         return Object.entries(lastDecisionArtifacts).filter(
           ([, present]) => present === this.MIQAConfig.artifact_states.PRESENT,
         ).map(([artifactName]) => artifactName);
+        // If a current auto evaluation exists
       } if (this.currentViewData.currentAutoEvaluation) {
         const predictedArtifacts = this.currentViewData.currentAutoEvaluation.results;
         // Of the results from the NN, filter these to
@@ -91,6 +96,7 @@ export default {
       }
       return [];
     },
+    // Displays the decision buttons based on user's roles
     options() {
       const myOptions = [
         {
@@ -126,6 +132,7 @@ export default {
       this.confirmedPresent = [];
       this.confirmedAbsent = [];
     },
+    /** If a change is made to comment, present, absent, set warnDecision false */
     newComment() {
       this.warnDecision = false;
     },
@@ -137,11 +144,13 @@ export default {
     },
   },
   mounted() {
+    // Check every 10 secs for whether an auto evaluation has been completed
     if (!this.currentViewData.currentAutoEvaluation) {
       this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
     }
   },
   beforeUnmount() {
+    // Stop polling for auto evaluations
     clearInterval(this.pollInterval);
   },
   methods: {
@@ -151,12 +160,14 @@ export default {
       'setFrameEvaluation',
     ]),
     async pollForEvaluation() {
+      // Get a frame from API
       const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
       if (frameData.frame_evaluation) {
         this.setFrameEvaluation(frameData.frame_evaluation);
         clearInterval(this.pollInterval);
       }
     },
+    /** Takes an artifact name, e.g. 'something_artifact' and converts to 'Something artifact' */
     convertValueToLabel(artifactName) {
       return artifactName
         .replace('susceptibility_metal', 'metal_susceptibility')
@@ -170,12 +181,13 @@ export default {
     switchLock() {
       this.$emit('switchLock', this.currentViewData.experimentId, null, true);
     },
+    /**
+     * Determines the styling of the four chip states
+     *
+     * Four possible states are: confirmed present, confirmed absent,
+     * suggested unconfirmed, unsuggested unconfirmed (default)
+     */
     getCurrentChipState(artifact) {
-      // this function determines the styling of the four chip states.
-      // four states of a chip are:
-      //  confirmed present, confirmed absent, suggested unconfirmed, unsuggested unconfirmed
-
-      // default is unsuggested unconfirmed
       const chipState = {
         state: 0,
         label: artifact.labelText,
@@ -203,8 +215,8 @@ export default {
       }
       return chipState;
     },
+    /** Changes the state of a chip when it has been clicked upon */
     clickChip(artifact, chipState) {
-      // this function determines state cycle of chips
       switch (chipState) {
         case 1:
           // currently confirmed present
@@ -227,6 +239,7 @@ export default {
     async refreshTaskOverview() {
       if (this.currentProject) {
         const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
+        // If API has different data, update taskOverview
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
           store.commit('setTaskOverview', taskOverview);
         }
@@ -236,6 +249,7 @@ export default {
       this.newComment = value;
     },
     async handleCommentSave(decision) {
+      // If feedback has been left on the scan
       if (
         this.newComment.trim().length > 0
         || decision === 'U'
@@ -243,6 +257,7 @@ export default {
         || this.confirmedAbsent.length > 0
       ) {
         try {
+          // Object with present/absent artifacts
           const userIdentifiedArtifacts = {
             present: this.confirmedPresent,
             absent: this.confirmedAbsent,
@@ -250,6 +265,7 @@ export default {
           const zxyLocation = this.vtkViews.map(
             (view) => this.proxyManager.getRepresentation(null, view).getSlice(),
           );
+          // Create new scan decision using API
           const savedObj = await djangoRest.setDecision(
             this.currentViewData.scanId,
             decision,
@@ -266,7 +282,9 @@ export default {
             newDecision: savedObj,
           });
           this.refreshTaskOverview();
-          this.$emit('handleKeyPress', 'next');
+          if (AUTO_ADVANCE) {
+            this.$emit('handleKeyPress', 'next');
+          }
           this.$snackbar({
             text: 'Saved decision successfully.',
             timeout: 6000,
