@@ -659,12 +659,6 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       state[`${indexAxis}IndexSlice`] = value;
       state.sliceLocation = undefined;
     },
-    setCurrentWindowWidth(state, value) {
-      state.currentWindowWidth = value;
-    },
-    setCurrentWindowLevel(state, value) {
-      state.currentWindowLevel = value;
-    },
     [SET_SHOW_CROSSHAIRS](state, show: boolean) {
       state.showCrosshairs = show;
     },
