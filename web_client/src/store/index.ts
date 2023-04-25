@@ -730,19 +730,19 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       // place data in state, adds each experiment to experiments
       const { experiments } = project;
 
-      for (let i = 0; i < experiments.length; i += 1) {
+      for (let experimentIndex = 0; experimentIndex < experiments.length; experimentIndex += 1) {
         // Get a specific experiment from the project
-        const experiment = experiments[i];
+        const experiment = experiments[experimentIndex];
         // set experimentScans[experiment.id] before registering the experiment.id
         // so ExperimentsView doesn't update prematurely
         commit('ADD_EXPERIMENT', {
-          id: experiment.id,
-          value: {
+          experimentId: experiment.id,
+          experiment: {
             id: experiment.id,
             name: experiment.name,
             note: experiment.note,
             project: experiment.project,
-            index: i,
+            index: experimentIndex,
             lockOwner: experiment.lock_owner,
           },
         });
@@ -751,9 +751,9 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         // TODO these requests *can* be run in parallel, or collapsed into one XHR
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
-        for (let j = 0; j < scans.length; j += 1) {
-          const scan = scans[j];
-          commit('ADD_EXPERIMENT_SCANS', { eid: experiment.id, sid: scan.id });
+        for (let scanIndex = 0; scanIndex < scans.length; scanIndex += 1) {
+          const scan = scans[scanIndex];
+          commit('ADD_EXPERIMENT_SCANS', { experimentId: experiment.id, scanId: scan.id });
 
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
           // eslint-disable-next-line no-await-in-loop
@@ -773,21 +773,21 @@ export const storeConfig:StoreOptions<MIQAStore> = {
             },
           });
 
-          const nextScan = getNextFrame(experiments, i, j);
+          const nextScan = getNextFrame(experiments, experimentIndex, scanIndex);
 
           // then this is getting each frame associated with the scan
-          for (let k = 0; k < frames.length; k += 1) {
-            const frame = frames[k];
-            commit('ADD_SCAN_FRAMES', { sid: scan.id, id: frame.id });
+          for (let frameIndex = 0; frameIndex < frames.length; frameIndex += 1) {
+            const frame = frames[frameIndex];
+            commit('ADD_SCAN_FRAMES', { scanId: scan.id, frameId: frame.id });
             commit('SET_FRAME', {
               frameId: frame.id,
               frame: {
                 ...frame,
                 scan: scan.id,
                 experiment: experiment.id,
-                index: k,
-                previousFrame: k > 0 ? frames[k - 1].id : null,
-                nextFrame: k < frames.length - 1 ? frames[k + 1].id : null,
+                index: frameIndex,
+                previousFrame: frameIndex > 0 ? frames[frameIndex - 1].id : null,
+                nextFrame: frameIndex < frames.length - 1 ? frames[frameIndex + 1].id : null,
                 firstFrameInPreviousScan: firstInPrev,
                 firstFrameInNextScan: nextScan ? nextScan.id : null,
               },
