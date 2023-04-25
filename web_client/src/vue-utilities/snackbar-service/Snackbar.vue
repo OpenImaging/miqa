@@ -16,7 +16,16 @@
   </v-snackbar>
 </template>
 
-<script>
+<script lang="ts">
+interface SnackbarData {
+  show: boolean;
+  text: string;
+  button: string;
+  callback: (() => void) | null;
+  timeout: number;
+  options: { left: boolean };
+}
+
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'Snackbar',
@@ -27,7 +36,7 @@ export default {
     callback: null,
     timeout: -1,
     options: { left: true },
-  }),
+  } as SnackbarData),
   methods: {
     buttonClicked() {
       this.callback();
