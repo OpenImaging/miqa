@@ -42,6 +42,7 @@ export default {
       'currentScan',
       'currentViewData',
     ]),
+    // Returning representation from VTK
     representation() {
       return (
         // force add dependency on currentFrame
@@ -49,6 +50,7 @@ export default {
         && this.proxyManager.getRepresentation(null, this.view)
       );
     },
+    // Returns the range of valid values and their step for the slice property
     sliceDomain() {
       if (!this.representation) return null;
       return this.representation.getPropertyDomainByName('slice');
@@ -85,8 +87,8 @@ export default {
     },
   },
   watch: {
-    slice(value) {
-      this.representation.setSlice(value);
+    slice(newSlice) {
+      this.representation.setSlice(newSlice);
       if (this.setCurrentVtkIndexSlices) {
         this.setCurrentVtkIndexSlices({
           indexAxis: ijkMapping[this.trueAxis(this.name)],
@@ -103,12 +105,14 @@ export default {
     kIndexSlice() {
       this.updateCrosshairs();
     },
+    // Only runs when changing scans
     view(view, oldView) {
       this.cleanup();
       oldView.setContainer(null);
       this.initializeSlice();
       this.initializeView();
     },
+    // Only runs when changing scans
     currentFrame(oldFrame, newFrame) {
       this.representation.setSlice(this.slice);
       this.applyCurrentWindowLevel();
@@ -259,7 +263,7 @@ export default {
       const dataURL = await this.view.captureImage();
 
       const imageOutput = await (
-        async (file) : Promise<HTMLImageElement> => new Promise((resolve) => {
+        async (file) : Promise<HTMLImageElement> => new Promise<HTMLImageElement>((resolve) => {
           const img = new Image();
           img.onload = () => {
             resolve(img);
@@ -362,6 +366,7 @@ export default {
         }
       }
     },
+    /** Place crosshairs at the location of a click event */
     placeCrosshairs(clickEvent) {
       const crosshairSet = new CrosshairSet(
         this.name,
