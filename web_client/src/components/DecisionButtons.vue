@@ -65,6 +65,7 @@ export default {
         labelText: this.convertValueToLabel(name),
       }));
     },
+    /** Returns an array containing the name of an artifact and it's current selection state */
     chips() {
       return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
     },
@@ -286,7 +287,7 @@ export default {
             currentScanId: this.currentViewData.scanId,
             newScanDecision: savedObj,
           });
-          this.refreshTaskOverview();
+          await this.refreshTaskOverview();
           if (AUTO_ADVANCE) {
             this.$emit('handleKeyPress', 'next');
           }

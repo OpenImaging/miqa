@@ -186,7 +186,7 @@ export default {
           ) as { id: string, name: string }).id;
         }
         await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
-        this.loadProject(this.currentProject);
+        await this.loadProject(this.currentProject);
         this.showUploadModal = false;
       } catch (ex) {
         const text = ex || 'Upload failed due to server error.';

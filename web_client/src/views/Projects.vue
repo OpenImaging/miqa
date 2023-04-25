@@ -176,7 +176,7 @@ export default defineComponent({
           const newProject = await djangoRest.createProject(this.newName);
           this.SET_PROJECTS(this.projects.concat([newProject]));
           // Load project
-          store.dispatch('loadProject', newProject);
+          await store.dispatch('loadProject', newProject);
           this.creating = false;
           this.newName = '';
 
@@ -193,7 +193,7 @@ export default defineComponent({
     },
     async proceedToNext() {
       const nextProject = this.projects[this.selectedProjectIndex + 1];
-      store.dispatch('loadProject', nextProject);
+      await store.dispatch('loadProject', nextProject);
       this.selectedProjectIndex += 1;
       await djangoRest.projectTaskOverview(nextProject.id).then(
         (taskOverview) => {

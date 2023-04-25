@@ -39,7 +39,7 @@ export default defineComponent({
     const continueSession = async () => {
       // Pass the store so last update can be updated if authentication renewed
       await djangoRest.restoreLogin(store);
-      djangoRest.projects();
+      await djangoRest.projects();
 
       // reset dialog
       show.value = false;
