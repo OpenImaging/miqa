@@ -76,6 +76,7 @@ export default defineComponent({
     },
   },
   watch: {
+    // Update locked experiment when experiment changes
     experimentId(newValue, oldValue) {
       this.switchLock(newValue, oldValue);
       clearInterval(this.lockCycle);
@@ -86,7 +87,10 @@ export default defineComponent({
   },
   mounted() {
     if (!this.navigateToNextIfCurrentScanNull()) {
+      // Switch the lock to the current experiment
       this.switchLock(this.experimentId);
+
+      // Handles key presses
       window.addEventListener('keydown', (event) => {
         const activeElement = document.activeElement as HTMLElement;
         if (['textarea', 'input'].includes(activeElement.tagName.toLowerCase())) return;
@@ -103,6 +107,7 @@ export default defineComponent({
     }
   },
   beforeDestroy() {
+    // Remove lock
     this.setLock({ experimentId: this.experimentId, lock: false });
     clearInterval(this.lockCycle);
   },
@@ -110,13 +115,14 @@ export default defineComponent({
     openScanLink() {
       window.open(this.currentViewData.scanLink, '_blank');
     },
-    async switchLock(newExp, oldExp = null, force = false) {
+    /** Release lock on old experiment, set lock on new experiment */
+    async switchLock(newExperimentId, oldExperimentId = null, force = false) {
       if (!this.navigateToNextIfCurrentScanNull()) {
         if (this.editRights) {
           this.loadingLock = true;
-          if (oldExp) {
+          if (oldExperimentId) {
             try {
-              await this.setLock({ experimentId: oldExp, lock: false, force });
+              await this.setLock({ experimentId: oldExperimentId, lock: false, force });
             } catch (err) {
               this.$snackbar({
                 text: 'Failed to release edit access on Experiment.',
@@ -124,8 +130,9 @@ export default defineComponent({
               });
             }
           }
+          // Set the new lockExperiment
           try {
-            await this.setLock({ experimentId: newExp, lock: true, force });
+            await this.setLock({ experimentId: newExperimentId, lock: true, force });
             this.lockCycle = setInterval(async (experimentId) => {
               await this.setLock({ experimentId, lock: true });
             }, 1000 * 60 * 5, this.currentViewData.experimentId);
@@ -189,6 +196,8 @@ export default defineComponent({
         }
       }
     },
+    // If there aren't at least two keys in `currentView` we know
+    // that we aren't looking at a valid scan, so advance to next.
     navigateToNextIfCurrentScanNull() {
       if (Object.keys(this.currentViewData).length < 2) {
         this.handleKeyPress('next');
