@@ -30,10 +30,10 @@ export default defineComponent({
     const myCurrentProjectRoles = computed(() => store.getters.myCurrentProjectRoles);
 
     const setLock = (lockParameters) => store.dispatch('setLock', lockParameters);
-    const setCurrentFrame = (frame) => store.commit('setCurrentFrame', frame);
-    const setShowCrosshairs = () => store.commit('setShowCrosshairs', showCrosshairs);
-    const setStoreCrosshairs = () => store.commit('setStoreCrosshairs', storeCrosshairs);
-    const updateExperiment = (experiment) => store.commit('updateExperiment', experiment);
+    const setCurrentFrame = (frame) => store.commit('SET_CURRENT_FRAME', frame);
+    const setShowCrosshairs = (show) => store.commit('SET_SHOW_CROSSHAIRS', show);
+    const setStoreCrosshairs = (persist) => store.commit('SET_STORE_CROSSHAIRS', persist);
+    const updateExperiment = (experiment) => store.commit('UPDATE_EXPERIMENT', experiment);
     return {
       proxyManager,
       scanCachedPercentage,
