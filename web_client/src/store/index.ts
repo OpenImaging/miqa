@@ -21,27 +21,47 @@ import { proxy } from '../vtk';
 import { getView } from '../vtk/viewManager';
 import { ijkMapping } from '../vtk/constants';
 
+import {
+  RESET_STATE, SET_MIQA_CONFIG, SET_ME, SET_ALL_USERS, RESET_PROJECT_STATE, SET_CURRENT_FRAME_ID,
+  SET_FRAME, SET_SCAN, SET_RENDER_ORIENTATION, SET_CURRENT_PROJECT, SET_GLOBAL_SETTINGS,
+  SET_TASK_OVERVIEW, SET_PROJECTS, ADD_SCAN_DECISION, SET_FRAME_EVALUATION, SET_CURRENT_SCREENSHOT,
+  ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
+  SET_ERROR_LOADING_FRAME, ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
+  UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
+  SET_CURRENT_VTK_INDEX_SLICES, SET_SHOW_CROSSHAIRS, SET_STORE_CROSSHAIRS, SET_REVIEW_MODE,
+} from './mutation-types';
+
 const { convertItkToVtkImage } = ITKHelper;
 
 Vue.use(Vuex);
 
+// Cache of downloaded files
 const fileCache = new Map();
+// Cache of individual frames within a single scan
 const frameCache = new Map();
+// Queue of frames to be downloaded
 let readDataQueue = [];
+// List of frames that have been successfully added to readDataQueue
 const loadedData = [];
+// Frames that need to be downloaded
 const pendingFrameDownloads = new Set<any>();
+// Maximum number of workers in WorkerPool
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
+// Defines the task currently running
 let taskRunId = -1;
+// Reuse workers for performance
 let savedWorker = null;
 
-function shrinkProxyManager(proxyManager) {
+/** Delete existing VTK.js proxyManager views */
+function shrinkProxyManager(proxyManager: vtkProxyManager) {
   proxyManager.getViews().forEach((view) => {
     view.setContainer(null);
     proxyManager.deleteProxy(view);
   });
 }
 
-function prepareProxyManager(proxyManager) {
+/** Renders each view. Also disables Axes visibility and sets InterpolationType to nearest */
+function prepareProxyManager(proxyManager: vtkProxyManager) {
   if (!proxyManager.getViews().length) {
     ['View2D_Z:z', 'View2D_X:x', 'View2D_Y:y'].forEach((type) => {
       const view = getView(proxyManager, type);
@@ -61,6 +81,7 @@ function prepareProxyManager(proxyManager) {
   }
 }
 
+/** Array name is file name minus last extension, e.g. image.nii.gz => image.nii */
 function getArrayName(filename) {
   const idx = filename.lastIndexOf('.');
   const name = idx > -1 ? filename.substring(0, idx) : filename;
@@ -69,25 +90,32 @@ function getArrayName(filename) {
 
 function getData(id, file, webWorker = null) {
   return new Promise((resolve, reject) => {
+    // 1. Check cache for copy of image
     if (frameCache.has(id)) {
+      // 2a. Load image from cache
       resolve({ frameData: frameCache.get(id), webWorker });
     } else {
+      // 2b. Download image
       const fileName = file.name;
       const io = new FileReader();
 
+      // 4. Wait until the file has been loaded
       io.onload = function onLoad() {
+        // 5. Read image using ITK
         readImageArrayBuffer(webWorker, io.result, fileName)
+          // 6. Convert image from ITK to VTK
           .then(({ webWorker, image }) => { // eslint-disable-line no-shadow
             const frameData = convertItkToVtkImage(image, {
               scalarArrayName: getArrayName(fileName),
             });
+            // 7. Get metadata about image
             const dataRange = frameData
-              .getPointData()
-              .getArray(0)
-              .getRange();
+              .getPointData() // From the image file
+              .getArray(0) // Values in the file
+              .getRange(); // Range of values in the file, e.g. [0, 3819]
             frameCache.set(id, { frameData });
             // eslint-disable-next-line no-use-before-define
-            expandScanRange(id, dataRange);
+            expandScanRange(id, dataRange); // Example dataRange: [0, 3819]
             resolve({ frameData, webWorker });
           })
           .catch((error) => {
@@ -95,15 +123,19 @@ function getData(id, file, webWorker = null) {
           });
       };
 
+      // 3. Load image file
       io.readAsArrayBuffer(file);
     }
   });
 }
 
+/** Load file, from cache if possible. */
 function loadFile(frame, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frame.id)) {
     return { frameId: frame.id, fileP: fileCache.get(frame.id) };
   }
+
+  // Otherwise download the frame
   let client = apiClient;
   let downloadURL = `/frames/${frame.id}/download`;
   if (frame.download_url) {
@@ -120,8 +152,10 @@ function loadFile(frame, { onDownloadProgress = null } = {}) {
   return { frameId: frame.id, fileP: promise };
 }
 
+/** Gets the data from the selected image file using a webWorker. */
 function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
   const loadResult = loadFile(frame, { onDownloadProgress });
+  // Once the file has been cached and is available, call getImageData
   return loadResult.fileP.then((file) => getData(frame.id, file, savedWorker)
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
@@ -139,6 +173,10 @@ function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
     }));
 }
 
+/**
+ * Use a worker to download image files. Only used by WorkerPool
+ * taskInfo  Object  Contains experimentId, scanId, and a frame object
+ */
 function poolFunction(webWorker, taskInfo) {
   return new Promise((resolve, reject) => {
     const { frame } = taskInfo;
@@ -179,12 +217,15 @@ function poolFunction(webWorker, taskInfo) {
   });
 }
 
+/** Calculates the percent downloaded of currently loading frames */
 function progressHandler(completed, total) {
   const percentComplete = completed / total;
-  store.commit('setScanCachedPercentage', percentComplete);
+  store.commit('SET_SCAN_CACHED_PERCENTAGE', percentComplete);
 }
 
+/** Creates array of tasks to run then runs tasks in parallel. */
 function startReaderWorkerPool() {
+  // Get the current array of tasks in readDataQueue
   const taskArgsArray = readDataQueue.map((taskInfo) => [taskInfo]);
   readDataQueue = [];
 
@@ -192,11 +233,11 @@ function startReaderWorkerPool() {
     taskArgsArray,
     progressHandler,
   );
-  taskRunId = runId;
+  taskRunId = runId; // The number of tasks still running
 
   promise
     .then(() => {
-      taskRunId = -1;
+      taskRunId = -1; // Indicates no tasks are running
     })
     .catch((err) => {
       console.error(err);
@@ -206,11 +247,15 @@ function startReaderWorkerPool() {
     });
 }
 
+/** Queues scan for download, will load all frames for a target
+ * scan if the scan has not already been loaded. */
 function queueLoadScan(scan, loadNext = 0) {
   // load all frames in target scan
   if (!loadedData.includes(scan.id)) {
+    // For each scan in scanFrames
     store.state.scanFrames[scan.id].forEach(
       (frameId) => {
+        // Add to readDataQueue a request to get the frames associated with that scan
         readDataQueue.push({
           experimentId: scan.experiment,
           scanId: scan.id,
@@ -222,6 +267,7 @@ function queueLoadScan(scan, loadNext = 0) {
   }
 
   if (loadNext > 0) {
+    // Get the other scans in the experiment.
     const scansInSameExperiment = store.state.experimentScans[scan.experiment];
     let nextScan;
     if (scan.id === scansInSameExperiment[scansInSameExperiment.length - 1]) {
@@ -251,7 +297,7 @@ function queueLoadScan(scan, loadNext = 0) {
   }
 }
 
-// get next frame (across experiments and scans)
+/** Get next frame in specific experiment/scan */
 function getNextFrame(experiments, i, j) {
   const experiment = experiments[i];
   const { scans } = experiment;
@@ -264,17 +310,25 @@ function getNextFrame(experiments, i, j) {
     }
     // get first scan in next experiment
     const nextExperiment = experiments[i + 1];
-    const nextScan = nextExperiment.scans[0];
-    return nextScan.frames[0];
+    const nextScan = nextExperiment.scans[0]; // Get the first scan in the next experiment
+    return nextScan.frames[0]; // Get the first frame in the nextScan
   }
   // get next scan in current experiment
   const nextScan = scans[j + 1];
   return nextScan.frames[0];
 }
 
+/**
+ * Expands individual scan range
+ *
+ * If the range (e.g. [0, 3819] in a scan is <> the range read from data,
+ * ensure that the ranges match
+ */
 function expandScanRange(frameId, dataRange) {
   if (frameId in store.state.frames) {
+    // Get the scanId from the frame.
     const scanId = store.state.frames[frameId].scan;
+    // Get the scan of specified scanId
     const scan = store.state.scans[scanId];
     if (scan && dataRange[0] < scan.cumulativeRange[0]) {
       [scan.cumulativeRange[0]] = dataRange;
@@ -285,6 +339,7 @@ function expandScanRange(frameId, dataRange) {
   }
 }
 
+/** Determines whether a scan will be displayed based on its reviewed status */
 export function includeScan(scanId) {
   if (store.state.reviewMode) {
     const myRole = store.state.currentTaskOverview?.my_project_role;
@@ -362,6 +417,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     wholeState(state) {
       return state;
     },
+    /** Returns current view's project, experiments, scans, frames, auto-evaluation, etc. */
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       const scan = currentFrame ? state.scans[currentFrame.scan] : undefined;
@@ -372,7 +428,9 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       const experiment = currentFrame.experiment
         ? state.experiments[currentFrame.experiment] : null;
       const project = state.projects.filter((x) => x.id === experiment.project)[0];
+      // Get list of scans for current experiment
       const experimentScansList = state.experimentScans[experiment.id];
+      // Get list of frames associated with current scan
       const scanFramesList = state.scanFrames[scan.id];
 
       const scanOrder = Object.values(state.experimentScans).flat().filter(includeScan);
@@ -402,6 +460,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         currentAutoEvaluation: currentFrame.frame_evaluation,
       };
     },
+    /** Gets the current frame when given a frameId */
     currentFrame(state) {
       return state.currentFrameId ? state.frames[state.currentFrameId] : null;
     },
@@ -413,6 +472,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     nextFrame(state, getters) {
       return getters.currentFrame ? getters.currentFrame.nextFrame : null;
     },
+    /** Gets the current scan using the currentFrame */
     currentScan(state, getters) {
       if (getters.currentFrame) {
         const curScanId = getters.currentFrame.scan;
@@ -420,6 +480,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       }
       return null;
     },
+    /** Gets the current experiment using the currentScan */
     currentExperiment(state, getters) {
       if (getters.currentScan) {
         const curExperimentId = getters.currentScan.experiment;
@@ -427,6 +488,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       }
       return null;
     },
+    /** Enumerates permissions of logged-in user */
     myCurrentProjectRoles(state) {
       const projectPerms = Object.entries(state.currentProjectPermissions)
         .filter((entry: [string, Array<User>]): boolean => entry[1].map(
@@ -438,26 +500,27 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       }
       return projectPerms;
     },
+    /** Returns true if no project has been selected */
     isGlobal(state) {
       return state.currentProject === null;
     },
   },
   mutations: {
-    reset(state) {
+    [RESET_STATE](state) {
       Object.assign(state, { ...state, ...initState });
     },
-    setMIQAConfig(state, configuration) {
+    [SET_MIQA_CONFIG](state, configuration) {
       if (!configuration) configuration = {};
       if (!configuration.version) configuration.version = '';
       state.MIQAConfig = configuration;
     },
-    setMe(state, me) {
+    [SET_ME](state, me) {
       state.me = me;
     },
-    setAllUsers(state, allUsers) {
+    [SET_ALL_USERS](state, allUsers) {
       state.allUsers = allUsers;
     },
-    resetProject(state) {
+    [RESET_PROJECT_STATE](state) {
       state.experimentIds = [];
       state.experiments = {};
       state.experimentScans = {};
@@ -465,34 +528,37 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       state.scanFrames = {};
       state.frames = {};
     },
-    setCurrentFrameId(state, frameId) {
+    [SET_CURRENT_FRAME_ID](state, frameId) {
       state.currentFrameId = frameId;
     },
-    setFrame(state, { frameId, frame }) {
+    /** Sets a specified frame at a specific index in the frames array */
+    [SET_FRAME](state, { frameId, frame }) {
       // Replace with a new object to trigger a Vuex update
       state.frames = { ...state.frames };
       state.frames[frameId] = frame;
     },
-    setScan(state, { scanId, scan }) {
+    [SET_SCAN](state, { scanId, scan }) {
       // Replace with a new object to trigger a Vuex update
       state.scans = { ...state.scans };
       state.scans[scanId] = scan;
     },
-    setRenderOrientation(state, anatomy) {
+    [SET_RENDER_ORIENTATION](state, anatomy) {
       state.renderOrientation = anatomy;
     },
-    setCurrentProject(state, project: Project | null) {
+    /** Also sets renderOrientation and currentProjectPermissions */
+    [SET_CURRENT_PROJECT](state, project: Project | null) {
       state.currentProject = project;
       if (project) {
         state.renderOrientation = project.settings.anatomy_orientation;
         state.currentProjectPermissions = project.settings.permissions;
       }
     },
-    setGlobalSettings(state, settings) {
+    [SET_GLOBAL_SETTINGS](state, settings) {
       state.globalSettings = settings;
     },
-    setTaskOverview(state, taskOverview: ProjectTaskOverview) {
+    [SET_TASK_OVERVIEW](state, taskOverview: ProjectTaskOverview) {
       if (!taskOverview) return;
+      // Calculates total scans in project and scans that have been marked complete
       if (taskOverview.scan_states) {
         state.projects.find(
           (project) => project.id === taskOverview.project_id,
@@ -503,71 +569,84 @@ export const storeConfig:StoreOptions<MIQAStore> = {
           ).length,
         };
       }
+      // If we have a value in state.currentProject, and it's id is equal to taskOverview's
+      // project_id then:
       if (state.currentProject && taskOverview.project_id === state.currentProject.id) {
         state.currentTaskOverview = taskOverview;
+        // Iterate over allScans
         Object.values(store.state.scans).forEach((scan: Scan) => {
+          // If the scan exists and has been reviewed
           if (taskOverview.scan_states[scan.id] && taskOverview.scan_states[scan.id] !== 'unreviewed') {
+            // Reload the scan
             store.dispatch('reloadScan', scan.id);
           }
         });
       }
     },
-    setProjects(state, projects: Project[]) {
+    [SET_PROJECTS](state, projects: Project[]) {
       state.projects = projects;
     },
-    addScanDecision(state, { currentScan, newDecision }) {
+    [ADD_SCAN_DECISION](state, { currentScan, newDecision }) {
       state.scans[currentScan].decisions.push(newDecision);
     },
-    setFrameEvaluation(state, evaluation) {
+    /** Pass in frame evaluation then attach the evaluation to the current frame */
+    [SET_FRAME_EVALUATION](state, evaluation) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       if (currentFrame) {
         currentFrame.frame_evaluation = evaluation;
       }
     },
-    setCurrentScreenshot(state, screenshot) {
+    [SET_CURRENT_SCREENSHOT](state, screenshot) {
       state.currentScreenshot = screenshot;
     },
-    addScreenshot(state, screenshot) {
+    [ADD_SCREENSHOT](state, screenshot) {
       state.screenshots.push(screenshot);
     },
-    removeScreenshot(state, screenshot) {
+    [REMOVE_SCREENSHOT](state, screenshot) {
       state.screenshots.splice(state.screenshots.indexOf(screenshot), 1);
     },
-    updateLastApiRequestTime(state) {
+    [UPDATE_LAST_API_REQUEST_TIME](state) {
       state.lastApiRequestTime = Date.now();
     },
-    setLoadingFrame(state, value) {
+    [SET_LOADING_FRAME](state, value) {
       state.loadingFrame = value;
     },
-    setErrorLoadingFrame(state, value) {
+    [SET_ERROR_LOADING_FRAME](state, value) {
       state.errorLoadingFrame = value;
     },
-    addScanFrames(state, { sid, id }) {
+    /** Adds a scanId and it's corresponding scanFrames state */
+    [ADD_SCAN_FRAMES](state, { sid, id }) {
       state.scanFrames[sid].push(id);
     },
-    addExperimentScans(state, { eid, sid }) {
+    [ADD_EXPERIMENT_SCANS](state, { eid, sid }) {
       state.scanFrames[sid] = [];
       state.experimentScans[eid].push(sid);
     },
-    addExperiment(state, { id, value }) {
+    /**
+     * Add an experiment to experiments state, it's id to experimentIds state, and
+     * set experimentScans state to an empty array
+     */
+    [ADD_EXPERIMENT](state, { id, value }) {
       state.experimentScans[id] = [];
       if (!state.experimentIds.includes(id)) {
         state.experimentIds.push(id);
       }
       state.experiments[id] = value;
     },
-    updateExperiment(state, experiment) {
+    [UPDATE_EXPERIMENT](state, experiment) {
       // Necessary for reactivity
       state.experiments = { ...state.experiments };
       state.experiments[experiment.id] = experiment;
     },
-    setWindowLocked(state, lockState) {
+    /** Ensures that a specific image is being reviewed by a single individual */
+    [SET_WINDOW_LOCKED](state, lockState) {
       state.windowLocked = lockState;
     },
-    setScanCachedPercentage(state, percentComplete) {
+    [SET_SCAN_CACHED_PERCENTAGE](state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
     },
-    setSliceLocation(state, ijkLocation) {
+    /** Saves the location of the cursor click related to a specific scan and decision */
+    [SET_SLICE_LOCATION](state, ijkLocation) {
       if (Object.values(ijkLocation).every((value) => value !== undefined)) {
         state.vtkViews.forEach(
           (view) => {
@@ -578,7 +657,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         );
       }
     },
-    setCurrentVtkIndexSlices(state, { indexAxis, value }) {
+    [SET_CURRENT_VTK_INDEX_SLICES](state, { indexAxis, value }) {
       state[`${indexAxis}IndexSlice`] = value;
       state.sliceLocation = undefined;
     },
@@ -588,69 +667,78 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     setCurrentWindowLevel(state, value) {
       state.currentWindowLevel = value;
     },
-    setShowCrosshairs(state, show) {
+    [SET_SHOW_CROSSHAIRS](state, show: boolean) {
       state.showCrosshairs = show;
     },
-    setStoreCrosshairs(state, value) {
+    [SET_STORE_CROSSHAIRS](state, value: boolean) {
       state.storeCrosshairs = value;
     },
-    switchReviewMode(state, mode) {
+    [SET_REVIEW_MODE](state, mode) {
       state.reviewMode = mode || false;
     },
   },
   actions: {
+    /** Reset the Vuex state of MIQA, cancel any existing tasks in the workerPool, clear file
+     * and frame caches */
     reset({ state, commit }) {
       if (taskRunId >= 0) {
         state.workerPool.cancel(taskRunId);
         taskRunId = -1;
       }
-      commit('reset');
+      commit('RESET_STATE');
       fileCache.clear();
       frameCache.clear();
     },
+    /** Pulls configuration from API and loads it into state */
     async loadConfiguration({ commit }) {
       const configuration = await djangoRest.MIQAConfig();
-      commit('setMIQAConfig', configuration);
+      commit('SET_MIQA_CONFIG', configuration);
     },
+    /** Pulls user from API and loads it into state */
     async loadMe({ commit }) {
       const me = await djangoRest.me();
-      commit('setMe', me);
+      commit('SET_ME', me);
     },
+    /** Pulls all users from API and loads into state */
     async loadAllUsers({ commit }) {
       const allUsers = await djangoRest.allUsers();
-      commit('setAllUsers', allUsers.results);
+      commit('SET_ALL_USERS', allUsers.results);
     },
+    /** Pulls global settings from API and updates currentProject and globalSettings in state */
     async loadGlobal({ commit }) {
       const globalSettings = await djangoRest.globalSettings();
-      commit('setCurrentProject', null);
-      commit('setGlobalSettings', {
+      commit('SET_CURRENT_PROJECT', null);
+      commit('SET_GLOBAL_SETTINGS', {
         import_path: globalSettings.import_path,
         export_path: globalSettings.export_path,
       });
-      commit('setTaskOverview', {});
+      commit('SET_TASK_OVERVIEW', {});
     },
+    /** Pulls all projects from API and loads into state */
     async loadProjects({ commit }) {
       const projects = await djangoRest.projects();
-      commit('setProjects', projects);
+      commit('SET_PROJECTS', projects);
     },
+    /** Pulls an individual project from API and loads into state */
     async loadProject({ commit }, project: Project) {
-      commit('resetProject');
+      commit('RESET_PROJECT_STATE');
 
       // Build navigation links throughout the frame to improve performance.
       let firstInPrev = null;
 
       // Refresh the project from the API
       project = await djangoRest.project(project.id);
-      commit('setCurrentProject', project);
+      commit('SET_CURRENT_PROJECT', project);
 
-      // place data in state
+      // place data in state, adds each experiment to experiments
       const { experiments } = project;
 
       for (let i = 0; i < experiments.length; i += 1) {
+        // Get a specific experiment from the project
         const experiment = experiments[i];
         // set experimentScans[experiment.id] before registering the experiment.id
         // so ExperimentsView doesn't update prematurely
-        commit('addExperiment', {
+        commit('ADD_EXPERIMENT', {
           id: experiment.id,
           value: {
             id: experiment.id,
@@ -662,18 +750,19 @@ export const storeConfig:StoreOptions<MIQAStore> = {
           },
         });
 
+        // Get the associated scans from the experiment
         // TODO these requests *can* be run in parallel, or collapsed into one XHR
         // eslint-disable-next-line no-await-in-loop
         const { scans } = experiment;
         for (let j = 0; j < scans.length; j += 1) {
           const scan = scans[j];
-          commit('addExperimentScans', { eid: experiment.id, sid: scan.id });
+          commit('ADD_EXPERIMENT_SCANS', { eid: experiment.id, sid: scan.id });
 
           // TODO these requests *can* be run in parallel, or collapsed into one XHR
           // eslint-disable-next-line no-await-in-loop
           const { frames } = scan;
 
-          commit('setScan', {
+          commit('SET_SCAN', {
             scanId: scan.id,
             scan: {
               id: scan.id,
@@ -689,10 +778,11 @@ export const storeConfig:StoreOptions<MIQAStore> = {
 
           const nextScan = getNextFrame(experiments, i, j);
 
+          // then this is getting each frame associated with the scan
           for (let k = 0; k < frames.length; k += 1) {
             const frame = frames[k];
-            commit('addScanFrames', { sid: scan.id, id: frame.id });
-            commit('setFrame', {
+            commit('ADD_SCAN_FRAMES', { sid: scan.id, id: frame.id });
+            commit('SET_FRAME', {
               frameId: frame.id,
               frame: {
                 ...frame,
@@ -718,14 +808,15 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       }
       // get the task overview for this project
       const taskOverview = await djangoRest.projectTaskOverview(project.id);
-      commit('setTaskOverview', taskOverview);
+      commit('SET_TASK_OVERVIEW', taskOverview);
     },
+    /** Add a scan to scans */
     async reloadScan({ commit, getters }, scanId) {
       const { currentFrame } = getters;
       scanId = scanId || currentFrame.scan;
       if (!scanId) return;
       const scan = await djangoRest.scan(scanId);
-      commit('setScan', {
+      commit('SET_SCAN', {
         scanId: scan.id,
         scan: {
           id: scan.id,
@@ -744,6 +835,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       if (!scanId || !state.projects) {
         return undefined;
       }
+      // If currently loaded frameId does not match frameId to load
       if (!state.scans[scanId] && state.projects) {
         await dispatch('loadProjects');
         if (state.projects) {
@@ -756,32 +848,35 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       return state.scans[scanId];
     },
     async setCurrentFrame({ commit }, frameId) {
-      commit('setCurrentFrameId', frameId);
+      commit('SET_CURRENT_FRAME_ID', frameId);
     },
+    /** Handles the process of changing frames */
     async swapToFrame({
       state, dispatch, getters, commit,
     }, { frame, onDownloadProgress = null, loadAll = true }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
       }
-      commit('setLoadingFrame', true);
-      commit('setErrorLoadingFrame', false);
+      commit('SET_LOADING_FRAME', true);
+      commit('SET_ERROR_LOADING_FRAME', false);
 
       if (loadAll) {
         const oldScan = getters.currentScan;
+        // frame.scan returns the scan id
         const newScan = state.scans[frame.scan];
 
+        // Queue the new scan to be loaded
         if (newScan !== oldScan && newScan) {
           queueLoadScan(newScan, 3);
         }
         let newProxyManager = false;
+        // Create new proxyManager if scans are different, retain if same
         if (oldScan !== newScan && state.proxyManager) {
-          // If we don't "shrinkProxyManager()" and reinitialize it between
-          // scans, then we can end up with no frame
-          // slices displayed, even though we have the data and attempted
-          // to render it.  This may be due to frame extents changing between
-          // scans, which is not the case from one timestep of a single scan
-          // to tne next.
+          // If we don't shrink and reinitialize between scans
+          // we sometimes end up with no frame slices displayed.
+          // This may be due to the extents changing between scans,
+          // the extents do not change from one timestep to another
+          // in a single scan.
           shrinkProxyManager(state.proxyManager);
           newProxyManager = true;
         }
@@ -824,23 +919,25 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         console.log('Caught exception loading next frame');
         console.log(err);
         state.vtkViews = [];
-        commit('setErrorLoadingFrame', true);
+        commit('SET_ERROR_LOADING_FRAME', true);
       } finally {
         dispatch('setCurrentFrame', frame.id);
-        commit('setLoadingFrame', false);
+        commit('SET_LOADING_FRAME', false);
       }
 
       // check for window lock expiry
       if (loadAll && state.windowLocked.lock) {
         const { currentViewData } = getters;
+        // Handles unlocking if necessary
         const unlock = () => {
-          commit('setWindowLocked', {
+          commit('SET_WINDOW_LOCKED', {
             lock: false,
             duration: undefined,
             target: undefined,
             associatedImage: undefined,
           });
         };
+        // Unlocks window if scan, experiment, or project has changed
         switch (state.windowLocked.duration) {
           case 'scan':
             if (currentViewData.scanId !== state.windowLocked.target) unlock();
@@ -856,15 +953,16 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         }
       }
     },
+    /** Sets a lock on the current experiment */
     async setLock({ commit }, { experimentId, lock, force }) {
       if (lock) {
         commit(
-          'updateExperiment',
+          'UPDATE_EXPERIMENT',
           await djangoRest.lockExperiment(experimentId, force),
         );
       } else {
         commit(
-          'updateExperiment',
+          'UPDATE_EXPERIMENT',
           await djangoRest.unlockExperiment(experimentId),
         );
       }
