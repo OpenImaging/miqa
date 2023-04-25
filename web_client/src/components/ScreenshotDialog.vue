@@ -53,14 +53,17 @@ export default {
     },
     show(value) {
       if (!value) {
-        setTimeout(() => this.setCurrentScreenshot(null), 300);
+        setTimeout(() => this.SET_CURRENT_SCREENSHOT(null), 300);
       }
     },
   },
   methods: {
-    ...mapMutations(['setCurrentScreenshot', 'addScreenshot']),
+    ...mapMutations([
+      'SET_CURRENT_SCREENSHOT',
+      'ADD_SCREENSHOT',
+    ]),
     save() {
-      this.addScreenshot({
+      this.ADD_SCREENSHOT({
         dataURL: this.output,
         name: this.filename,
       });

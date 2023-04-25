@@ -155,15 +155,15 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'addScanDecision',
-      'updateExperiment',
-      'setFrameEvaluation',
+      'ADD_SCAN_DECISION',
+      'UPDATE_EXPERIMENT',
+      'SET_FRAME_EVALUATION',
     ]),
     async pollForEvaluation() {
       // Get a frame from API
       const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
       if (frameData.frame_evaluation) {
-        this.setFrameEvaluation(frameData.frame_evaluation);
+        this.SET_FRAME_EVALUATION(frameData.frame_evaluation);
         clearInterval(this.pollInterval);
       }
     },
@@ -241,7 +241,7 @@ export default {
         const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
         // If API has different data, update taskOverview
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit('setTaskOverview', taskOverview);
+          store.commit('SET_TASK_OVERVIEW', taskOverview);
         }
       }
     },
@@ -277,9 +277,10 @@ export default {
               k: zxyLocation[0],
             } : {}),
           );
-          this.addScanDecision({
-            currentScan: this.currentViewData.scanId,
-            newDecision: savedObj,
+          // Update Vuex store with scan decision
+          this.ADD_SCAN_DECISION({
+            currentScanId: this.currentViewData.scanId,
+            newScanDecision: savedObj,
           });
           this.refreshTaskOverview();
           if (AUTO_ADVANCE) {
@@ -301,7 +302,7 @@ export default {
           //   (else we would already know about the lock owner and not attempt to lock).
           //   Thus, we need to update our experiment's info and check who the lock owner is
           if (err.toString().includes('lock')) {
-            this.updateExperiment(await djangoRest.experiment(this.currentViewData.experimentId));
+            this.UPDATE_EXPERIMENT(await djangoRest.experiment(this.currentViewData.experimentId));
           }
         }
       } else {

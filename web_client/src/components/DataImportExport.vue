@@ -60,7 +60,7 @@ export default defineComponent({
             projects.value.forEach(
               async (project: Project) => {
                 const taskOverview = await djangoRest.projectTaskOverview(project.id);
-                store.commit('setTaskOverview', taskOverview);
+                store.commit('SET_TASK_OVERVIEW', taskOverview);
               },
             );
           }

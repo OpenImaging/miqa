@@ -25,7 +25,7 @@ export default defineComponent({
     const currentProject = computed(() => store.state.currentProject);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
-    const removeScreenshot = store.commit('removeScreenshot');
+    const REMOVE_SCREENSHOT = store.commit('REMOVE_SCREENSHOT');
 
     const user = inject('user') as User;
 
@@ -35,7 +35,7 @@ export default defineComponent({
       currentProject,
       currentFrame,
       currentScan,
-      removeScreenshot,
+      REMOVE_SCREENSHOT,
       user,
     };
   },
@@ -131,7 +131,7 @@ export default defineComponent({
       for (let i = this.screenshots.length - 1; i >= 0; i -= 1) {
         const screenshot = this.screenshots[i];
         if (this.selectedScreenshots.indexOf(screenshot) !== -1) {
-          this.removeScreenshot(screenshot);
+          this.REMOVE_SCREENSHOT(screenshot);
         }
       }
       this.selectedScreenshots = [];
@@ -277,7 +277,7 @@ export default defineComponent({
                         small
                         color="primary"
                         class="close"
-                        @click.stop="removeScreenshot(screenshot)"
+                        @click.stop="REMOVE_SCREENSHOT(screenshot)"
                       >
                         <v-icon>close</v-icon>
                       </v-btn>
