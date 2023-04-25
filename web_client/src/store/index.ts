@@ -740,7 +740,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         },
       });
     },
-    async getScan({ state, dispatch }, { scanId, projectId }) {
+    async loadScan({ state, dispatch }, { scanId, projectId }) {
       if (!scanId || !state.projects) {
         return undefined;
       }
