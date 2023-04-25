@@ -112,7 +112,7 @@ export default {
     decisionToRating(decisions) {
       // decisions are an array of objects
       if (decisions.length === 0) return {};
-      const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision;
+      const rating = _.first(_.sortBy(decisions, (decision) => decision.created)).decision;
       let color = 'grey--text';
       if (rating === 'U') {
         color = 'green--text';

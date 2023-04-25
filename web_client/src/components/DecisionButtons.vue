@@ -68,6 +68,9 @@ export default {
     chips() {
       return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
     },
+    /** Determines which artifacts are suggested.
+     * Artifacts are suggested either: 1. By a prior user decision or 2. By auto evaluation
+     */
     suggestedArtifacts() {
       if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
         const lastDecision = _.sortBy(
@@ -128,6 +131,7 @@ export default {
     },
   },
   watch: {
+    /** Resets currentViewData for present/absent whenever image changes */
     currentViewData() {
       this.confirmedPresent = [];
       this.confirmedAbsent = [];

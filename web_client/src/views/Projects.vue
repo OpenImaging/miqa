@@ -25,7 +25,7 @@ export default defineComponent({
   },
   inject: ['user', 'MIQAConfig'],
   setup() {
-    const switchReviewMode = store.commit('switchReviewMode');
+    const SET_REVIEW_MODE = store.commit('SET_REVIEW_MODE');
     const loadingProjects = ref(true);
     store.dispatch('loadProjects').then(() => {
       loadingProjects.value = false;
@@ -78,7 +78,7 @@ export default defineComponent({
         const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
         // If the store / API values differ, update store to API
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit('setTaskOverview', taskOverview);
+          store.commit('SET_TASK_OVERVIEW', taskOverview);
         }
       }
     }
@@ -89,7 +89,7 @@ export default defineComponent({
         async (project: Project) => {
           // Gets the latest projectTaskOverview for each project from the API
           const taskOverview = await djangoRest.projectTaskOverview(project.id);
-          store.commit('setTaskOverview', taskOverview);
+          await store.commit('SET_TASK_OVERVIEW', taskOverview);
         },
       );
     }
@@ -100,7 +100,7 @@ export default defineComponent({
           (project) => project.id === window.location.hash.split('/')[1],
         );
         const targetProject = projects.value[targetProjectIndex];
-        if (targetProject) store.commit('setCurrentProject', targetProject);
+        if (targetProject) store.commit('SET_CURRENT_PROJECT', targetProject);
         selectedProjectIndex.value = targetProjectIndex;
       }
     }
@@ -114,7 +114,7 @@ export default defineComponent({
 
     return {
       reviewMode,
-      switchReviewMode,
+      SET_REVIEW_MODE,
       complete,
       currentProject,
       loadingProjects,
@@ -160,8 +160,8 @@ export default defineComponent({
   },
   methods: {
     ...mapMutations([
-      'setProjects',
-      'setCurrentProject',
+      'SET_PROJECTS',
+      'SET_CURRENT_PROJECT',
     ]),
     selectProject(project: Project) {
       if (this.complete) {
@@ -174,7 +174,7 @@ export default defineComponent({
         try {
           // Create project
           const newProject = await djangoRest.createProject(this.newName);
-          this.setProjects(this.projects.concat([newProject]));
+          this.SET_PROJECTS(this.projects.concat([newProject]));
           // Load project
           store.dispatch('loadProject', newProject);
           this.creating = false;
@@ -400,7 +400,7 @@ export default defineComponent({
                 dense
                 style="display: inline-block; max-height: 40px; max-width: 60px;"
                 class="px-3 ma-0"
-                @change="switchReviewMode"
+                @change="SET_REVIEW_MODE"
               />
               <span>Scans for my review</span>
             </v-subheader>
