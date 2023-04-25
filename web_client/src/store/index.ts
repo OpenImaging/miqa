@@ -414,9 +414,6 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     lastApiRequestTime: Date.now(),
   },
   getters: {
-    wholeState(state) {
-      return state;
-    },
     /** Returns current view's project, experiments, scans, frames, auto-evaluation, etc. */
     currentViewData(state) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
@@ -586,14 +583,14 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     [SET_PROJECTS](state, projects: Project[]) {
       state.projects = projects;
     },
-    [ADD_SCAN_DECISION](state, { currentScan, newDecision }) {
-      state.scans[currentScan].decisions.push(newDecision);
+    [ADD_SCAN_DECISION](state, { currentScanId, newScanDecision }) {
+      state.scans[currentScanId].decisions.push(newScanDecision);
     },
     /** Pass in frame evaluation then attach the evaluation to the current frame */
-    [SET_FRAME_EVALUATION](state, evaluation) {
+    [SET_FRAME_EVALUATION](state, frameEvaluation) {
       const currentFrame = state.currentFrameId ? state.frames[state.currentFrameId] : null;
       if (currentFrame) {
-        currentFrame.frame_evaluation = evaluation;
+        currentFrame.frame_evaluation = frameEvaluation;
       }
     },
     [SET_CURRENT_SCREENSHOT](state, screenshot) {
@@ -608,30 +605,30 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     [UPDATE_LAST_API_REQUEST_TIME](state) {
       state.lastApiRequestTime = Date.now();
     },
-    [SET_LOADING_FRAME](state, value) {
-      state.loadingFrame = value;
+    [SET_LOADING_FRAME](state, isLoading: boolean) {
+      state.loadingFrame = isLoading;
     },
-    [SET_ERROR_LOADING_FRAME](state, value) {
-      state.errorLoadingFrame = value;
+    [SET_ERROR_LOADING_FRAME](state, isErrorLoading: boolean) {
+      state.errorLoadingFrame = isErrorLoading;
     },
     /** Adds a scanId and it's corresponding scanFrames state */
-    [ADD_SCAN_FRAMES](state, { sid, id }) {
-      state.scanFrames[sid].push(id);
+    [ADD_SCAN_FRAMES](state, { scanId, frameId }) {
+      state.scanFrames[scanId].push(frameId);
     },
-    [ADD_EXPERIMENT_SCANS](state, { eid, sid }) {
-      state.scanFrames[sid] = [];
-      state.experimentScans[eid].push(sid);
+    [ADD_EXPERIMENT_SCANS](state, { experimentId, scanId }) {
+      state.scanFrames[scanId] = [];
+      state.experimentScans[experimentId].push(scanId);
     },
     /**
      * Add an experiment to experiments state, it's id to experimentIds state, and
      * set experimentScans state to an empty array
      */
-    [ADD_EXPERIMENT](state, { id, value }) {
-      state.experimentScans[id] = [];
-      if (!state.experimentIds.includes(id)) {
-        state.experimentIds.push(id);
+    [ADD_EXPERIMENT](state, { experimentId, experiment }) {
+      state.experimentScans[experimentId] = [];
+      if (!state.experimentIds.includes(experimentId)) {
+        state.experimentIds.push(experimentId);
       }
-      state.experiments[id] = value;
+      state.experiments[experimentId] = experiment;
     },
     [UPDATE_EXPERIMENT](state, experiment) {
       // Necessary for reactivity
