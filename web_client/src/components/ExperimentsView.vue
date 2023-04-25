@@ -42,7 +42,11 @@ export default {
       'currentTaskOverview',
       'currentProject',
     ]),
-    ...mapGetters(['currentScan', 'currentExperiment']),
+    ...mapGetters([
+      'currentScan',
+      'currentExperiment',
+    ]),
+    // Gets the experiments based on the experiment ids
     orderedExperiments() {
       return this.experimentIds.map((expId) => this.experiments[expId]);
     },
@@ -56,9 +60,11 @@ export default {
     },
   },
   watch: {
+    /** Begins loading upload modal */
     showUploadModal() {
       this.delayPrepareDropZone();
     },
+    /** When the project changes, reset the local state for the project. */
     currentProject() {
       this.showUploadModal = false;
       this.uploadToExisting = false;
@@ -75,6 +81,7 @@ export default {
       'loadProject',
     ]),
     includeScan,
+    /** Gets all scans associated with the provided experimentId */
     scansForExperiment(expId) {
       const expScanIds = this.experimentScans[expId];
       return expScanIds.filter(
@@ -87,6 +94,8 @@ export default {
         };
       });
     },
+    /** Receives a string like "NCANDA_E08710" (name of an image file),
+     * this is used as the experiment name */
     ellipsisText(str) {
       if (!this.minimal) return str;
       if (str.length > 25) {
@@ -95,10 +104,13 @@ export default {
       }
       return str;
     },
+    /** Get the URL of the first frame in the current scan */
     getURLForScan(scanId) {
       return `/${this.currentProject.id}/${scanId}`;
     },
+    /** Assigns a color and character if a decision has been rendered on a given scan */
     decisionToRating(decisions) {
+      // decisions are an array of objects
       if (decisions.length === 0) return {};
       const rating = _.last(_.sortBy(decisions, (dec) => dec.created)).decision;
       let color = 'grey--text';
@@ -120,12 +132,13 @@ export default {
       return '';
     },
     scanState(scan) {
-      let state;
+      let scanTaskState;
       if (this.currentTaskOverview) {
-        state = this.currentTaskOverview.scan_states[scan.id];
+        scanTaskState = this.currentTaskOverview.scan_states[scan.id];
       }
-      return state || 'unreviewed';
+      return scanTaskState || 'unreviewed';
     },
+    /** Adds a class to a scan representative of the scan's task state. */
     scanStateClass(scan) {
       let classes = `body-1 state-${this.scanState(scan).replace(/ /g, '-')}`;
       if (scan === this.currentScan) {
@@ -136,6 +149,7 @@ export default {
     delayPrepareDropZone() {
       setTimeout(this.prepareDropZone, 500);
     },
+    /** Listens for images being dragged into the dropzone */
     prepareDropZone() {
       const dropZone = document.getElementById('dropZone');
       if (dropZone) {
@@ -149,6 +163,7 @@ export default {
         });
       }
     },
+    /** Gets files dropped into the dropzone */
     addDropFiles(e) {
       this.fileSetForUpload = [...e.dataTransfer.files];
     },
@@ -156,13 +171,16 @@ export default {
       let experimentId;
       this.uploading = true;
       try {
+        // If we are uploading to a new experiment
         if (!this.uploadToExisting) {
+          // Create a new experiment, below returns instance of ResponseData
           const newExperiment = await djangoRest.createExperiment(
             this.currentProject.id,
             this.experimentNameForUpload,
           );
           experimentId = newExperiment.id;
         } else {
+          // Find the experiment's id that matches the experiment selected
           experimentId = (Object.values(this.experiments).find(
             (experiment: any) => experiment.name === this.experimentNameForUpload,
           ) as { id: string, name: string }).id;

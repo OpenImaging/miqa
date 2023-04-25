@@ -9,7 +9,9 @@ export default {
     show: false,
   }),
   computed: {
-    ...mapState(['currentScreenshot']),
+    ...mapState([
+      'currentScreenshot',
+    ]),
     filename: {
       get() {
         return this.filename_ ? this.filename_ : this.currentScreenshot.name;

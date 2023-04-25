@@ -124,14 +124,14 @@ export default {
             class="pr-3"
           >
             <v-sheet
-              :color="name == 'normal_variants' ? 'black' : convertValueToColor(value, text = false)"
+              :color="name === 'normal_variants' ? 'black' : convertValueToColor(value, text = false)"
               :width="(value * 100) + '%'"
               height="5"
               class="mt-2"
             />
           </v-col>
           <v-col
-            :class="name == 'normal_variants'
+            :class="name === 'normal_variants'
               ? 'font-weight-bold black--text'
               : convertValueToColor(value)"
             cols="1"

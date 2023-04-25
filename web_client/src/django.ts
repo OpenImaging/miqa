@@ -27,7 +27,6 @@ let s3ffClient;
 
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
-  // TODO importing the actual AppStore type results in a dependency cycle
   async restoreLogin(store: any) {
     await oauthClient.maybeRestoreLogin();
     if (oauthClient.isLoggedIn) {
@@ -146,6 +145,8 @@ const djangoClient = {
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
     if (!projectId || !experimentName) return undefined;
     const response = await apiClient.post('/experiments', {
+      // This returns id, name, lock_owner, scans, project, note - why we do
+      // only have project and name specified here?
       project: projectId,
       name: experimentName,
     });

@@ -16,7 +16,10 @@ export default {
     emailList: [],
   }),
   computed: {
-    ...mapState(['currentProject', 'allUsers']),
+    ...mapState([
+      'currentProject',
+      'allUsers',
+    ]),
     permissions() {
       return this.currentProject.settings.permissions;
     },
@@ -57,12 +60,14 @@ export default {
     },
   },
   mounted() {
-    this.$store.dispatch('loadAllUsers');
+    this.loadAllUsers();
     this.selectedPermissionSet = { ...this.permissions };
     this.emailList = this.currentProject.settings.default_email_recipients;
   },
   methods: {
-    ...mapActions(['loadAllUsers']),
+    ...mapActions([
+      'loadAllUsers',
+    ]),
     ...mapMutations(['setCurrentProject']),
     getGroup(user) {
       return Object.entries(this.permissions).filter(

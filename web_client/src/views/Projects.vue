@@ -39,17 +39,21 @@ export default defineComponent({
     const selectedProjectIndex = ref(projects.value.findIndex(
       (project) => project.id === currentProject.value?.id,
     ));
+    // Loads global settings
     const selectGlobal = () => {
       store.dispatch('loadGlobal');
     };
 
+    // Starts as an empty array
     const overviewSections = ref([]);
+    // e.g., unreviewed, needs_2_tier_review, complete
     const scanStates = Object.keys(ScanState);
     const setOverviewSections = () => {
       if (projects.value && currentTaskOverview.value) {
         const scanStateCounts = ref(reactive(
           scanStates.map(
             (stateString) => {
+              // Replaces _ with a space, e.g. needs_2_tier_review becomes needs 2 tier review
               const stateCount = Object.entries(currentTaskOverview.value.scan_states).filter(
                 ([, scanState]) => scanState === stateString.replace(/_/g, ' '),
               ).length;
@@ -72,6 +76,7 @@ export default defineComponent({
     async function refreshTaskOverview() {
       if (currentProject.value) {
         const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
+        // If the store / API values differ, update store to API
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
           store.commit('setTaskOverview', taskOverview);
         }
@@ -79,8 +84,10 @@ export default defineComponent({
     }
 
     async function refreshAllTaskOverviews() {
+      // For each project
       projects.value.forEach(
         async (project: Project) => {
+          // Gets the latest projectTaskOverview for each project from the API
           const taskOverview = await djangoRest.projectTaskOverview(project.id);
           store.commit('setTaskOverview', taskOverview);
         },
@@ -98,7 +105,9 @@ export default defineComponent({
       }
     }
 
-    const overviewPoll = setInterval(refreshTaskOverview, 10000);
+    const overviewPoll = setInterval(refreshTaskOverview, 10000); // 10 secs
+
+    // Triggers functions when specified state changes
     watch(currentTaskOverview, setOverviewSections);
     watch(currentProject, refreshTaskOverview);
     watch(projects, getProjectFromURL);
@@ -163,8 +172,10 @@ export default defineComponent({
     async createProject() {
       if (this.creating && this.newName.length > 0) {
         try {
+          // Create project
           const newProject = await djangoRest.createProject(this.newName);
           this.setProjects(this.projects.concat([newProject]));
+          // Load project
           store.dispatch('loadProject', newProject);
           this.creating = false;
           this.newName = '';

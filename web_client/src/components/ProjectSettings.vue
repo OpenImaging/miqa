@@ -100,7 +100,10 @@ export default defineComponent({
     showDeleteWarningOverlay: false,
   }),
   methods: {
-    ...mapMutations(['setProjects', 'setCurrentProject']),
+    ...mapMutations([
+      'setProjects',
+      'setCurrentProject',
+    ]),
     async deleteProject() {
       try {
         await djangoRest.deleteProject(this.currentProject.id);
