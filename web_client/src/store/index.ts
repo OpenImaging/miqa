@@ -82,18 +82,18 @@ function prepareProxyManager(proxyManager: vtkProxyManager) {
 }
 
 /** Array name is file name minus last extension, e.g. image.nii.gz => image.nii */
-function getArrayName(filename) {
+function getArrayNameFromFilename(filename) {
   const idx = filename.lastIndexOf('.');
   const name = idx > -1 ? filename.substring(0, idx) : filename;
   return `Scalars ${name}`;
 }
 
-function getData(id, file, webWorker = null) {
+function getImageData(frameId: string, file, webWorker = null) {
   return new Promise((resolve, reject) => {
     // 1. Check cache for copy of image
-    if (frameCache.has(id)) {
+    if (frameCache.has(frameId)) {
       // 2a. Load image from cache
-      resolve({ frameData: frameCache.get(id), webWorker });
+      resolve({ frameData: frameCache.get(frameId), webWorker });
     } else {
       // 2b. Download image
       const fileName = file.name;
@@ -106,16 +106,16 @@ function getData(id, file, webWorker = null) {
           // 6. Convert image from ITK to VTK
           .then(({ webWorker, image }) => { // eslint-disable-line no-shadow
             const frameData = convertItkToVtkImage(image, {
-              scalarArrayName: getArrayName(fileName),
+              scalarArrayName: getArrayNameFromFilename(fileName),
             });
             // 7. Get metadata about image
             const dataRange = frameData
               .getPointData() // From the image file
               .getArray(0) // Values in the file
               .getRange(); // Range of values in the file, e.g. [0, 3819]
-            frameCache.set(id, { frameData });
+            frameCache.set(frameId, { frameData });
             // eslint-disable-next-line no-use-before-define
-            expandScanRange(id, dataRange); // Example dataRange: [0, 3819]
+            expandScanRange(frameId, dataRange); // Example dataRange: [0, 3819]
             resolve({ frameData, webWorker });
           })
           .catch((error) => {
@@ -132,7 +132,7 @@ function getData(id, file, webWorker = null) {
 /** Load file, from cache if possible. */
 function loadFile(frame, { onDownloadProgress = null } = {}) {
   if (fileCache.has(frame.id)) {
-    return { frameId: frame.id, fileP: fileCache.get(frame.id) };
+    return { frameId: frame.id, cachedFile: fileCache.get(frame.id) };
   }
 
   // Otherwise download the frame
@@ -149,14 +149,15 @@ function loadFile(frame, { onDownloadProgress = null } = {}) {
     { onDownloadProgress },
   );
   fileCache.set(frame.id, promise);
-  return { frameId: frame.id, fileP: promise };
+  return { frameId: frame.id, cachedFile: promise };
 }
 
 /** Gets the data from the selected image file using a webWorker. */
-function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
+async function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
   const loadResult = loadFile(frame, { onDownloadProgress });
   // Once the file has been cached and is available, call getImageData
-  return loadResult.fileP.then((file) => getData(frame.id, file, savedWorker)
+  return loadResult.cachedFile
+    .then((file) => getImageData(frame.id, file, savedWorker))
     .then(({ webWorker, frameData }) => {
       savedWorker = webWorker;
       return Promise.resolve({ frameData });
@@ -170,7 +171,7 @@ function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
         savedWorker.terminate();
         savedWorker = null;
       }
-    }));
+    });
 }
 
 /**
@@ -209,7 +210,7 @@ function poolFunction(webWorker, taskInfo) {
 
     filePromise
       .then((file) => {
-        resolve(getData(frame.id, file, webWorker));
+        resolve(getImageData(frame.id, file, webWorker));
       })
       .catch((err) => {
         reject(err);
@@ -298,23 +299,23 @@ function queueLoadScan(scan, loadNext = 0) {
 }
 
 /** Get next frame in specific experiment/scan */
-function getNextFrame(experiments, i, j) {
-  const experiment = experiments[i];
+function getNextFrame(experiments, experimentIndex, scanIndex) {
+  const experiment = experiments[experimentIndex];
   const { scans } = experiment;
 
-  if (j === scans.length - 1) {
+  if (scanIndex === scans.length - 1) {
     // last scan, go to next experiment
-    if (i === experiments.length - 1) {
+    if (experimentIndex === experiments.length - 1) {
       // last experiment, nowhere to go
       return null;
     }
     // get first scan in next experiment
-    const nextExperiment = experiments[i + 1];
+    const nextExperiment = experiments[experimentIndex + 1];
     const nextScan = nextExperiment.scans[0]; // Get the first scan in the next experiment
     return nextScan.frames[0]; // Get the first frame in the nextScan
   }
   // get next scan in current experiment
-  const nextScan = scans[j + 1];
+  const nextScan = scans[scanIndex + 1];
   return nextScan.frames[0];
 }
 
