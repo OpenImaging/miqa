@@ -1,88 +1,65 @@
 <script lang="ts">
-import { mapState, mapActions, mapMutations } from 'vuex';
+import {
+  defineComponent,
+  ref,
+  computed,
+  watch,
+  onMounted,
+} from 'vue';
+import store from '@/store';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';
+import { User } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'ProjectUsers',
   components: {
     UserAvatar,
   },
-  inject: ['user'],
-  data: () => ({
-    showAddMemberOverlay: false,
-    showAddCollaboratorOverlay: false,
-    selectedPermissionSet: {},
-    emailList: [],
-  }),
-  computed: {
-    ...mapState([
-      'currentProject',
-      'allUsers',
-    ]),
-    permissions() {
-      return this.currentProject.settings.permissions;
-    },
-    members() {
-      const members = [
-        ...this.currentProject.settings.permissions.tier_1_reviewer,
-        ...this.currentProject.settings.permissions.tier_2_reviewer,
-      ];
-      return members;
-    },
-    collaborators() {
-      return this.currentProject.settings.permissions.collaborator;
-    },
-    emailOptions() {
-      return this.members.concat(this.collaborators).map(
-        (user) => user.email,
-      );
-    },
-    emailListChanged() {
-      return (
-        JSON.stringify(this.emailList) !== JSON.stringify(
-          this.currentProject.settings.default_email_recipients,
-        )
-      );
-    },
-    changesMade() {
-      return JSON.stringify(this.permissions)
-        !== JSON.stringify(this.selectedPermissionSet);
-    },
-    userCanEditProject() {
-      return this.user.is_superuser || this.user.email === this.currentProject.creator;
-    },
-  },
-  watch: {
-    currentProject(newProj) {
-      this.selectedPermissionSet = { ...newProj.settings.permissions };
-      this.emailList = this.currentProject.settings.default_email_recipients;
-    },
-  },
-  mounted() {
-    this.loadAllUsers();
-    this.selectedPermissionSet = { ...this.permissions };
-    this.emailList = this.currentProject.settings.default_email_recipients;
-  },
-  methods: {
-    ...mapActions([
-      'loadAllUsers',
-    ]),
-    ...mapMutations([
-      'SET_CURRENT_PROJECT',
-    ]),
-    getGroup(user) {
-      return Object.entries(this.permissions).filter(
-        ([, value]) => (value as any).includes(user),
+  setup() {
+    const currentUser = computed(() => store.state.me);
+    const showAddMemberOverlay = ref(false);
+    const showAddCollaboratorOverlay = ref(false);
+    const selectedPermissionSet = ref();
+    const emailList = ref([]);
+    const currentProject = computed(() => store.state.currentProject);
+    const allUsers = computed(() => store.state.allUsers);
+    const permissions = computed(() => currentProject.value.settings.permissions);
+    const collaborators = computed(
+      () => currentProject.value.settings.permissions.collaborator as User[],
+    );
+    const members = computed(() => [
+      ...currentProject.value.settings.permissions.tier_1_reviewer,
+      ...currentProject.value.settings.permissions.tier_2_reviewer,
+    ] as User[]);
+    const emailOptions = computed(() => members.value.concat(collaborators.value).map(
+      (u: User) => u.email,
+    ));
+    const emailListChanged = computed(() => JSON.stringify(emailList.value) !== JSON.stringify(
+      currentProject.value.settings.default_email_recipients,
+    ));
+    const changesMade = computed(() => JSON.stringify(permissions.value)
+        !== JSON.stringify(selectedPermissionSet.value));
+    const userCanEditProject = computed(
+      () => currentUser.value.is_superuser
+      || currentUser.value.email === currentProject.value.creator,
+    );
+    const loadAllUsers = () => store.dispatch('loadAllUsers');
+    const setCurrentProject = (project) => store.commit('SET_CURRENT_PROJECT', project);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+
+    function getGroup(user) {
+      return Object.entries(permissions.value).filter(
+        ([, value]) => (value as User[]).includes(user),
       )[0][0].replace(/_/g, ' ');
-    },
-    userDisplayName(user) {
+    }
+    function userDisplayName(user) {
       if (!user.first_name || !user.last_name) {
         return user.username;
       }
       return `${user.first_name} ${user.last_name}`;
-    },
-    allEmails(inputs) {
+    }
+    function allEmails(inputs) {
       for (let i = 0; i < inputs.length; i += 1) {
         const match = String(inputs[i])
           .toLowerCase()
@@ -92,46 +69,77 @@ export default {
         if (!(match && match.length > 0)) return `${inputs[i]} is not a valid email address.`;
       }
       return true;
-    },
-    async savePermissions() {
-      const newSettings = { ...this.currentProject.settings };
-      newSettings.permissions = Object.fromEntries(
-        Object.entries(this.selectedPermissionSet).map(
-          ([group, list]) => [group, (list as any[]).map((user) => user.username || user)],
+    }
+    async function savePermissions() {
+      const newSettings = {
+        ...currentProject.value.settings,
+        permissions: Object.fromEntries(
+          Object.entries(selectedPermissionSet.value).map(
+            ([group, list]) => [group, (list as User[]).map((user) => user.username || user)],
+          ),
         ),
-      );
+      };
       try {
-        const resp = await djangoRest.setProjectSettings(this.currentProject.id, newSettings);
-        this.showAddMemberOverlay = false;
-        this.showAddCollaboratorOverlay = false;
-        const changedProject = { ...this.currentProject };
-        changedProject.settings.permissions = resp.permissions;
-        this.SET_CURRENT_PROJECT(changedProject);
+        const resp = await djangoRest.setProjectSettings(currentProject.value.id, newSettings);
+        showAddMemberOverlay.value = false;
+        showAddCollaboratorOverlay.value = false;
+        const changedProject = {
+          ...currentProject.value,
+          permissions: resp.permissions,
+        };
+        setCurrentProject(changedProject);
       } catch (e) {
-        this.$snackbar({
-          text: 'Failed to save permissions.',
-          timeout: 6000,
-        });
+        setSnackbar('Failed to save permissions.');
       }
-    },
-    async saveEmails() {
-      const newSettings = { ...this.currentProject.settings };
-      newSettings.default_email_recipients = this.emailList;
+    }
+    async function saveEmails() {
+      const newSettings = { ...currentProject.value.settings };
+      newSettings.default_email_recipients = emailList.value;
       delete newSettings.permissions;
       try {
-        const resp = await djangoRest.setProjectSettings(this.currentProject.id, newSettings);
-        const changedProject = { ...this.currentProject };
+        const resp = await djangoRest.setProjectSettings(currentProject.value.id, newSettings);
+        const changedProject = { ...currentProject.value };
         changedProject.settings.default_email_recipients = resp.default_email_recipients;
-        this.SET_CURRENT_PROJECT(changedProject);
+        setCurrentProject(changedProject);
       } catch (e) {
-        this.$snackbar({
-          text: 'Failed to save email list.',
-          timeout: 6000,
-        });
+        setSnackbar('Failed to save email list.');
       }
-    },
+    }
+
+    watch(currentProject, (newProj) => {
+      selectedPermissionSet.value = { ...newProj.settings.permissions };
+      emailList.value = currentProject.value.settings.default_email_recipients;
+    });
+
+    onMounted(() => {
+      loadAllUsers();
+      selectedPermissionSet.value = { ...permissions.value };
+      emailList.value = currentProject.value.settings.default_email_recipients;
+    });
+
+    return {
+      currentUser,
+      showAddMemberOverlay,
+      showAddCollaboratorOverlay,
+      selectedPermissionSet,
+      emailList,
+      currentProject,
+      allUsers,
+      permissions,
+      collaborators,
+      members,
+      emailOptions,
+      emailListChanged,
+      changesMade,
+      userCanEditProject,
+      getGroup,
+      userDisplayName,
+      allEmails,
+      savePermissions,
+      saveEmails,
+    };
   },
-};
+});
 </script>
 
 <template>

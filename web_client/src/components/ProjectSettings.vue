@@ -1,12 +1,14 @@
 <script lang="ts">
 import {
-  computed, defineComponent, ref, watchEffect, inject,
+  defineComponent,
+  computed,
+  ref,
+  watchEffect,
 } from 'vue';
-import { mapMutations } from 'vuex';
 import store from '@/store';
 import djangoRest from '@/django';
 import DataImportExport from '@/components/DataImportExport.vue';
-import { User } from '@/types';
+import { Project } from '@/types';
 
 export default defineComponent({
   name: 'ProjectSettings',
@@ -14,20 +16,31 @@ export default defineComponent({
     DataImportExport,
   },
   setup() {
-    const user: User = inject('user');
+    const user = computed(() => store.state.me);
+    const importPath = ref('');
+    const exportPath = ref('');
+    const anatomyOrientation = ref<string>();
+    const showDeleteWarningOverlay = ref(false);
+    const changed = ref(false);
+    const importPathError = ref('');
+    const exportPathError = ref('');
+    const form = ref(null);
+
     const currentProject = computed(() => store.state.currentProject);
     const globalSettings = computed(() => store.state.globalSettings);
     const projects = computed(() => store.state.projects);
     const isGlobal = computed(() => store.getters.isGlobal);
     const userCanEditProject = computed(
-      () => user.is_superuser || (
-        currentProject.value && user.username === currentProject.value.creator
+      () => user.value.is_superuser || (
+        currentProject.value && user.value.username === currentProject.value.creator
       ),
     );
 
-    const importPath = ref('');
-    const exportPath = ref('');
-    const anatomyOrientation = ref<string>();
+    const setProjects = (projs: Project[]) => store.commit('SET_PROJECTS', projs);
+    const setCurrentProject = (project) => store.commit('SET_CURRENT_PROJECT', project);
+    const setRenderOrientation = (orientation) => store.commit('SET_RENDER_ORIENTATION', orientation);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+
     watchEffect(() => {
       if (isGlobal.value) {
         importPath.value = globalSettings.value.import_path;
@@ -41,10 +54,18 @@ export default defineComponent({
       }
     });
 
-    const changed = ref(false);
-    const importPathError = ref('');
-    const exportPathError = ref('');
-    const form = ref(null);
+    async function deleteProject() {
+      try {
+        await djangoRest.deleteProject(currentProject.value.id);
+        setProjects(projects.value.filter((proj) => proj.id !== currentProject.value.id));
+        setCurrentProject(undefined);
+        showDeleteWarningOverlay.value = false;
+
+        setSnackbar('Project deleted.');
+      } catch (ex) {
+        setSnackbar(ex || 'Project deletion failed.');
+      }
+    }
 
     async function save(callback) {
       if (!form.value.validate()) {
@@ -62,7 +83,7 @@ export default defineComponent({
             export_path: exportPath.value.trim(),
             anatomy_orientation: anatomyOrientation.value,
           });
-          store.commit('SET_RENDER_ORIENTATION', anatomyOrientation.value);
+          setRenderOrientation(anatomyOrientation.value);
         }
         changed.value = false;
       } catch (e) {
@@ -82,8 +103,11 @@ export default defineComponent({
 
     return {
       user,
+      showDeleteWarningOverlay,
       userCanEditProject,
       currentProject,
+      setProjects,
+      setCurrentProject,
       isGlobal,
       projects,
       importPath,
@@ -93,34 +117,9 @@ export default defineComponent({
       importPathError,
       exportPathError,
       form,
+      deleteProject,
       save,
     };
-  },
-  data: () => ({
-    showDeleteWarningOverlay: false,
-  }),
-  methods: {
-    ...mapMutations([
-      'SET_PROJECTS',
-      'SET_CURRENT_PROJECT',
-    ]),
-    async deleteProject() {
-      try {
-        await djangoRest.deleteProject(this.currentProject.id);
-        this.SET_PROJECTS(this.projects.filter((proj) => proj.id !== this.currentProject.id));
-        this.SET_CURRENT_PROJECT(undefined);
-        this.showDeleteWarningOverlay = false;
-
-        this.$snackbar({
-          text: 'Project deleted.',
-          timeout: 6000,
-        });
-      } catch (ex) {
-        this.$snackbar({
-          text: ex || 'Project deletion failed.',
-        });
-      }
-    },
   },
 });
 </script>
@@ -149,6 +148,7 @@ export default defineComponent({
     >
       <template #append>
         <v-tooltip
+          v-if="importPath"
           bottom
         >
           <template #activator="{ on }">
@@ -179,6 +179,7 @@ export default defineComponent({
     >
       <template #append>
         <v-tooltip
+          v-if="exportPath"
           bottom
         >
           <template #activator="{ on }">

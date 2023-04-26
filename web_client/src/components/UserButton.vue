@@ -1,12 +1,12 @@
 <script lang="ts">
-import { defineComponent, inject } from 'vue';
-import { User } from '@/types';
+import { defineComponent, computed } from 'vue';
+import store from '@/store';
 
 // Login/Logout Button
 export default defineComponent({
   name: 'UserButton',
   setup() {
-    const user = inject('user') as User;
+    const user = computed(() => store.state.me);
     return {
       user,
     };

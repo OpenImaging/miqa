@@ -1,10 +1,10 @@
 <script lang="ts">
-import store from '@/store';
 import {
   defineComponent, computed, watch, ref, onMounted,
 } from 'vue';
-import { windowPresets } from '@/vtk/constants';
 import debounce from 'lodash/debounce';
+import store from '@/store';
+import { windowPresets } from '@/vtk/constants';
 import CustomRangeSlider from './CustomRangeSlider.vue';
 
 export default defineComponent({
@@ -24,6 +24,9 @@ export default defineComponent({
   },
   setup(props) {
     const currentRange = ref();
+    const showLockOptions = ref(false);
+    const imageLoadError = ref(false);
+    const selectedPreset = ref();
     const currentViewData = computed(() => store.getters.currentViewData);
     const currentFrame = computed(() => store.state.currentFrameId);
     const currentWindowWidth = computed(() => store.state.currentWindowWidth);
@@ -36,11 +39,8 @@ export default defineComponent({
     const distribution = computed(() => data.value.computeHistogram(data.value.getBounds()));
     const widthMin = computed(() => distribution.value.minimum || 0);
     const widthMax = computed(() => distribution.value.maximum || 0);
-    const selectedPreset = ref();
     const windowLocked = computed(() => store.state.windowLocked.lock);
     const windowLockImage = computed(() => store.state.windowLocked.associatedImage);
-    const showLockOptions = ref(false);
-    const imageLoadError = ref(false);
 
     function updateRender(ww, wl, updateRange = false) {
       if (windowLocked.value) return;

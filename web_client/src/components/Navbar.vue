@@ -1,6 +1,11 @@
 <script lang="ts">
-import { mapState, mapGetters } from 'vuex';
-import { defineComponent } from 'vue';
+import {
+  defineComponent,
+  ref,
+  computed,
+} from 'vue';
+import store from '@/store';
+import router from '@/router';
 
 import UserButton from '@/components/UserButton.vue';
 import ScreenshotDialog from '@/components/ScreenshotDialog.vue';
@@ -21,48 +26,58 @@ export default defineComponent({
     TimeoutDialog,
     KeyboardShortcutDialog,
   },
-  inject: ['user', 'MIQAConfig'],
   props: {
     frameView: {
       type: Boolean,
       default: false,
     },
   },
-  data: () => ({
-    emailDialog: false,
-    keyboardShortcutDialog: false,
-    advanceTimeoutId: null,
-    documentationURL: 'https://openimaging.github.io/miqa/',
-  }),
-  computed: {
-    ...mapState([
-      'screenshots',
-    ]),
-    ...mapGetters([
-      'currentFrame',
-    ]),
-    notes() {
-      if (this.currentScan) {
-        return this.currentScan.notes;
+  setup() {
+    const user = computed(() => store.state.me);
+    const miqaConfig = computed(() => store.state.MIQAConfig);
+    const emailDialog = ref(false);
+    const keyboardShortcutDialog = ref(false);
+    const advanceTimeoutId = ref();
+    const documentationURL = 'https://openimaging.github.io/miqa/';
+    const screenshots = computed(() => store.state.screenshots);
+    const currentFrame = computed(() => store.getters.currentFrame);
+    const currentScan = computed(() => store.getters.currentScan);
+    const notes = computed(() => {
+      if (currentScan.value) {
+        return currentScan.value.notes;
       }
       return [];
-    },
-  },
-  methods: {
-    async logoutUser() {
+    });
+
+    async function logoutUser() {
       await djangoClient.logout();
-      this.$router.go('/'); // trigger re-render into oauth flow
-    },
-    openDocumentation() {
-      window.open(this.documentationURL, '_blank');
-    },
+      router.replace('/'); // trigger re-render into oauth flow
+    }
+    function openDocumentation() {
+      window.open(documentationURL, '_blank');
+    }
+
+    return {
+      miqaConfig,
+      user,
+      emailDialog,
+      keyboardShortcutDialog,
+      advanceTimeoutId,
+      documentationURL,
+      screenshots,
+      currentFrame,
+      notes,
+      logoutUser,
+      openDocumentation,
+      djangoClient,
+    };
   },
 });
 </script>
 
 <template>
   <v-app-bar
-    v-if="MIQAConfig"
+    v-if="miqaConfig"
     app
     dense
   >
@@ -73,7 +88,7 @@ export default defineComponent({
         <template #activator="{ on }">
           <span v-on="on">MIQA</span>
         </template>
-        <span>{{ MIQAConfig.version || "Demo Instance" }}</span>
+        <span>{{ miqaConfig.version || "Demo Instance" }}</span>
       </v-tooltip>
     </v-toolbar-title>
     <v-tabs
@@ -137,7 +152,7 @@ export default defineComponent({
     />
     <UserButton
       @logout="logoutUser()"
-      @login="djangoRest.login()"
+      @login="djangoClient.login()"
     />
     <TimeoutDialog />
   </v-app-bar>

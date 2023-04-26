@@ -17,9 +17,11 @@ export default defineComponent({
       required: true,
     },
   },
-  setup() {
+  setup(props, context) {
     const currentProject = computed(() => store.state.currentProject);
     const projects = computed(() => store.state.projects);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+    const setTaskOverview = (overview) => store.commit('SET_TASK_OVERVIEW', overview);
     const loadProject = (project: Project) => store.dispatch('loadProject', project);
     const isGlobal = computed(() => store.getters.isGlobal);
 
@@ -31,7 +33,7 @@ export default defineComponent({
     const exporting = ref(false);
 
     async function importData() {
-      this.$emit('save', async () => {
+      context.emit('save', async () => {
         importing.value = true;
         importErrorText.value = '';
         importErrors.value = false;
@@ -48,10 +50,7 @@ export default defineComponent({
             importErrorText.value = response.detail;
             importErrorList.value = response.errors;
           } else {
-            this.$snackbar({
-              text: 'Import finished.',
-              timeout: 6000,
-            });
+            setSnackbar('Import finished.');
           }
 
           if (!isGlobal.value) {
@@ -59,8 +58,7 @@ export default defineComponent({
           } else {
             projects.value.forEach(
               async (project: Project) => {
-                const taskOverview = await djangoRest.projectTaskOverview(project.id);
-                store.commit('SET_TASK_OVERVIEW', taskOverview);
+                setTaskOverview(await djangoRest.projectTaskOverview(project.id));
               },
             );
           }
@@ -74,7 +72,7 @@ export default defineComponent({
       });
     }
     async function exportData() {
-      this.$emit('save', async () => {
+      context.emit('save', async () => {
         exporting.value = true;
         try {
           let response;
@@ -88,10 +86,7 @@ export default defineComponent({
             importErrorText.value = response.detail;
             importErrorList.value = response.warnings;
           } else {
-            this.$snackbar({
-              text: 'Saved data to file successfully.',
-              timeout: 6000,
-            });
+            setSnackbar('Saved data to file successfully.');
           }
         } catch (ex) {
           const text = ex || 'Export failed due to server error.';

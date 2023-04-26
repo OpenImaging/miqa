@@ -1,7 +1,12 @@
 <script lang="ts">
-export default {
+import {
+  defineComponent,
+  computed,
+} from 'vue';
+import store from '@/store';
+
+export default defineComponent({
   name: 'UserAvatar',
-  inject: ['user'],
   props: {
     targetUser: {
       type: Object,
@@ -13,30 +18,28 @@ export default {
       default: false,
     },
   },
-  computed: {
-    tooltipText() {
-      let name = this.targetUser.username;
-      if (this.targetUser.first_name && this.targetUser.last_name) {
-        name = `${this.targetUser.first_name} ${this.targetUser.last_name}`;
+  setup(props) {
+    const user = computed(() => store.state.me);
+    const tooltipText = computed(() => {
+      let name = props.targetUser.username;
+      if (props.targetUser.first_name && props.targetUser.last_name) {
+        name = `${props.targetUser.first_name} ${props.targetUser.last_name}`;
       }
-      if (this.asEditor) {
-        if (this.targetUser.username === this.user.username) return 'You are editing this experiment.';
+      if (props.asEditor) {
+        if (props.targetUser.username === user.value.username) return 'You are editing this experiment.';
         return `${name} is editing this experiment.`;
       }
       return name;
-    },
-  },
-  methods: {
-    hashCode(s) {
-      const hashCode = s.split('')
+    });
+    function hashCode(s) {
+      return s.split('')
         .reduce((a, b) => {
           const c = a < 5 ? 1 : 0;
           a = (c - a) + b.charCodeAt(0);
           return a && a;
         }, 0);
-      return hashCode;
-    },
-    computeColor() {
+    }
+    function computeColor() {
       const colors = [
         'purple lighten-1',
         'purple darken-1',
@@ -49,11 +52,18 @@ export default {
         'teal lighten-1',
         'teal darken-1',
       ];
-      const colorIndex = Math.abs(this.hashCode(this.targetUser.username) % colors.length);
+      const colorIndex = Math.abs(hashCode(props.targetUser.username) % colors.length);
       return colors[colorIndex];
-    },
+    }
+
+    return {
+      user,
+      tooltipText,
+      hashCode,
+      computeColor,
+    };
   },
-};
+});
 </script>
 
 <template>

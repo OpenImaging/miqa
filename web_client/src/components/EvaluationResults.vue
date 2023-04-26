@@ -1,21 +1,23 @@
 <script lang="ts">
-export default {
+import {
+  defineComponent,
+  computed,
+} from 'vue';
+
+export default defineComponent({
   name: 'EvaluationResults',
-  components: {},
   props: {
     results: {
       required: true,
       type: Object,
     },
   },
-  computed: {
-    orderedResults() {
-      return Object.entries(this.results)
-        .sort((first, second) => Number(first[1]) - Number(second[1]));
-    },
-  },
-  methods: {
-    convertValueToColor(value, text = true) {
+  setup(props) {
+    const orderedResults = computed(
+      () => Object.entries(props.results)
+        .sort((first, second) => Number(first[1]) - Number(second[1])),
+    );
+    function convertValueToColor(value, text = true) {
       const colors = [
         'red darken-4',
         'red darken-2',
@@ -34,9 +36,14 @@ export default {
         return `font-weight-bold ${thisColor.replace(' ', '--text text--')}`;
       }
       return thisColor;
-    },
+    }
+
+    return {
+      orderedResults,
+      convertValueToColor,
+    };
   },
-};
+});
 </script>
 
 <template>
@@ -81,7 +88,7 @@ export default {
             class="pr-3"
           >
             <v-sheet
-              :color="convertValueToColor(results.overall_quality, text = false)"
+              :color="convertValueToColor(results.overall_quality, false)"
               :width="(results.overall_quality * 100) + '%'"
               height="5"
               class="mt-2"
@@ -124,7 +131,7 @@ export default {
             class="pr-3"
           >
             <v-sheet
-              :color="name === 'normal_variants' ? 'black' : convertValueToColor(value, text = false)"
+              :color="name === 'normal_variants' ? 'black' : convertValueToColor(value, false)"
               :width="(value * 100) + '%'"
               height="5"
               class="mt-2"

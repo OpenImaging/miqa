@@ -1,19 +1,25 @@
 <script lang="ts">
+import {
+  defineComponent,
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+} from 'vue';
 import _ from 'lodash';
-import { mapGetters, mapMutations, mapState } from 'vuex';
 import djangoRest from '@/django';
 import store from '@/store';
 import EvaluationResults from '@/components/EvaluationResults.vue';
 import { AUTO_ADVANCE } from '@/constants';
 import UserAvatar from './UserAvatar.vue';
 
-export default {
+export default defineComponent({
   name: 'DecisionButtons',
   components: {
     EvaluationResults,
     UserAvatar,
   },
-  inject: ['user', 'MIQAConfig'],
   props: {
     experimentIsEditable: {
       type: Boolean,
@@ -32,50 +38,58 @@ export default {
       default: false,
     },
   },
-  data() {
-    return {
-      autoAdvance: AUTO_ADVANCE,
-      warnDecision: false,
-      newComment: '',
-      confirmedPresent: [],
-      confirmedAbsent: [],
-      decisionShortcuts: {
-        U: 'u',
-        UE: 'i',
-        'Q?': 'o',
-        UN: 'p',
-      },
+  setup(props, context) {
+    const warnDecision = ref(false);
+    const newComment = ref('');
+    const confirmedPresent = ref([]);
+    const confirmedAbsent = ref([]);
+    const pollInterval = ref();
+    const decisionShortcuts = {
+      U: 'u',
+      UE: 'i',
+      'Q?': 'o',
+      UN: 'p',
     };
-  },
-  computed: {
-    ...mapState([
-      'currentProject',
-      'proxyManager',
-      'vtkViews',
-      'storeCrosshairs',
-    ]),
-    ...mapGetters([
-      'currentViewData',
-      'myCurrentProjectRoles',
-    ]),
-    // The list of artifacts generally should not change unless the project changes
-    artifacts() {
-      return this.MIQAConfig.artifact_options.map((name) => ({
-        value: name,
-        labelText: this.convertValueToLabel(name),
-      }));
-    },
-    /** Returns an array containing the name of an artifact and it's current selection state */
-    chips() {
-      return this.artifacts.map((artifact) => [artifact, this.getCurrentChipState(artifact)]);
-    },
+
+    const user = computed(() => store.state.me);
+    const miqaConfig = computed(() => store.state.MIQAConfig);
+    const currentProject = computed(() => store.state.currentProject);
+    const proxyManager = computed(() => store.state.proxyManager);
+    const vtkViews = computed(() => store.state.vtkViews);
+    const storeCrosshairs = computed(() => store.state.storeCrosshairs);
+    const currentViewData = computed(() => store.getters.currentViewData);
+    const myCurrentProjectRoles = computed(() => store.getters.myCurrentProjectRoles);
+
+    const addScanDecision = (decision) => store.commit('ADD_SCAN_DECISION', decision);
+    const updateExperiment = (experiment) => store.commit('UPDATE_EXPERIMENT', experiment);
+    const setTaskOverview = (overview) => store.commit('SET_TASK_OVERVIEW', overview);
+    const setFrameEvaluation = (evaluation) => store.commit('SET_FRAME_EVALUATION', evaluation);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+
+    /** Takes an artifact name, e.g. 'something_artifact' and converts to 'Something artifact' */
+    function convertValueToLabel(artifactName) {
+      return artifactName
+        .replace('susceptibility_metal', 'metal_susceptibility')
+        .replace('partial_brain_coverage', 'partial_coverage')
+        .replace(/_/g, ' ')
+        .replace(
+          /\w\S*/g,
+          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
+        );
+    }
+
+    /** The list of artifacts generally should not change unless the project changes */
+    const artifacts = computed(() => miqaConfig.value.artifact_options.map((name) => ({
+      value: name,
+      labelText: convertValueToLabel(name),
+    })));
     /** Determines which artifacts are suggested.
      * Artifacts are suggested either: 1. By a prior user decision or 2. By auto evaluation
      */
-    suggestedArtifacts() {
-      if (this.currentViewData.scanDecisions && this.currentViewData.scanDecisions.length > 0) {
+    const suggestedArtifacts = computed(() => {
+      if (currentViewData.value.scanDecisions && currentViewData.value.scanDecisions.length > 0) {
         const lastDecision = _.sortBy(
-          this.currentViewData.scanDecisions,
+          currentViewData.value.scanDecisions,
           (decision) => { Date.parse(decision.created); },
         )[0];
         // Gets the artifacts associated with the most recent decision
@@ -83,11 +97,11 @@ export default {
         // Of the artifacts chosen in the last scanDecision,
         // include only those marked as present.
         return Object.entries(lastDecisionArtifacts).filter(
-          ([, present]) => present === this.MIQAConfig.artifact_states.PRESENT,
+          ([, present]) => present === miqaConfig.value.artifact_states.PRESENT,
         ).map(([artifactName]) => artifactName);
-        // If a current auto evaluation exists
-      } if (this.currentViewData.currentAutoEvaluation) {
-        const predictedArtifacts = this.currentViewData.currentAutoEvaluation.results;
+      // If a current auto evaluation exists
+      } if (currentViewData.value.currentAutoEvaluation) {
+        const predictedArtifacts = currentViewData.value.currentAutoEvaluation.results;
         // Of the results from the NN, filter these to
         // exclude overall_quality and normal_variants (not real artifacts)
         // and exclude anything under the suggestion threshold set by the server.
@@ -95,13 +109,13 @@ export default {
         return Object.entries(predictedArtifacts).filter(
           ([artifactName, percentCertainty]) => artifactName !== 'overall_quality'
             && artifactName !== 'normal_variants'
-            && percentCertainty < this.MIQAConfig.auto_artifact_threshold,
+            && percentCertainty as number < miqaConfig.value.auto_artifact_threshold,
         ).map(([artifactName]) => artifactName.replace('no_', '').replace('full', 'partial'));
       }
       return [];
-    },
+    });
     // Displays the decision buttons based on user's roles
-    options() {
+    const options = computed(() => {
       const myOptions = [
         {
           label: 'Usable',
@@ -109,14 +123,14 @@ export default {
           color: 'green darken-3 white--text',
         },
       ];
-      if (this.myCurrentProjectRoles.includes('tier_1_reviewer') || this.myCurrentProjectRoles.includes('superuser')) {
+      if (myCurrentProjectRoles.value.includes('tier_1_reviewer') || myCurrentProjectRoles.value.includes('superuser')) {
         myOptions.push({
           label: 'Questionable',
           code: 'Q?',
           color: 'grey darken-3 white--text',
         });
       }
-      if (this.myCurrentProjectRoles.includes('tier_2_reviewer')) {
+      if (myCurrentProjectRoles.value.includes('tier_2_reviewer')) {
         myOptions.push({
           label: 'Usable-Extra',
           code: 'UE',
@@ -129,70 +143,43 @@ export default {
         });
       }
       return myOptions;
-    },
-  },
-  watch: {
+    });
+
     /** Resets currentViewData for present/absent whenever image changes */
-    currentViewData() {
-      this.confirmedPresent = [];
-      this.confirmedAbsent = [];
-    },
+    watch(currentViewData, () => {
+      confirmedPresent.value = [];
+      confirmedAbsent.value = [];
+    });
     /** If a change is made to comment, present, absent, set warnDecision false */
-    newComment() {
-      this.warnDecision = false;
-    },
-    confirmedPresent() {
-      this.warnDecision = false;
-    },
-    confirmedAbsent() {
-      this.warnDecision = false;
-    },
-  },
-  mounted() {
-    // Check every 10 secs for whether an auto evaluation has been completed
-    if (!this.currentViewData.currentAutoEvaluation) {
-      this.pollInterval = setInterval(this.pollForEvaluation, 1000 * 10);
-    }
-  },
-  beforeUnmount() {
-    // Stop polling for auto evaluations
-    clearInterval(this.pollInterval);
-  },
-  methods: {
-    ...mapMutations([
-      'ADD_SCAN_DECISION',
-      'UPDATE_EXPERIMENT',
-      'SET_FRAME_EVALUATION',
-    ]),
-    async pollForEvaluation() {
-      // Get a frame from API
-      const frameData = await djangoRest.frame(this.currentViewData.currentFrame.id);
+    watch(newComment, () => {
+      warnDecision.value = false;
+    });
+    watch(confirmedPresent, () => {
+      warnDecision.value = false;
+    });
+    watch(confirmedAbsent, () => {
+      warnDecision.value = false;
+    });
+
+    async function pollForEvaluation() {
+      const frameData = await djangoRest.frame(currentViewData.value.currentFrame.id);
       if (frameData.frame_evaluation) {
-        this.SET_FRAME_EVALUATION(frameData.frame_evaluation);
-        clearInterval(this.pollInterval);
+        setFrameEvaluation(frameData.frame_evaluation);
+        clearInterval(pollInterval.value);
       }
-    },
-    /** Takes an artifact name, e.g. 'something_artifact' and converts to 'Something artifact' */
-    convertValueToLabel(artifactName) {
-      return artifactName
-        .replace('susceptibility_metal', 'metal_susceptibility')
-        .replace('partial_brain_coverage', 'partial_coverage')
-        .replace(/_/g, ' ')
-        .replace(
-          /\w\S*/g,
-          (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(),
-        );
-    },
-    switchLock() {
-      this.$emit('switchLock', this.currentViewData.experimentId, null, true);
-    },
+    }
     /**
      * Determines the styling of the four chip states
      *
      * Four possible states are: confirmed present, confirmed absent,
      * suggested unconfirmed, unsuggested unconfirmed (default)
      */
-    getCurrentChipState(artifact) {
+    function getCurrentChipState(artifact) {
+      // this function determines the styling of the four chip states.
+      // four states of a chip are:
+      //  confirmed present, confirmed absent, suggested unconfirmed, unsuggested unconfirmed
+
+      // default is unsuggested unconfirmed
       const chipState = {
         state: 0,
         label: artifact.labelText,
@@ -201,17 +188,17 @@ export default {
         textDecoration: 'none',
         textColor: 'default',
       };
-      if (this.confirmedPresent.includes(artifact.value)) {
+      if (confirmedPresent.value.includes(artifact.value)) {
         // confirmed present
         chipState.state = 1;
         chipState.outlined = false;
         chipState.color = 'red';
         chipState.textColor = 'white';
-      } else if (this.confirmedAbsent.includes(artifact.value)) {
+      } else if (confirmedAbsent.value.includes(artifact.value)) {
         // confirmed absent
         chipState.state = 2;
         chipState.textDecoration = 'line-through';
-      } else if (this.suggestedArtifacts.includes(artifact.value)) {
+      } else if (suggestedArtifacts.value.includes(artifact.value)) {
         // suggested unconfirmed
         chipState.state = 3;
         chipState.label += '?';
@@ -219,103 +206,154 @@ export default {
         chipState.textColor = 'red';
       }
       return chipState;
-    },
+    }
     /** Changes the state of a chip when it has been clicked upon */
-    clickChip(artifact, chipState) {
+    function clickChip(artifact, chipState) {
+      // this function determines state cycle of chips
       switch (chipState) {
         case 1:
           // currently confirmed present
-          this.confirmedPresent = this.confirmedPresent.filter(
+          confirmedPresent.value = confirmedPresent.value.filter(
             (artifactName) => artifactName !== artifact.value,
           );
-          this.confirmedAbsent.push(artifact.value);
+          confirmedAbsent.value.push(artifact.value);
           break;
         case 2:
           // currently confirmed absent
-          this.confirmedAbsent = this.confirmedAbsent.filter(
+          confirmedAbsent.value = confirmedAbsent.value.filter(
             (artifactName) => artifactName !== artifact.value,
           );
           break;
         default:
           // currently unconfirmed
-          this.confirmedPresent.push(artifact.value);
+          confirmedPresent.value.push(artifact.value);
       }
-    },
-    async refreshTaskOverview() {
-      if (this.currentProject) {
-        const taskOverview = await djangoRest.projectTaskOverview(this.currentProject.id);
+    }
+    async function refreshTaskOverview() {
+      if (currentProject.value) {
+        const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
         // If API has different data, update taskOverview
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit('SET_TASK_OVERVIEW', taskOverview);
+          setTaskOverview(taskOverview);
         }
       }
-    },
-    handleCommentChange(value) {
-      this.newComment = value;
-    },
-    async handleCommentSave(decision) {
+    }
+    function switchLock() {
+      context.emit('switchLock', currentViewData.value.experimentId, null, true);
+    }
+    function handleCommentChange(value) {
+      newComment.value = value;
+    }
+    async function handleCommentSave(decision) {
       // If feedback has been left on the scan
       if (
-        this.newComment.trim().length > 0
+        newComment.value.trim().length > 0
         || decision === 'U'
-        || this.confirmedPresent.length > 0
-        || this.confirmedAbsent.length > 0
+        || confirmedPresent.value.length > 0
+        || confirmedAbsent.value.length > 0
       ) {
         try {
           // Object with present/absent artifacts
           const userIdentifiedArtifacts = {
-            present: this.confirmedPresent,
-            absent: this.confirmedAbsent,
+            present: confirmedPresent.value,
+            absent: confirmedAbsent.value,
           };
-          const zxyLocation = this.vtkViews.map(
-            (view) => this.proxyManager.getRepresentation(null, view).getSlice(),
+          const zxyLocation = vtkViews.value.map(
+            (view) => proxyManager.value.getRepresentation(null, view).getSlice(),
           );
           // Create new scan decision using API
           const savedObj = await djangoRest.setDecision(
-            this.currentViewData.scanId,
+            currentViewData.value.scanId,
             decision,
-            this.newComment,
+            newComment.value,
             userIdentifiedArtifacts,
-            (this.storeCrosshairs ? {
+            (storeCrosshairs.value ? {
               i: zxyLocation[1],
               j: zxyLocation[2],
               k: zxyLocation[0],
             } : {}),
           );
-          // Update Vuex store with scan decision
-          this.ADD_SCAN_DECISION({
-            currentScanId: this.currentViewData.scanId,
-            newScanDecision: savedObj,
+          addScanDecision({
+            currentScan: currentViewData.value.scanId,
+            newDecision: savedObj,
           });
-          await this.refreshTaskOverview();
+          await refreshTaskOverview();
           if (AUTO_ADVANCE) {
-            this.$emit('handleKeyPress', 'next');
+            context.emit('handleKeyPress', 'next');
           }
-          this.$snackbar({
-            text: 'Saved decision successfully.',
-            timeout: 6000,
-          });
-          this.warnDecision = false;
-          this.newComment = '';
+          setSnackbar('Saved decision successfully.');
+          warnDecision.value = false;
+          newComment.value = '';
         } catch (err) {
-          this.$snackbar({
-            text: `Save failed: ${err || 'Server error'}`,
-            timeout: 6000,
-          });
+          setSnackbar(`Save failed: ${err || 'Server error'}`);
           // If error is due a lock contention, it is likely because someone claimed the lock
           //   after we got the experiment data
           //   (else we would already know about the lock owner and not attempt to lock).
           //   Thus, we need to update our experiment's info and check who the lock owner is
           if (err.toString().includes('lock')) {
-            this.UPDATE_EXPERIMENT(await djangoRest.experiment(this.currentViewData.experimentId));
+            updateExperiment(await djangoRest.experiment(currentViewData.value.experimentId));
           }
         }
       } else {
-        this.warnDecision = true;
+        warnDecision.value = true;
       }
-    },
+    }
+    function keyPress(event) {
+      if (['TEXTAREA', 'INPUT'].includes(document.activeElement.tagName)) return;
+      if (Object.values(decisionShortcuts).includes(event.key)) {
+        const targetDecision = Object.keys(decisionShortcuts).find(
+          (d) => decisionShortcuts[d] === event.key,
+        );
+        handleCommentSave(targetDecision);
+      }
+    }
+
+    onMounted(() => {
+      // Check every 10 secs for whether an auto evaluation has been completed
+      if (!currentViewData.value.currentAutoEvaluation) {
+        pollInterval.value = setInterval(pollForEvaluation, 1000 * 10);
+      }
+      window.addEventListener('keypress', keyPress);
+    });
+    onBeforeUnmount(() => {
+      // Stop polling for auto evaluations
+      clearInterval(pollInterval.value);
+      window.removeEventListener('keypress', keyPress);
+    });
+
+    /** Returns an array containing the name of an artifact and it's current selection state */
+    const chips = computed(
+      () => artifacts.value.map(
+        (artifact) => ({ artifact, chipState: getCurrentChipState(artifact) }),
+      ),
+    );
+    return {
+      user,
+      currentProject,
+      proxyManager,
+      vtkViews,
+      storeCrosshairs,
+      currentViewData,
+      myCurrentProjectRoles,
+      artifacts,
+      suggestedArtifacts,
+      options,
+      warnDecision,
+      newComment,
+      confirmedPresent,
+      confirmedAbsent,
+      decisionShortcuts,
+      pollForEvaluation,
+      getCurrentChipState,
+      clickChip,
+      refreshTaskOverview,
+      switchLock,
+      handleCommentChange,
+      handleCommentSave,
+      chips,
+    };
   },
-};
+});
 </script>
 
 <template>
@@ -416,7 +454,7 @@ export default {
         class="d-flex justify-space-around flex-wrap"
       >
         <v-chip
-          v-for="([artifact, chipState]) in chips"
+          v-for="({ artifact, chipState }) in chips"
           v-bind="artifact"
           :key="artifact.value"
           :outlined="chipState.outlined"
@@ -439,7 +477,6 @@ export default {
         class="pt-5"
       >
         <v-textarea
-          ref="commentInput"
           v-model="newComment"
           :counter="!warnDecision"
           :hide-details="warnDecision"
@@ -477,12 +514,6 @@ export default {
             style="text-align: center"
           >
             <v-btn
-              v-mousetrap="[
-                {
-                  bind: decisionShortcuts[option.code],
-                  handler: () => handleCommentSave(option.code),
-                },
-              ]"
               :color="option.color"
               @click="handleCommentSave(option.code)"
             >
