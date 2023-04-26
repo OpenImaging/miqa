@@ -1,4 +1,4 @@
-/* eslint camelcase: "off" */
+/* eslint-disable  @typescript-eslint/no-explicit-any *//* eslint camelcase: "off" */
 /* eslint no-unused-vars: "off" */
 /* eslint no-shadow: "off" */
 import type { WorkerPool } from 'itk/WorkerPool';
@@ -16,7 +16,9 @@ interface User {
   id: number,
   username: string,
   email: string,
-  is_superuser: boolean
+  is_superuser: boolean,
+  first_name: string,
+  last_name: string,
 }
 
 interface Email {
@@ -31,7 +33,7 @@ interface Email {
 interface Experiment {
   id: string,
   name: string,
-  lock_owner: { // TODO: Can remove?
+  lock_owner: {
     id: number,
     username: string,
   },
@@ -87,6 +89,7 @@ interface ProjectSettings {
     tier_1_reviewer: [],
     tier_2_reviewer: [],
   },
+  default_email_recipients?: string[],
 }
 
 interface ProjectTaskOverview {
@@ -108,11 +111,11 @@ interface Scan {
   // eslint-disable-next-line no-use-before-define
   decisions: ScanDecision[],
   frames: Frame[],
-  subject_id: string, // TODO: Can remove?
+  subject_id: string,
   subjectID: string,
-  session_id: string, // TODO: Can remove?
+  session_id: string,
   sessionID: string,
-  scan_link: string, // TODO: Can remove?
+  scan_link: string,
   link: string,
   notes: string,
   cumulativeRange?: number,
@@ -151,6 +154,7 @@ interface WindowLock {
 interface MIQAStore {
   MIQAConfig: MIQAConfig;
   me: User | null;
+  snackbar: string | null;
   allUsers: User[];
   reviewMode: boolean;
   globalSettings?: ProjectSettings;

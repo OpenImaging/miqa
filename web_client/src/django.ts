@@ -27,7 +27,7 @@ let s3ffClient;
 
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
-  async restoreLogin(store: any) {
+  async restoreLogin(store) {
     await oauthClient.maybeRestoreLogin();
     if (oauthClient.isLoggedIn) {
       Object.assign(
@@ -125,7 +125,7 @@ const djangoClient = {
     const response = await apiClient.put('/global/settings', settings);
     return response?.data;
   },
-  async setProjectSettings(projectId: string, settings: ProjectSettings): Promise<ResponseData> {
+  async setProjectSettings(projectId: string, settings): Promise<ResponseData> {
     if (!projectId || !settings) return undefined;
     const response = await apiClient.put(`/projects/${projectId}/settings`, settings);
     return response?.data;
