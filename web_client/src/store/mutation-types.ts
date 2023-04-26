@@ -1,6 +1,7 @@
 export const RESET_STATE = 'RESET_STATE';
 export const SET_MIQA_CONFIG = 'SET_MIQA_CONFIG';
 export const SET_ME = 'SET_ME';
+export const SET_SNACKBAR = 'SET_SNACKBAR';
 export const SET_ALL_USERS = 'SET_ALL_USERS';
 export const RESET_PROJECT_STATE = 'RESET_PROJECT_STATE';
 export const SET_CURRENT_FRAME_ID = 'SET_CURRENT_FRAME_ID';
