@@ -316,7 +316,7 @@ export default defineComponent({
         updateCrosshairs();
       });
       resizeObserver.value = new window.ResizeObserver((entries) => {
-        if (entries.length === 1 && viewer && crosshairsCanvas) {
+        if (entries.length === 1 && viewer.value && crosshairsCanvas.value) {
           const width = viewer.value.clientWidth;
           const height = viewer.value.clientHeight;
           crosshairsCanvas.value.width = width;

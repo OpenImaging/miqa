@@ -274,8 +274,8 @@ export default defineComponent({
             } : {}),
           );
           addScanDecision({
-            currentScan: currentViewData.value.scanId,
-            newDecision: savedObj,
+            currentScanId: currentViewData.value.scanId,
+            newScanDecision: savedObj,
           });
           await refreshTaskOverview();
           if (AUTO_ADVANCE) {

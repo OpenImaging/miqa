@@ -10,11 +10,13 @@ export default defineComponent({
   props: {
     importPath: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
     exportPath: {
       type: String,
-      required: true,
+      required: false,
+      default: '',
     },
   },
   setup(props, context) {

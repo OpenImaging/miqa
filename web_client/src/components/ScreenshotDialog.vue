@@ -55,8 +55,10 @@ export default defineComponent({
       show.value = false;
     }
 
-    watch(currentScreenshot, (value) => {
+    watch(currentScreenshot, async (value) => {
       if (value) {
+        output.value = await getOutput();
+        fileName.value = currentScreenshot.value.name;
         show.value = true;
       }
     });

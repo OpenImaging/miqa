@@ -105,11 +105,11 @@ export default defineComponent({
               setSnackbar('Failed to release edit access on Experiment.');
             }
           }
-          // Set the new lockExperiment
+          // Set the new lock
           try {
             await setLock({ experimentId: newExperimentId, lock: true, force });
             lockCycle.value = setInterval(async () => {
-              await setLock({ newExperimentId, lock: true });
+              await setLock({ experimentId: newExperimentId, lock: true });
             }, 1000 * 60 * 5, currentViewData.value.experimentId);
           } catch (err) {
             setSnackbar('Failed to claim edit access on Experiment.');
