@@ -1,13 +1,21 @@
 <script lang="ts">
 import Vue, {
-  computed, defineComponent, ref, reactive, watch,
+  defineComponent,
+  computed,
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
 } from 'vue';
 import Donut from 'vue-css-donut-chart';
-import 'vue-css-donut-chart/dist/vcdonut.css';
-import { mapMutations } from 'vuex';
+import router from '@/router';
 import store from '@/store';
+import 'vue-css-donut-chart/dist/vcdonut.css';
 import djangoRest from '@/django';
-import { Project, ScanState } from '@/types';
+import {
+  Project, ScanState,
+} from '@/types';
 import ExperimentsView from '@/components/ExperimentsView.vue';
 import Navbar from '@/components/Navbar.vue';
 import ProjectSettings from '@/components/ProjectSettings.vue';
@@ -23,15 +31,25 @@ export default defineComponent({
     ProjectSettings,
     ProjectUsers,
   },
-  inject: ['user', 'MIQAConfig'],
   setup() {
-    const SET_REVIEW_MODE = store.commit('SET_REVIEW_MODE');
+    let complete = window.location.hash.includes('complete');
+    const user = computed(() => store.state.me);
+    const miqaConfig = computed(() => store.state.MIQAConfig);
     const loadingProjects = ref(true);
-    store.dispatch('loadProjects').then(() => {
-      loadingProjects.value = false;
-    });
+    const creating = ref(false);
+    const newName = ref('');
+    const overviewSections = ref([]);
+    const overviewPoll = ref();
+    const proceed = ref();
+
+    const setProjects = (projects) => store.commit('SET_PROJECTS', projects);
+    const setCurrentProject = (currentProject) => store.commit('SET_CURRENT_PROJECT', currentProject);
+    const setReviewMode = (mode) => store.commit('SET_REVIEW_MODE', mode);
+    const setTaskOverview = (overview) => store.commit('SET_TASK_OVERVIEW', overview);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+    const loadProjects = () => store.dispatch('loadProjects');
+
     const reviewMode = computed(() => store.state.reviewMode);
-    const complete = window.location.hash.includes('complete');
     const currentProject = computed(() => store.state.currentProject);
     const currentTaskOverview = computed(() => store.state.currentTaskOverview);
     const projects = computed(() => store.state.projects);
@@ -44,13 +62,11 @@ export default defineComponent({
       store.dispatch('loadGlobal');
     };
 
-    // Starts as an empty array
-    const overviewSections = ref([]);
     // e.g., unreviewed, needs_2_tier_review, complete
     const scanStates = Object.keys(ScanState);
-    const setOverviewSections = () => {
+    function setOverviewSections() {
       if (projects.value && currentTaskOverview.value) {
-        const scanStateCounts = ref(reactive(
+        const scanStateCounts = ref(
           scanStates.map(
             (stateString) => {
               // Replaces _ with a space, e.g. needs_2_tier_review becomes needs 2 tier review
@@ -60,7 +76,7 @@ export default defineComponent({
               return [stateString, stateCount];
             },
           ),
-        ));
+        );
         overviewSections.value = scanStateCounts.value.map(
           ([stateString, scanCount]: [string, number]) => ({
             value: scanCount,
@@ -71,50 +87,118 @@ export default defineComponent({
       } else {
         overviewSections.value = [];
       }
-    };
-
+    }
     async function refreshTaskOverview() {
       if (currentProject.value) {
         const taskOverview = await djangoRest.projectTaskOverview(currentProject.value.id);
         // If the store / API values differ, update store to API
         if (JSON.stringify(store.state.currentTaskOverview) !== JSON.stringify(taskOverview)) {
-          store.commit('SET_TASK_OVERVIEW', taskOverview);
+          setTaskOverview(taskOverview);
         }
       }
     }
-
     async function refreshAllTaskOverviews() {
       // For each project
       projects.value.forEach(
         async (project: Project) => {
           // Gets the latest projectTaskOverview for each project from the API
           const taskOverview = await djangoRest.projectTaskOverview(project.id);
-          await store.commit('SET_TASK_OVERVIEW', taskOverview);
+          setTaskOverview(taskOverview);
         },
       );
     }
-
     async function getProjectFromURL() {
       if (complete) {
         const targetProjectIndex = projects.value.findIndex(
           (project) => project.id === window.location.hash.split('/')[1],
         );
         const targetProject = projects.value[targetProjectIndex];
-        if (targetProject) store.commit('SET_CURRENT_PROJECT', targetProject);
+        if (targetProject) setCurrentProject(targetProject);
         selectedProjectIndex.value = targetProjectIndex;
       }
     }
+    function selectProject(project: Project) {
+      if (complete) {
+        complete = false;
+      }
+      store.dispatch('loadProject', project);
+    }
+    async function createProject() {
+      if (creating.value && newName.value.length > 0) {
+        try {
+          // Create project
+          const newProject = await djangoRest.createProject(newName.value);
+          setProjects(projects.value.concat([newProject]));
+          // Load project
+          await store.dispatch('loadProject', newProject);
+          creating.value = false;
+          newName.value = '';
 
-    const overviewPoll = setInterval(refreshTaskOverview, 10000); // 10 secs
+          setSnackbar('New project created.');
+        } catch (ex) {
+          setSnackbar(ex || 'Project creation failed.');
+        }
+      }
+    }
+    async function proceedToNext() {
+      const nextProject = projects.value[selectedProjectIndex.value + 1];
+      await store.dispatch('loadProject', nextProject);
+      selectedProjectIndex.value += 1;
+      await djangoRest.projectTaskOverview(nextProject.id).then(
+        (taskOverview) => {
+          let nextScanIndex = 0;
+          let nextScan;
+          let nextScanState;
+          while (
+            (!nextScan
+            || (nextScanState === 'complete' && reviewMode.value))
+            && nextProject.experiments[0].scans
+            && nextScanIndex < nextProject.experiments[0].scans.length
+          ) {
+            nextScan = nextProject.experiments[0].scans[nextScanIndex];
+            nextScanState = taskOverview.scan_states[nextScan.id];
+            nextScanIndex += 1;
+          }
+          if (nextScan) {
+            router.push(`/${nextProject.id}/${nextScan.id}` || '');
+          } else {
+            router.push('/');
+          }
+        },
+      );
+    }
 
-    // Triggers functions when specified state changes
     watch(currentTaskOverview, setOverviewSections);
     watch(currentProject, refreshTaskOverview);
     watch(projects, getProjectFromURL);
+    watch(projects, () => {
+      nextTick(() => {
+        if (proceed.value) proceed.value.focus();
+      });
+    });
+
+    onMounted(() => {
+      loadProjects().then(() => {
+        loadingProjects.value = false;
+      });
+      overviewPoll.value = setInterval(refreshTaskOverview, 10000); // 10 secs
+      setOverviewSections();
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          createProject();
+        }
+      });
+      window.addEventListener('unauthorized', () => {
+        setSnackbar('Server session expired. Try again.');
+      });
+    });
+    onBeforeUnmount(() => clearInterval(overviewPoll.value));
 
     return {
+      user,
+      miqaConfig,
       reviewMode,
-      SET_REVIEW_MODE,
+      setReviewMode,
       complete,
       currentProject,
       loadingProjects,
@@ -128,96 +212,12 @@ export default defineComponent({
       setOverviewSections,
       refreshAllTaskOverviews,
       getProjectFromURL,
+      selectProject,
+      proceedToNext,
+      createProject,
+      creating,
+      newName,
     };
-  },
-  data: () => ({
-    creating: false,
-    newName: '',
-  }),
-  watch: {
-    projects() {
-      this.$nextTick(() => {
-        if (this.$refs.proceed) this.$refs.proceed.$el.focus();
-      });
-    },
-  },
-  mounted() {
-    this.setOverviewSections();
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        this.createProject();
-      }
-    });
-    window.addEventListener('unauthorized', () => {
-      this.$snackbar({
-        text: 'Server session expired. Try again.',
-        timeout: 6000,
-      });
-    });
-  },
-  beforeDestroy() {
-    clearInterval(this.overviewPoll);
-  },
-  methods: {
-    ...mapMutations([
-      'SET_PROJECTS',
-      'SET_CURRENT_PROJECT',
-    ]),
-    selectProject(project: Project) {
-      if (this.complete) {
-        this.complete = false;
-      }
-      store.dispatch('loadProject', project);
-    },
-    async createProject() {
-      if (this.creating && this.newName.length > 0) {
-        try {
-          // Create project
-          const newProject = await djangoRest.createProject(this.newName);
-          this.SET_PROJECTS(this.projects.concat([newProject]));
-          // Load project
-          await store.dispatch('loadProject', newProject);
-          this.creating = false;
-          this.newName = '';
-
-          this.$snackbar({
-            text: 'New project created.',
-            timeout: 6000,
-          });
-        } catch (ex) {
-          this.$snackbar({
-            text: ex || 'Project creation failed.',
-          });
-        }
-      }
-    },
-    async proceedToNext() {
-      const nextProject = this.projects[this.selectedProjectIndex + 1];
-      await store.dispatch('loadProject', nextProject);
-      this.selectedProjectIndex += 1;
-      await djangoRest.projectTaskOverview(nextProject.id).then(
-        (taskOverview) => {
-          let nextScanIndex = 0;
-          let nextScan;
-          let nextScanState;
-          while (
-            (!nextScan
-            || (nextScanState === 'complete' && this.reviewMode))
-            && nextProject.experiments[0].scans
-            && nextScanIndex < nextProject.experiments[0].scans.length
-          ) {
-            nextScan = nextProject.experiments[0].scans[nextScanIndex];
-            nextScanState = taskOverview.scan_states[nextScan.id];
-            nextScanIndex += 1;
-          }
-          if (nextScan) {
-            this.$router.push(`/${nextProject.id}/${nextScan.id}` || '');
-          } else {
-            this.$router.push('/');
-          }
-        },
-      );
-    },
   },
 });
 </script>
@@ -272,7 +272,7 @@ export default defineComponent({
               </v-tooltip>
             </v-list-item>
             <v-list-item
-              v-if="user.is_superuser || MIQAConfig.NORMAL_USERS_CAN_CREATE_PROJECTS"
+              v-if="user.is_superuser || miqaConfig.NORMAL_USERS_CAN_CREATE_PROJECTS"
               style="text-align: center"
             >
               <v-text-field
@@ -383,7 +383,6 @@ export default defineComponent({
               <br>
               <v-form @submit.prevent="proceedToNext">
                 <v-btn
-                  ref="proceed"
                   class="my-3"
                   type="submit"
                 >
@@ -400,7 +399,7 @@ export default defineComponent({
                 dense
                 style="display: inline-block; max-height: 40px; max-width: 60px;"
                 class="px-3 ma-0"
-                @change="SET_REVIEW_MODE"
+                @change="setReviewMode"
               />
               <span>Scans for my review</span>
             </v-subheader>

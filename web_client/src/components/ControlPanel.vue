@@ -1,8 +1,15 @@
 <script lang="ts">
-import { computed, defineComponent } from 'vue';
+import {
+  defineComponent,
+  computed,
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+} from 'vue';
+import router from '@/router';
 import store from '@/store';
 import djangoRest from '@/django';
-
 import UserAvatar from './UserAvatar.vue';
 import ScanDecision from './ScanDecision.vue';
 import DecisionButtons from './DecisionButtons.vue';
@@ -16,8 +23,13 @@ export default defineComponent({
     DecisionButtons,
     WindowWidget,
   },
-  inject: ['user'],
   setup() {
+    const newExperimentNote = ref('');
+    const loadingLock = ref();
+    const lockCycle = ref();
+    const direction = ref();
+
+    const user = computed(() => store.state.me);
     const proxyManager = computed(() => store.state.proxyManager);
     const scanCachedPercentage = computed(() => store.state.scanCachedPercentage);
     const showCrosshairs = computed(() => store.state.showCrosshairs);
@@ -30,181 +42,169 @@ export default defineComponent({
     const myCurrentProjectRoles = computed(() => store.getters.myCurrentProjectRoles);
 
     const setLock = (lockParameters) => store.dispatch('setLock', lockParameters);
-    const setCurrentFrame = (frame) => store.commit('SET_CURRENT_FRAME', frame);
+    const setCurrentFrameId = (frameId) => store.commit('SET_CURRENT_FRAME_ID', frameId);
     const setShowCrosshairs = (show) => store.commit('SET_SHOW_CROSSHAIRS', show);
     const setStoreCrosshairs = (persist) => store.commit('SET_STORE_CROSSHAIRS', persist);
     const updateExperiment = (experiment) => store.commit('UPDATE_EXPERIMENT', experiment);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+
+    const experimentId = computed(() => currentViewData.value.experimentId);
+    const editRights = computed(() => myCurrentProjectRoles.value.includes('tier_1_reviewer')
+      || myCurrentProjectRoles.value.includes('tier_2_reviewer')
+      || myCurrentProjectRoles.value.includes('superuser'));
+    const lockOwner = computed(() => currentViewData.value.lockOwner);
+    const experimentIsEditable = computed(
+      () => lockOwner.value && lockOwner.value.id === user.value.id,
+    );
+    const representation = computed(
+      () => currentFrame.value && proxyManager.value.getRepresentations()[0],
+    );
+
+    function openScanLink() {
+      window.open(currentViewData.value.scanLink, '_blank');
+    }
+    function navigateToScan(location) {
+      if (!location) location = 'complete';
+      if (location && location !== router.app.$route.params.scanId) {
+        router.push(`/${currentViewData.value.projectId}/${location}` || '');
+      }
+    }
+    function updateImage() {
+      if (direction.value === 'back') {
+        setCurrentFrameId(previousFrame.value);
+      } else if (direction.value === 'forward') {
+        setCurrentFrameId(nextFrame.value);
+      } else if (direction.value === 'previous') {
+        navigateToScan(currentViewData.value.upTo);
+      } else if (direction.value === 'next') {
+        navigateToScan(currentViewData.value.downTo);
+      }
+    }
+    function handleKeyPress(dir) {
+      direction.value = dir;
+      updateImage();
+    }
+    // If there aren't at least two keys in `currentView` we know
+    // that we aren't looking at a valid scan, so advance to next.
+    function navigateToNextIfCurrentScanNull() {
+      if (Object.keys(currentViewData.value).length < 2) {
+        handleKeyPress('next');
+        return true;
+      }
+      return false;
+    }
+    /** Release lock on old experiment, set lock on new experiment */
+    async function switchLock(newExperimentId, oldExperimentId = null, force = false) {
+      if (!navigateToNextIfCurrentScanNull()) {
+        if (editRights.value) {
+          loadingLock.value = true;
+          if (oldExperimentId) {
+            try {
+              await setLock({ experimentId: oldExperimentId, lock: false, force });
+            } catch (err) {
+              setSnackbar('Failed to release edit access on Experiment.');
+            }
+          }
+          // Set the new lock
+          try {
+            await setLock({ experimentId: newExperimentId, lock: true, force });
+            lockCycle.value = setInterval(async () => {
+              await setLock({ experimentId: newExperimentId, lock: true });
+            }, 1000 * 60 * 5, currentViewData.value.experimentId);
+          } catch (err) {
+            setSnackbar('Failed to claim edit access on Experiment.');
+            loadingLock.value = false;
+          }
+        }
+      }
+    }
+    function slideToFrame(framePosition) {
+      setCurrentFrameId(currentViewData.value.scanFramesList[framePosition - 1]);
+    }
+    function handleExperimentNoteChange(value) {
+      newExperimentNote.value = value;
+    }
+    async function handleExperimentNoteSave() {
+      if (newExperimentNote.value.length > 0) {
+        try {
+          const newExpData = await djangoRest.setExperimentNote(
+            currentViewData.value.experimentId,
+            newExperimentNote.value,
+          );
+          setSnackbar('Saved note successfully.');
+          newExperimentNote.value = '';
+          updateExperiment(newExpData);
+        } catch (err) {
+          setSnackbar(`Save failed: ${err.response.data.detail || 'Server error'}`);
+        }
+      }
+    }
+
+    watch(experimentId, (newValue, oldValue) => {
+      // Update locked experiment when experiment changes
+      switchLock(newValue, oldValue);
+      clearInterval(lockCycle.value);
+    });
+    watch(currentViewData, navigateToNextIfCurrentScanNull);
+
+    onMounted(() => {
+      if (!navigateToNextIfCurrentScanNull()) {
+        // Switch the lock to the current experiment
+        switchLock(experimentId.value);
+
+        // Handles key presses
+        window.addEventListener('keydown', (event) => {
+          const activeElement = document.activeElement as HTMLElement;
+          if (['textarea', 'input'].includes(activeElement.tagName.toLowerCase())) return;
+          if (event.key === 'ArrowUp') {
+            handleKeyPress('previous');
+          } else if (event.key === 'ArrowDown') {
+            handleKeyPress('next');
+          } else if (event.key === 'ArrowLeft') {
+            handleKeyPress('back');
+          } else if (event.key === 'ArrowRight') {
+            handleKeyPress('forward');
+          }
+        });
+      }
+    });
+    onBeforeUnmount(() => {
+      // Remove lock
+      setLock({ experimentId: experimentId.value, lock: false });
+      clearInterval(lockCycle.value);
+    });
+
     return {
+      user,
+      newExperimentNote,
+      loadingLock,
+      lockCycle,
       proxyManager,
+      representation,
       scanCachedPercentage,
       showCrosshairs,
       storeCrosshairs,
       currentViewData,
+      lockOwner,
+      experimentIsEditable,
       nextFrame,
       previousFrame,
       currentFrame,
       myCurrentProjectRoles,
       setLock,
-      setCurrentFrame,
+      setCurrentFrameId,
       setShowCrosshairs,
       setStoreCrosshairs,
       updateExperiment,
+      handleExperimentNoteChange,
+      handleExperimentNoteSave,
+      openScanLink,
+      handleKeyPress,
+      experimentId,
+      editRights,
+      switchLock,
+      slideToFrame,
     };
-  },
-  data: () => ({
-    newExperimentNote: '',
-    loadingLock: undefined,
-    lockCycle: undefined,
-  }),
-  computed: {
-    experimentId() {
-      return this.currentViewData.experimentId;
-    },
-    editRights() {
-      return this.myCurrentProjectRoles.includes('tier_1_reviewer')
-      || this.myCurrentProjectRoles.includes('tier_2_reviewer')
-      || this.myCurrentProjectRoles.includes('superuser');
-    },
-    experimentIsEditable() {
-      return this.lockOwner && this.lockOwner.id === this.user.id;
-    },
-    lockOwner() {
-      return this.currentViewData.lockOwner;
-    },
-    representation() {
-      return this.currentFrame && this.proxyManager.getRepresentations()[0];
-    },
-  },
-  watch: {
-    // Update locked experiment when experiment changes
-    experimentId(newValue, oldValue) {
-      this.switchLock(newValue, oldValue);
-      clearInterval(this.lockCycle);
-    },
-    currentViewData() {
-      this.navigateToNextIfCurrentScanNull();
-    },
-  },
-  mounted() {
-    if (!this.navigateToNextIfCurrentScanNull()) {
-      // Switch the lock to the current experiment
-      this.switchLock(this.experimentId);
-
-      // Handles key presses
-      window.addEventListener('keydown', (event) => {
-        const activeElement = document.activeElement as HTMLElement;
-        if (['textarea', 'input'].includes(activeElement.tagName.toLowerCase())) return;
-        if (event.key === 'ArrowUp') {
-          this.handleKeyPress('previous');
-        } else if (event.key === 'ArrowDown') {
-          this.handleKeyPress('next');
-        } else if (event.key === 'ArrowLeft') {
-          this.handleKeyPress('back');
-        } else if (event.key === 'ArrowRight') {
-          this.handleKeyPress('forward');
-        }
-      });
-    }
-  },
-  beforeDestroy() {
-    // Remove lock
-    this.setLock({ experimentId: this.experimentId, lock: false });
-    clearInterval(this.lockCycle);
-  },
-  methods: {
-    openScanLink() {
-      window.open(this.currentViewData.scanLink, '_blank');
-    },
-    /** Release lock on old experiment, set lock on new experiment */
-    async switchLock(newExperimentId, oldExperimentId = null, force = false) {
-      if (!this.navigateToNextIfCurrentScanNull()) {
-        if (this.editRights) {
-          this.loadingLock = true;
-          if (oldExperimentId) {
-            try {
-              await this.setLock({ experimentId: oldExperimentId, lock: false, force });
-            } catch (err) {
-              this.$snackbar({
-                text: 'Failed to release edit access on Experiment.',
-                timeout: 6000,
-              });
-            }
-          }
-          // Set the new lockExperiment
-          try {
-            await this.setLock({ experimentId: newExperimentId, lock: true, force });
-            this.lockCycle = setInterval(async (experimentId) => {
-              await this.setLock({ experimentId, lock: true });
-            }, 1000 * 60 * 5, this.currentViewData.experimentId);
-          } catch (err) {
-            this.$snackbar({
-              text: 'Failed to claim edit access on Experiment.',
-              timeout: 6000,
-            });
-            this.loadingLock = false;
-          }
-        }
-      }
-    },
-    navigateToScan(location) {
-      if (!location) location = 'complete';
-      if (location && location !== this.$route.params.scanId) {
-        this.$router
-          .push(`/${this.currentViewData.projectId}/${location}` || '');
-      // .catch(this.handleNavigationError);
-      }
-    },
-    slideToFrame(framePosition) {
-      this.setCurrentFrame(this.currentViewData.scanFramesList[framePosition - 1]);
-    },
-    updateImage() {
-      if (this.direction === 'back') {
-        this.setCurrentFrame(this.previousFrame);
-      } else if (this.direction === 'forward') {
-        this.setCurrentFrame(this.nextFrame);
-      } else if (this.direction === 'previous') {
-        this.navigateToScan(this.currentViewData.upTo);
-      } else if (this.direction === 'next') {
-        this.navigateToScan(this.currentViewData.downTo);
-      }
-    },
-    handleKeyPress(direction) {
-      this.direction = direction;
-      this.updateImage();
-    },
-    handleExperimentNoteChange(value) {
-      this.newExperimentNote = value;
-    },
-    async handleExperimentNoteSave() {
-      if (this.newExperimentNote.length > 0) {
-        try {
-          const newExpData = await djangoRest.setExperimentNote(
-            this.currentViewData.experimentId,
-            this.newExperimentNote,
-          );
-          this.$snackbar({
-            text: 'Saved note successfully.',
-            timeout: 6000,
-          });
-          this.newExperimentNote = '';
-          this.updateExperiment(newExpData);
-        } catch (err) {
-          this.$snackbar({
-            text: `Save failed: ${err.response.data.detail || 'Server error'}`,
-            timeout: 6000,
-          });
-        }
-      }
-    },
-    // If there aren't at least two keys in `currentView` we know
-    // that we aren't looking at a valid scan, so advance to next.
-    navigateToNextIfCurrentScanNull() {
-      if (Object.keys(this.currentViewData).length < 2) {
-        this.handleKeyPress('next');
-        return true;
-      }
-      return false;
-    },
   },
 });
 </script>

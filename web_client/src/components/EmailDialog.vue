@@ -1,9 +1,11 @@
 <script lang="ts">
 import {
-  defineComponent, inject, computed,
+  defineComponent,
+  computed,
+  ref,
+  watch,
 } from 'vue';
 import store from '@/store';
-import { User } from '@/types';
 import djangoRest from '@/django';
 import EmailRecipientCombobox from './EmailRecipientCombobox.vue';
 
@@ -12,136 +14,135 @@ export default defineComponent({
   components: {
     EmailRecipientCombobox,
   },
-  inject: ['MIQAConfig'],
   props: {
     value: {
       type: Boolean,
       required: true,
     },
   },
-  setup() {
+  setup(props, context) {
+    const user = computed(() => store.state.me);
+    const initialized = ref(false);
+    const to = ref([]);
+    const cc = ref([]);
+    const bcc = ref([]);
+    const showCC = ref(false);
+    const showBCC = ref(true);
+    const subject = ref('');
+    const body = ref('');
+    const selectedScreenshots = ref([]);
+    const valid = ref(true);
+    const sending = ref(false);
+    const form = ref();
+
     const screenshots = computed(() => store.state.screenshots);
     const currentViewData = computed(() => store.getters.currentViewData);
     const currentProject = computed(() => store.state.currentProject);
     const currentFrame = computed(() => store.getters.currentFrame);
     const currentScan = computed(() => store.getters.currentScan);
-    const REMOVE_SCREENSHOT = store.commit('REMOVE_SCREENSHOT');
+    const removeScreenshot = (ss) => store.commit('REMOVE_SCREENSHOT', ss);
 
-    const user = inject('user') as User;
+    function initialize() {
+      if (initialized.value) return;
+      if (form.value) {
+        form.value.resetValidation();
+      }
+      if (!currentScan.value) {
+        return;
+      }
+      selectedScreenshots.value = screenshots.value;
+      to.value = currentProject.value.settings.default_email_recipients;
+      cc.value = [];
+      bcc.value = [];
+      if (user.value) {
+        cc.value.push(user.value.email);
+      }
+      showCC.value = !!cc.value.length;
+      showBCC.value = !!bcc.value.length;
+      subject.value = `Regarding ${currentViewData.value.projectName}, ${currentViewData.value.experimentName}, ${currentScan.value.name}`;
+      body.value = `Project: ${currentViewData.value.projectName}\n`;
+      body.value += `Experiment: ${currentViewData.value.experimentName}\n`;
+      body.value += `Scan: ${currentScan.value.name}`;
+      if (currentScan.value.link) body.value += ` (${currentScan.value.link})`;
+      if (currentScan.value.subjectID) body.value += `, Subject: ${currentScan.value.subjectID}`;
+      if (currentScan.value.sessionID) body.value += `, Session: ${currentScan.value.sessionID}`;
+      body.value += '\n';
+      if (currentViewData.value.scanDecisions.length > 0) {
+        body.value += `Decisions:\n${currentViewData.value.scanDecisions.map(
+          (decision) => `    ${decision.creator.email} (${decision.created}): `
+          + `${decision.decision.toUpperCase()} ${decision.note.length > 0 ? `, ${decision.note}` : ''}`,
+        ).join('\n')}`;
+      }
+      initialized.value = true;
+    }
+    function toggleScreenshotSelection(screenshot) {
+      const index = selectedScreenshots.value.indexOf(screenshot);
+      if (index === -1) {
+        selectedScreenshots.value.push(screenshot);
+      } else {
+        selectedScreenshots.value.splice(index, 1);
+      }
+    }
+    async function send() {
+      if (!form.value.validate()) {
+        return;
+      }
+      sending.value = true;
+      await djangoRest.sendEmail({
+        to: to.value,
+        cc: cc.value,
+        bcc: bcc.value,
+        subject: subject.value,
+        body: body.value,
+        screenshots: screenshots.value.filter(
+          (screenshot) => selectedScreenshots.value.indexOf(screenshot) !== -1,
+        ),
+      });
+      sending.value = false;
+      context.emit('input', false);
+      initialized.value = false;
+      for (let i = screenshots.value.length - 1; i >= 0; i -= 1) {
+        const screenshot = screenshots.value[i];
+        if (selectedScreenshots.value.indexOf(screenshot) !== -1) {
+          removeScreenshot(screenshot);
+        }
+      }
+      selectedScreenshots.value = [];
+    }
+    function getBorder(screenshot) {
+      if (selectedScreenshots.value.indexOf(screenshot) === -1) {
+        return 'transparent';
+      }
+      return 'blue';
+    }
+
+    watch(user, initialize);
+    watch(currentFrame, initialize);
 
     return {
+      initialized,
+      to,
+      cc,
+      bcc,
+      showCC,
+      showBCC,
+      subject,
+      body,
+      selectedScreenshots,
+      valid,
+      sending,
+      form,
       screenshots,
       currentViewData,
       currentProject,
       currentFrame,
       currentScan,
-      REMOVE_SCREENSHOT,
+      removeScreenshot,
       user,
+      send,
+      getBorder,
+      toggleScreenshotSelection,
     };
-  },
-  data: () => ({
-    initialized: false,
-    to: [],
-    cc: [],
-    bcc: [],
-    showCC: false,
-    showBCC: false,
-    subject: '',
-    body: '',
-    selectedScreenshots: [],
-    valid: true,
-    sending: false,
-  }),
-  watch: {
-    user(value) {
-      if (value) {
-        this.initialize();
-      }
-    },
-    currentFrame(value) {
-      if (value) {
-        this.initialize();
-      }
-    },
-    value(value) {
-      if (value && !this.initialized) {
-        this.initialize();
-      }
-    },
-  },
-  methods: {
-    initialize() {
-      if (this.$refs.form) {
-        this.$refs.form.resetValidation();
-      }
-      if (!this.currentScan) {
-        return;
-      }
-      this.selectedScreenshots = this.screenshots;
-      this.to = this.currentProject.settings.default_email_recipients;
-      this.cc = [];
-      this.bcc = [];
-      if (this.user) {
-        this.cc.push(this.user.email);
-      }
-      this.showCC = !!this.cc.length;
-      this.showBCC = !!this.bcc.length;
-      this.subject = `Regarding ${this.currentViewData.projectName}, ${this.currentViewData.experimentName}, ${this.currentScan.name}`;
-      this.body = `Project: ${this.currentViewData.projectName}\n`;
-      this.body += `Experiment: ${this.currentViewData.experimentName}\n`;
-      this.body += `Scan: ${this.currentScan.name}`;
-      if (this.currentScan.link) this.body += ` (${this.currentScan.link})`;
-      if (this.currentScan.subjectID) this.body += `, Subject: ${this.currentScan.subjectID}`;
-      if (this.currentScan.sessionID) this.body += `, Session: ${this.currentScan.sessionID}`;
-      this.body += '\n';
-      if (this.currentViewData.scanDecisions.length > 0) {
-        this.body += `Decisions:\n${this.currentViewData.scanDecisions.map(
-          (decision) => `    ${decision.creator.email} (${decision.created}): `
-          + `${decision.decision.toUpperCase()} ${decision.note.length > 0 ? `, ${decision.note}` : ''}`,
-        ).join('\n')}`;
-      }
-      this.initialized = true;
-    },
-    toggleScreenshotSelection(screenshot) {
-      const index = this.selectedScreenshots.indexOf(screenshot);
-      if (index === -1) {
-        this.selectedScreenshots.push(screenshot);
-      } else {
-        this.selectedScreenshots.splice(index, 1);
-      }
-    },
-    async send() {
-      if (!this.$refs.form.validate()) {
-        return;
-      }
-      this.sending = true;
-      await djangoRest.sendEmail({
-        to: this.to,
-        cc: this.cc,
-        bcc: this.bcc,
-        subject: this.subject,
-        body: this.body,
-        screenshots: this.screenshots.filter(
-          (screenshot) => this.selectedScreenshots.indexOf(screenshot) !== -1,
-        ),
-      });
-      this.sending = false;
-      this.$emit('input', false);
-      this.initialized = false;
-      for (let i = this.screenshots.length - 1; i >= 0; i -= 1) {
-        const screenshot = this.screenshots[i];
-        if (this.selectedScreenshots.indexOf(screenshot) !== -1) {
-          this.REMOVE_SCREENSHOT(screenshot);
-        }
-      }
-      this.selectedScreenshots = [];
-    },
-    getBorder(screenshot) {
-      if (this.selectedScreenshots.indexOf(screenshot) === -1) {
-        return 'transparent';
-      }
-      return this.$vuetify.theme.currentTheme.primary;
-    },
   },
 });
 </script>
@@ -277,7 +278,7 @@ export default defineComponent({
                         small
                         color="primary"
                         class="close"
-                        @click.stop="REMOVE_SCREENSHOT(screenshot)"
+                        @click.stop="removeScreenshot(screenshot)"
                       >
                         <v-icon>close</v-icon>
                       </v-btn>

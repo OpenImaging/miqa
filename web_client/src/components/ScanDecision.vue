@@ -1,9 +1,13 @@
 <script lang="ts">
-import { mapMutations } from 'vuex';
+import {
+  defineComponent,
+  computed,
+} from 'vue';
+import store from '@/store';
 import { decisionOptions } from '@/constants';
 import UserAvatar from './UserAvatar.vue';
 
-export default {
+export default defineComponent({
   name: 'ScanDecision',
   components: {
     UserAvatar,
@@ -14,37 +18,39 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      decisionOptions,
-    };
-  },
-  computed: {
-    artifactChips() {
-      return Object.entries(this.decision.user_identified_artifacts).filter(
+  setup(props) {
+    const setSliceLocation = (loc) => store.commit('SET_SLICE_LOCATION', loc);
+
+    const artifactChips = computed(
+      () => Object.entries(
+        props.decision.user_identified_artifacts,
+      ).filter(
         ([, selected]) => selected === 1,
       ).map(
         ([artifactName]) => ({
           code: artifactName.toUpperCase().slice(0, 3),
           value: artifactName.replace(/_/g, ' '),
         }),
-      );
-    },
-  },
-  methods: {
-    ...mapMutations([
-      'SET_SLICE_LOCATION',
-    ]),
-    convertDecisionToColor(decision) {
+      ),
+    );
+    function convertDecisionToColor(decision) {
       if (decision === 'UN') return 'red--text text--darken-2';
       if (decision === 'U') return 'green--text text--darken-2';
       return 'grey--text text--darken-2';
-    },
-    goToLocation() {
-      this.SET_SLICE_LOCATION(this.decision.location);
-    },
+    }
+    function goToLocation() {
+      setSliceLocation(props.decision.location);
+    }
+
+    return {
+      decisionOptions,
+      setSliceLocation,
+      artifactChips,
+      convertDecisionToColor,
+      goToLocation,
+    };
   },
-};
+});
 </script>
 
 <template>

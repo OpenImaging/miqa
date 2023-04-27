@@ -1,115 +1,62 @@
 <script lang="ts">
-import _ from 'lodash';
 import {
-  mapState, mapGetters, mapMutations, mapActions,
-} from 'vuex';
+  defineComponent,
+  ref,
+  computed,
+  watch,
+} from 'vue';
+import _ from 'lodash';
 import UserAvatar from '@/components/UserAvatar.vue';
 import djangoRest from '@/django';
-import { includeScan } from '@/store';
-import { API_URL, decisionOptions } from '@/constants';
+import store, { includeScan } from '@/store';
+import { decisionOptions } from '@/constants';
+import { Experiment } from '@/types';
 
-export default {
+export default defineComponent({
   name: 'ExperimentsView',
   components: { UserAvatar },
-  inject: ['user', 'MIQAConfig'],
   props: {
     minimal: {
       type: Boolean,
       default: false,
     },
   },
-  data: () => ({
-    API_URL,
-    showUploadModal: false,
-    showDeleteModal: false,
-    uploadToExisting: false,
-    uploadError: '',
-    experimentNameForUpload: '',
-    fileSetForUpload: [],
-    uploading: false,
-    decisionOptions,
-  }),
-  computed: {
-    ...mapState([
-      'reviewMode',
-      'experiments',
-      'experimentIds',
-      'experimentScans',
-      'loadingExperiment',
-      'scans',
-      'scanFrames',
-      'frames',
-      'currentTaskOverview',
-      'currentProject',
-    ]),
-    ...mapGetters([
-      'currentScan',
-      'currentExperiment',
-    ]),
+  setup(props) {
+    const showUploadModal = ref(false);
+    const showDeleteModal = ref();
+    const uploadToExisting = ref(false);
+    const uploading = ref(false);
+    const uploadError = ref('');
+    const experimentNameForUpload = ref('');
+    const fileSetForUpload = ref([]);
+
+    const miqaConfig = computed(() => store.state.MIQAConfig);
+    const currentProject = computed(() => store.state.currentProject);
+    const currentTaskOverview = computed(() => store.state.currentTaskOverview);
+    const frames = computed(() => store.state.frames);
+    const scanFrames = computed(() => store.state.scanFrames);
+    const scans = computed(() => store.state.scans);
+    const loadingExperiment = computed(() => store.state.loadingExperiment);
+    const experimentScans = computed(() => store.state.experimentScans);
+    const experimentIds = computed(() => store.state.experimentIds);
+    const experiments = computed(() => store.state.experiments);
+    const reviewMode = computed(() => store.state.reviewMode);
+    const currentScan = computed(() => store.getters.currentScan);
+    const currentExperiment = computed(() => store.getters.currentExperiment);
     // Gets the experiments based on the experiment ids
-    orderedExperiments() {
-      return this.experimentIds.map((expId) => this.experiments[expId]);
-    },
-    loadingIcon() {
-      return this.loadingExperiment
-        ? 'mdi-progress-clock'
-        : 'mdi-check-circle-outline';
-    },
-    loadingIconColor() {
-      return this.loadingExperiment ? 'red' : 'green';
-    },
-  },
-  watch: {
-    /** Begins loading upload modal */
-    showUploadModal() {
-      this.delayPrepareDropZone();
-    },
-    /** When the project changes, reset the local state for the project. */
-    currentProject() {
-      this.showUploadModal = false;
-      this.uploadToExisting = false;
-      this.uploadError = '';
-      this.fileSetForUpload = [];
-      this.uploading = false;
-    },
-  },
-  methods: {
-    ...mapMutations([
-      'SET_REVIEW_MODE',
-    ]),
-    ...mapActions([
-      'loadProject',
-    ]),
-    includeScan,
-    /** Gets all scans associated with the provided experimentId */
-    scansForExperiment(expId) {
-      const expScanIds = this.experimentScans[expId];
-      return expScanIds.filter(
-        (scanId) => Object.keys(this.scans).includes(scanId),
-      ).map((scanId) => {
-        const scan = this.scans[scanId];
-        return {
-          ...scan,
-          ...this.decisionToRating(scan.decisions),
-        };
-      });
-    },
-    /** Receives a string like "NCANDA_E08710" (name of an image file),
-     * this is used as the experiment name */
-    ellipsisText(str) {
-      if (!this.minimal) return str;
-      if (str.length > 25) {
-        return `${str.substr(0, 10)}...${
-          str.substr(str.length - 10, str.length)}`;
-      }
-      return str;
-    },
-    /** Get the URL of the first frame in the current scan */
-    getURLForScan(scanId) {
-      return `/${this.currentProject.id}/${scanId}`;
-    },
+    const orderedExperiments = computed(
+      () => experimentIds.value.map((expId) => experiments.value[expId]),
+    );
+    const loadingIcon = computed(() => (loadingExperiment.value
+      ? 'mdi-progress-clock'
+      : 'mdi-check-circle-outline'));
+    const loadingIconColor = computed(() => (loadingExperiment.value ? 'red' : 'green'));
+
+    const setReviewMode = (mode) => store.commit('SET_REVIEW_MODE', mode);
+    const loadProject = (project) => store.dispatch('loadProject', project);
+
     /** Assigns a color and character if a decision has been rendered on a given scan */
-    decisionToRating(decisions) {
+    function decisionToRating(decisions) {
       // decisions are an array of objects
       if (decisions.length === 0) return {};
       const rating = _.first(_.sortBy(decisions, (decision) => decision.created)).decision;
@@ -124,33 +71,51 @@ export default {
         decision: rating,
         color,
       };
-    },
-    scanIsCurrent(scan) {
-      if (scan === this.currentScan) {
-        return ' current';
+    }
+    /** Gets all scans associated with the provided experimentId */
+    function scansForExperiment(expId) {
+      const expScanIds = experimentScans.value[expId];
+      return expScanIds.filter(
+        (scanId) => Object.keys(scans.value).includes(scanId),
+      ).map((scanId) => {
+        const scan = scans.value[scanId];
+        return {
+          ...scan,
+          ...decisionToRating(scan.decisions),
+        };
+      });
+    }
+    /** Receives a string like "NCANDA_E08710" (name of an image file),
+     * this is used as the experiment name */
+    function ellipsisText(str) {
+      if (!props.minimal) return str;
+      if (str.length > 25) {
+        return `${str.substr(0, 10)}...${
+          str.substr(str.length - 10, str.length)}`;
       }
-      return '';
-    },
-    scanState(scan) {
+      return str;
+    }
+    /** Get the URL of the first frame in the current scan */
+    function getURLForScan(scanId) {
+      return `/${currentProject.value.id}/${scanId}`;
+    }
+    function scanState(scan) {
       let scanTaskState;
-      if (this.currentTaskOverview) {
-        scanTaskState = this.currentTaskOverview.scan_states[scan.id];
+      if (currentTaskOverview.value) {
+        scanTaskState = currentTaskOverview.value.scan_states[scan.id];
       }
       return scanTaskState || 'unreviewed';
-    },
+    }
     /** Adds a class to a scan representative of the scan's task state. */
-    scanStateClass(scan) {
-      let classes = `body-1 state-${this.scanState(scan).replace(/ /g, '-')}`;
-      if (scan === this.currentScan) {
+    function scanStateClass(scan) {
+      let classes = `body-1 state-${scanState(scan).replace(/ /g, '-')}`;
+      if (scan === currentScan.value) {
         classes = `${classes} current`;
       }
       return classes;
-    },
-    delayPrepareDropZone() {
-      setTimeout(this.prepareDropZone, 500);
-    },
+    }
     /** Listens for images being dragged into the dropzone */
-    prepareDropZone() {
+    function prepareDropZone() {
       const dropZone = document.getElementById('dropZone');
       if (dropZone) {
         dropZone.addEventListener('dragenter', (e) => {
@@ -162,48 +127,102 @@ export default {
           dropZone.classList.remove('hover');
         });
       }
-    },
+    }
+    function delayPrepareDropZone() {
+      setTimeout(prepareDropZone, 500);
+    }
     /** Gets files dropped into the dropzone */
-    addDropFiles(e) {
-      this.fileSetForUpload = [...e.dataTransfer.files];
-    },
-    async uploadToExperiment() {
+    function addDropFiles(e) {
+      fileSetForUpload.value = [...e.dataTransfer.files];
+    }
+    async function uploadToExperiment() {
       let experimentId;
-      this.uploading = true;
+      uploading.value = true;
       try {
         // If we are uploading to a new experiment
-        if (!this.uploadToExisting) {
+        if (!uploadToExisting.value) {
           // Create a new experiment, below returns instance of ResponseData
           const newExperiment = await djangoRest.createExperiment(
-            this.currentProject.id,
-            this.experimentNameForUpload,
+            currentProject.value.id,
+            experimentNameForUpload.value,
           );
           experimentId = newExperiment.id;
         } else {
           // Find the experiment's id that matches the experiment selected
-          experimentId = (Object.values(this.experiments).find(
-            (experiment: any) => experiment.name === this.experimentNameForUpload,
+          experimentId = (Object.values(experiments.value).find(
+            (experiment: Experiment) => experiment.name === experimentNameForUpload.value,
           ) as { id: string, name: string }).id;
         }
-        await djangoRest.uploadToExperiment(experimentId, this.fileSetForUpload);
-        await this.loadProject(this.currentProject);
-        this.showUploadModal = false;
+        await djangoRest.uploadToExperiment(experimentId, fileSetForUpload.value);
+        await loadProject(currentProject.value);
+        showUploadModal.value = false;
       } catch (ex) {
         const text = ex || 'Upload failed due to server error.';
-        this.uploadError = text;
+        uploadError.value = text;
       }
-      this.uploading = false;
-    },
-    deleteExperiment(experimentId) {
+      uploading.value = false;
+    }
+    function deleteExperiment(experimentId) {
       djangoRest.deleteExperiment(experimentId).then(
         () => {
-          this.loadProject(this.currentProject);
-          this.showDeleteModal = false;
+          loadProject(currentProject.value);
+          showDeleteModal.value = false;
         },
       );
-    },
+    }
+
+    watch(showUploadModal, () => {
+      /** Begins loading upload modal */
+      delayPrepareDropZone();
+    });
+    watch(currentProject, () => {
+      /** When the project changes, reset the local state for the project. */
+      showUploadModal.value = false;
+      uploadToExisting.value = false;
+      uploadError.value = '';
+      fileSetForUpload.value = [];
+      uploading.value = false;
+    });
+
+    return {
+      miqaConfig,
+      showUploadModal,
+      showDeleteModal,
+      uploadToExisting,
+      uploading,
+      uploadError,
+      experimentNameForUpload,
+      fileSetForUpload,
+      currentProject,
+      currentTaskOverview,
+      frames,
+      scanFrames,
+      scans,
+      loadingExperiment,
+      experimentScans,
+      experimentIds,
+      experiments,
+      reviewMode,
+      currentScan,
+      currentExperiment,
+      orderedExperiments,
+      loadingIcon,
+      loadingIconColor,
+      setReviewMode,
+      ellipsisText,
+      deleteExperiment,
+      scansForExperiment,
+      scanStateClass,
+      getURLForScan,
+      includeScan,
+      decisionOptions,
+      scanState,
+      delayPrepareDropZone,
+      addDropFiles,
+      uploadToExperiment,
+    };
   },
-};
+});
 </script>
 
 <template>
@@ -231,7 +250,7 @@ export default {
           dense
           style="display: inline-block; max-height: 40px; max-width: 60px;"
           class="px-3 ma-0"
-          @change="SET_REVIEW_MODE"
+          @change="setReviewMode"
         />
         <span>Scans for my review</span>
       </v-subheader>
@@ -369,7 +388,7 @@ export default {
         <span class="px-5">No imported data.</span>
       </div>
       <v-dialog
-        v-if="!minimal && MIQAConfig.S3_SUPPORT"
+        v-if="!minimal && miqaConfig.S3_SUPPORT"
         v-model="showUploadModal"
         width="600px"
       >

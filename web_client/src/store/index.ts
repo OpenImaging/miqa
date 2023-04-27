@@ -10,11 +10,11 @@ import '../utils/registerReaders';
 import readImageArrayBuffer from 'itk/readImageArrayBuffer';
 import WorkerPool from 'itk/WorkerPool';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
+import axios from 'axios';
 import djangoRest, { apiClient } from '@/django';
 import {
   MIQAStore, Project, ProjectTaskOverview, ProjectSettings, Scan, User,
 } from '@/types';
-import axios from 'axios';
 import ReaderFactory from '../utils/ReaderFactory';
 
 import { proxy } from '../vtk';
@@ -22,7 +22,8 @@ import { getView } from '../vtk/viewManager';
 import { ijkMapping } from '../vtk/constants';
 
 import {
-  RESET_STATE, SET_MIQA_CONFIG, SET_ME, SET_ALL_USERS, RESET_PROJECT_STATE, SET_CURRENT_FRAME_ID,
+  RESET_STATE, SET_MIQA_CONFIG, SET_ME, SET_SNACKBAR,
+  SET_ALL_USERS, RESET_PROJECT_STATE, SET_CURRENT_FRAME_ID,
   SET_FRAME, SET_SCAN, SET_RENDER_ORIENTATION, SET_CURRENT_PROJECT, SET_GLOBAL_SETTINGS,
   SET_TASK_OVERVIEW, SET_PROJECTS, ADD_SCAN_DECISION, SET_FRAME_EVALUATION, SET_CURRENT_SCREENSHOT,
   ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
@@ -44,7 +45,7 @@ let readDataQueue = [];
 // List of frames that have been successfully added to readDataQueue
 const loadedData = [];
 // Frames that need to be downloaded
-const pendingFrameDownloads = new Set<any>();
+const pendingFrameDownloads = new Set();
 // Maximum number of workers in WorkerPool
 const poolSize = Math.floor(navigator.hardwareConcurrency / 2) || 2;
 // Defines the task currently running
@@ -369,6 +370,7 @@ const initState = {
     S3_SUPPORT: true,
   },
   me: null,
+  snackbar: null,
   allUsers: [],
   reviewMode: true,
   globalSettings: undefined as ProjectSettings,
@@ -514,6 +516,9 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     },
     [SET_ME](state, me) {
       state.me = me;
+    },
+    [SET_SNACKBAR](state, snackbar) {
+      state.snackbar = snackbar;
     },
     [SET_ALL_USERS](state, allUsers) {
       state.allUsers = allUsers;
@@ -839,12 +844,9 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       }
       return state.scans[scanId];
     },
-    async setCurrentFrame({ commit }, frameId) {
-      commit('SET_CURRENT_FRAME_ID', frameId);
-    },
     /** Handles the process of changing frames */
     async swapToFrame({
-      state, dispatch, getters, commit,
+      state, getters, commit,
     }, { frame, onDownloadProgress = null, loadAll = true }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
@@ -913,7 +915,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         state.vtkViews = [];
         commit('SET_ERROR_LOADING_FRAME', true);
       } finally {
-        dispatch('setCurrentFrame', frame.id);
+        commit('SET_CURRENT_FRAME_ID', frame.id);
         commit('SET_LOADING_FRAME', false);
       }
 

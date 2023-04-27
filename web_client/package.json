@@ -1,12 +1,13 @@
 {
   "name": "miqa",
-  "version": "0.3.3",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "test:unit": "vue-cli-service test:unit",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "format": "vue-cli-service lint --fix"
   },
   "dependencies": {
     "@girder/oauth-client": "^0.7.7",
@@ -19,7 +20,6 @@
     "idle-js": "^1.2.0",
     "itk": "14.0.0",
     "lodash": "^4.17.21",
-    "mousetrap": "github:scottwittenburg/mousetrap#fix-listener-leak",
     "polyfill-object.fromentries": "^1.0.1",
     "uuid": "^3.4.0",
     "vtk.js": "22.5.7",

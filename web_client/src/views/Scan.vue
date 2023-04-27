@@ -1,9 +1,14 @@
 <script lang="ts">
-import _ from 'lodash';
 import {
-  mapActions,
-  mapState,
-} from 'vuex';
+  defineComponent,
+  computed,
+  ref,
+  watch,
+  onMounted,
+} from 'vue';
+import _ from 'lodash';
+import router from '@/router';
+import store from '@/store';
 
 import Navbar from '@/components/Navbar.vue';
 import ControlPanel from '@/components/ControlPanel.vue';
@@ -12,7 +17,7 @@ import VtkViewer from '@/components/VtkViewer.vue';
 import { ScanDecision } from '@/types';
 import formatSize from '@/utils/helper';
 
-export default {
+export default defineComponent({
   name: 'ScanView',
   components: {
     Navbar,
@@ -20,97 +25,106 @@ export default {
     VtkViewer,
     ControlPanel,
   },
-  inject: ['user'],
-  data() {
-    return {
-      downloadLoaded: 0,
-      downloadTotal: 0,
-    };
-  },
-  computed: {
-    ...mapState([
-      'currentFrameId',
-      'vtkViews',
-      'frames',
-      'scanFrames',
-      'loadingFrame',
-      'errorLoadingFrame',
-      'currentScan',
-    ]),
-    currentScanFrames() {
-      return this.scanFrames[this.currentScan.id];
-    },
-    downloadProgressPercent() {
-      return 100 * (this.downloadLoaded / this.downloadTotal);
-    },
-    loadProgressMessage() {
-      if (this.downloadTotal && this.downloadLoaded === this.downloadTotal) {
+  setup() {
+    const user = computed(() => store.state.me);
+    const downloadLoaded = ref(0);
+    const downloadTotal = ref(0);
+    const decision = ref();
+    const decisionChanged = ref(false);
+    const newNote = ref('');
+
+    const currentFrameId = computed(() => store.state.currentFrameId);
+    const vtkViews = computed(() => store.state.vtkViews);
+    const frames = computed(() => store.state.frames);
+    const scanFrames = computed(() => store.state.scanFrames);
+    const loadingFrame = computed(() => store.state.loadingFrame);
+    const errorLoadingFrame = computed(() => store.state.errorLoadingFrame);
+    const currentScan = computed(() => store.getters.currentScan);
+
+    const loadScan = (scan) => store.dispatch('loadScan', scan);
+    const swapToFrame = (info) => store.dispatch('swapToFrame', info);
+    const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+
+    const currentFrame = computed(() => frames.value[currentFrameId.value]);
+    const currentScanFrames = computed(() => scanFrames[currentScan.value.id]);
+    const downloadProgressPercent = computed(
+      () => (downloadTotal.value ? 100 * (downloadLoaded.value / downloadTotal.value) : 0),
+    );
+    const loadProgressMessage = computed(() => {
+      if (downloadTotal.value && downloadLoaded.value === downloadTotal.value) {
         return 'Loading image viewer...';
       }
-      return `Downloading image ${formatSize(this.downloadLoaded)} / ${formatSize(this.downloadTotal)}`;
-    },
-    currentFrame() {
-      return this.frames[this.currentFrameId];
-    },
-  },
-  watch: {
-    currentScan(scan) {
+      return `Downloading image ${formatSize(downloadLoaded.value)} / ${formatSize(downloadTotal.value)}`;
+    });
+
+    /** Update the download progress */
+    function onFrameDownloadProgress(e) {
+      downloadLoaded.value = e.loaded;
+      downloadTotal.value = e.total;
+    }
+    /** Loads a specific frame */
+    async function swapToScan() {
+      // Get the project/frame id's from the URL
+      const { projectId, scanId } = router.app.$route.params;
+      const scan = await loadScan({ scanId, projectId });
+      const frame = frames.value[scanFrames.value[scan.id][0]];
+      if (frame) {
+        await swapToFrame({
+          frame,
+          onDownloadProgress: onFrameDownloadProgress,
+        });
+      } else {
+        router.replace('/');
+      }
+    }
+
+    watch(currentScan, (scan) => {
       if (scan) {
         const last: ScanDecision = _.head(scan.decisions);
-        this.decision = last ? last.decision : null;
-        this.decisionChanged = false;
-        this.newNote = '';
+        decision.value = last ? last.decision : null;
+        decisionChanged.value = false;
+        newNote.value = '';
       }
-    },
-    async currentFrameId(frameId) {
-      await this.swapToFrame({
-        frame: this.frames[frameId],
-        onDownloadProgress: this.onFrameDownloadProgress,
+    });
+    watch(currentFrameId, (frameId) => {
+      swapToFrame({
+        frame: frames.value[frameId],
+        onDownloadProgress: onFrameDownloadProgress,
         loadAll: false,
       });
-    },
+    });
+
+    onMounted(() => {
+      window.addEventListener('unauthorized', () => {
+        setSnackbar('Server session expired. Try again.');
+      });
+    });
+
+    return {
+      user,
+      downloadLoaded,
+      downloadTotal,
+      currentFrameId,
+      vtkViews,
+      frames,
+      scanFrames,
+      loadingFrame,
+      errorLoadingFrame,
+      currentFrame,
+      currentScanFrames,
+      downloadProgressPercent,
+      loadProgressMessage,
+      swapToScan,
+    };
+  },
+  watch: {
     // Replaces `beforeRouteUpdate` and code in `created` handling frame load
     '$route.params.scanId': {
       handler: 'swapToScan',
       immediate: true,
     },
   },
-  mounted() {
-    window.addEventListener('unauthorized', () => {
-      this.$snackbar({
-        text: 'Server session expired. Try again.',
-        timeout: 6000,
-      });
-    });
-  },
-  methods: {
-    ...mapActions([
-      'loadProject',
-      'swapToFrame',
-      'loadScan',
-    ]),
-    /** Update the download progress */
-    onFrameDownloadProgress(e) {
-      this.downloadLoaded = e.loaded;
-      this.downloadTotal = e.total;
-    },
-    /** Loads a specific frame */
-    async swapToScan() {
-      // Get the project/frame id's from the URL
-      const { projectId, scanId } = this.$route.params;
-      const scan = await this.loadScan({ scanId, projectId });
-      const frame = this.frames[this.scanFrames[scan.id][0]];
-      if (frame) {
-        await this.swapToFrame({
-          frame,
-          onDownloadProgress: this.onFrameDownloadProgress,
-        });
-      } else {
-        this.$router.replace('/').catch(this.handleNavigationError);
-      }
-    },
-  },
-};
+});
 </script>
 
 <template>
