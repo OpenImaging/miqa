@@ -10,13 +10,13 @@ describe('Vuex Mutations', () => {
     const theStore = cloneDeep(storeConfig);
     const store = new Vuex.Store(theStore);
     expect(store.state.iIndexSlice).toBe(0);
-    store.commit('setCurrentVtkIndexSlices', { indexAxis: 'i', value: 1 });
+    store.commit('SET_CURRENT_VTK_INDEX_SLICES', { indexAxis: 'i', value: 1 });
     expect(store.state.iIndexSlice).toBe(1);
     expect(store.state.jIndexSlice).toBe(0);
-    store.commit('setCurrentVtkIndexSlices', { indexAxis: 'j', value: 1 });
+    store.commit('SET_CURRENT_VTK_INDEX_SLICES', { indexAxis: 'j', value: 1 });
     expect(store.state.jIndexSlice).toBe(1);
     expect(store.state.kIndexSlice).toBe(0);
-    store.commit('setCurrentVtkIndexSlices', { indexAxis: 'k', value: 1 });
+    store.commit('SET_CURRENT_VTK_INDEX_SLICES', { indexAxis: 'k', value: 1 });
     expect(store.state.kIndexSlice).toBe(1);
   });
 });

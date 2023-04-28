@@ -21,17 +21,22 @@ export default defineComponent({
       default: false,
     },
   },
-  methods: {
-    isValid(recipient: string) {
-      if (this.candidates.indexOf(recipient) !== -1) {
+  setup(props) {
+    function isValid(recipient: string) {
+      if (props.candidates.indexOf(recipient) !== -1) {
         return true;
       }
       return /.+@.+/.test(recipient);
-    },
-    allValid(recipients: Array<string>) {
-      const invalid = recipients.find((recipient) => !this.isValid(recipient));
+    }
+    function allValid(recipients: Array<string>) {
+      const invalid = recipients.find((recipient) => !isValid(recipient));
       return invalid ? 'Recipient is not valid' : true;
-    },
+    }
+
+    return {
+      isValid,
+      allValid,
+    };
   },
 });
 </script>
