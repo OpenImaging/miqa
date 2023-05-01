@@ -28,7 +28,8 @@ import {
   SET_TASK_OVERVIEW, SET_PROJECTS, ADD_SCAN_DECISION, SET_FRAME_EVALUATION, SET_CURRENT_SCREENSHOT,
   ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
   SET_ERROR_LOADING_FRAME, ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
-  UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
+  UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_WINDOW_WIDTH, SET_WINDOW_LEVEL,
+  SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
   SET_CURRENT_VTK_INDEX_SLICES, SET_SHOW_CROSSHAIRS, SET_STORE_CROSSHAIRS, SET_REVIEW_MODE,
 } from './mutation-types';
 
@@ -644,6 +645,12 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     /** Ensures that a specific image is being reviewed by a single individual */
     [SET_WINDOW_LOCKED](state, lockState) {
       state.windowLocked = lockState;
+    },
+    [SET_WINDOW_WIDTH](state, ww) {
+      state.currentWindowWidth = ww;
+    },
+    [SET_WINDOW_LEVEL](state, wl) {
+      state.currentWindowLevel = wl;
     },
     [SET_SCAN_CACHED_PERCENTAGE](state, percentComplete) {
       state.scanCachedPercentage = percentComplete;

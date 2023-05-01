@@ -44,8 +44,10 @@ export default defineComponent({
 
     function updateRender(ww, wl, updateRange = false) {
       if (windowLocked.value) return;
-      if (currentWindowWidth.value !== ww) props.representation.setWindowWidth(ww);
-      if (currentWindowLevel.value !== wl) props.representation.setWindowLevel(wl);
+      store.commit('SET_WINDOW_WIDTH', ww);
+      store.commit('SET_WINDOW_LEVEL', wl);
+      props.representation.setWindowWidth(ww);
+      props.representation.setWindowLevel(wl);
       if (updateRange) {
         currentRange.value = [
           wl - ww / 2,
