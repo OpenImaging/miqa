@@ -27,8 +27,7 @@ let s3ffClient;
 
 const oauthClient = new OAuthClient(OAUTH_API_ROOT, OAUTH_CLIENT_ID);
 const djangoClient = {
-  // TODO importing the actual AppStore type results in a dependency cycle
-  async restoreLogin(store: any) {
+  async restoreLogin(store) {
     await oauthClient.maybeRestoreLogin();
     if (oauthClient.isLoggedIn) {
       Object.assign(
@@ -42,13 +41,13 @@ const djangoClient = {
         },
       });
     } else {
-      this.login();
+      await this.login();
     }
 
     // mark user not-idle
     apiClient.interceptors.request.use(async (config) => {
       await oauthClient.maybeRestoreLogin();
-      await store.commit.updateLastApiRequestTime();
+      await store.commit('UPDATE_LAST_API_REQUEST_TIME');
 
       return config;
     }, (error) => Promise.reject(error));
@@ -126,7 +125,7 @@ const djangoClient = {
     const response = await apiClient.put('/global/settings', settings);
     return response?.data;
   },
-  async setProjectSettings(projectId: string, settings: ProjectSettings): Promise<ResponseData> {
+  async setProjectSettings(projectId: string, settings): Promise<ResponseData> {
     if (!projectId || !settings) return undefined;
     const response = await apiClient.put(`/projects/${projectId}/settings`, settings);
     return response?.data;
@@ -146,6 +145,8 @@ const djangoClient = {
   async createExperiment(projectId:string, experimentName: string): Promise<ResponseData> {
     if (!projectId || !experimentName) return undefined;
     const response = await apiClient.post('/experiments', {
+      // This returns id, name, lock_owner, scans, project, note - why we do
+      // only have project and name specified here?
       project: projectId,
       name: experimentName,
     });
@@ -204,8 +205,8 @@ const djangoClient = {
     scanId: string,
     decision: string,
     comment: string,
-    userIdentifiedArtifacts: Object,
-    location: Object,
+    userIdentifiedArtifacts: object,
+    location: object,
   ): Promise<ResponseData> {
     if (!scanId) return undefined;
     const response = await apiClient.post('/scan-decisions', {

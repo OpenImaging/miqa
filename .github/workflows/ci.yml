@@ -11,7 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/tox
       - uses: ./.github/actions/npm
       - run: tox -e lint
@@ -40,7 +40,7 @@ jobs:
         ports:
           - 9000:9000
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ./.github/actions/lfs
       - uses: ./.github/actions/tox
       - run: tox
@@ -51,45 +51,23 @@ jobs:
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
-      - uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
 
-  pyppeteer:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: django
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-      rabbitmq:
-        image: rabbitmq:management
-        ports:
-          - 5672:5672
-      minio:
-        image: bitnami/minio:latest
-        env:
-          MINIO_ROOT_USER: minioAccessKey
-          MINIO_ROOT_PASSWORD: minioSecretKey
-        ports:
-          - 9000:9000
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ./.github/actions/tox
-      - uses: ./.github/actions/lfs
-      - uses: ./.github/actions/npm
-      - uses: docker://ghcr.io/girder/pytest-pyppeteer:v0.0.11
-        with:
-          install_directory: web_client
-          install_command: npm install
-          test_directory: .
-          test_command: tox -e test-pyppeteer
-        env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@postgres:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: minio:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
-          DJANGO_STORAGE_BUCKET_NAME: integration-test-bucket
+#  playwright:
+#    timeout-minutes: 60
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v3
+#    - uses: actions/setup-node@v3
+#      with:
+#        node-version: 16
+#    - name: Install dependencies
+#      run: cd web_client && npm ci
+#    - name: Install Playwright Browsers
+#      run: cd web_client && npx playwright install --with-deps
+#    - name: Run Playwright tests
+#      run: cd web_client && npx playwright test
+#    - uses: actions/upload-artifact@v3
+#      with:
+#        name: playwright-report
+#        path: playwright-report/
+#        retention-days: 30

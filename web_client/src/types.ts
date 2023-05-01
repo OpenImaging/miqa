@@ -1,56 +1,33 @@
-/* eslint camelcase: "off" */
+/* eslint-disable  @typescript-eslint/no-explicit-any *//* eslint camelcase: "off" */
 /* eslint no-unused-vars: "off" */
 /* eslint no-shadow: "off" */
-
-interface User {
-  id: number,
-  username: string,
-  email: string,
-  is_superuser: boolean
-}
+import type { WorkerPool } from 'itk/WorkerPool';
 
 interface ResponseData {
   detail: string,
   errors: string[],
   warnings: string[],
+  default_email_recipients?: string[],
+  permissions?: string[],
+  id?: string,
 }
 
-interface Frame {
-  id: string,
-  name: string,
-  scan: string,
-  extension: string,
+interface User {
+  id: number,
+  username: string,
+  email: string,
+  is_superuser: boolean,
+  first_name: string,
+  last_name: string,
 }
 
-interface ScanDecision {
-  id: string,
-  creator: User,
-  created: string,
-  decision: string,
-  note: string,
-  user_identified_artifacts: {
-    present: String[],
-    absent: String[],
-  },
-  location: {
-    i: number,
-    j: number,
-    k: number,
-  }
-}
-
-interface Scan {
-  id: string,
-  name: string,
-  scan_id: string,
-  scan_type: string,
-  experiment: string,
-  decisions: ScanDecision[],
-  frames: Frame[],
-  subject_id: string,
-  session_id: string,
-  scan_link: string,
-  notes: string,
+interface Email {
+  to: string[],
+  cc: string[],
+  bcc: string[],
+  subject: string,
+  body: string,
+  screenshots: any[],
 }
 
 interface Experiment {
@@ -60,22 +37,59 @@ interface Experiment {
     id: number,
     username: string,
   },
+  lockOwner: {
+    id: number,
+    username: string,
+  },
+  // eslint-disable-next-line no-use-before-define
   scans?: Scan[],
   project: string,
   note: string,
+}
+
+interface Frame {
+  id: string,
+  name: string,
+  scan: string,
+  extension: string,
+  experiment?: string,
+  frame_evaluation?: string,
+}
+
+interface MIQAConfig {
+  version: string,
+  artifact_states: {
+    PRESENT: boolean,
+  }
+  artifact_options?: string[],
+  auto_artifact_threshold: number,
+  NORMAL_USERS_CAN_CREATE_PROJECTS: boolean,
+  S3_SUPPORT: boolean,
+}
+
+interface Project {
+  id: string,
+  name: string,
+  experiments?: Experiment[],
+  // eslint-disable-next-line no-use-before-define
+  settings: ProjectSettings,
+  status: {
+    total_scans: number,
+    total_complete: number,
+  }
+  creator: string;
 }
 
 interface ProjectSettings {
   import_path: string,
   export_path: string,
   anatomy_orientation?: string,
-  permissions?: Object,
-}
-
-enum ScanState {
-  unreviewed = '#1460A3',
-  needs_tier_2_review = '#6DB1ED',
-  complete = '#00C853',
+  permissions?: {
+    collaborator: [],
+    tier_1_reviewer: [],
+    tier_2_reviewer: [],
+  },
+  default_email_recipients?: string[],
 }
 
 interface ProjectTaskOverview {
@@ -88,28 +102,109 @@ interface ProjectTaskOverview {
   },
 }
 
-interface Project {
+interface Scan {
   id: string,
   name: string,
-  experiments?: Experiment[],
-  settings: ProjectSettings,
-  status: {
-    total_scans: number,
-    total_complete: number,
-  }
-  creator: string;
+  scan_id: string,
+  scan_type: string,
+  experiment: string,
+  // eslint-disable-next-line no-use-before-define
+  decisions: ScanDecision[],
+  frames: Frame[],
+  subject_id: string,
+  subjectID: string,
+  session_id: string,
+  sessionID: string,
+  scan_link: string,
+  link: string,
+  notes: string,
+  cumulativeRange?: number,
 }
 
-interface Email {
-  to: string[],
-  cc: string[],
-  bcc: string[],
-  subject: string,
-  body: string,
-  screenshots: any[],
+interface ScanDecision {
+  id: string,
+  creator: User,
+  created: string,
+  decision: string,
+  note: string,
+  user_identified_artifacts: {
+    present: string[],
+    absent: string[],
+  },
+  location: {
+    i: number,
+    j: number,
+    k: number,
+  }
+}
+
+enum ScanState {
+  unreviewed = '#1460A3',
+  needs_tier_2_review = '#6DB1ED',
+  complete = '#00C853',
+}
+
+interface WindowLock {
+  lock: boolean;
+  duration?: string;
+  target?: string;
+  associatedImage?: string;
+}
+
+interface MIQAStore {
+  MIQAConfig: MIQAConfig;
+  me: User | null;
+  snackbar: string | null;
+  allUsers: User[];
+  reviewMode: boolean;
+  globalSettings?: ProjectSettings;
+  currentProject: Project | null;
+  currentTaskOverview: ProjectTaskOverview | null;
+  currentProjectPermissions: {
+    [key: string]: User[];
+  };
+  projects: Project[];
+  experimentIds: string[];
+  experiments: {
+    [key: string]: Experiment;
+  };
+  experimentScans: {
+    [key: string]: string[];
+  },
+  scans: {
+    [key: string]: Scan;
+  };
+  scanFrames: any;
+  frames: {
+    [key: string]: Frame;
+  };
+  proxyManager: any;
+  vtkViews: any[];
+  currentFrameId: string | null;
+  loadingFrame: boolean;
+  errorLoadingFrame: boolean;
+  loadingExperiment: boolean;
+  currentScreenshot: any;
+  screenshots: any[];
+  scanCachedPercentage: number;
+  showCrosshairs: boolean;
+  storeCrosshairs: boolean;
+  sliceLocation: {
+    [key: string]: number;
+  };
+  iIndexSlice: number;
+  jIndexSlice: number;
+  kIndexSlice: number;
+  currentWindowWidth: number;
+  currentWindowLevel: number;
+  renderOrientation: string;
+  windowLocked: WindowLock;
+  workerPool: WorkerPool;
+  lastApiRequestTime: number;
 }
 
 export {
   User, ResponseData, Project, ProjectTaskOverview, ProjectSettings,
-  Scan, ScanDecision, Frame, ScanState, Email, Experiment,
+  Scan, ScanDecision, Frame, ScanState, Email, Experiment, MIQAConfig,
+  WindowLock, MIQAStore,
 };

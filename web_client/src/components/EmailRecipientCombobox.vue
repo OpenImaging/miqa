@@ -1,6 +1,5 @@
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api';
-import { PropType } from 'vue';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
   name: 'EmailRecipientCombobox',
@@ -22,17 +21,22 @@ export default defineComponent({
       default: false,
     },
   },
-  methods: {
-    isValid(recipient: string) {
-      if (this.candidates.indexOf(recipient) !== -1) {
+  setup(props) {
+    function isValid(recipient: string) {
+      if (props.candidates.indexOf(recipient) !== -1) {
         return true;
       }
       return /.+@.+/.test(recipient);
-    },
-    allValid(recipients: Array<string>) {
-      const invalid = recipients.find((recipient) => !this.isValid(recipient));
+    }
+    function allValid(recipients: Array<string>) {
+      const invalid = recipients.find((recipient) => !isValid(recipient));
       return invalid ? 'Recipient is not valid' : true;
-    },
+    }
+
+    return {
+      isValid,
+      allValid,
+    };
   },
 });
 </script>
@@ -45,7 +49,7 @@ export default defineComponent({
     :rules="[
       allValid,
       v =>
-        !!v.length || (required ? `at least one recipient is required` : true)
+        !!v.length || (required ? `at least one recipient is required` : true),
     ]"
     multiple
     deletable-chips

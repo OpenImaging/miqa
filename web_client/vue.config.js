@@ -11,7 +11,7 @@ const stat = util.promisify(fs.stat);
 module.exports = {
   devServer: {
     port: 8081,
-    public: process.env.PUBLIC_ADDRESS,
+    host: process.env.PUBLIC_ADDRESS,
   },
   lintOnSave: false,
   publicPath: process.env.VUE_APP_STATIC_PATH,

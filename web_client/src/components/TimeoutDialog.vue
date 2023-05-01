@@ -2,19 +2,17 @@
 import IdleJS from 'idle-js';
 import {
   computed, defineComponent, ref,
-} from '@vue/composition-api';
+} from 'vue';
 import djangoRest from '@/django';
 import store from '@/store';
-
-const warningDuration = 2 * 60 * 1000; // the warning box will pop up for 2 minutes
-// The server-side session token lasts 30 minutes
-const sessionTimeout = 30 * 60 * 1000;
-// Log out after 15 minutes if the user is away from keyboard
-const idleTimeout = 15 * 60 * 1000;
+import { WARNING_DURATION, SESSION_TIMEOUT, IDLE_TIMEOUT } from '@/constants';
 
 export default defineComponent({
   name: 'TimeoutDialog',
   setup() {
+    const warningDuration = WARNING_DURATION;
+    const sessionTimeout = SESSION_TIMEOUT;
+    const idleTimeout = IDLE_TIMEOUT;
     const show = ref(false);
     const idleWarningTriggered = ref(false);
     const unauthorizedTriggered = ref(false);
@@ -28,7 +26,8 @@ export default defineComponent({
     });
 
     window.addEventListener(
-      'unauthorized', () => {
+      'unauthorized',
+      () => {
         show.value = true;
         unauthorizedTriggered.value = true;
         timeRemaining.value = 30000;
@@ -37,9 +36,10 @@ export default defineComponent({
 
     const lastApiRequestTime = computed(() => store.state.lastApiRequestTime);
 
-    const reset = async () => {
+    const continueSession = async () => {
+      // Pass the store so last update can be updated if authentication renewed
       await djangoRest.restoreLogin(store);
-      djangoRest.projects();
+      await djangoRest.projects();
 
       // reset dialog
       show.value = false;
@@ -96,7 +96,7 @@ export default defineComponent({
       unauthorizedTriggered,
       timeRemaining,
       timeRemainingStr,
-      reset,
+      continueSession,
       logout,
       sessionTimeout,
       idleTimeout,
@@ -140,7 +140,7 @@ export default defineComponent({
         <v-btn
           color="primary"
           text
-          @click="reset"
+          @click="continueSession"
         >
           Continue Session
         </v-btn>
