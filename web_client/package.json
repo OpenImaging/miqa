@@ -18,7 +18,7 @@
     "django-s3-file-field": "^0.3.0",
     "gl-matrix": "^3.4.3",
     "idle-js": "^1.2.0",
-    "itk-wasm": "^1.0.0",
+    "itk-wasm": "^1.0.0-b.18",
     "lodash": "^4.17.21",
     "polyfill-object.fromentries": "^1.0.1",
     "uuid": "^3.4.0",
