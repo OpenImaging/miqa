@@ -3,8 +3,8 @@ import Vuetify from 'vuetify';
 import 'polyfill-object.fromentries';
 
 import AsyncComputed from 'vue-async-computed';
-import config from 'itk/itkConfig';
 import * as Sentry from '@sentry/vue';
+import config from './utils/itkConfig';
 import App from './App.vue';
 import router from './router';
 

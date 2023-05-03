@@ -7,8 +7,8 @@ import { InterpolationType } from 'vtk.js/Sources/Rendering/Core/ImageProperty/C
 
 import '../utils/registerReaders';
 
-import readImageArrayBuffer from 'itk/readImageArrayBuffer';
-import WorkerPool from 'itk/WorkerPool';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { readImageArrayBuffer, WorkerPool, WorkerPoolFunction } from 'itk-wasm';
 import ITKHelper from 'vtk.js/Sources/Common/DataModel/ITKHelper';
 import axios from 'axios';
 import djangoRest, { apiClient } from '@/django';
@@ -28,7 +28,8 @@ import {
   SET_TASK_OVERVIEW, SET_PROJECTS, ADD_SCAN_DECISION, SET_FRAME_EVALUATION, SET_CURRENT_SCREENSHOT,
   ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
   SET_ERROR_LOADING_FRAME, ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
-  UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
+  UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_WINDOW_WIDTH, SET_WINDOW_LEVEL,
+  SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
   SET_CURRENT_VTK_INDEX_SLICES, SET_SHOW_CROSSHAIRS, SET_STORE_CROSSHAIRS, SET_REVIEW_MODE,
 } from './mutation-types';
 
@@ -103,7 +104,7 @@ function getImageData(frameId: string, file, webWorker = null) {
       // 4. Wait until the file has been loaded
       io.onload = function onLoad() {
         // 5. Read image using ITK
-        readImageArrayBuffer(webWorker, io.result, fileName)
+        readImageArrayBuffer(webWorker, io.result as ArrayBuffer, fileName, '')
           // 6. Convert image from ITK to VTK
           .then(({ webWorker, image }) => { // eslint-disable-line no-shadow
             const frameData = convertItkToVtkImage(image, {
@@ -179,45 +180,45 @@ async function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
  * Use a worker to download image files. Only used by WorkerPool
  * taskInfo  Object  Contains experimentId, scanId, and a frame object
  */
-function poolFunction(webWorker, taskInfo) {
-  return new Promise((resolve, reject) => {
-    const { frame } = taskInfo;
+const poolFunction: WorkerPoolFunction = (webWorker, taskInfo) => new Promise((resolve, reject) => {
+  const { frame } = taskInfo;
 
-    let filePromise = null;
+  let filePromise = null;
 
-    if (fileCache.has(frame.id)) {
-      filePromise = fileCache.get(frame.id);
-    } else {
-      let client = apiClient;
-      let downloadURL = `/frames/${frame.id}/download`;
-      if (frame.download_url) {
-        client = axios.create();
-        downloadURL = frame.download_url;
-      }
-      const download = ReaderFactory.downloadFrame(
-        client,
-        `image${frame.extension}`,
-        downloadURL,
-      );
-      filePromise = download.promise;
-      fileCache.set(frame.id, filePromise);
-      pendingFrameDownloads.add(download);
-      filePromise.then(() => {
-        pendingFrameDownloads.delete(download);
-      }).catch(() => {
-        pendingFrameDownloads.delete(download);
-      });
+  if (fileCache.has(frame.id)) {
+    filePromise = fileCache.get(frame.id);
+  } else {
+    let client = apiClient;
+    let downloadURL = `/frames/${frame.id}/download`;
+    if (frame.download_url) {
+      client = axios.create();
+      downloadURL = frame.download_url;
     }
+    const download = ReaderFactory.downloadFrame(
+      client,
+      `image${frame.extension}`,
+      downloadURL,
+    );
+    filePromise = download.promise;
+    fileCache.set(frame.id, filePromise);
+    pendingFrameDownloads.add(download);
+    filePromise.then(() => {
+      pendingFrameDownloads.delete(download);
+    }).catch(() => {
+      pendingFrameDownloads.delete(download);
+    });
+  }
 
-    filePromise
-      .then((file) => {
-        resolve(getImageData(frame.id, file, webWorker));
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-}
+  filePromise
+    .then((file) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      resolve(getImageData(frame.id, file, webWorker));
+    })
+    .catch((err) => {
+      reject(err);
+    });
+});
 
 /** Calculates the percent downloaded of currently loading frames */
 function progressHandler(completed, total) {
@@ -644,6 +645,12 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     /** Ensures that a specific image is being reviewed by a single individual */
     [SET_WINDOW_LOCKED](state, lockState) {
       state.windowLocked = lockState;
+    },
+    [SET_WINDOW_WIDTH](state, ww) {
+      state.currentWindowWidth = ww;
+    },
+    [SET_WINDOW_LEVEL](state, wl) {
+      state.currentWindowLevel = wl;
     },
     [SET_SCAN_CACHED_PERCENTAGE](state, percentComplete) {
       state.scanCachedPercentage = percentComplete;
