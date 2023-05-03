@@ -1,7 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any *//* eslint camelcase: "off" */
 /* eslint no-unused-vars: "off" */
 /* eslint no-shadow: "off" */
-import type { WorkerPool } from 'itk/WorkerPool';
+import type { WorkerPool } from 'itk-wasm';
 
 interface ResponseData {
   detail: string,
