@@ -1,5 +1,6 @@
 import vtkITKImageReader from 'vtk.js/Sources/IO/Misc/ITKImageReader';
-import readImageArrayBuffer from 'itk/readImageArrayBuffer';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { readImageArrayBuffer } from 'itk-wasm';
 
 import ReaderFactory from './ReaderFactory';
 
