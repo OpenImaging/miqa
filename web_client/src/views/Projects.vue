@@ -118,9 +118,7 @@ export default defineComponent({
       }
     }
     function selectProject(project: Project) {
-      if (complete) {
-        complete = false;
-      }
+      complete = false;
       store.dispatch('loadProject', project);
     }
     async function createProject() {
