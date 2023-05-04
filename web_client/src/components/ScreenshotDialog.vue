@@ -70,7 +70,7 @@ export default defineComponent({
 
     onMounted(async () => {
       output.value = await getOutput();
-      fileName.value = currentScreenshot.value.name;
+      fileName.value = currentScreenshot.value ? currentScreenshot.value.name : 'Screenshot';
     });
 
     return {
