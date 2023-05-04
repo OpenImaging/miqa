@@ -118,9 +118,7 @@ export default defineComponent({
       }
     }
     function selectProject(project: Project) {
-      if (complete) {
-        complete = false;
-      }
+      complete = false;
       store.dispatch('loadProject', project);
     }
     async function createProject() {
@@ -152,7 +150,7 @@ export default defineComponent({
           while (
             (!nextScan
             || (nextScanState === 'complete' && reviewMode.value))
-            && nextProject.experiments[0].scans
+            && nextProject.experiments[0]?.scans
             && nextScanIndex < nextProject.experiments[0].scans.length
           ) {
             nextScan = nextProject.experiments[0].scans[nextScanIndex];
@@ -372,7 +370,7 @@ export default defineComponent({
           fill-height
         >
           <div
-            v-if="complete"
+            v-if="complete && currentProject"
             class="text-h6 text-center"
           >
             Viewed all scans in Project {{ currentProject.name }}.
