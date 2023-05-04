@@ -32,6 +32,7 @@ export default defineComponent({
       return name;
     });
     function hashCode(s) {
+      if (!s) return 0;
       return s.split('')
         .reduce((a, b) => {
           const c = a < 5 ? 1 : 0;
