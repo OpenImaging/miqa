@@ -150,7 +150,7 @@ export default defineComponent({
           while (
             (!nextScan
             || (nextScanState === 'complete' && reviewMode.value))
-            && nextProject.experiments[0].scans
+            && nextProject.experiments[0]?.scans
             && nextScanIndex < nextProject.experiments[0].scans.length
           ) {
             nextScan = nextProject.experiments[0].scans[nextScanIndex];
@@ -370,7 +370,7 @@ export default defineComponent({
           fill-height
         >
           <div
-            v-if="complete"
+            v-if="complete && currentProject"
             class="text-h6 text-center"
           >
             Viewed all scans in Project {{ currentProject.name }}.

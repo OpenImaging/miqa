@@ -28,10 +28,10 @@ export default defineComponent({
     const collaborators = computed(
       () => currentProject.value.settings.permissions.collaborator as User[],
     );
-    const members = computed(() => [
+    const members = computed(() => (currentProject.value?.settings?.permissions ? [
       ...currentProject.value.settings.permissions.tier_1_reviewer,
       ...currentProject.value.settings.permissions.tier_2_reviewer,
-    ] as User[]);
+    ] as User[] : []));
     const emailOptions = computed(() => members.value.concat(collaborators.value).map(
       (u: User) => u.email,
     ));
@@ -285,6 +285,7 @@ export default defineComponent({
         :dark="false"
       >
         <v-card
+          v-if="selectedPermissionSet"
           class="dialog-box"
         >
           <v-btn
