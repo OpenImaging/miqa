@@ -348,6 +348,7 @@ export default defineComponent({
         :dark="false"
       >
         <v-card
+          v-if="selectedPermissionSet"
           class="dialog-box"
         >
           <v-btn

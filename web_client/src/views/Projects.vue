@@ -32,7 +32,7 @@ export default defineComponent({
     ProjectUsers,
   },
   setup() {
-    let complete = window.location.hash.includes('complete');
+    const complete = ref(window.location.hash.includes('complete'));
     const user = computed(() => store.state.me);
     const miqaConfig = computed(() => store.state.MIQAConfig);
     const loadingProjects = ref(true);
@@ -108,7 +108,7 @@ export default defineComponent({
       );
     }
     async function getProjectFromURL() {
-      if (complete) {
+      if (complete.value) {
         const targetProjectIndex = projects.value.findIndex(
           (project) => project.id === window.location.hash.split('/')[1],
         );
@@ -118,7 +118,7 @@ export default defineComponent({
       }
     }
     function selectProject(project: Project) {
-      complete = false;
+      complete.value = false;
       store.dispatch('loadProject', project);
     }
     async function createProject() {
