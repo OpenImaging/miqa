@@ -359,7 +359,7 @@ export default defineComponent({
           class="flex-container"
         >
           <ExperimentsView />
-          <ProjectUsers />
+          <ProjectUsers v-if="currentProject?.settings?.permissions" />
         </div>
       </div>
       <v-card
