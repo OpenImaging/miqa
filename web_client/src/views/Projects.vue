@@ -359,7 +359,7 @@ export default defineComponent({
           class="flex-container"
         >
           <ExperimentsView />
-          <ProjectUsers />
+          <ProjectUsers v-if="currentProject?.settings?.permissions" />
         </div>
       </div>
       <v-card
@@ -405,7 +405,7 @@ export default defineComponent({
             </v-subheader>
           </div>
           <div
-            v-else-if="projects.length > 0"
+            v-else-if="projects && projects.length > 0"
             class="text-h6"
           >
             Select a project

@@ -60,6 +60,7 @@ export default defineComponent({
       return `${user.first_name} ${user.last_name}`;
     }
     function allEmails(inputs) {
+      if (!inputs) return true;
       for (let i = 0; i < inputs.length; i += 1) {
         const match = String(inputs[i])
           .toLowerCase()
