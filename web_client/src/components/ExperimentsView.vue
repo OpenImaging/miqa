@@ -58,7 +58,7 @@ export default defineComponent({
     /** Assigns a color and character if a decision has been rendered on a given scan */
     function decisionToRating(decisions) {
       // decisions are an array of objects
-      if (decisions.length === 0) return {};
+      if (!decisions || decisions.length === 0) return {};
       const rating = _.last(_.sortBy(decisions, (decision) => decision.created)).decision;
       let color = 'grey--text';
       if (rating === 'U') {
@@ -88,6 +88,7 @@ export default defineComponent({
     /** Receives a string like "NCANDA_E08710" (name of an image file),
      * this is used as the experiment name */
     function ellipsisText(str) {
+      if (!str) return '';
       if (!props.minimal) return str;
       if (str.length > 25) {
         return `${str.substr(0, 10)}...${
@@ -357,7 +358,7 @@ export default defineComponent({
                     >
                       {{ ellipsisText(scan.name) }}
                       <span
-                        v-if="scan.decisions.length !== 0"
+                        v-if="scan.decisions && scan.decisions.length !== 0"
                         :class="scan.color + ' pl-3'"
                         small
                       >({{ scan.decision }})</span>
@@ -374,7 +375,7 @@ export default defineComponent({
         </ul>
       </div>
       <div
-        v-else-if="currentProject.experiments.length"
+        v-else-if="currentProject.experiments?.length"
         class="pa-5"
         style="width: 60%; text-align: center"
       >

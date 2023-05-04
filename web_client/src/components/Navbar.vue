@@ -119,6 +119,7 @@ export default defineComponent({
         @click="emailDialog = true"
       >
         <v-badge
+          v-if="screenshots"
           :value="screenshots.length"
           right
         >
