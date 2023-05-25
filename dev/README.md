@@ -93,3 +93,13 @@ some (but not all) of the style checks, run `tox -e format`.
 To generate an HTML coverage report from tests, run:
 
 `tox -e test -- --cov=miqa --cov-report=html`
+
+### Updating the worker when Heroku database URL changes
+
+Run:
+
+`ansible-vault encrypt_string --vault-password-file ansible/vault-password '<new_database_url>' --name database_url`
+
+Then dump the contents into `vaultvars.yml` and run:
+
+`ansible-playbook --vault-password-file ./vault-password -i hosts playbook.yml`
