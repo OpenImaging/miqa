@@ -154,7 +154,6 @@ class CrosshairSet {
       j: worldLocation[correctedAxes.j][1],
       k: worldLocation[correctedAxes.k][2],
     };
-    console.log(worldLocation, indexLocation);
     return {
       worldLocation,
       indexLocation,
