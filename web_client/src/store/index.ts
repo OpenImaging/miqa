@@ -232,7 +232,7 @@ function progressHandler(completed, total) {
 function startReaderWorkerPool(onDownloadProgress) {
   // Get the current array of tasks in readDataQueue
   const taskArgsArray = readDataQueue.map((taskInfo) => [
-    Object.assign(taskInfo, { onDownloadProgress }),
+    { ...taskInfo, onDownloadProgress },
   ]);
   readDataQueue = [];
 
