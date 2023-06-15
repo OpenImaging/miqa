@@ -8,6 +8,7 @@ import {
   onBeforeUnmount,
 } from 'vue';
 import { vec3 } from 'gl-matrix';
+import debounce from 'lodash/debounce';
 import store from '@/store';
 import CrosshairSet from '../utils/crosshairs';
 import fill2DView from '../utils/fill2DView';
@@ -47,7 +48,8 @@ export default defineComponent({
 
     const setCurrentScreenshot = (ss) => store.commit('SET_CURRENT_SCREENSHOT', ss);
     const setCurrentVtkIndexSlices = (slices) => store.commit('SET_CURRENT_VTK_INDEX_SLICES', slices);
-    const setSliceLocation = (loc) => store.commit('SET_SLICE_LOCATION', loc);
+    const setWorldLocation = (locations) => store.commit('SET_WORLD_LOCATION', locations);
+    const setIndexLocation = (locations) => store.commit('SET_INDEX_LOCATION', locations);
 
     const representation = computed(
       // Returning representation from VTK
@@ -248,8 +250,10 @@ export default defineComponent({
         jIndexSlice.value,
         kIndexSlice.value,
       );
-      const location = crosshairSet.locationOfClick(clickEvent);
-      setSliceLocation(location);
+      const { worldLocation, indexLocation } = crosshairSet.locationOfClick(clickEvent);
+      setWorldLocation(worldLocation);
+      setIndexLocation(indexLocation);
+      updateCrosshairs();
     }
     function cleanup() {
       props.view.setContainer(null);
@@ -315,7 +319,7 @@ export default defineComponent({
       renderSubscription.value = props.view.getInteractor().onRenderEvent(() => {
         updateCrosshairs();
       });
-      resizeObserver.value = new window.ResizeObserver((entries) => {
+      resizeObserver.value = new window.ResizeObserver(debounce((entries) => {
         if (entries.length === 1 && viewer.value && crosshairsCanvas.value) {
           const width = viewer.value.clientWidth;
           const height = viewer.value.clientHeight;
@@ -326,7 +330,7 @@ export default defineComponent({
           initializeCamera();
           updateCrosshairs();
         }
-      });
+      }));
       resizeObserver.value.observe(viewer.value);
       applyCurrentWindowLevel();
     }

@@ -10,7 +10,7 @@
     "format": "vue-cli-service lint --fix"
   },
   "dependencies": {
-    "@girder/oauth-client": "^0.7.7",
+    "@girder/oauth-client": "^0.7.8",
     "@mdi/font": "^6.5.95",
     "@sentry/vue": "^7.9.0",
     "axios": "^0.24.0",
@@ -22,7 +22,7 @@
     "lodash": "^4.17.21",
     "polyfill-object.fromentries": "^1.0.1",
     "uuid": "^3.4.0",
-    "vtk.js": "22.5.7",
+    "vtk.js": "^28.2.2",
     "vue": "^2.7.14",
     "vue-async-computed": "^3.5.1",
     "vue-css-donut-chart": "^1.3.2",

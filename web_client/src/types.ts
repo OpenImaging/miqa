@@ -183,6 +183,7 @@ interface MIQAStore {
   currentFrameId: string | null;
   loadingFrame: boolean;
   errorLoadingFrame: boolean;
+  onDownloadProgress: (e: Event) => void | null;
   loadingExperiment: boolean;
   currentScreenshot: any;
   screenshots: any[];

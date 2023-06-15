@@ -19,7 +19,7 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const setSliceLocation = (loc) => store.commit('SET_SLICE_LOCATION', loc);
+    const setWorldLocation = (loc) => store.commit('SET_WORLD_LOCATION', loc);
 
     const artifactChips = computed(
       () => Object.entries(
@@ -39,12 +39,11 @@ export default defineComponent({
       return 'grey--text text--darken-2';
     }
     function goToLocation() {
-      setSliceLocation(props.decision.location);
+      setWorldLocation(props.decision.location);
     }
 
     return {
       decisionOptions,
-      setSliceLocation,
       artifactChips,
       convertDecisionToColor,
       goToLocation,
