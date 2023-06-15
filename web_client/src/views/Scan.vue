@@ -44,6 +44,7 @@ export default defineComponent({
     const loadScan = (scan) => store.dispatch('loadScan', scan);
     const swapToFrame = (info) => store.dispatch('swapToFrame', info);
     const setSnackbar = (text) => store.commit('SET_SNACKBAR', text);
+    const setOnDownloadProgress = (text) => store.commit('SET_ON_DOWNLOAD_PROGRESS', text);
 
     const currentFrame = computed(() => frames.value[currentFrameId.value]);
     const currentScanFrames = computed(() => scanFrames[currentScan.value.id]);
@@ -57,11 +58,12 @@ export default defineComponent({
       return `Downloading image ${formatSize(downloadLoaded.value)} / ${formatSize(downloadTotal.value)}`;
     });
 
-    /** Update the download progress */
-    function onFrameDownloadProgress(e) {
-      downloadLoaded.value = e.loaded;
-      downloadTotal.value = e.total;
-    }
+    setOnDownloadProgress(
+      (e) => {
+        downloadLoaded.value = e.loaded;
+        downloadTotal.value = e.total;
+      },
+    );
     /** Loads a specific frame */
     async function swapToScan() {
       // Get the project/frame id's from the URL
@@ -71,7 +73,6 @@ export default defineComponent({
       if (frame) {
         await swapToFrame({
           frame,
-          onDownloadProgress: onFrameDownloadProgress,
         });
       } else {
         router.replace('/');
@@ -89,7 +90,6 @@ export default defineComponent({
     watch(currentFrameId, (frameId) => {
       swapToFrame({
         frame: frames.value[frameId],
-        onDownloadProgress: onFrameDownloadProgress,
         loadAll: false,
       });
     });

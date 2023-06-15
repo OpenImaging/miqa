@@ -27,7 +27,8 @@ import {
   SET_FRAME, SET_SCAN, SET_RENDER_ORIENTATION, SET_CURRENT_PROJECT, SET_GLOBAL_SETTINGS,
   SET_TASK_OVERVIEW, SET_PROJECTS, ADD_SCAN_DECISION, SET_FRAME_EVALUATION, SET_CURRENT_SCREENSHOT,
   ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
-  SET_ERROR_LOADING_FRAME, ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
+  SET_ERROR_LOADING_FRAME, SET_ON_DOWNLOAD_PROGRESS,
+  ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
   UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_WINDOW_WIDTH, SET_WINDOW_LEVEL,
   SET_SCAN_CACHED_PERCENTAGE, SET_WORLD_LOCATION, SET_INDEX_LOCATION,
   SET_CURRENT_VTK_INDEX_SLICES, SET_SHOW_CROSSHAIRS, SET_STORE_CROSSHAIRS, SET_REVIEW_MODE,
@@ -178,10 +179,10 @@ async function loadFileAndGetData(frame, { onDownloadProgress = null } = {}) {
 
 /**
  * Use a worker to download image files. Only used by WorkerPool
- * taskInfo  Object  Contains experimentId, scanId, and a frame object
+ * taskInfo  Object  Contains onDownloadProgress, experimentId, scanId, and a frame object
  */
 const poolFunction: WorkerPoolFunction = (webWorker, taskInfo) => new Promise((resolve, reject) => {
-  const { frame } = taskInfo;
+  const { frame, onDownloadProgress } = taskInfo;
 
   let filePromise = null;
 
@@ -198,6 +199,7 @@ const poolFunction: WorkerPoolFunction = (webWorker, taskInfo) => new Promise((r
       client,
       `image${frame.extension}`,
       downloadURL,
+      { onDownloadProgress },
     );
     filePromise = download.promise;
     fileCache.set(frame.id, filePromise);
@@ -227,9 +229,11 @@ function progressHandler(completed, total) {
 }
 
 /** Creates array of tasks to run then runs tasks in parallel. */
-function startReaderWorkerPool() {
+function startReaderWorkerPool(onDownloadProgress) {
   // Get the current array of tasks in readDataQueue
-  const taskArgsArray = readDataQueue.map((taskInfo) => [taskInfo]);
+  const taskArgsArray = readDataQueue.map((taskInfo) => [
+    Object.assign(taskInfo, { onDownloadProgress }),
+  ]);
   readDataQueue = [];
 
   const { runId, promise } = store.state.workerPool.runTasks(
@@ -252,7 +256,7 @@ function startReaderWorkerPool() {
 
 /** Queues scan for download, will load all frames for a target
  * scan if the scan has not already been loaded. */
-function queueLoadScan(scan, loadNext = 0) {
+function queueLoadScan(scan, loadNext = 0, onDownloadProgress = null) {
   // load all frames in target scan
   if (!loadedData.includes(scan.id)) {
     // For each scan in scanFrames
@@ -295,8 +299,8 @@ function queueLoadScan(scan, loadNext = 0) {
         newIndex += 1;
       }
     }
-    if (nextScan) queueLoadScan(nextScan, loadNext - 1);
-    startReaderWorkerPool();
+    if (nextScan) queueLoadScan(nextScan, loadNext - 1, onDownloadProgress);
+    startReaderWorkerPool(onDownloadProgress);
   }
 }
 
@@ -391,6 +395,7 @@ const initState = {
   loadingFrame: false,
   errorLoadingFrame: false,
   loadingExperiment: false,
+  onDownloadProgress: null,
   currentScreenshot: null,
   screenshots: [],
   scanCachedPercentage: 0,
@@ -617,6 +622,9 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     },
     [SET_ERROR_LOADING_FRAME](state, isErrorLoading: boolean) {
       state.errorLoadingFrame = isErrorLoading;
+    },
+    [SET_ON_DOWNLOAD_PROGRESS](state, onDownloadProgress) {
+      state.onDownloadProgress = onDownloadProgress;
     },
     /** Adds a scanId and it's corresponding scanFrames state */
     [ADD_SCAN_FRAMES](state, { scanId, frameId }) {
@@ -867,7 +875,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
     /** Handles the process of changing frames */
     async swapToFrame({
       state, getters, commit,
-    }, { frame, onDownloadProgress = null, loadAll = true }) {
+    }, { frame, loadAll = true }) {
       if (!frame) {
         throw new Error("frame id doesn't exist");
       }
@@ -881,7 +889,7 @@ export const storeConfig:StoreOptions<MIQAStore> = {
 
         // Queue the new scan to be loaded
         if (newScan !== oldScan && newScan) {
-          queueLoadScan(newScan, 3);
+          queueLoadScan(newScan, 3, state.onDownloadProgress);
         }
         let newProxyManager = false;
         // Create new proxyManager if scans are different, retain if same
@@ -918,7 +926,10 @@ export const storeConfig:StoreOptions<MIQAStore> = {
         if (frameCache.has(frame.id)) {
           frameData = frameCache.get(frame.id).frameData;
         } else {
-          const result = await loadFileAndGetData(frame, { onDownloadProgress });
+          const result = await loadFileAndGetData(
+            frame,
+            { onDownloadProgress: state.onDownloadProgress },
+          );
           frameData = result.frameData;
         }
         sourceProxy.setInputData(frameData);
