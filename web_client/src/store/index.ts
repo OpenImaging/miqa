@@ -29,7 +29,7 @@ import {
   ADD_SCREENSHOT, REMOVE_SCREENSHOT, UPDATE_LAST_API_REQUEST_TIME, SET_LOADING_FRAME,
   SET_ERROR_LOADING_FRAME, ADD_SCAN_FRAMES, ADD_EXPERIMENT_SCANS, ADD_EXPERIMENT,
   UPDATE_EXPERIMENT, SET_WINDOW_LOCKED, SET_WINDOW_WIDTH, SET_WINDOW_LEVEL,
-  SET_SCAN_CACHED_PERCENTAGE, SET_SLICE_LOCATION,
+  SET_SCAN_CACHED_PERCENTAGE, SET_WORLD_LOCATION, SET_INDEX_LOCATION,
   SET_CURRENT_VTK_INDEX_SLICES, SET_SHOW_CROSSHAIRS, SET_STORE_CROSSHAIRS, SET_REVIEW_MODE,
 } from './mutation-types';
 
@@ -656,15 +656,28 @@ export const storeConfig:StoreOptions<MIQAStore> = {
       state.scanCachedPercentage = percentComplete;
     },
     /** Saves the location of the cursor click related to a specific scan and decision */
-    [SET_SLICE_LOCATION](state, ijkLocation) {
-      if (Object.values(ijkLocation).every((value) => value !== undefined)) {
+    [SET_WORLD_LOCATION](state, worldLocation) {
+      if (
+        worldLocation
+        && Object.values(worldLocation).every((value) => value !== undefined)
+      ) {
         state.vtkViews.forEach(
           (view) => {
             state.proxyManager.getRepresentation(null, view).setSlice(
-              ijkLocation[ijkMapping[view.getName()]],
+              worldLocation[ijkMapping[view.getName()]],
             );
           },
         );
+      }
+    },
+    [SET_INDEX_LOCATION](state, indexLocation) {
+      if (
+        indexLocation
+        && Object.values(indexLocation).every((value) => value !== undefined)
+      ) {
+        state.iIndexSlice = indexLocation.i;
+        state.jIndexSlice = indexLocation.j;
+        state.kIndexSlice = indexLocation.k;
       }
     },
     [SET_CURRENT_VTK_INDEX_SLICES](state, { indexAxis, value }) {

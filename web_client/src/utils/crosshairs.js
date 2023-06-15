@@ -17,7 +17,7 @@ class CrosshairSet {
     this.imageData = this.imageRepresentation.getInputDataSet();
     this.imageView = imageView;
     this.renderer = this.imageView.getRenderer();
-    this.renderWindow = this.imageView.getOpenglRenderWindow();
+    this.renderWindow = this.imageView.getOpenGLRenderWindow();
     this.imageCanvas = imageCanvas;
     this.iSlice = iSlice;
     this.jSlice = jSlice;
@@ -126,27 +126,38 @@ class CrosshairSet {
   }
 
   locationOfClick(clickEvent) {
+    const correctedAxes = Object.fromEntries(['i', 'j', 'k'].map((ijk) => [ijk, this.trueAxis(ijk)]));
     const picker = this.getPicker();
     picker.pick([clickEvent.position.x, clickEvent.position.y, 0], this.renderer);
     if (picker.getActors().length === 0) return { i: undefined, j: undefined, k: undefined };
 
     const [xyzLocation] = picker.getPickedPositions();
-    const indexLocation = this.imageData.worldToIndex(xyzLocation);
     const halfDims = this.imageData.getDimensions().map((dim) => dim / 2);
 
-    const worldCoords = Object.fromEntries(Object.entries({
+    let indexLocation = this.imageData.worldToIndex(xyzLocation);
+    indexLocation = Object.fromEntries(Object.entries({
       i: [indexLocation[0], halfDims[1], halfDims[2]],
       j: [halfDims[0], indexLocation[1], halfDims[2]],
       k: [halfDims[0], halfDims[1], indexLocation[2]],
-    }).map(
+    }));
+    let worldLocation = Object.fromEntries(Object.entries(indexLocation).map(
       ([axis, coords]) => [axis, this.imageData.indexToWorld(coords)],
     ));
 
-    const correctedAxes = Object.fromEntries(['i', 'j', 'k'].map((ijk) => [ijk, this.trueAxis(ijk)]));
+    indexLocation = {
+      i: indexLocation[correctedAxes.i][0],
+      j: indexLocation[correctedAxes.j][1],
+      k: indexLocation[correctedAxes.k][2],
+    };
+    worldLocation = {
+      i: worldLocation[correctedAxes.i][0],
+      j: worldLocation[correctedAxes.j][1],
+      k: worldLocation[correctedAxes.k][2],
+    };
+    console.log(worldLocation, indexLocation);
     return {
-      i: worldCoords[correctedAxes.i][0],
-      j: worldCoords[correctedAxes.j][1],
-      k: worldCoords[correctedAxes.k][2],
+      worldLocation,
+      indexLocation,
     };
   }
 }
