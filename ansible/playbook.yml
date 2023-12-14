@@ -15,7 +15,6 @@
           AWS_ACCESS_KEY_ID:                       AKIAT4NQES3ZKUKTDLIU
           AWS_DEFAULT_REGION:                      us-east-1
           AWS_SECRET_ACCESS_KEY:                   "{{ aws_secret_access_key }}"
-          CLOUDAMQP_APIKEY:                        "{{ cloudamqp_api_key }}"
           CLOUDAMQP_URL:                           "{{ cloudamqp_url }}"
           DATABASE_URL:                            "{{ database_url }}"
           DJANGO_ALLOWED_HOSTS:                    app.miqaweb.io

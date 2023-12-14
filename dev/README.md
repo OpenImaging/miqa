@@ -103,3 +103,10 @@ Run:
 Then dump the contents into `vaultvars.yml` and run:
 
 `ansible-playbook --vault-password-file ./vault-password -i hosts playbook.yml`
+
+### Handling automated Heroku credential updates
+
+Whenever the CloudAMQP plugin or Postgres plugin changes its URL (which happens automatically),
+you'll need to update the worker accordingly. To do so, run the `update_creds.py` script in
+the `ansible` directory. Copy/paste the updated values into the `vaultvars.yml` file and
+commit the changes. Once the PR is merged, CD should automatically deploy the changes.
