@@ -1,4 +1,4 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List
 
@@ -13,7 +13,7 @@ class EvaluationModel(ABC):
         self.expected_outputs = expected_outputs
         super().__init__()
 
-    @abstractclassmethod
+    @abstractmethod
     def load(self):
         pass
 
