@@ -39,7 +39,7 @@ setup(
         'celery',
         'dateparser',
         'django>=3.2,<4.0',
-        'django-allauth',
+        'django-allauth>=0.59.0',
         'django-auth-style[allauth]',
         'django-configurations[database,email]',
         'django-extensions',
