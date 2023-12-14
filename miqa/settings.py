@@ -98,6 +98,10 @@ class MiqaMixin(ConfigMixin):
             'EXCEPTION_HANDLER'
         ] = 'miqa.core.rest.exceptions.custom_exception_handler'
 
+        configuration.MIDDLEWARE += [
+            'allauth.account.middleware.AccountMiddleware',
+        ]
+
 
 class DevelopmentConfiguration(MiqaMixin, DevelopmentBaseConfiguration):
     HOMEPAGE_REDIRECT_URL = values.Value(environ=True, default='http://localhost:8081')

@@ -11,7 +11,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django_extensions.db.models import TimeStampedModel
-from s3_file_field import S3FileField
+from s3_file_field.fields import S3FileField
 
 from miqa.core.conversion.nifti_to_zarr_ngff import convert_to_store_path
 

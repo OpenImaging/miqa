@@ -51,7 +51,7 @@ def _download_from_s3(path: str, public: bool) -> bytes:
 
 @shared_task
 def reset_demo():
-    Project.objects.delete()
+    Project.objects.all().delete()
 
     demo_project = Project(
         name='Demo Project',
