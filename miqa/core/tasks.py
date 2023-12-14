@@ -51,23 +51,17 @@ def _download_from_s3(path: str, public: bool) -> bytes:
 
 @shared_task
 def reset_demo():
-    demo_user = User.objects.get(username='test@miqa.dev')
-    demo_project, created = Project.objects.get_or_create(
+    Project.objects.delete()
+
+    demo_project = Project(
         name='Demo Project',
-        defaults={
-            'creator': demo_user,
-            'import_path': 's3://miqa-storage/IXI_demo.csv',
-            'export_path': 'samples/demo.json',
-        },
+        creator=User.objects.get(username='test@miqa.dev'),
+        import_path='s3://miqa-storage/IXI_demo.csv',
+        export_path='samples/demo.json',
     )
-    if not created:
-        demo_project.creator = demo_user
-        demo_project.import_path = 's3://miqa-storage/IXI_demo.csv'
-        demo_project.export_path = 'samples/demo.json'
-        demo_project.save()
+    demo_project.save()
 
     import_data(demo_project.id)
-    Project.objects.exclude(id=demo_project.id).delete()
 
 
 @shared_task
