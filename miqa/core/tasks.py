@@ -12,6 +12,7 @@ from celery import shared_task
 import dateparser
 from django.conf import settings
 from django.contrib.auth.models import User
+from guardian.shortcuts import assign_perm
 import pandas
 from rest_framework.exceptions import APIException
 
@@ -53,13 +54,15 @@ def _download_from_s3(path: str, public: bool) -> bytes:
 def reset_demo():
     Project.objects.all().delete()
 
+    demo_user = User.objects.get(username='test@miqa.dev')
     demo_project = Project(
         name='Demo Project',
-        creator=User.objects.get(username='test@miqa.dev'),
+        creator=demo_user,
         import_path='s3://miqa-storage/IXI_demo.csv',
         export_path='samples/demo.json',
     )
     demo_project.save()
+    assign_perm('tier_2_reviewer', demo_user, demo_project)
 
     import_data(demo_project.id)
 
